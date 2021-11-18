@@ -1,0 +1,79 @@
+openapi: 3.0.0
+info:
+  description: GUI API
+  version: '1.0'
+  title: gui
+servers:
+  - url: /api/v1.0
+
+security:
+  - JWT: []
+
+paths:
+  /gui/currentUser:
+    get:
+      tags:
+        - gui
+      summary: load current user from security context
+      operationId: currentUser
+      responses:
+        200:
+          description: The user logged in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        404:
+          description: No user logged in
+  /gui/member/{memberId}/avatar:
+    get:
+      tags:
+        - gui
+      summary: load avatar for given member id
+      operationId: avatarOfMember
+      parameters:
+        - in: path
+          name: memberId
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: The avatar as PNG-stream
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+        404:
+          description: The member-id is unknown
+components:
+  schemas:
+    Role:
+      type: string
+      enum:
+        - PASSANGER
+        - DRIVER
+        - MANAGEMENT
+        - ADMIN
+    User:
+      type: object
+      properties:
+        active:
+          type: boolean
+        memberId:
+          type: string
+        name:
+          type: string
+        surname:
+          type: string
+        email:
+          type: string
+        female:
+          type: boolean
+        hasAvatar:
+          type: boolean
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Role'
