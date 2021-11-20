@@ -1,16 +1,52 @@
-spring:
-   application:
-      name: elmo-gf
-      # see de.mhb.commons.spa.SpaNoHandlerFoundExceptionHandler
-      spa-default-file: classpath:/static/index.html
-   mvc:
-      # see de.mhb.commons.spa.SpaNoHandlerFoundExceptionHandler
-      throw-exception-if-no-handler-found: true
-   resources:
-      # see de.mhb.commons.spa.SpaNoHandlerFoundExceptionHandler
-      add-mappings: false
-
 elmo:
+
+spring:
+  application:
+    name: elmo-gf
+    # see de.mhb.commons.spa.SpaNoHandlerFoundExceptionHandler
+    spa-default-file: classpath:/static/index.html
+  mvc:
+    # see de.mhb.commons.spa.SpaNoHandlerFoundExceptionHandler
+    throw-exception-if-no-handler-found: true
+  resources:
+    # see de.mhb.commons.spa.SpaNoHandlerFoundExceptionHandler
+    add-mappings: false
+  liquibase:
+    change-log: classpath:liquibase/master.yml
+
+camunda:
+  bpm:
+    admin-user:
+      id: admin
+      password: admin
+      first-name: Admin
+      last-name: Istrator
+    default-number-of-retries: 1
+    job-execution:
+      core-pool-size: 2
+      max-pool-size: 2
+      wait-time-in-millis: 2500
+      max-wait: 20000
+    generic-properties:
+      properties:
+        historyCleanupBatchWindowStartTime: "20:00"
+        historyCleanupBatchWindowEndTime: "05:00"
+        historyCleanupBatchSize: 100
+        initializeTelemetry: false
+    authorization:
+      enabled: false
+    default-serialization-format: application/xstream
+    database:
+      schema-update: false
+      jdbc-batch-processing: true
+    metrics:
+      enabled: false
+      db-reporter-active: false
+    webapp:
+      index-redirect-enabled: false
+  xstream-serialization:
+    allowed-types:
+      - at.elmo.**
 
 logging:
   level:
