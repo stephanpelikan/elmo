@@ -13,7 +13,7 @@ cd -
 mvn package
 ```
 
-*Camunda:* If you don't have a kicence key or want to use
+*Camunda:* If you don't have a licence key or want to use
 Camunda's community edition then you have to add `-Dcamunda-edition=ce`
 to every `mvn`-command.
 
