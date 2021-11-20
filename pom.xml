@@ -233,6 +233,17 @@
 			<artifactId>xstream</artifactId>
 			<version>1.4.18</version>
 		</dependency>
+		<dependency>
+			<groupId>de.jollyday</groupId>
+			<artifactId>jollyday</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>javax.xml.bind</groupId>
+					<artifactId>jaxb-api</artifactId>
+				</exclusion>
+			</exclusions>
+			<version>0.5.10</version>
+		</dependency>
 	</dependencies>
 
 	<profiles>
