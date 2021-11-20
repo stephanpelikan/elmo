@@ -1,6 +1,5 @@
-package at.elmo.config;
+package at.elmo.config.web;
 
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,8 +28,7 @@ public class SpaNoHandlerFoundExceptionHandler {
 	private String defaultFile;
 
 	@ExceptionHandler(NoHandlerFoundException.class)
-	public ResponseEntity<Resource> renderDefaultPage(final NoHandlerFoundException exception)
-			throws IOException {
+    public ResponseEntity<Resource> renderDefaultPage(final NoHandlerFoundException exception) {
 		
 	    final var hasExtension = exception.getRequestURL().lastIndexOf('.') > exception.getRequestURL().lastIndexOf('/');
         final var uri = "classpath:/static"
