@@ -40,3 +40,9 @@ npm run start
 Open in browser: [http://localhost:3000](http://localhost:3000)
 
 Hot module replacement is active. All requests having not `Accept: text/html` will be proxied to `http://localhost:8080/`.
+
+## OpenRouteService:
+
+### Swagger-URL
+
+https://openrouteservice.org/wp-json/ors-api/v1/api-doc/source/V2
