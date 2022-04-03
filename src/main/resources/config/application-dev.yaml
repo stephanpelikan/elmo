@@ -1,10 +1,27 @@
+elmo:
+   gateway-url: http://localhost:3000
 spring:
    datasource:
       url: jdbc:h2:file:./target/devdb.h2;DB_CLOSE_ON_EXIT=FALSE
+   jpa:
+      hibernate:
+         ddl-auto: create
+      database-platform: org.hibernate.dialect.H2Dialect
    h2:
       console:
          enabled: true
          path: /h2
+   security:
+      oauth2:
+         client:
+            registration:
+               google:
+                  client-id: to-be-set
+                  client-secret: to-be-set
+                  redirect-uri: 'http://localhost:3000/{action}/oauth2/code/{registrationId}'
+                  scope:
+                  - email
+                  - profile
 swagger:
    gui:
       enable: true

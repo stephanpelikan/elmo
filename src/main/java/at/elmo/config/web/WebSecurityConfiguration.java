@@ -1,16 +1,18 @@
 package at.elmo.config.web;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
+
+import at.elmo.config.ElmoProperties;
+import at.elmo.user.AuthenticationSuccessHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -23,33 +25,49 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Value("${camunda.bpm.admin-user.password}")
     private String adminUserPassword;
+    
+    @Autowired
+    private AuthenticationSuccessHandler successHandler;
+    
+    @Autowired
+    private ElmoProperties properties;
 	
 	@Override
     protected void configure(final HttpSecurity http) throws Exception {
 
-	       final RequestMatcher[] swaggerUiMatchers = new RequestMatcher[] {
-	                new AntPathRequestMatcher("/swagger-ui/**"),
-                    new AntPathRequestMatcher("/swagger-resources/**"),
-                    new AntPathRequestMatcher("/swagger-resources"),
-                    new AntPathRequestMatcher("/v2/api-docs"),
-	        };
+       final RequestMatcher[] swaggerUiMatchers = new RequestMatcher[] {
+                new AntPathRequestMatcher("/swagger-ui/**"),
+                new AntPathRequestMatcher("/swagger-resources/**"),
+                new AntPathRequestMatcher("/swagger-resources"),
+                new AntPathRequestMatcher("/v2/api-docs"),
+        };
 
 		final RequestMatcher[] unprotectedApiMatchers = new RequestMatcher[] {
-                new AntPathRequestMatcher("/api/v*/gui/currentUser")
+                new AntPathRequestMatcher("/api/v*/gui/currentUser"),
+                new AntPathRequestMatcher("/api/v*/gui/currentUser"),
+                new AntPathRequestMatcher("/api/v*/gui/oauth2-clients"),
 		};
 
         final RequestMatcher[] camundaMatchers = new RequestMatcher[] {
                 new AntPathRequestMatcher("/camunda/**")
         };
 
-		final RequestMatcher[] guiApiMatchers = new RequestMatcher[] {
-				new AntPathRequestMatcher("/api/v*/gui/**")
+        final RequestMatcher[] spaMatchers = new RequestMatcher[] {
+                new AntPathRequestMatcher("/"),
+                new AntPathRequestMatcher("/static/**"),
+                new AntPathRequestMatcher("/**/oauth2/**"),
 		};
+
+        final RequestMatcher[] h2Matchers = new RequestMatcher[] {
+                new AntPathRequestMatcher("/h2"),
+                new AntPathRequestMatcher("/h2/**")
+        };
 
 		http
     			.csrf()
     				.disable()
     				.cors()
+    				.configurationSource(httpRequest -> properties.getCors())
     				.and()
     			.headers()
     				.contentTypeOptions().disable()
@@ -61,32 +79,35 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     			.authorizeRequests()
     	            .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     .antMatchers("**/websocket/**").permitAll()
+                    .requestMatchers(spaMatchers).permitAll()
+                    .requestMatchers(h2Matchers).permitAll()
                     .requestMatchers(unprotectedApiMatchers).permitAll()
                     .requestMatchers(camundaMatchers).hasAuthority(ADMIN_GROUP)
                     .requestMatchers(swaggerUiMatchers).hasAuthority(ADMIN_GROUP)
-    	            .requestMatchers(guiApiMatchers).authenticated()
-    				.anyRequest().permitAll()
+                    .anyRequest().authenticated()
     				.and()
     			.logout()
     				.permitAll()
+    				.logoutSuccessUrl(properties.getGatewayUrl())
     				.and()
-    			.httpBasic();
+                .oauth2Login()
+                    .successHandler(successHandler);
 
 	}
 
-	@Override
-	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-	    
-	    auth
-				.inMemoryAuthentication()
-					.withUser(User.builder()
-						.username(adminUserId)
-                        .password("{noop}" + adminUserPassword)
-						.authorities(ADMIN_GROUP));
-	    // add any other user source here
-		// auth
-		//	    .authenticationProvider(activeDirectoryAuthenticationProvider());
-		
-	}
+//	@Override
+//	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+//	    
+//	    auth
+//				.inMemoryAuthentication()
+//					.withUser(User.builder()
+//						.username(adminUserId)
+//                        .password("{noop}" + adminUserPassword)
+//						.authorities(ADMIN_GROUP));
+//	    // add any other user source here
+//		// auth
+//		//	    .authenticationProvider(activeDirectoryAuthenticationProvider());
+//		
+//	}
 
 }

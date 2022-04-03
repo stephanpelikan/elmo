@@ -1,6 +1,6 @@
 import React from 'react';
 import { ResponsiveContext, Layer, Collapsible, Box, Button } from 'grommet';
-import Menu from './Menu';
+import { Menu } from './Menu';
 import { FormClose } from 'grommet-icons';
 
 type ResponsiveMenuProps = {
@@ -29,23 +29,24 @@ const ResponsiveMenu: React.FC<ResponsiveMenuProps> = ({
               </Box>
             </Collapsible>
           ) : (
-            <Layer>
+            <Layer responsive={true} modal={true}>
+              <Box
+                background='light-2'
+                tag='header'
+                justify='end'
+                align='center'
+                direction='row'
+              >
+                <Button
+                  icon={<FormClose />}
+                  onClick={() => setShowSidebar(false)}
+                />
+              </Box>
               <Box
                 fill
+                pad="small"
                 background='light-2'
               >
-                <Box
-                  background='light-2'
-                  tag='header'
-                  justify='end'
-                  align='center'
-                  direction='row'
-                >
-                  <Button
-                    icon={<FormClose />}
-                    onClick={() => setShowSidebar(false)}
-                  />
-                </Box>
                 <Menu />
               </Box>
             </Layer>
@@ -56,4 +57,4 @@ const ResponsiveMenu: React.FC<ResponsiveMenuProps> = ({
   );
 }
 
-export default ResponsiveMenu;
+export { ResponsiveMenu };

@@ -10,6 +10,21 @@ security:
   - JWT: []
 
 paths:
+  /gui/oauth2-clients:
+    get:
+      tags:
+        - gui
+      summary: a list of all available oauth2-clients
+      operationId: oauth2Clients
+      responses:
+        200:
+          description: the oauth2-clients
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Oauth2Client'
   /gui/currentUser:
     get:
       tags:
@@ -49,6 +64,15 @@ paths:
           description: The member-id is unknown
 components:
   schemas:
+    Oauth2Client:
+      type: object
+      properties:
+        id:
+          type: string
+        url:
+          type: string
+        name:
+          type: string
     Role:
       type: string
       enum:
@@ -56,22 +80,31 @@ components:
         - DRIVER
         - MANAGEMENT
         - ADMIN
+    UserStatus:
+      type: string
+      enum:
+        - NEW
+        - EMAIL_VERIFIED
+        - DATA_MISSING
+        - ACTIVE
+        - INACTIVE
+        - TO_BE_DELETED
     User:
       type: object
       properties:
-        active:
-          type: boolean
+        id:
+          type: string
+        status:
+          $ref: '#/components/schemas/UserStatus'
         memberId:
+          type: int
+        email:
           type: string
         name:
           type: string
-        surname:
-          type: string
-        email:
+        firstName:
           type: string
         female:
-          type: boolean
-        hasAvatar:
           type: boolean
         roles:
           type: array

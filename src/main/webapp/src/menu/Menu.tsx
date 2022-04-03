@@ -1,25 +1,32 @@
 import React from 'react';
-import CurrentUser from './CurrentUser';
-import AppContext from '../AppContext';
+import User from './User';
+import { useAppContext } from '../AppContext';
+import { Grid, Text } from 'grommet';
+import { Logout } from 'grommet-icons';
+import { LinkedBox } from '../login/LinkedBox';
 
-type MenuProps = {};
-
-const Menu: React.FC<MenuProps> = (): JSX.Element => {
-  return (
-    <AppContext.Consumer>
+const Menu = () => {
+  const { state } = useAppContext();
+  
+  return <Grid pad="small" gap="small">
       {
-        ({ currentUser }) => (
-          <>
-            {
-              currentUser
-                ? <CurrentUser user={currentUser} />
-                : <></>
-            }
-          </>
-        )
+        state.currentUser === null ? '' :
+        <>
+          <User
+              user={ state.currentUser } />
+          <LinkedBox
+              href='/logout'
+              direction='row'
+              background='light-4'
+              pad='small'
+              gap='small'
+              margin={{ top: 'small' }}>
+            <Logout />
+            <Text>Abmelden </Text>
+          </LinkedBox>
+        </>
       }
-    </AppContext.Consumer>
-  );
+    </Grid>;
 }
 
-export default Menu;
+export { Menu };

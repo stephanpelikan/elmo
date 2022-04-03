@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Box, Button, Heading, Grommet, ThemeType } from 'grommet';
-import { Menu as MenuIcon } from 'grommet-icons';
-import AppContext, {  } from './AppContext';
-import ResponsiveMenu from './menu/ResponsiveMenu';
+import { Box,Grommet, ThemeType } from 'grommet';
+import { AppContextProvider } from './AppContext';
+import { AppHeader } from './menu/AppHeader';
+import { ResponsiveMenu } from './menu/ResponsiveMenu';
+import { Main } from './Main';
 
 const theme: ThemeType = {
   global: {
@@ -19,41 +20,35 @@ const theme: ThemeType = {
   },
 };
 
-const AppBar = (props) => (
-  <Box
-    tag='header'
-    direction='row'
-    align='center'
-    justify='between'
-    background='brand'
-    pad={{ left: 'medium', right: 'small', vertical: 'small' }}
-    elevation='medium'
-    style={{ zIndex: '1' }}
-    {...props}
-  />
-);
-
 type AppProps = {};
 const App: React.FC<AppProps> = (props: AppProps): JSX.Element => {
+
   const [showSidebar, setShowSidebar] = useState(false);
+
   return (
-    <AppContext.Provider value={{ currentUser: { active: true, name: 'Stephan', surname: 'Pelikan', email: 'stephan.pelikan@phactum.at', female: false, hasAvatar: false, memberId: 47 } }}>
-      <Grommet theme={theme} full>
+    <AppContextProvider>
+      <Grommet
+          theme={theme}
+          full>
         <Box fill>
-          <AppBar>
-            <Heading level='3' margin='none'>Elmo</Heading>
-            <Button icon={<MenuIcon />}
-              onClick={() => setShowSidebar(!showSidebar)} />
-          </AppBar>
-          <Box direction='row' flex overflow={{ horizontal: 'hidden' }}>
-            <Box flex align='center' justify='center'>
-              body
+          <AppHeader toggleShowBar={ () => setShowSidebar(!showSidebar) } />
+          <Box
+              direction='row'
+              flex
+              overflow={{ horizontal: 'hidden' }}>
+            <Box
+                flex
+                align='center'
+                justify='center'>
+              <Main />
             </Box>
-            <ResponsiveMenu showSidebar={showSidebar} setShowSidebar={setShowSidebar} />
+            <ResponsiveMenu
+                showSidebar={showSidebar}
+                setShowSidebar={setShowSidebar} />
           </Box>
         </Box>
       </Grommet>
-    </AppContext.Provider>
+    </AppContextProvider>
   );
 };
 

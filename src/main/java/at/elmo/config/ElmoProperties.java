@@ -8,6 +8,8 @@ import at.elmo.config.websockets.WebsocketProperties;
 @ConfigurationProperties(prefix = "elmo", ignoreUnknownFields = false)
 public class ElmoProperties {
 
+    private String gatewayUrl;
+
     private CorsConfiguration cors = new CorsConfiguration();
 
     private WebsocketProperties websockets;
@@ -26,6 +28,14 @@ public class ElmoProperties {
 
     public void setCors(CorsConfiguration cors) {
         this.cors = cors;
+    }
+
+    public String getGatewayUrl() {
+        return gatewayUrl;
+    }
+
+    public void setGatewayUrl(String gatewayUrl) {
+        this.gatewayUrl = gatewayUrl;
     }
 
 }

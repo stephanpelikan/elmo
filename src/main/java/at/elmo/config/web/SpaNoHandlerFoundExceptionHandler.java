@@ -27,7 +27,7 @@ public class SpaNoHandlerFoundExceptionHandler {
 	@Value("${spring.application.spa-default-file}")
 	private String defaultFile;
 
-	@ExceptionHandler(NoHandlerFoundException.class)
+    @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<Resource> renderDefaultPage(final NoHandlerFoundException exception) {
 		
 	    final var hasExtension = exception.getRequestURL().lastIndexOf('.') > exception.getRequestURL().lastIndexOf('/');
