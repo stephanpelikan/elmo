@@ -1,43 +1,50 @@
 elmo:
-   gateway-url: http://localhost:3000
+  gateway-url: http://localhost:3000
 spring:
-   datasource:
-      url: jdbc:h2:file:./target/devdb.h2;DB_CLOSE_ON_EXIT=FALSE
-   jpa:
-      hibernate:
-         ddl-auto: create
-      database-platform: org.hibernate.dialect.H2Dialect
-   h2:
-      console:
-         enabled: true
-         path: /h2
-   security:
-      oauth2:
-         client:
-            registration:
-               google:
-                  # see https://console.cloud.google.com/apis/credentials
-                  client-id: to-be-set
-                  client-secret: to-be-set
-                  redirect-uri: 'http://localhost:3000/{action}/oauth2/code/{registrationId}'
-                  scope:
-                  - email
-                  - profile
-               amazon:
-                  client-name: Amazon
-                  # see https://developer.amazon.com/loginwithamazon/console/site/lwa/overview.html
-                  client-id: to-be-set
-                  client-secret: to-be-set
-                  authorization-grant-type: authorization_code
-                  redirect-uri: 'http://localhost:3000/{action}/oauth2/code/{registrationId}'
-                  scope:
-                  - profile
-            provider:
-               amazon:
-                  authorization-uri: https://www.amazon.com/ap/oa
-                  token-uri: https://api.amazon.co.uk/auth/o2/token
-                  user-info-uri: https://api.amazon.com/user/profile
-                  userNameAttribute: name
+  datasource:
+    url: jdbc:h2:file:./target/devdb.h2;DB_CLOSE_ON_EXIT=FALSE
+  jpa:
+    hibernate:
+      ddl-auto: create
+    database-platform: org.hibernate.dialect.H2Dialect
+  h2:
+    console:
+      enabled: true
+      path: /h2
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            # see https://console.cloud.google.com/apis/credentials
+            client-id: to-be-set
+            client-secret: to-be-set
+            redirect-uri: 'http://localhost:3000/{action}/oauth2/code/{registrationId}'
+            scope:
+            - email
+            - profile
+          amazon:
+            client-name: Amazon
+            # see https://developer.amazon.com/loginwithamazon/console/site/lwa/overview.html
+            client-id: to-be-set
+            client-secret: to-be-set
+            authorization-grant-type: authorization_code
+            redirect-uri: 'http://localhost:3000/{action}/oauth2/code/{registrationId}'
+            scope:
+            - profile
+        provider:
+          amazon:
+            authorization-uri: https://www.amazon.com/ap/oa
+            token-uri: https://api.amazon.co.uk/auth/o2/token
+            user-info-uri: https://api.amazon.com/user/profile
+            userNameAttribute: name
+camunda:
+  bpm:
+    admin-user:
+      id: admin
+      password: admin
+      first-name: Admin
+      last-name: Istrator
 swagger:
-   gui:
-      enable: true
+  gui:
+    enable: true

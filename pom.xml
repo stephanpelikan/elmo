@@ -43,8 +43,8 @@
 							-Amapstruct.unmappedTargetPolicy=ERROR
 						</compilerArg>
 					</compilerArgs>
-					<source>11</source>
-					<target>11</target>
+					<source>17</source>
+					<target>17</target>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -234,11 +234,6 @@
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-undertow</artifactId>
 		</dependency>
@@ -350,6 +345,58 @@
 				<camunda-edition-suffix />
 				<camunda-version-minor>0</camunda-version-minor>
 			</properties>
+		</profile>
+		<profile>
+			<id>development</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<dependencies>
+				<dependency>
+					<groupId>com.h2database</groupId>
+					<artifactId>h2</artifactId>
+					<scope>runtime</scope>
+				</dependency>
+			</dependencies>
+		</profile>
+		<profile>
+			<id>release</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<dependencies>
+				<dependency>
+					<groupId>org.postgresql</groupId>
+					<artifactId>postgresql</artifactId>
+					<scope>runtime</scope>
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>com.google.cloud.tools</groupId>
+						<artifactId>jib-maven-plugin</artifactId>
+						<version>${jib-maven-plugin.version}</version>
+						<configuration>
+							<from>
+								<image>openjdk:17-jdk-alpine</image>
+							</from>
+              <to>
+                <image>elmo:${project.version}</image>
+              </to>
+							<container>
+								<ports>
+									<port>8080</port>
+								</ports>
+								<creationTime>USE_CURRENT_TIMESTAMP</creationTime>
+								<jvmFlags>
+									<jvmFlag>-Xmx128m</jvmFlag>
+								</jvmFlags>
+							</container>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
 		</profile>
 	</profiles>
 </project>

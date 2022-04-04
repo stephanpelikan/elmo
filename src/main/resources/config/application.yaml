@@ -1,75 +1,81 @@
 elmo:
-   cors:
-      allowedHeaders:
-      - '*'
-      allowedMethods:
-      - OPTIONS
-      - GET
-      - HEAD
-      - PUT
-      - POST
-      - DELETE
-      - PATCH
-   websockets:
-      message-broker-max-pool-size: 64
-      message-broker-core-pool-size: 4
-      message-broker-queue-capacity: 512
-      in-bound-channel-max-pool-size: 64
-      in-bound-channel-core-pool-size: 4
-      in-bound-channel-queue-capacity: 512
-      out-bound-channel-max-pool-size: 64
-      out-bound-channel-core-pool-size: 4
-      out-bound-channel-queue-capacity: 512
+  cors:
+    allowedHeaders:
+    - '*'
+    allowedMethods:
+    - OPTIONS
+    - GET
+    - HEAD
+    - PUT
+    - POST
+    - DELETE
+    - PATCH
+  websockets:
+    message-broker-max-pool-size: 64
+    message-broker-core-pool-size: 4
+    message-broker-queue-capacity: 512
+    in-bound-channel-max-pool-size: 64
+    in-bound-channel-core-pool-size: 4
+    in-bound-channel-queue-capacity: 512
+    out-bound-channel-max-pool-size: 64
+    out-bound-channel-core-pool-size: 4
+    out-bound-channel-queue-capacity: 512
 spring:
-   application:
-      name: elmo-gf
-      # see de.mhb.commons.spa.SpaNoHandlerFoundExceptionHandler
-      spa-default-file: classpath:/static/index.html
-   mvc:
-      # see de.mhb.commons.spa.SpaNoHandlerFoundExceptionHandler
-      throw-exception-if-no-handler-found: true
-   resources:
-      # see de.mhb.commons.spa.SpaNoHandlerFoundExceptionHandler
-      add-mappings: false
-   liquibase:
-      change-log: classpath:liquibase/master.yml
+  application:
+    name: elmo-gf
+    # see de.mhb.commons.spa.SpaNoHandlerFoundExceptionHandler
+    spa-default-file: classpath:/static/index.html
+  mvc:
+    # see de.mhb.commons.spa.SpaNoHandlerFoundExceptionHandler
+    throw-exception-if-no-handler-found: true
+  resources:
+    # see de.mhb.commons.spa.SpaNoHandlerFoundExceptionHandler
+    add-mappings: false
+  liquibase:
+    change-log: classpath:liquibase/master.yml
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      maximum-pool-size: 10
+      auto-commit: false
+      minimum-idle: 0
+      max-lifetime: 600000 # Build new connections every 10 minutes.
+      idle-timeout: 180000 # Release new connections after 3 minutes of inactivity.
+      leak-detection-threshold: 4000 # TODO determine a good value
+      data-source-properties:
+      defaultRowPrefetch: 100
 camunda:
-   bpm:
-      admin-user:
-         id: admin
-         password: admin
-         first-name: Admin
-         last-name: Istrator
-      default-number-of-retries: 1
-      job-execution:
-         core-pool-size: 2
-         max-pool-size: 2
-         wait-time-in-millis: 2500
-         max-wait: 20000
-      generic-properties:
-         properties:
-            historyCleanupBatchWindowStartTime: '20:00'
-            historyCleanupBatchWindowEndTime: 05:00
-            historyCleanupBatchSize: 100
-            initializeTelemetry: false
-      authorization:
-         enabled: false
-      default-serialization-format: application/xstream
-      database:
-         schema-update: false
-         jdbc-batch-processing: true
-      metrics:
-         enabled: false
-         db-reporter-active: false
-      webapp:
-         index-redirect-enabled: false
-   xstream-serialization:
-      allowed-types:
-      - at.elmo.**
+  bpm:
+    default-number-of-retries: 1
+    job-execution:
+      core-pool-size: 2
+      max-pool-size: 2
+      wait-time-in-millis: 2500
+      max-wait: 20000
+    generic-properties:
+      properties:
+        historyCleanupBatchWindowStartTime: '20:00'
+        historyCleanupBatchWindowEndTime: 05:00
+        historyCleanupBatchSize: 100
+        initializeTelemetry: false
+    authorization:
+      enabled: false
+    default-serialization-format: application/xstream
+    database:
+      schema-update: false
+      jdbc-batch-processing: true
+    metrics:
+      enabled: false
+      db-reporter-active: false
+    webapp:
+      index-redirect-enabled: false
+  xstream-serialization:
+    allowed-types:
+    - at.elmo.**
 logging:
-   level:
+  level:
 # see de.mhb.commons.spa.SpaNoHandlerFoundExceptionHandler
-      org.springframework.web.servlet.PageNotFound: ERROR
-      org.springframework.web.socket.config.WebSocketMessageBrokerStats: ERROR
-      org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: ERROR
-      org.springframework.web.servlet.NoHandlerFoundException: FATAL
+    org.springframework.web.servlet.PageNotFound: ERROR
+    org.springframework.web.socket.config.WebSocketMessageBrokerStats: ERROR
+    org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: ERROR
+    org.springframework.web.servlet.NoHandlerFoundException: FATAL
