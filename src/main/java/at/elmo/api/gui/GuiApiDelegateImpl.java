@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.springframework.core.ResolvableType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
@@ -38,14 +37,7 @@ public class GuiApiDelegateImpl implements GuiApiDelegate {
     @Override
     public ResponseEntity<User> currentUser() {
 
-        final var authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (!authentication.isAuthenticated()) {
-            return ResponseEntity.notFound().build();
-        }
-        
-        final var oauth2Id = authentication.getName();
-        
-        final var user = userService.getUserByOauth2Id(oauth2Id);
+        final var user = userService.getCurrentUser();
         if (user.isEmpty()) {
             return ResponseEntity.notFound().build();
         }

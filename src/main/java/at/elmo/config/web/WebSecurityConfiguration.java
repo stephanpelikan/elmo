@@ -13,6 +13,7 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import at.elmo.config.ElmoProperties;
 import at.elmo.user.AuthenticationSuccessHandler;
+import at.elmo.user.OAuth2UserService;
 
 @Configuration
 @EnableWebSecurity
@@ -29,6 +30,9 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Autowired
     private AuthenticationSuccessHandler successHandler;
     
+    @Autowired
+    private OAuth2UserService oauth2UserService;
+
     @Autowired
     private ElmoProperties properties;
 	
@@ -74,7 +78,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     		        .frameOptions().disable()
     		        .and()
                 .sessionManagement()
-    	            .sessionCreationPolicy(SessionCreationPolicy.NEVER)
+    	            .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
     		        .and()
     			.authorizeRequests()
     	            .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
@@ -91,6 +95,9 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     				.logoutSuccessUrl(properties.getGatewayUrl())
     				.and()
                 .oauth2Login()
+                    .userInfoEndpoint()
+                        .userService(oauth2UserService)
+                        .and()
                     .successHandler(successHandler);
 
 	}

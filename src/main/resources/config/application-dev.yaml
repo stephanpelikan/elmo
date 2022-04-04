@@ -16,12 +16,28 @@ spring:
          client:
             registration:
                google:
+                  # see https://console.cloud.google.com/apis/credentials
                   client-id: to-be-set
                   client-secret: to-be-set
                   redirect-uri: 'http://localhost:3000/{action}/oauth2/code/{registrationId}'
                   scope:
                   - email
                   - profile
+               amazon:
+                  client-name: Amazon
+                  # see https://developer.amazon.com/loginwithamazon/console/site/lwa/overview.html
+                  client-id: to-be-set
+                  client-secret: to-be-set
+                  authorization-grant-type: authorization_code
+                  redirect-uri: 'http://localhost:3000/{action}/oauth2/code/{registrationId}'
+                  scope:
+                  - profile
+            provider:
+               amazon:
+                  authorization-uri: https://www.amazon.com/ap/oa
+                  token-uri: https://api.amazon.co.uk/auth/o2/token
+                  user-info-uri: https://api.amazon.com/user/profile
+                  userNameAttribute: name
 swagger:
    gui:
       enable: true

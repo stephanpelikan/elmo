@@ -1,12 +1,13 @@
 import { Anchor, Box, Heading, Paragraph } from "grommet";
-import { Google } from "grommet-icons";
+import { Google, Amazon } from "grommet-icons";
 import { useEffect } from "react";
 import { useAppContext, fetchOauth2Clients } from '../AppContext';
 import TextHeading from '../components/TextHeading';
 import { LinkedBox } from './LinkedBox';
 
 const icons = {
-  Google
+  google: Google,
+  amazon: Amazon
 };
 
 const Login = () => {
@@ -33,8 +34,10 @@ const Login = () => {
         </Paragraph>
       </Box>
       {
-        state.oauth2Clients === null ? '' : state.oauth2Clients.map(oauth2Client => {
-          const Icon = icons[oauth2Client.name];
+        state.oauth2Clients === null ? '' : Object.keys(icons).map(clientId => {
+          const oauth2Client = state.oauth2Clients.find(client => client.id === clientId);
+          if (oauth2Client === undefined) return '';
+          const Icon = icons[clientId];
           return (
             <LinkedBox
                 href={ oauth2Client.url }
@@ -53,7 +56,7 @@ const Login = () => {
                   color='plain'
                   size='large' />
               <Heading
-                  level='3'>{ oauth2Client.name }</Heading>
+                  level='3'>Anmelden mit { oauth2Client.name }</Heading>
             </LinkedBox>);
         })
       }
