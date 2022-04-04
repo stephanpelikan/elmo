@@ -19,6 +19,7 @@
 	</properties>
 
 	<build>
+		<finalName>elmo</finalName>
 		<plugins>
 			<plugin>
 				<artifactId>maven-surefire-plugin</artifactId>
@@ -141,26 +142,6 @@
 						</configuration>
 					</execution>
 				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-				<version>2.6.5</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>repackage</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<!--suppress UnresolvedMavenProperty -->
-					<mainClass>${start-class}</mainClass>
-					<classifier>runnable</classifier>
-					<executable>true</executable>
-					<fork>true</fork>
-					<jvmArguments>-Xmx300m</jvmArguments>
-				</configuration>
 			</plugin>
 		</plugins>
 	</build>
@@ -374,26 +355,128 @@
 			<build>
 				<plugins>
 					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<version>1.12.1</version>
+						<executions>
+							<execution>
+								<id>install node and npm</id>
+								<goals>
+									<goal>install-node-and-npm</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>npm install</id>
+								<goals>
+									<goal>npm</goal>
+								</goals>
+								<configuration>
+									<arguments>install</arguments>
+								</configuration>
+							</execution>
+							<execution>
+								<id>npm run build</id>
+								<goals>
+									<goal>npm</goal>
+								</goals>
+								<configuration>
+									<arguments>run build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+						<configuration>
+							<nodeVersion>v16.14.2</nodeVersion>
+							<npmVersion>8.5.0</npmVersion>
+							<installDirectory>target</installDirectory>
+							<workingDirectory>src/main/webapp</workingDirectory>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.springframework.boot</groupId>
+						<artifactId>spring-boot-maven-plugin</artifactId>
+						<version>2.6.6</version>
+						<executions>
+							<execution>
+								<goals>
+									<goal>repackage</goal>
+								</goals>
+							</execution>
+						</executions>
+						<configuration>
+							<mainClass>at.elmo.ElmoApplication</mainClass>
+							<executable>true</executable>
+							<fork>true</fork>
+							<jvmArguments>-Xmx196m</jvmArguments>
+						</configuration>
+					</plugin>
+					<plugin>
 						<groupId>com.google.cloud.tools</groupId>
 						<artifactId>jib-maven-plugin</artifactId>
-						<version>${jib-maven-plugin.version}</version>
+						<version>3.2.1</version>
+						<dependencies>
+							<dependency>
+								<groupId>com.google.cloud.tools</groupId>
+								<artifactId>jib-layer-filter-extension-maven</artifactId>
+								<version>0.2.0</version>
+							</dependency>
+						</dependencies>
 						<configuration>
 							<from>
 								<image>openjdk:17-jdk-alpine</image>
 							</from>
-              <to>
-                <image>elmo:${project.version}</image>
-              </to>
+							<to>
+								<image>elmo</image>
+								<tags>${project.version}</tags>
+							</to>
 							<container>
 								<ports>
 									<port>8080</port>
 								</ports>
 								<creationTime>USE_CURRENT_TIMESTAMP</creationTime>
-								<jvmFlags>
-									<jvmFlag>-Xmx128m</jvmFlag>
-								</jvmFlags>
+								<entrypoint>
+									<arg>/bin/sh</arg>
+									<arg>-c</arg>
+									<arg>exec java -Dspring.config.additional-location=optional:file:/config/ ${JAVA_OPTS:--Xmx196m -Xms196m} -Dspring.profiles.active=${PROFILE} -jar /app/elmo.jar</arg>
+								</entrypoint>
 							</container>
+							<extraDirectories>
+								<paths>
+									<path>
+										<from>target/</from>
+										<includes>${project.build.finalName}*.jar</includes>
+										<into>/app</into>
+									</path>
+								</paths>
+							</extraDirectories>
+							<pluginExtensions>
+								<pluginExtension>
+									<implementation>com.google.cloud.tools.jib.maven.extension.layerfilter.JibLayerFilterExtension</implementation>
+									<configuration
+										implementation="com.google.cloud.tools.jib.maven.extension.layerfilter.Configuration">
+										<filters>
+											<filter>
+												<!-- exclude all jib layers, which is basically anything in /app -->
+												<glob>/app/**</glob>
+											</filter>
+											<filter>
+												<!-- this is our fat jar, this should be kept by adding it into 
+													its own layer -->
+												<glob>/app/${project.build.finalName}.jar</glob>
+												<toLayer>app</toLayer>
+											</filter>
+										</filters>
+									</configuration>
+								</pluginExtension>
+							</pluginExtensions>
 						</configuration>
+            <executions>
+              <execution>
+                <phase>package</phase>
+                <goals>
+                  <goal>buildTar</goal>
+                </goals>
+              </execution>
+            </executions>
 					</plugin>
 				</plugins>
 			</build>

@@ -5,25 +5,20 @@
 ### build
 
 ```sh
-mvn generate-sources
-cd src/main/webapp
-npm install
-npm run build
-cd -
-mvn package
+MAVEN_OPTS=--add-opens=java.base/java.util=ALL-UNNAMED mvn -Dcamunda-edition=ce package -P release
 ```
-
-*Camunda:* If you don't have a licence key or want to use
-Camunda's community edition then you have to add `-Dcamunda-edition=ce`
-to every `mvn`-command.
 
 ### run
 
 ```sh
-java -jar target/*.jar
+java -jar target/elmo-*-runnable.jar
 ```
 
 Open in browser: [http://localhost:8080](http://localhost:8080)
+
+Hint: Social login on localhost only works using Webpack development server (see below) because
+service and webapp have to use different hostnames what applies for development server since
+UI is started for localhost:3000 but Spring Boot container runs on localhost:8080.
 
 ## development
 
