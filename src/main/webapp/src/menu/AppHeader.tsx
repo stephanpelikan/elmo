@@ -23,7 +23,7 @@ const AppHeader = ({ toggleShowBar }: AppHeaderProps) => {
             fill='vertical'
             width={{ max: '3.5rem' }}>
           <Image
-              src='/logo192.png'
+              src='/assets/logo192.png'
               fit='contain' />
         </Box>
         <ResponsiveContext.Consumer>

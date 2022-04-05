@@ -58,6 +58,8 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
         final RequestMatcher[] spaMatchers = new RequestMatcher[] {
                 new AntPathRequestMatcher("/"),
+                new AntPathRequestMatcher("/robots.txt"),
+                new AntPathRequestMatcher("/assets/**"),
                 new AntPathRequestMatcher("/static/**"),
                 new AntPathRequestMatcher("/**/oauth2/**"),
 		};
