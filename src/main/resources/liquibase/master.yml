@@ -2,3 +2,6 @@ databaseChangeLog:
   - include:
       file: classpath*:/org/camunda/bpm/engine/db/liquibase/camunda-changelog.xml
       relativeToChangelogFile: false
+  - include:
+      file: classpath*:/liquibase/00.00.01.xml
+      relativeToChangelogFile: false

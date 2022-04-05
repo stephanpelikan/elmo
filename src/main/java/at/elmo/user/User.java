@@ -1,5 +1,7 @@
 package at.elmo.user;
 
+import java.time.OffsetDateTime;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -7,8 +9,11 @@ import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 @Entity
-@Table(name = "USERS")
+@Table(name = "ELMO_USERS")
 public class User {
 
     public static enum Status {
@@ -24,6 +29,14 @@ public class User {
     @Column(name = "ID")
     private String id;
     
+    @CreationTimestamp
+    @Column(name = "CREATED_AT", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private OffsetDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "UPDATED_AT", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private OffsetDateTime updatedAt;
+
     @Column(name = "OAUTH2_ID")
     private String oauth2Id; // typically the email-address
     
@@ -97,6 +110,22 @@ public class User {
 
     public void setMemberId(Integer memberId) {
         this.memberId = memberId;
+    }
+
+    public OffsetDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(OffsetDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public OffsetDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(OffsetDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
     
 }
