@@ -8,6 +8,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserRepository extends JpaRepository<User, String> {
 
-    Optional<User> findByOauth2Id(String oauth2Id);
+    Optional<User> findByOauth2Ids_Id(String oauth2Id);
 
 }

@@ -8,11 +8,18 @@
 	<changeSet id="initial-setup-of-users"
 		author="stephanpelikan">
 		<comment>Create table for User</comment>
+    <createTable tableName="ELMO_OAUTH_IDS">
+      <column name="ID" type="varchar(255)">
+        <constraints primaryKey="true" />
+      </column>
+      <column name="OWNER" type="varchar(40)">
+        <constraints nullable="false" />
+      </column>
+    </createTable>
 		<createTable tableName="ELMO_USERS">
 			<column name="ID" type="varchar(40)">
 				<constraints primaryKey="true" />
 			</column>
-			<column name="OAUTH2_ID" type="varchar(255)" />
 			<column name="STATUS" type="varchar(30)">
 				<constraints nullable="false" />
 			</column>

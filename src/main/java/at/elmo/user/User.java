@@ -1,12 +1,16 @@
 package at.elmo.user;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -30,15 +34,16 @@ public class User {
     private String id;
     
     @CreationTimestamp
-    @Column(name = "CREATED_AT", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    @Column(name = "CREATED_AT", nullable = false, updatable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime createdAt;
 
     @UpdateTimestamp
     @Column(name = "UPDATED_AT", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime updatedAt;
 
-    @Column(name = "OAUTH2_ID")
-    private String oauth2Id; // typically the email-address
+    @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY, cascade = { CascadeType.MERGE, CascadeType.PERSIST,
+            CascadeType.DETACH })
+    private List<OAuth2Identifier> oauth2Ids;
     
     @Enumerated(EnumType.STRING)
     @Column(name = "STATUS")
@@ -64,12 +69,12 @@ public class User {
         this.id = id;
     }
 
-    public String getOauth2Id() {
-        return oauth2Id;
+    public List<OAuth2Identifier> getOauth2Ids() {
+        return oauth2Ids;
     }
 
-    public void setOauth2Id(String oauth2Id) {
-        this.oauth2Id = oauth2Id;
+    public void setOauth2Ids(List<OAuth2Identifier> oauth2Ids) {
+        this.oauth2Ids = oauth2Ids;
     }
 
     public String getEmail() {

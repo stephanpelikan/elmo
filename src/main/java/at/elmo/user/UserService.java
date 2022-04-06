@@ -1,5 +1,6 @@
 package at.elmo.user;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -34,7 +35,7 @@ public class UserService {
         
         final var oauth2User = (ElmoOAuth2User) authentication.getPrincipal();
         
-        return userRepository.findByOauth2Id(oauth2User.getOAuth2Id());
+        return userRepository.findByOauth2Ids_Id(oauth2User.getOAuth2Id());
         
     }
     
@@ -43,16 +44,21 @@ public class UserService {
         
         final String oauth2Id = oAuth2User.getOAuth2Id();
         
-        final Optional<User> user = userRepository.findByOauth2Id(oauth2Id);
+        final Optional<User> user = userRepository.findByOauth2Ids_Id(oauth2Id);
         if (user.isPresent()) {
             return user.get();
         }
 
         final boolean emailVerified = oAuth2User.isEmailVerified();
 
+        final var newOAuth2Id = new OAuth2Identifier();
+        newOAuth2Id.setId(oauth2Id);
+
         final var newUser = new User();
+        newOAuth2Id.setOwner(newUser);
+
+        newUser.setOauth2Ids(List.of(newOAuth2Id));
         newUser.setId(UUID.randomUUID().toString());
-        newUser.setOauth2Id(oauth2Id);
         newUser.setEmail(oAuth2User.getEmail());
         newUser.setStatus(emailVerified ? Status.EMAIL_VERIFIED : Status.NEW);
         newUser.setName(oAuth2User.getName());
