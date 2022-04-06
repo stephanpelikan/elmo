@@ -4,6 +4,7 @@ import { AppContextProvider } from './AppContext';
 import { AppHeader } from './menu/AppHeader';
 import { ResponsiveMenu } from './menu/ResponsiveMenu';
 import { Main } from './Main';
+import './i18n';
 
 const theme: ThemeType = {
   global: {
@@ -19,6 +20,8 @@ const theme: ThemeType = {
     },
   },
 };
+
+
 
 type AppProps = {};
 const App: React.FC<AppProps> = (props: AppProps): JSX.Element => {
@@ -36,10 +39,7 @@ const App: React.FC<AppProps> = (props: AppProps): JSX.Element => {
               direction='row'
               flex
               overflow={{ horizontal: 'hidden' }}>
-            <Box
-                flex
-                align='center'
-                justify='center'>
+            <Box flex>
               <Main />
             </Box>
             <ResponsiveMenu

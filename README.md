@@ -1,4 +1,4 @@
-# ELMO poc
+# ELMO
 
 ## production
 
