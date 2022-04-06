@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>at.elmo</groupId>
-	<artifactId>elmo-poc</artifactId>
+	<artifactId>elmo</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 
 	<properties>
@@ -436,7 +436,10 @@
 								<entrypoint>
 									<arg>/bin/sh</arg>
 									<arg>-c</arg>
-									<arg>exec java -Dspring.config.additional-location=optional:file:/config/ ${JAVA_OPTS:--Xmx196m -Xms196m} -Dspring.profiles.active=${PROFILE} -jar /app/elmo.jar</arg>
+									<arg>exec java
+										-Dspring.config.additional-location=optional:file:/config/
+										${JAVA_OPTS:--Xmx196m -Xms196m}
+										-Dspring.profiles.active=${PROFILE} -jar /app/elmo.jar</arg>
 								</entrypoint>
 							</container>
 							<extraDirectories>
@@ -469,14 +472,14 @@
 								</pluginExtension>
 							</pluginExtensions>
 						</configuration>
-            <executions>
-              <execution>
-                <phase>package</phase>
-                <goals>
-                  <goal>buildTar</goal>
-                </goals>
-              </execution>
-            </executions>
+						<executions>
+							<execution>
+								<phase>package</phase>
+								<goals>
+									<goal>buildTar</goal>
+								</goals>
+							</execution>
+						</executions>
 					</plugin>
 				</plugins>
 			</build>
