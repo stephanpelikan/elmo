@@ -1,10 +1,11 @@
 import React from 'react';
-import { User, Oauth2Client } from './client/gui';
+import { User, Oauth2Client, MemberApplicationForm, UserStatus } from './client/gui';
 import { guiApi } from './client';
 
 type Action =
     | { type: 'updateOauth2Clients', oauth2Clients: Array<Oauth2Client> }
-    | { type: 'updateCurrentUser', user: User };
+    | { type: 'updateCurrentUser', user: User }
+    | { type: 'memberApplicationFormSubmitted' };
 type Dispatch = (action: Action) => void;
 type State = {
   oauth2Clients: Array<Oauth2Client> | null,
@@ -21,7 +22,16 @@ const appContextReducer: React.Reducer<State, Action> = (state, action) => {
   case 'updateCurrentUser':
     newState = {
       ...state,
-      currentUser: action.user
+      currentUser: action.user,
+    };
+    break;
+  case 'memberApplicationFormSubmitted':
+    newState = {
+      ...state,
+      currentUser: {
+        ...state.currentUser,
+        status: UserStatus.ApplicationSubmitted,
+      }
     };
     break;
   case 'updateOauth2Clients':
@@ -73,6 +83,10 @@ const fetchCurrentUser = async (appContextState: State, dispatch: Dispatch): Pro
   }
 }
 
+const memberApplicationFormSubmitted = (appContextState: State, dispatch: Dispatch) => {
+  dispatch({ type: 'memberApplicationFormSubmitted' });
+}
+
 function useAppContext() {
   const context = React.useContext(AppContext);
   if (context === undefined) {
@@ -81,4 +95,4 @@ function useAppContext() {
   return context;
 }
 
-export { AppContextProvider, useAppContext, fetchOauth2Clients, fetchCurrentUser }
+export { AppContextProvider, useAppContext, fetchOauth2Clients, fetchCurrentUser, memberApplicationFormSubmitted }

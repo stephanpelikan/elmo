@@ -11,6 +11,7 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequest
 import org.springframework.stereotype.Component;
 
 import at.elmo.api.gui.v1.GuiApiDelegate;
+import at.elmo.api.gui.v1.MemberApplicationForm;
 import at.elmo.api.gui.v1.Oauth2Client;
 import at.elmo.api.gui.v1.User;
 import at.elmo.member.MemberService;
@@ -77,4 +78,16 @@ public class GuiApiDelegateImpl implements GuiApiDelegate {
         
     }
 
+    @Override
+    public ResponseEntity<String> submitMemberApplicationForm(
+            final MemberApplicationForm memberApplicationForm) {
+        
+        if (memberApplicationForm.getFirstName().equals("error")) {
+            ResponseEntity.badRequest();
+        }
+        
+        return ResponseEntity.ok().build();
+        
+    }
+    
 }

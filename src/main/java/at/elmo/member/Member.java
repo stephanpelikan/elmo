@@ -25,6 +25,7 @@ public class Member {
     public static enum Status {
         NEW,
         EMAIL_VERIFIED,
+        APPLICATION_SUBMITTED,
         DATA_INVALID,
         ACTIVE,
         INACTIVE,

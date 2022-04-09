@@ -40,6 +40,24 @@ paths:
                 $ref: '#/components/schemas/User'
         404:
           description: No user logged in
+  /gui/member/submitApplication:
+    post:
+      tags:
+        - gui
+      summary: submit the member application form
+      operationId: submitMemberApplicationForm
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemberApplicationForm'
+      responses:
+        200:
+          description: Submission successfully
+          content:
+            application/json:
+              schema:
+                type: string
   /gui/member/{memberId}/avatar:
     get:
       tags:
@@ -85,6 +103,7 @@ components:
       enum:
         - NEW
         - EMAIL_VERIFIED
+        - APPLICATION_SUBMITTED
         - DATA_INVALID
         - ACTIVE
         - INACTIVE
@@ -112,3 +131,39 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Role'
+    MemberApplicationForm:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        emailCode:
+          type: string
+        birthdate:
+          type: string
+          format: date
+        sex:
+          $ref: '#/components/schemas/Sex'
+        zip:
+          type: string
+        city:
+          type: string
+        street:
+          type: string
+        streetNumber:
+          type: string
+        phoneCountryCode:
+          type: string
+        phoneProviderCode:
+          type: string
+        phoneNumber:
+          type: string
+    Sex:
+      type: string
+      enum:
+        - MALE
+        - FEMALE
+        - DIVERSE

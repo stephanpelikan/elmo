@@ -22,11 +22,9 @@ const theme: ThemeType = {
   button: {
     primary: {
       color: '#348eda',
-    }
+    },
   }
 };
-
-
 
 type AppProps = {};
 const App: React.FC<AppProps> = (props: AppProps): JSX.Element => {
