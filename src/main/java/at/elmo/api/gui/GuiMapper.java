@@ -10,6 +10,6 @@ public interface GuiMapper {
 
     @Mapping(target = "female", ignore = true)
     @Mapping(target = "roles", ignore = true)
-    User toApi(at.elmo.user.User user);
+    User toApi(at.elmo.member.Member user);
 
 }

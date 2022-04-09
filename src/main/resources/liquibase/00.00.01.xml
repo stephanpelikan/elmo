@@ -5,9 +5,9 @@
 	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd"
 	logicalFilePath="./00.00.01.xml">
 
-	<changeSet id="initial-setup-of-users"
+	<changeSet id="initial-setup-of-members"
 		author="stephanpelikan">
-		<comment>Create table for User</comment>
+		<comment>Create table for Member</comment>
     <createTable tableName="ELMO_OAUTH_IDS">
       <column name="ID" type="varchar(255)">
         <constraints primaryKey="true" />
@@ -15,8 +15,11 @@
       <column name="OWNER" type="varchar(40)">
         <constraints nullable="false" />
       </column>
+      <column name="PROVIDER" type="varchar(40)">
+        <constraints nullable="false" />
+      </column>
     </createTable>
-		<createTable tableName="ELMO_USERS">
+		<createTable tableName="ELMO_MEMBERS">
 			<column name="ID" type="varchar(40)">
 				<constraints primaryKey="true" />
 			</column>
@@ -32,5 +35,18 @@
 			<column name="NAME" type="varchar(255)" />
 			<column name="FIRST_NAME" type="varchar(255)" />
 		</createTable>
+    <createTable tableName="ELMO_MEMBER_APPLICATIONS">
+      <column name="ID" type="varchar(40)">
+        <constraints primaryKey="true" />
+      </column>
+      <column name="STATUS" type="varchar(30)">
+        <constraints nullable="false" />
+      </column>
+      <column name="CREATED_AT" type="timestamp">
+        <constraints nullable="false" />
+      </column>
+      <column name="UPDATED_AT" type="timestamp" />
+      <column name="MEMBER" type="varchar(40)" />
+    </createTable>
 	</changeSet>
 </databaseChangeLog>

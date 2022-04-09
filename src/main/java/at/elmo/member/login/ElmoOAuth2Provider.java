@@ -1,4 +1,4 @@
-package at.elmo.user;
+package at.elmo.member.login;
 
 import java.util.Arrays;
 

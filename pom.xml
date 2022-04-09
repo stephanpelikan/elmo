@@ -18,6 +18,20 @@
 		<m2e.apt.activation>jdt_apt</m2e.apt.activation>
 	</properties>
 
+	<repositories>
+		<repository>
+			<id>bp-blueprint</id>
+			<name>Business Processing Blueprint</name>
+			<url>https://maven.pkg.github.com/stephanpelikan/bp-blueprint/</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+
 	<build>
 		<finalName>elmo</finalName>
 		<plugins>
@@ -155,13 +169,6 @@
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
-			<dependency>
-				<groupId>org.camunda.bpm</groupId>
-				<artifactId>camunda-bom</artifactId>
-				<version>${camunda-version}.${camunda-version-minor}${camunda-edition-suffix}</version>
-				<scope>import</scope>
-				<type>pom</type>
-			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -189,6 +196,14 @@
 			<artifactId>spring-boot-starter-oauth2-client</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>org.freemarker</groupId>
+			<artifactId>freemarker</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-messaging</artifactId>
 		</dependency>
@@ -197,18 +212,9 @@
 			<artifactId>liquibase-core</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.camunda.bpm.springboot</groupId>
-			<artifactId>camunda-bpm-spring-boot-starter</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.camunda.bpm.springboot</groupId>
-			<artifactId>camunda-bpm-spring-boot-starter-webapp${camunda-edition-suffix}</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>org.springframework.boot</groupId>
-					<artifactId>spring-boot-starter-tomcat</artifactId>
-				</exclusion>
-			</exclusions>
+			<groupId>at.phactum.bp.blueprint</groupId>
+			<artifactId>blueprint-camunda7-adapter</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -301,19 +307,6 @@
 
 	<profiles>
 		<profile>
-			<id>camunda-ee</id>
-			<activation>
-				<activeByDefault>false</activeByDefault>
-				<property>
-					<name>camunda-edition</name>
-					<value>ee</value>
-				</property>
-			</activation>
-			<properties>
-				<camunda-edition-suffix>-ee</camunda-edition-suffix>
-			</properties>
-		</profile>
-		<profile>
 			<id>camunda-ce</id>
 			<activation>
 				<activeByDefault>true</activeByDefault>
@@ -322,10 +315,6 @@
 					<value>ce</value>
 				</property>
 			</activation>
-			<properties>
-				<camunda-edition-suffix />
-				<camunda-version-minor>0</camunda-version-minor>
-			</properties>
 		</profile>
 		<profile>
 			<id>development</id>

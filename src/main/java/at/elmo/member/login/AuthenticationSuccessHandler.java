@@ -1,4 +1,4 @@
-package at.elmo.user;
+package at.elmo.member.login;
 
 import java.io.IOException;
 
@@ -12,19 +12,20 @@ import org.springframework.security.web.authentication.SavedRequestAwareAuthenti
 import org.springframework.stereotype.Component;
 
 import at.elmo.config.ElmoProperties;
+import at.elmo.member.MemberService;
 
 @Component
 public class AuthenticationSuccessHandler
         extends SavedRequestAwareAuthenticationSuccessHandler {
 
-    private final UserService userService;
+    private final MemberService memberService;
     
     public AuthenticationSuccessHandler(
             final ElmoProperties properties,
-            final UserService userService) {
+            final MemberService memberService) {
         
         super();
-        this.userService = userService;
+        this.memberService = memberService;
         
         final var redirectStrategy = new RedirectStrategy() {
             @Override
@@ -50,7 +51,11 @@ public class AuthenticationSuccessHandler
         
         final var oAuth2User = (ElmoOAuth2User) authentication.getPrincipal();
 
-        userService.loadOrRegisterUser(oAuth2User);
+        try {
+            memberService.loadOrRegisterMember(oAuth2User);
+        } catch (Exception e) {
+            throw new ServletException("Could not load or register oauth2 user", e);
+        }
         
         super.onAuthenticationSuccess(request, response, authentication);
 

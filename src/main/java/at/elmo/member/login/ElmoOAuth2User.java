@@ -1,4 +1,4 @@
-package at.elmo.user;
+package at.elmo.member.login;
 
 import java.util.Collection;
 import java.util.Map;
@@ -22,6 +22,12 @@ public class ElmoOAuth2User extends DefaultOAuth2User {
         
     };
     
+    public ElmoOAuth2Provider getProvider() {
+
+        return provider;
+
+    }
+
     public String getOAuth2Id() {
 
         switch (provider) {

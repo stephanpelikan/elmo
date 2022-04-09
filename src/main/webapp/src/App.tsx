@@ -17,8 +17,13 @@ const theme: ThemeType = {
       family: 'Roboto',
       size: '18px',
       height: '20px',
-    },
+    }
   },
+  button: {
+    primary: {
+      color: '#348eda',
+    }
+  }
 };
 
 

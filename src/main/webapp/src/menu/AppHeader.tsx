@@ -36,7 +36,7 @@ const AppHeader = ({ toggleShowBar }: AppHeaderProps) => {
             ) : (
               <Heading
                   margin='small'
-                  level='3'>Elektromobil Gänserndorf</Heading>
+                  level='3'>ElektroMobil Gänserndorf</Heading>
             )
           )
         }

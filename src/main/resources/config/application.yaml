@@ -25,6 +25,8 @@ spring:
     name: elmo-gf
     # see de.mhb.commons.spa.SpaNoHandlerFoundExceptionHandler
     spa-default-file: classpath:/static/index.html
+  main:
+    allow-bean-definition-overriding: true
   mvc:
     # see de.mhb.commons.spa.SpaNoHandlerFoundExceptionHandler
     throw-exception-if-no-handler-found: true
@@ -44,6 +46,11 @@ spring:
       leak-detection-threshold: 4000 # TODO determine a good value
       data-source-properties:
       defaultRowPrefetch: 100
+  mail:
+    host: 192.168.220.18
+    port: 25
+  freemarker:
+    template-loader-path: classpath:templates/
 camunda:
   bpm:
     default-number-of-retries: 1
@@ -66,7 +73,6 @@ camunda:
       jdbc-batch-processing: true
     metrics:
       enabled: false
-      db-reporter-active: false
     webapp:
       index-redirect-enabled: false
   xstream-serialization:

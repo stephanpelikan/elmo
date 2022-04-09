@@ -1,5 +1,16 @@
 elmo:
+  title: ElektroMobil Gänserndorf
   gateway-url: http://localhost:3000
+  homepage: https://www.elektromobil-gf.at
+  default-locale: de
+  email-sender: stephan.pelikan@phactum.at
+  redirect-all-emails-to-address: stephan.pelikan@phactum.at
+  dont-redirect-emails-to-addresses:
+  - stephan@pelikan-it.com
+  - iphone.hudri.wudri@gmail.com
+logging:
+  level:
+    org.springframework.ui.freemarker: DEBUG
 spring:
   datasource:
     url: jdbc:h2:file:./target/devdb.h2;DB_CLOSE_ON_EXIT=FALSE
@@ -32,6 +43,7 @@ spring:
             - profile
         provider:
           amazon:
+            id: amazon
             authorization-uri: https://www.amazon.com/ap/oa
             token-uri: https://api.amazon.co.uk/auth/o2/token
             user-info-uri: https://api.amazon.com/user/profile

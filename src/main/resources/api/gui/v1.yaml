@@ -85,10 +85,12 @@ components:
       enum:
         - NEW
         - EMAIL_VERIFIED
-        - DATA_MISSING
+        - DATA_INVALID
         - ACTIVE
         - INACTIVE
         - TO_BE_DELETED
+        - REJECTED
+        - DUPLICATE
     User:
       type: object
       properties:

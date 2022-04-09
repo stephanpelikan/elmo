@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_0jdu7va" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.12.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.15.0">
+  <bpmn:collaboration id="Collaboration_1izstq4">
+    <bpmn:participant id="Participant_0jxykkz" name="email-address verification" processRef="EmailVerification" />
+  </bpmn:collaboration>
+  <bpmn:process id="EmailVerification" isExecutable="false">
+    <bpmn:startEvent id="Event_1l18wtq" name="email-address verification required">
+      <bpmn:outgoing>Flow_1rperbo</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:receiveTask id="Activity_0zii56h" name="wait for using confirmation link" messageRef="Message_0ptr7bb">
+      <bpmn:incoming>Flow_0afdy3z</bpmn:incoming>
+      <bpmn:outgoing>Flow_0x1ms8t</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:sendTask id="Activity_1oi3ipx" name="send email including a confirmation-link" camunda:asyncBefore="true" camunda:delegateExpression="${sendMailIncludingConfirmationLink}">
+      <bpmn:incoming>Flow_1rperbo</bpmn:incoming>
+      <bpmn:incoming>Flow_0corpi1</bpmn:incoming>
+      <bpmn:outgoing>Flow_0afdy3z</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:serviceTask id="Activity_00r0e48" name="update user information by verified email-address" camunda:asyncBefore="true" camunda:delegateExpression="${emailAddressVerified}">
+      <bpmn:incoming>Flow_0x1ms8t</bpmn:incoming>
+      <bpmn:outgoing>Flow_1ntfnfa</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="Event_0azzkki" name="email-address verified">
+      <bpmn:incoming>Flow_1ntfnfa</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="Event_0mjsh02" name="email-address not verified and therefore not changed">
+      <bpmn:incoming>Flow_084s9cc</bpmn:incoming>
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_188oxel" errorRef="Error_1tzu6z8" />
+    </bpmn:endEvent>
+    <bpmn:boundaryEvent id="Event_1c5ho2d" name="confirmation link expired after 30 minutes" attachedToRef="Activity_0zii56h">
+      <bpmn:outgoing>Flow_084s9cc</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_0f359rz">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT30M</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
+    <bpmn:boundaryEvent id="Event_0bzfkf6" name="user asks&#10;for another confirmation&#10;email" attachedToRef="Activity_0zii56h">
+      <bpmn:outgoing>Flow_0corpi1</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_05wfhq2" messageRef="Message_19vtm7k" />
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="Flow_0afdy3z" sourceRef="Activity_1oi3ipx" targetRef="Activity_0zii56h" />
+    <bpmn:sequenceFlow id="Flow_1rperbo" sourceRef="Event_1l18wtq" targetRef="Activity_1oi3ipx" />
+    <bpmn:sequenceFlow id="Flow_0x1ms8t" sourceRef="Activity_0zii56h" targetRef="Activity_00r0e48" />
+    <bpmn:sequenceFlow id="Flow_1ntfnfa" sourceRef="Activity_00r0e48" targetRef="Event_0azzkki" />
+    <bpmn:sequenceFlow id="Flow_084s9cc" sourceRef="Event_1c5ho2d" targetRef="Event_0mjsh02" />
+    <bpmn:sequenceFlow id="Flow_0corpi1" sourceRef="Event_0bzfkf6" targetRef="Activity_1oi3ipx" />
+  </bpmn:process>
+  <bpmn:message id="Message_0ptr7bb" name="ConfirmationLinkClicked" />
+  <bpmn:error id="Error_1tzu6z8" name="Email_Not_Verified" errorCode="Email_Not_Verified" />
+  <bpmn:message id="Message_19vtm7k" name="SendAnotherConfirmationLinkMail" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1izstq4">
+      <bpmndi:BPMNShape id="Participant_0jxykkz_di" bpmnElement="Participant_0jxykkz" isHorizontal="true">
+        <dc:Bounds x="150" y="80" width="880" height="250" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0corpi1_di" bpmnElement="Flow_0corpi1">
+        <di:waypoint x="510" y="228" />
+        <di:waypoint x="510" y="280" />
+        <di:waypoint x="400" y="280" />
+        <di:waypoint x="400" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_084s9cc_di" bpmnElement="Flow_084s9cc">
+        <di:waypoint x="610" y="228" />
+        <di:waypoint x="610" y="280" />
+        <di:waypoint x="862" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1ntfnfa_di" bpmnElement="Flow_1ntfnfa">
+        <di:waypoint x="790" y="170" />
+        <di:waypoint x="862" y="170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0x1ms8t_di" bpmnElement="Flow_0x1ms8t">
+        <di:waypoint x="610" y="170" />
+        <di:waypoint x="690" y="170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1rperbo_di" bpmnElement="Flow_1rperbo">
+        <di:waypoint x="268" y="170" />
+        <di:waypoint x="330" y="170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0afdy3z_di" bpmnElement="Flow_0afdy3z">
+        <di:waypoint x="430" y="170" />
+        <di:waypoint x="510" y="170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Event_1l18wtq_di" bpmnElement="Event_1l18wtq">
+        <dc:Bounds x="232" y="152" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="215" y="102" width="70" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0zii56h_di" bpmnElement="Activity_0zii56h">
+        <dc:Bounds x="510" y="130" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1oi3ipx_di" bpmnElement="Activity_1oi3ipx">
+        <dc:Bounds x="330" y="130" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_00r0e48_di" bpmnElement="Activity_00r0e48">
+        <dc:Bounds x="690" y="130" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0azzkki_di" bpmnElement="Event_0azzkki">
+        <dc:Bounds x="862" y="152" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="905" y="156" width="70" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0mjsh02_di" bpmnElement="Event_0mjsh02">
+        <dc:Bounds x="862" y="262" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="906" y="253" width="88" height="53" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0bzfkf6_di" bpmnElement="Event_0bzfkf6">
+        <dc:Bounds x="492" y="192" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="440" y="220" width="60" height="53" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1c5ho2d_di" bpmnElement="Event_1c5ho2d">
+        <dc:Bounds x="592" y="192" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="630" y="220" width="80" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

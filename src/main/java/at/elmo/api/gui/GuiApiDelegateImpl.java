@@ -13,23 +13,24 @@ import org.springframework.stereotype.Component;
 import at.elmo.api.gui.v1.GuiApiDelegate;
 import at.elmo.api.gui.v1.Oauth2Client;
 import at.elmo.api.gui.v1.User;
-import at.elmo.user.UserService;
+import at.elmo.member.MemberService;
 
 @Component
 public class GuiApiDelegateImpl implements GuiApiDelegate {
 
     private final ClientRegistrationRepository clientRegistrationRepository;
     
-    private final UserService userService;
+    private final MemberService memberService;
     
     private final GuiMapper mapper;
 
     public GuiApiDelegateImpl(
             final ClientRegistrationRepository clientRegistrationRepository,
-            final UserService userService, final GuiMapper mapper) {
+            final MemberService memberService,
+            final GuiMapper mapper) {
 
         this.clientRegistrationRepository = clientRegistrationRepository;
-        this.userService = userService;
+        this.memberService = memberService;
         this.mapper = mapper;
         
     }
@@ -37,7 +38,7 @@ public class GuiApiDelegateImpl implements GuiApiDelegate {
     @Override
     public ResponseEntity<User> currentUser() {
 
-        final var user = userService.getCurrentUser();
+        final var user = memberService.getCurrentUser();
         if (user.isEmpty()) {
             return ResponseEntity.notFound().build();
         }

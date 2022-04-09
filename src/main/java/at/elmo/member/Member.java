@@ -1,4 +1,4 @@
-package at.elmo.user;
+package at.elmo.member;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -16,17 +16,21 @@ import javax.persistence.Table;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import at.elmo.member.login.OAuth2Identifier;
+
 @Entity
-@Table(name = "ELMO_USERS")
-public class User {
+@Table(name = "ELMO_MEMBERS")
+public class Member {
 
     public static enum Status {
         NEW,
         EMAIL_VERIFIED,
-        DATA_MISSING,
+        DATA_INVALID,
         ACTIVE,
         INACTIVE,
-        TO_BE_DELETED
+        TO_BE_DELETED,
+        REJECTED,
+        DUPLICATE
     };
     
     @Id
