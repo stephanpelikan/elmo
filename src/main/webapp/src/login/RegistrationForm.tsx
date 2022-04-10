@@ -19,10 +19,21 @@ const RegistrationForm = () => {
   const { state, dispatch } = useAppContext();
   
   const initialForm: MemberApplicationForm = {
-    firstName: state.currentUser.firstName,
-    lastName: state.currentUser.name,
-    sex: state.currentUser.female ? Sex.Female : Sex.Male,
-    email: state.currentUser.email,
+      firstName: state.currentUser.firstName,
+      lastName: state.currentUser.name,
+      sex: state.currentUser.female ? Sex.Female : Sex.Male,
+      birthdate: undefined,
+      zip: "",
+      city: "",
+      street: "",
+      streetNumber: "",
+      email: state.currentUser.email,
+      emailConfirmationCode: null,
+      phoneCountryCode: "",
+      phoneProviderCode: "",
+      phoneNumber: "",
+      phoneConfirmationCode: null,
+      preferNotificationsPerSms: false
   };
   const [ form, setForm ] = useState(initialForm);
   const [ submitting, setSubmitting ] = useState(false);

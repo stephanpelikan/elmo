@@ -32,8 +32,18 @@
 			<column name="UPDATED_AT" type="timestamp" />
 			<column name="MEMBER_ID" type="int" />
 			<column name="EMAIL" type="varchar(2048)" />
-			<column name="NAME" type="varchar(255)" />
-			<column name="FIRST_NAME" type="varchar(255)" />
+      <column name="FIRST_NAME" type="varchar(255)" />
+			<column name="LAST_NAME" type="varchar(255)" />
+			<column name="LAST_EMAIL_CODE" type="varchar(4)" />
+      <column name="BIRTHDATE" type="date" />
+      <column name="SEX" type="varchar(6)" />
+      <column name="ZIP" type="varchar(10)" />
+      <column name="CITY" type="varchar(255)" />
+      <column name="STREET" type="varchar(255)" />
+      <column name="STREET_NUMBER" type="varchar(25)" />
+      <column name="PHONE_NUMBER" type="varchar(30)" />
+      <column name="LAST_PHONE_CODE" type="varchar(4)" />
+      <column name="NOTIFY_PER_SMS" type="boolean" />
 		</createTable>
     <createTable tableName="ELMO_MEMBER_APPLICATIONS">
       <column name="ID" type="varchar(40)">

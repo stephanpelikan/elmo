@@ -1,5 +1,6 @@
 package at.elmo.member;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
 
@@ -21,6 +22,10 @@ import at.elmo.member.login.OAuth2Identifier;
 @Entity
 @Table(name = "ELMO_MEMBERS")
 public class Member {
+
+    public static enum Sex {
+        FEMALE, MALE, OTHER
+    };
 
     public static enum Status {
         NEW,
@@ -60,11 +65,42 @@ public class Member {
     @Column(name = "EMAIL")
     private String email;
 
-    @Column(name = "NAME")
-    private String name;
+    @Column(name = "LAST_NAME")
+    private String lastName;
 
     @Column(name = "FIRST_NAME")
     private String firstName;
+
+    @Column(name = "LAST_EMAIL_CODE")
+    private String lastEmailConfirmationCode;
+
+    @Column(name = "BIRTHDATE", columnDefinition = "DATE")
+    private LocalDate birthdate;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "SEX")
+    private Sex sex;
+
+    @Column(name = "ZIP")
+    private String zip;
+
+    @Column(name = "CITY")
+    private String city;
+
+    @Column(name = "STREET")
+    private String street;
+
+    @Column(name = "STREET_NUMBER")
+    private String streetNumber;
+
+    @Column(name = "PHONE_NUMBER")
+    private String phoneNumber;
+
+    @Column(name = "LAST_PHONE_CODE")
+    private String lastPhoneConfirmationCode;
+
+    @Column(name = "NOTIFY_PER_SMS")
+    private boolean preferNotificationsPerSms;
 
     public String getId() {
         return id;
@@ -106,14 +142,6 @@ public class Member {
         this.firstName = firstName;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public Integer getMemberId() {
         return memberId;
     }
@@ -136,6 +164,94 @@ public class Member {
 
     public void setUpdatedAt(OffsetDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public LocalDate getBirthdate() {
+        return birthdate;
+    }
+
+    public void setBirthdate(LocalDate birthdate) {
+        this.birthdate = birthdate;
+    }
+
+    public Sex getSex() {
+        return sex;
+    }
+
+    public void setSex(Sex sex) {
+        this.sex = sex;
+    }
+
+    public String getZip() {
+        return zip;
+    }
+
+    public void setZip(String zip) {
+        this.zip = zip;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getStreet() {
+        return street;
+    }
+
+    public void setStreet(String street) {
+        this.street = street;
+    }
+
+    public String getStreetNumber() {
+        return streetNumber;
+    }
+
+    public void setStreetNumber(String streetNumber) {
+        this.streetNumber = streetNumber;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public boolean isPreferNotificationsPerSms() {
+        return preferNotificationsPerSms;
+    }
+
+    public void setPreferNotificationsPerSms(boolean preferNotificationsPerSms) {
+        this.preferNotificationsPerSms = preferNotificationsPerSms;
+    }
+
+    public String getLastEmailConfirmationCode() {
+        return lastEmailConfirmationCode;
+    }
+
+    public void setLastEmailConfirmationCode(String lastEmailConfirmationCode) {
+        this.lastEmailConfirmationCode = lastEmailConfirmationCode;
+    }
+
+    public String getLastPhoneConfirmationCode() {
+        return lastPhoneConfirmationCode;
+    }
+
+    public void setLastPhoneConfirmationCode(String lastPhoneConfirmationCode) {
+        this.lastPhoneConfirmationCode = lastPhoneConfirmationCode;
     }
     
 }

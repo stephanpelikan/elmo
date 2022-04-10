@@ -140,7 +140,7 @@ components:
           type: string
         email:
           type: string
-        emailCode:
+        emailConfirmationCode:
           type: string
         birthdate:
           type: string
@@ -161,9 +161,28 @@ components:
           type: string
         phoneNumber:
           type: string
+        phoneConfirmationCode:
+          type: string
+        preferNotificationsPerSms:
+          type: boolean
+      required:
+        - firstName
+        - lastName
+        - birthdate
+        - sex
+        - zip
+        - city
+        - street
+        - streetNumber
+        - email
+        - emailConfirmationCode
+        - phoneCountryCode
+        - phoneProviderCode
+        - phoneNumber
+        - phoneConfirmationCode
     Sex:
       type: string
       enum:
         - MALE
         - FEMALE
-        - DIVERSE
+        - OTHER

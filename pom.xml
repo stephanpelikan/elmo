@@ -65,7 +65,7 @@
 			<plugin>
 				<groupId>org.openapitools</groupId>
 				<artifactId>openapi-generator-maven-plugin</artifactId>
-				<version>5.3.0</version>
+				<version>5.4.0</version>
 				<executions>
 					<execution>
 						<id>generate-gui-api</id>
@@ -82,8 +82,10 @@
 							<supportingFilesToGenerate>ApiUtil.java</supportingFilesToGenerate>
 							<configOptions>
 								<sourceFolder>openapi</sourceFolder>
-								<delegatePattern>true</delegatePattern>
-								<dateLibrary>java8</dateLibrary> <!-- use OffsetDateTime -->
+								<interfaceOnly>true</interfaceOnly>
+								<useSpringController>true</useSpringController>
+								<dateLibrary>java8</dateLibrary>
+								<useBeanValidation>true</useBeanValidation>
 							</configOptions>
 							<addCompileSourceRoot>true</addCompileSourceRoot>
 						</configuration>
