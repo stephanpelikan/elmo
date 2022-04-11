@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Oauth2Client, MemberApplicationForm, UserStatus } from './client/gui';
+import { User, Oauth2Client, UserStatus } from './client/gui';
 import { guiApi } from './client';
 
 type Action =

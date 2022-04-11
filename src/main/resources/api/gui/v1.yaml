@@ -96,7 +96,7 @@ components:
       enum:
         - PASSANGER
         - DRIVER
-        - MANAGEMENT
+        - MANAGER
         - ADMIN
     UserStatus:
       type: string
@@ -125,8 +125,6 @@ components:
           type: string
         firstName:
           type: string
-        female:
-          type: boolean
         roles:
           type: array
           items:

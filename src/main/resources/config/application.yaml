@@ -46,9 +46,6 @@ spring:
       leak-detection-threshold: 4000 # TODO determine a good value
       data-source-properties:
       defaultRowPrefetch: 100
-  mail:
-    host: 192.168.220.18
-    port: 25
   freemarker:
     template-loader-path: classpath:templates/
 camunda:

@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import at.elmo.config.ElmoProperties;
+import at.elmo.member.Member.Role;
 import at.elmo.member.Member.Sex;
 import at.elmo.member.Member.Status;
 import at.elmo.member.login.ElmoOAuth2User;
@@ -17,6 +19,9 @@ import at.elmo.member.onboarding.MemberOnboarding;
 
 @Service
 public class MemberService {
+
+    @Autowired
+    private ElmoProperties properties;
 
     @Autowired
     private MemberRepository memberRepository;
@@ -62,13 +67,17 @@ public class MemberService {
         final var newMember = new Member();
         newOAuth2Id.setOwner(newMember);
 
+        if (oAuth2User.getEmail().equals(properties.getAdminIdentificationEmailAddress())) {
+            newMember.addRole(Role.ADMIN);
+        }
+
         newMember.setOauth2Ids(List.of(newOAuth2Id));
         newMember.setId(UUID.randomUUID().toString());
         newMember.setEmail(oAuth2User.getEmail());
         newMember.setStatus(emailVerified ? Status.EMAIL_VERIFIED : Status.NEW);
         newMember.setLastName(oAuth2User.getName());
         newMember.setFirstName(oAuth2User.getFirstName());
-        
+
         final var result = memberRepository.saveAndFlush(newMember);
         
         memberOnboarding.doOnboading(result);

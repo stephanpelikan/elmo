@@ -2,6 +2,7 @@ package at.elmo.member;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -18,6 +19,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import at.elmo.member.login.OAuth2Identifier;
+import at.elmo.member.login.RoleMembership;
 
 @Entity
 @Table(name = "ELMO_MEMBERS")
@@ -38,6 +40,13 @@ public class Member {
         REJECTED,
         DUPLICATE
     };
+    
+    public static enum Role {
+        PASSANGER,
+        DRIVER,
+        MANAGER,
+        ADMIN
+    }
     
     @Id
     @Column(name = "ID")
@@ -101,6 +110,10 @@ public class Member {
 
     @Column(name = "NOTIFY_PER_SMS")
     private boolean preferNotificationsPerSms;
+    
+    @OneToMany(mappedBy = "member", fetch = FetchType.EAGER, cascade = { CascadeType.MERGE, CascadeType.PERSIST,
+            CascadeType.DETACH })
+    private List<RoleMembership> roles = new LinkedList<>();
 
     public String getId() {
         return id;
@@ -252,6 +265,44 @@ public class Member {
 
     public void setLastPhoneConfirmationCode(String lastPhoneConfirmationCode) {
         this.lastPhoneConfirmationCode = lastPhoneConfirmationCode;
+    }
+
+    public List<RoleMembership> getRoles() {
+        return roles;
+    }
+    
+    public void setRoles(List<RoleMembership> roles) {
+        this.roles = roles;
+    }
+    
+    public void addRole(
+            final Role role) {
+        
+        final var membership = new RoleMembership();
+        membership.setMember(this);
+        membership.setRole(role);
+        roles.add(membership);
+        
+    }
+    
+    public void removeRole(
+            final Role role) {
+
+        final var membership = new RoleMembership();
+        membership.setMember(this);
+        membership.setRole(role);
+        roles.remove(membership);
+        
+    }
+    
+    public boolean hasRole(
+            final Role role) {
+        
+        final var membership = new RoleMembership();
+        membership.setMember(this);
+        membership.setRole(role);
+        return roles.contains(membership);
+        
     }
     
 }

@@ -3,17 +3,23 @@ package at.elmo.api.gui;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import at.elmo.api.gui.v1.Role;
 import at.elmo.api.gui.v1.Sex;
 import at.elmo.api.gui.v1.User;
+import at.elmo.member.login.RoleMembership;
 
 @Mapper
-public interface GuiMapper {
+public abstract class GuiMapper {
 
-    @Mapping(target = "female", ignore = true)
-    @Mapping(target = "roles", ignore = true)
     @Mapping(target = "name", source = "lastName")
-    User toApi(at.elmo.member.Member user);
+    public abstract User toApi(at.elmo.member.Member user);
 
-    at.elmo.member.Member.Sex toDomain(Sex sex);
+    protected Role toApi(RoleMembership roleMembership) {
+
+        return Role.fromValue(roleMembership.getRole().name());
+
+    }
+
+    public abstract at.elmo.member.Member.Sex toDomain(Sex sex);
 
 }

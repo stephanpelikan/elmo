@@ -1,9 +1,8 @@
 import { Box } from 'grommet';
 import { useEffect, useState } from 'react';
 import { useAppContext, fetchCurrentUser } from './AppContext';
-import { UserStatus } from './client/gui';
 import { Login } from './login/Login';
-import { RegistrationForm } from './login/RegistrationForm';
+import { RegistrationMain } from './login/RegistrationMain';
 
 const Main = () => {
   const { state, dispatch } = useAppContext();
@@ -19,10 +18,8 @@ const Main = () => {
     ? <Box>Loading</Box>
     : state.currentUser === null
     ? <Login />
-    : ((state.currentUser.status === UserStatus.New) || (state.currentUser.status === UserStatus.EmailVerified))
-    ? <RegistrationForm />
-    : state.currentUser.status === UserStatus.ApplicationSubmitted
-    ? <Box>Submitted</Box>
+    : (state.currentUser.roles.length === 0)
+    ? <RegistrationMain />
     : <Box>{ state.currentUser.email }</Box>);
 }
 

@@ -33,6 +33,9 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties {
     private String homepage;
 
     @NonNull
+    private String adminIdentificationEmailAddress;
+
+    @NonNull
     private String defaultLocale;
 
     private CorsConfiguration cors = new CorsConfiguration();
@@ -121,6 +124,14 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties {
 
     public void setDefaultLocale(String defaultLocale) {
         this.defaultLocale = defaultLocale;
+    }
+
+    public String getAdminIdentificationEmailAddress() {
+        return adminIdentificationEmailAddress;
+    }
+
+    public void setAdminIdentificationEmailAddress(String adminIdentificationEmailAddress) {
+        this.adminIdentificationEmailAddress = adminIdentificationEmailAddress;
     }
 
 }
