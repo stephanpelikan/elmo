@@ -1,9 +1,8 @@
-package at.elmo.api.gui;
+package at.elmo.gui.api;
 
 import java.util.LinkedList;
 import java.util.List;
 
-import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ResolvableType;
 import org.springframework.http.ResponseEntity;
@@ -13,37 +12,43 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequest
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import at.elmo.api.gui.v1.GuiApi;
-import at.elmo.api.gui.v1.MemberApplicationForm;
-import at.elmo.api.gui.v1.Oauth2Client;
-import at.elmo.api.gui.v1.User;
+import at.elmo.gui.api.v1.GuiApi;
+import at.elmo.gui.api.v1.MemberApplicationForm;
+import at.elmo.gui.api.v1.Oauth2Client;
+import at.elmo.gui.api.v1.User;
 import at.elmo.member.MemberService;
+import at.elmo.util.ElmoException;
+import at.elmo.util.UserContext;
 
 @RestController
 @RequestMapping("/api/v1")
 public class GuiApiController implements GuiApi {
 
     @Autowired
-    private Logger logger;
-
-    @Autowired
     private ClientRegistrationRepository clientRegistrationRepository;
     
     @Autowired
+    private UserContext userContext;
+
+    @Autowired
     private MemberService memberService;
-    
+
     @Autowired
     private GuiMapper mapper;
 
     @Override
     public ResponseEntity<User> currentUser() {
 
-        final var user = memberService.getCurrentUser();
-        if (user.isEmpty()) {
+        try {
+
+            final var user = userContext.getLoggedInMember();
+            return ResponseEntity.ok(mapper.toApi(user));
+
+        } catch (ElmoException e) {
+
             return ResponseEntity.notFound().build();
+
         }
-        
-        return ResponseEntity.ok(mapper.toApi(user.get()));
 
     }
 
@@ -96,30 +101,20 @@ public class GuiApiController implements GuiApi {
                 ? memberApplicationForm.getPhoneProviderCode().substring(1)
                 : memberApplicationForm.getPhoneProviderCode();
 
-        try {
-
-            memberService.processMemberApplicationInformation(
-                    memberApplicationForm.getFirstName(),
-                    memberApplicationForm.getLastName(),
-                    memberApplicationForm.getBirthdate(),
-                    mapper.toDomain(memberApplicationForm.getSex()),
-                    memberApplicationForm.getZip(),
-                    memberApplicationForm.getCity(),
-                    memberApplicationForm.getStreet(),
-                    memberApplicationForm.getStreetNumber(),
-                    memberApplicationForm.getEmail(),
-                    memberApplicationForm.getEmailConfirmationCode(),
-                    phoneCountryCode + phoneProviderCode + memberApplicationForm.getPhoneNumber(),
-                    memberApplicationForm.getPhoneConfirmationCode(),
-                    referNotificationsPerSms);
-
-        } catch (RuntimeException e) {
-            logger.error("Could not process application form", e);
-            return ResponseEntity.unprocessableEntity().build();
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-            return ResponseEntity.unprocessableEntity().build();
-        }
+        memberService.processMemberApplicationInformation(
+                memberApplicationForm.getFirstName(),
+                memberApplicationForm.getLastName(),
+                memberApplicationForm.getBirthdate(),
+                mapper.toDomain(memberApplicationForm.getSex()),
+                memberApplicationForm.getZip(),
+                memberApplicationForm.getCity(),
+                memberApplicationForm.getStreet(),
+                memberApplicationForm.getStreetNumber(),
+                memberApplicationForm.getEmail(),
+                memberApplicationForm.getEmailConfirmationCode(),
+                phoneCountryCode + phoneProviderCode + memberApplicationForm.getPhoneNumber(),
+                memberApplicationForm.getPhoneConfirmationCode(),
+                referNotificationsPerSms);
         
         return ResponseEntity.ok().build();
         

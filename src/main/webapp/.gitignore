@@ -5,6 +5,7 @@
 /.pnp
 .pnp.js
 /src/client/gui
+/src/client/administration
 
 # testing
 /coverage

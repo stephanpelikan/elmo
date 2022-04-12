@@ -82,15 +82,12 @@ paths:
           description: The member-id is unknown
 components:
   schemas:
-    Oauth2Client:
-      type: object
-      properties:
-        id:
-          type: string
-        url:
-          type: string
-        name:
-          type: string
+    Sex:
+      type: string
+      enum:
+        - MALE
+        - FEMALE
+        - OTHER
     Role:
       type: string
       enum:
@@ -110,6 +107,15 @@ components:
         - TO_BE_DELETED
         - REJECTED
         - DUPLICATE
+    Oauth2Client:
+      type: object
+      properties:
+        id:
+          type: string
+        url:
+          type: string
+        name:
+          type: string
     User:
       type: object
       properties:
@@ -178,9 +184,3 @@ components:
         - phoneProviderCode
         - phoneNumber
         - phoneConfirmationCode
-    Sex:
-      type: string
-      enum:
-        - MALE
-        - FEMALE
-        - OTHER

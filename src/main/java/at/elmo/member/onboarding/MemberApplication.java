@@ -22,7 +22,7 @@ public class MemberApplication {
 
     public static enum Status {
         IN_PROGRESS,
-        ACTIVE,
+        DONE,
         REJECTED,
         DUPLICATE
     };
@@ -61,7 +61,7 @@ public class MemberApplication {
 
     public boolean isAccepted() {
 
-        return status == Status.ACTIVE;
+        return status == Status.DONE;
 
     }
 

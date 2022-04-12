@@ -2,24 +2,25 @@ package at.elmo.config.web;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import at.elmo.config.ElmoProperties;
-import at.elmo.member.login.AuthenticationSuccessHandler;
+import at.elmo.member.Member.Role;
+import at.elmo.member.MemberService;
 import at.elmo.member.login.OAuth2UserService;
 
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
-
-    public static final String ADMIN_GROUP = "ADMIN";
     
     @Value("${camunda.bpm.admin-user.id}")
     private String adminUserId;
@@ -28,24 +29,25 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     private String adminUserPassword;
     
     @Autowired
-    private AuthenticationSuccessHandler successHandler;
-    
-    @Autowired
-    private OAuth2UserService oauth2UserService;
+    private ElmoProperties properties;
 
     @Autowired
-    private ElmoProperties properties;
+    private MemberService memberService;
 	
 	@Override
     protected void configure(final HttpSecurity http) throws Exception {
 
-		final RequestMatcher[] unprotectedApiMatchers = new RequestMatcher[] {
+		final RequestMatcher[] unprotectedGuiApi = new RequestMatcher[] {
                 new AntPathRequestMatcher("/api/v*/gui/currentUser"),
                 new AntPathRequestMatcher("/api/v*/gui/currentUser"),
                 new AntPathRequestMatcher("/api/v*/gui/oauth2-clients"),
 		};
 
-        final RequestMatcher[] apiMatchers = new RequestMatcher[] {
+		final RequestMatcher[] administrationApi = new RequestMatcher[] {
+		        new AntPathRequestMatcher("/api/v*/administration/**")
+		};
+		
+        final RequestMatcher[] guiApi = new RequestMatcher[] {
                 new AntPathRequestMatcher("/api/v*/**"),
                 new AntPathRequestMatcher("/logout"),
                 new AntPathRequestMatcher("/**/oauth2/**"),
@@ -53,7 +55,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
 		http
                 .requestMatchers()
-                    .requestMatchers(apiMatchers)
+                    .requestMatchers(guiApi)
                     .and()
                 .csrf()
     				.disable()
@@ -70,7 +72,8 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     			.authorizeRequests()
     	            .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     .antMatchers("**/websocket/**").permitAll()
-                    .requestMatchers(unprotectedApiMatchers).permitAll()
+                    .requestMatchers(unprotectedGuiApi).permitAll()
+                    .requestMatchers(administrationApi).hasRole(Role.ADMIN.name())
                     .anyRequest().authenticated()
     				.and()
     			.logout()
@@ -79,25 +82,24 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     				.and()
                 .oauth2Login()
                     .userInfoEndpoint()
-                        .userService(oauth2UserService)
+                        .userService(oauth2UserService())
                         .and()
-                    .successHandler(successHandler);
+                    .successHandler(authenticationSuccessHandler());
 
 	}
 
-//	@Override
-//	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-//	    
-//	    auth
-//				.inMemoryAuthentication()
-//					.withUser(User.builder()
-//						.username(adminUserId)
-//                        .password("{noop}" + adminUserPassword)
-//						.authorities(ADMIN_GROUP));
-//	    // add any other user source here
-//		// auth
-//		//	    .authenticationProvider(activeDirectoryAuthenticationProvider());
-//		
-//	}
+    @Bean
+    public AuthenticationSuccessHandler authenticationSuccessHandler() {
+
+        return new at.elmo.member.login.AuthenticationSuccessHandler(properties, memberService);
+
+    }
+
+    @Bean
+    public OAuth2UserService oauth2UserService() {
+
+        return new OAuth2UserService(memberService);
+
+    }
 
 }

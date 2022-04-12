@@ -12,13 +12,21 @@ public class ElmoOAuth2User extends DefaultOAuth2User {
 
     private final ElmoOAuth2Provider provider;
     
+    private final String oauth2Id;
+
+    private final String elmoId;
+
     public ElmoOAuth2User(
             final ElmoOAuth2Provider provider,
+            final String oauth2Id,
+            final String elmoId,
             final Collection<? extends GrantedAuthority> authorities,
             final Map<String, Object> attributes) {
         
         super(authorities, attributes, "name");
         this.provider = provider;
+        this.oauth2Id = oauth2Id;
+        this.elmoId = elmoId;
         
     };
     
@@ -30,15 +38,22 @@ public class ElmoOAuth2User extends DefaultOAuth2User {
 
     public String getOAuth2Id() {
 
-        switch (provider) {
-        case AMAZON:
-            return getAttribute("user_id");
-        default:
-            return getAttribute("sub");
-        }
+        return oauth2Id;
 
     }
     
+    public String getElmoId() {
+
+        return elmoId;
+
+    }
+
+    public boolean isNewUser() {
+
+        return elmoId == null;
+
+    }
+
     public String getEmail() {
         
         return getAttribute("email");

@@ -1,0 +1,145 @@
+openapi: 3.0.0
+info:
+  description: Administration API
+  version: '1.0'
+  title: administration
+servers:
+  - url: /api/v1.0
+
+security:
+  - JWT: []
+
+paths:
+  /administration/member-application:
+    post:
+      tags:
+        - administration
+      summary: all member applications
+      operationId: getMemberApplications
+      parameters:
+        - in: query
+          name: pageNumber
+          schema:
+            type: integer
+            format: int32
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+            format: int32
+      responses:
+        200:
+          description: All member applications
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberApplications' 
+components:
+  schemas:
+    Sex:
+      type: string
+      enum:
+        - MALE
+        - FEMALE
+        - OTHER
+    Role:
+      type: string
+      enum:
+        - PASSANGER
+        - DRIVER
+        - MANAGER
+        - ADMIN
+    MemberStatus:
+      type: string
+      enum:
+        - NEW
+        - EMAIL_VERIFIED
+        - APPLICATION_SUBMITTED
+        - DATA_INVALID
+        - ACTIVE
+        - INACTIVE
+        - TO_BE_DELETED
+        - REJECTED
+        - DUPLICATE
+    MemberApplicationStatus:
+      type: string
+      enum:
+        - IN_PROGRESS
+        - DONE
+        - REJECTED
+        - DUPLICATE
+    Page:
+      type: object
+      properties:
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+        number:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
+    MemberApplications:
+      type: object
+      properties:
+        page:
+          $ref: '#/components/schemas/Page'
+        applications:
+          type: array
+          items:
+            $ref: '#/components/schemas/MemberApplication'
+    MemberApplication:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          $ref: '#/components/schemas/MemberApplicationStatus'
+        member:
+          $ref: '#/components/schemas/Member'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    Member:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          $ref: '#/components/schemas/MemberStatus'
+        memberId:
+          type: int
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        birthdate:
+          type: string
+          format: date
+        sex:
+          $ref: '#/components/schemas/Sex'
+        zip:
+          type: string
+        city:
+          type: string
+        street:
+          type: string
+        streetNumber:
+          type: string
+        phoneNumber:
+          type: string
+        preferNotificationsPerSms:
+          type: boolean
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Role'

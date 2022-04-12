@@ -9,12 +9,10 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
-import org.springframework.stereotype.Component;
 
 import at.elmo.config.ElmoProperties;
 import at.elmo.member.MemberService;
 
-@Component
 public class AuthenticationSuccessHandler
         extends SavedRequestAwareAuthenticationSuccessHandler {
 
@@ -49,16 +47,20 @@ public class AuthenticationSuccessHandler
             final HttpServletResponse response,
             final Authentication authentication) throws IOException, ServletException {
         
-        final var oAuth2User = (ElmoOAuth2User) authentication.getPrincipal();
+        final var oauth2User = (ElmoOAuth2User) authentication.getPrincipal();
 
-        try {
-            memberService.loadOrRegisterMember(oAuth2User);
-        } catch (Exception e) {
-            throw new ServletException("Could not load or register oauth2 user", e);
+        if (oauth2User.isNewUser()) {
+
+            try {
+                memberService.registerMemberByOAuth2User(oauth2User);
+            } catch (Exception e) {
+                throw new ServletException("Could not register oauth2 user", e);
+            }
+
         }
         
         super.onAuthenticationSuccess(request, response, authentication);
 
     }
-
+    
 }

@@ -6,11 +6,9 @@ import { RegistrationForm } from '../login/RegistrationForm';
 const RegistrationMain = () => {
   const { state } = useAppContext();
   
-  return (state.currentUser.roles.length === 0
+  return (state.currentUser.status !== UserStatus.ApplicationSubmitted
     ? <RegistrationForm />
-    : state.currentUser.status === UserStatus.ApplicationSubmitted
-    ? <Box>Submitted</Box>
-    : <Box>Wait to be activated</Box>);
+    : <Box>Submitted</Box>);
 }
 
 export { RegistrationMain };

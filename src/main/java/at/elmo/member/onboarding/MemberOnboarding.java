@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import at.elmo.member.Member;
 import at.elmo.member.Member.Status;
@@ -14,6 +15,7 @@ import at.phactum.bp.blueprint.service.WorkflowTask;
 
 @Service
 @WorkflowService(workflowAggregateClass = MemberApplication.class)
+@Transactional
 public class MemberOnboarding {
 
     @Autowired
@@ -22,7 +24,7 @@ public class MemberOnboarding {
     @Autowired
     private EmailService emailService;
     
-    public void doOnboading(
+    public void doOnboarding(
             final Member member) throws Exception {
         
         final var application = new MemberApplication();
@@ -93,5 +95,5 @@ public class MemberOnboarding {
     public void sendRejectionOfApplication() {
 
     }
-
+    
 }

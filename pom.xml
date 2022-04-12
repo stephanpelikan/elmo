@@ -76,8 +76,8 @@
 							<inputSpec>${project.basedir}/src/main/resources/api/gui/v1.yaml</inputSpec>
 							<output>${project.build.directory}/generated-sources</output>
 							<generatorName>spring</generatorName>
-							<apiPackage>at.elmo.api.gui.v1</apiPackage>
-							<modelPackage>at.elmo.api.gui.v1</modelPackage>
+							<apiPackage>at.elmo.gui.api.v1</apiPackage>
+							<modelPackage>at.elmo.gui.api.v1</modelPackage>
 							<generateSupportingFiles>true</generateSupportingFiles>
 							<supportingFilesToGenerate>ApiUtil.java</supportingFilesToGenerate>
 							<configOptions>
@@ -90,6 +90,29 @@
 							<addCompileSourceRoot>true</addCompileSourceRoot>
 						</configuration>
 					</execution>
+          <execution>
+            <id>generate-administration-api</id>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <configuration>
+              <inputSpec>${project.basedir}/src/main/resources/api/administration/v1.yaml</inputSpec>
+              <output>${project.build.directory}/generated-sources</output>
+              <generatorName>spring</generatorName>
+              <apiPackage>at.elmo.administration.api.v1</apiPackage>
+              <modelPackage>at.elmo.administration.api.v1</modelPackage>
+              <generateSupportingFiles>true</generateSupportingFiles>
+              <supportingFilesToGenerate>ApiUtil.java</supportingFilesToGenerate>
+              <configOptions>
+                <sourceFolder>openapi</sourceFolder>
+                <interfaceOnly>true</interfaceOnly>
+                <useSpringController>true</useSpringController>
+                <dateLibrary>java8</dateLibrary>
+                <useBeanValidation>true</useBeanValidation>
+              </configOptions>
+              <addCompileSourceRoot>true</addCompileSourceRoot>
+            </configuration>
+          </execution>
 					<execution>
 						<id>generate-client-gui-api</id>
 						<goals>
@@ -106,6 +129,22 @@
 							</configOptions>
 						</configuration>
 					</execution>
+          <execution>
+            <id>generate-client-administration-api</id>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <configuration>
+              <inputSpec>${project.basedir}/src/main/resources/api/administration/v1.yaml</inputSpec>
+              <output>${project.basedir}/src/main/webapp/src/client/administration</output>
+              <generatorName>typescript-fetch</generatorName>
+              <configOptions>
+                <typescriptThreePlus>true</typescriptThreePlus>
+                <withInterfaces>true</withInterfaces>
+                <supportsES6>false</supportsES6>
+              </configOptions>
+            </configuration>
+          </execution>
 				</executions>
 			</plugin>
 			<plugin>

@@ -6,8 +6,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import at.elmo.config.ElmoProperties;
 import at.elmo.member.Member.Role;
@@ -15,74 +17,73 @@ import at.elmo.member.Member.Sex;
 import at.elmo.member.Member.Status;
 import at.elmo.member.login.ElmoOAuth2User;
 import at.elmo.member.login.OAuth2Identifier;
+import at.elmo.member.onboarding.MemberApplication;
+import at.elmo.member.onboarding.MemberApplicationRepository;
 import at.elmo.member.onboarding.MemberOnboarding;
+import at.elmo.util.ElmoException;
+import at.elmo.util.UserContext;
 
 @Service
+@Transactional
 public class MemberService {
 
     @Autowired
     private ElmoProperties properties;
 
     @Autowired
-    private MemberRepository memberRepository;
+    private MemberRepository members;
+
+    @Autowired
+    private MemberApplicationRepository memberApplications;
 
     @Autowired
     private MemberOnboarding memberOnboarding;
     
-    public Optional<Member> getCurrentUser() {
+    @Autowired
+    private UserContext userContext;
+    
+    public Optional<Member> getMemberByOAuth2User(
+            final String oauth2Id) {
         
-        final var authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null) {
-            return Optional.empty();
-        }
-        if (!authentication.isAuthenticated()) {
-            return Optional.empty();
-        }
-        if (!(authentication.getPrincipal() instanceof ElmoOAuth2User)) {
-            return Optional.empty();
-        }
-        
-        final var oauth2User = (ElmoOAuth2User) authentication.getPrincipal();
-        
-        return memberRepository.findByOauth2Ids_Id(oauth2User.getOAuth2Id());
+        return members.findByOauth2Ids_Id(oauth2Id);
         
     }
     
-    public Member loadOrRegisterMember(
-            final ElmoOAuth2User oAuth2User) throws Exception {
+    public void registerMemberByOAuth2User(
+            final ElmoOAuth2User oauth2User) throws Exception {
+
+        final String oauth2Id = oauth2User.getOAuth2Id();
         
-        final String oauth2Id = oAuth2User.getOAuth2Id();
-        
-        final Optional<Member> user = memberRepository.findByOauth2Ids_Id(oauth2Id);
+        final var user = members.findByOauth2Ids_Id(oauth2Id);
         if (user.isPresent()) {
-            return user.get();
+            return;
         }
 
-        final boolean emailVerified = oAuth2User.isEmailVerified();
+        final boolean emailVerified = oauth2User.isEmailVerified();
 
         final var newOAuth2Id = new OAuth2Identifier();
         newOAuth2Id.setId(oauth2Id);
-        newOAuth2Id.setProvider(oAuth2User.getProvider());
+        newOAuth2Id.setProvider(oauth2User.getProvider());
 
         final var newMember = new Member();
         newOAuth2Id.setOwner(newMember);
 
-        if (oAuth2User.getEmail().equals(properties.getAdminIdentificationEmailAddress())) {
-            newMember.addRole(Role.ADMIN);
-        }
-
         newMember.setOauth2Ids(List.of(newOAuth2Id));
         newMember.setId(UUID.randomUUID().toString());
-        newMember.setEmail(oAuth2User.getEmail());
+        newMember.setEmail(oauth2User.getEmail());
         newMember.setStatus(emailVerified ? Status.EMAIL_VERIFIED : Status.NEW);
-        newMember.setLastName(oAuth2User.getName());
-        newMember.setFirstName(oAuth2User.getFirstName());
+        newMember.setLastName(oauth2User.getName());
+        newMember.setFirstName(oauth2User.getFirstName());
 
-        final var result = memberRepository.saveAndFlush(newMember);
+        final var result = members.saveAndFlush(newMember);
         
-        memberOnboarding.doOnboading(result);
+        // configured administrator will get admin-role
+        if (oauth2User.getEmail().equals(properties.getAdminIdentificationEmailAddress())) {
+            newMember.addRole(Role.ADMIN);
+            return; // no onboarding configured administrator
+        }
 
-        return result;
+        memberOnboarding.doOnboarding(result);
         
     }
     
@@ -99,14 +100,14 @@ public class MemberService {
             final String emailConfirmationCode,
             final String phoneNumber,
             final String phoneConfirmationCode,
-            final boolean preferNotificationsPerSms) throws Exception {
+            final boolean preferNotificationsPerSms) {
 
-        final var member = getCurrentUser().get();
+        final var member = userContext.getLoggedInMember();
 
         if ((member.getStatus() != Status.NEW)
                 && (member.getStatus() != Status.EMAIL_VERIFIED)) {
             
-            throw new Exception(
+            throw new ElmoException(
                     "Application form of '"
                     + member.getId()
                     + "' expired since status already '"
@@ -127,10 +128,25 @@ public class MemberService {
         member.setPhoneNumber(phoneNumber); // TODO: use confirmation code once SMS is available
         member.setPreferNotificationsPerSms(preferNotificationsPerSms);
         
+        // configured administrator will become active immediately
+        if (member.getEmail().equals(properties.getAdminIdentificationEmailAddress())) {
+            member.setStatus(Status.ACTIVE);
+            return; // no onboarding configured administrator
+        }
+
         member.setStatus(Status.APPLICATION_SUBMITTED);
         
     }
 
+    public Page<MemberApplication> getMemberApplications(
+            final int page,
+            final int amount) {
+        
+        return memberApplications.findAll(
+                Pageable.ofSize(amount).withPage(page));
+        
+    }
+    
     @SuppressWarnings("unused")
     private String getPhoneNumber(
             final Member member,
@@ -151,7 +167,6 @@ public class MemberService {
         return phoneNumber;
     
     }
-
 
     private String getEmail(
             final Member member,

@@ -8,6 +8,8 @@ elmo:
   dont-redirect-emails-to-addresses:
   - stephan@pelikan-it.com
   - iphone.hudri.wudri@gmail.com
+  cors:
+    allowed-origins: "*"
 logging:
   level:
     org.springframework.ui.freemarker: DEBUG
