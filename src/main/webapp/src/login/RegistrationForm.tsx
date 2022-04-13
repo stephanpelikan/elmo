@@ -21,8 +21,8 @@ const RegistrationForm = () => {
   const initialForm: MemberApplicationForm = {
       firstName: state.currentUser.firstName,
       lastName: state.currentUser.name,
-      sex: state.currentUser.female ? Sex.Female : Sex.Male,
-      birthdate: undefined,
+      sex: null,
+      birthdate: null,
       zip: "",
       city: "",
       street: "",

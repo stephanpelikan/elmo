@@ -9,7 +9,7 @@ type Action =
 type Dispatch = (action: Action) => void;
 type State = {
   oauth2Clients: Array<Oauth2Client> | null,
-  currentUser: User | null;
+  currentUser: User | null | undefined;
 };
 
 const AppContext = React.createContext<
@@ -50,7 +50,7 @@ type AppContextProviderProps = {
 };
 
 const AppContextProvider = ({ children }: AppContextProviderProps) => {
-	const [state, dispatch] = React.useReducer(appContextReducer, { currentUser: null, oauth2Clients: null });
+	const [state, dispatch] = React.useReducer(appContextReducer, { currentUser: undefined, oauth2Clients: null });
 	const value = { state, dispatch };
 	return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
@@ -79,7 +79,10 @@ const fetchCurrentUser = async (appContextState: State, dispatch: Dispatch): Pro
     const user = await guiApi.currentUser();
     dispatch({ type: 'updateCurrentUser', user });
   } catch (error) {
-    console.error(error);
+    if (error.status !== 404) {
+      throw error;
+    }
+    dispatch({ type: 'updateCurrentUser', user: null });
   }
 }
 

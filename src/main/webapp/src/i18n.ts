@@ -5,6 +5,7 @@ i18n
   .use(initReactI18next)
   .init({
     lng: 'de',
+    fallbackLng: 'en',
     react: {
       useSuspense: false
     },
