@@ -1,12 +1,14 @@
 import React from 'react';
 import User from './User';
-import { useAppContext } from '../../AppContext';
+import { useAppContext, setShowMenu } from '../../AppContext';
 import { Grid, Text } from 'grommet';
 import { Logout, UserAdmin } from 'grommet-icons';
 import { MenuItem } from './MenuItem';
 
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
+import { Role } from '../../client/gui';
+import { useNavigate } from 'react-router-dom';
 
 i18n.addResources('en', 'menu', {
       "logout": "Logout",
@@ -18,9 +20,16 @@ i18n.addResources('de', 'menu', {
     });
 
 const Menu = () => {
-  const { state } = useAppContext();
+  const { state, dispatch } = useAppContext();
+
+  const hideMenu = () => {
+    setShowMenu(dispatch, false);
+  };
+
+  const navigate = useNavigate();
   
   const { t } = useTranslation('menu');
+  const { t: tApp } = useTranslation('app');
 
   return <Grid pad="small" gap="small">
       {
@@ -33,7 +42,12 @@ const Menu = () => {
             <Logout />
             <Text>{t('logout')}</Text>
           </MenuItem>
-          <MenuItem onClick={() => console.log('JUHU')}>
+          <MenuItem
+              roles={[ Role.Admin ]}
+              onClick={() => {
+                hideMenu();
+                navigate(tApp('url-administration'));
+              }}>
             <UserAdmin />
             <Text>{t('administration')}</Text>
           </MenuItem>

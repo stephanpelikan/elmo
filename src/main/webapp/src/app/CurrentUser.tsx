@@ -1,4 +1,4 @@
-import { PropsWithChildren, useState } from 'react';
+import { PropsWithChildren } from 'react';
 import { useAppContext, fetchCurrentUser } from '../AppContext';
 
 interface Props {};

@@ -11,6 +11,19 @@ security:
 
 paths:
   /administration/member-application:
+    get:
+      tags:
+        - administration
+      summary: number of all member applications of status IN_PROGRESS
+      operationId: getCountOfInprogressMemberApplications
+      responses:
+        200:
+          description: All member applications
+          content:
+            application/json:
+              schema:
+                type: integer
+                format: int32 
     post:
       tags:
         - administration

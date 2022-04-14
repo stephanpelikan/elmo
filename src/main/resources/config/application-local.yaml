@@ -3,11 +3,6 @@ elmo:
   gateway-url: http://localhost:3000
   homepage: https://www.elektromobil-gf.at
   default-locale: de
-  email-sender: stephan.pelikan@phactum.at
-  redirect-all-emails-to-address: stephan.pelikan@phactum.at
-  dont-redirect-emails-to-addresses:
-  - stephan@pelikan-it.com
-  - iphone.hudri.wudri@gmail.com
   cors:
     allowed-origins: "*"
 logging:

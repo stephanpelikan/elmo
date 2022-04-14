@@ -5,11 +5,13 @@ import { guiApi } from './client';
 type Action =
     | { type: 'updateOauth2Clients', oauth2Clients: Array<Oauth2Client> }
     | { type: 'updateCurrentUser', user: User }
-    | { type: 'memberApplicationFormSubmitted' };
+    | { type: 'memberApplicationFormSubmitted' }
+    | { type: 'showMenu', visibility: boolean };
 type Dispatch = (action: Action) => void;
 type State = {
-  oauth2Clients: Array<Oauth2Client> | null,
+  oauth2Clients: Array<Oauth2Client> | null;
   currentUser: User | null | undefined;
+  showMenu: boolean;
 };
 
 const AppContext = React.createContext<
@@ -37,9 +39,16 @@ const appContextReducer: React.Reducer<State, Action> = (state, action) => {
   case 'updateOauth2Clients':
     newState = {
       ...state,
-      oauth2Clients: action.oauth2Clients
+      oauth2Clients: action.oauth2Clients,
     };
     break;
+  case 'showMenu': {
+    newState = {
+      ...state,
+      showMenu: action.visibility,
+    };
+    break;
+  }
   default: throw new Error(`Unhandled app-context action-type: ${action}`);
 	}
 	return newState;
@@ -50,7 +59,11 @@ type AppContextProviderProps = {
 };
 
 const AppContextProvider = ({ children }: AppContextProviderProps) => {
-	const [state, dispatch] = React.useReducer(appContextReducer, { currentUser: undefined, oauth2Clients: null });
+	const [state, dispatch] = React.useReducer(appContextReducer, {
+    currentUser: undefined,
+    oauth2Clients: null,
+    showMenu: false
+  });
 	const value = { state, dispatch };
 	return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
@@ -90,6 +103,10 @@ const memberApplicationFormSubmitted = (appContextState: State, dispatch: Dispat
   dispatch({ type: 'memberApplicationFormSubmitted' });
 }
 
+const setShowMenu = (dispatch: Dispatch, visibility: boolean) => {
+  dispatch({ type: 'showMenu', visibility });
+}
+
 function useAppContext() {
   const context = React.useContext(AppContext);
   if (context === undefined) {
@@ -98,4 +115,11 @@ function useAppContext() {
   return context;
 }
 
-export { AppContextProvider, useAppContext, fetchOauth2Clients, fetchCurrentUser, memberApplicationFormSubmitted }
+export {
+  AppContextProvider,
+  useAppContext,
+  fetchOauth2Clients,
+  fetchCurrentUser,
+  memberApplicationFormSubmitted,
+  setShowMenu
+}

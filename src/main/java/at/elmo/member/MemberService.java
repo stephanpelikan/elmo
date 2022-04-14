@@ -75,13 +75,16 @@ public class MemberService {
         newMember.setLastName(oauth2User.getName());
         newMember.setFirstName(oauth2User.getFirstName());
 
-        final var result = members.saveAndFlush(newMember);
-        
         // configured administrator will get admin-role
         if (oauth2User.getEmail().equals(properties.getAdminIdentificationEmailAddress())) {
             newMember.addRole(Role.ADMIN);
+            newMember.setStatus(Status.ACTIVE);
+
+            members.saveAndFlush(newMember);
             return; // no onboarding configured administrator
         }
+
+        final var result = members.saveAndFlush(newMember);
 
         memberOnboarding.doOnboarding(result);
         
@@ -144,6 +147,13 @@ public class MemberService {
         
         return memberApplications.findAll(
                 Pageable.ofSize(amount).withPage(page));
+        
+    }
+    
+    public int getCountOfInprogressMemberApplications() {
+        
+        return (int) memberApplications.countByStatus(
+                at.elmo.member.onboarding.MemberApplication.Status.IN_PROGRESS);
         
     }
     

@@ -37,4 +37,13 @@ public class AdministrationApiController implements AdministrationApi {
 
     }
 
+    @Override
+    public ResponseEntity<Integer> getCountOfInprogressMemberApplications() {
+
+        final var count = memberService.getCountOfInprogressMemberApplications();
+
+        return ResponseEntity.ok(count);
+
+    }
+
 }

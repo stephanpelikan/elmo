@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useState } from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Box,Grommet, Heading, Text, ThemeType } from 'grommet';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { AppContextProvider } from '../AppContext';
@@ -18,6 +18,7 @@ const theme: ThemeType = {
       brand: '#e0a244',
       'accent-1': '#e2e2e2',
       'accent-2': '#333333',
+      'accent-3': '#348eda',
     },
     font: {
       family: 'Roboto',
@@ -50,8 +51,6 @@ const Administration = lazy(() => import('../administration/AdminMain'));
 type AppProps = {};
 const App: React.FC<AppProps> = (props: AppProps): JSX.Element => {
 
-  const [showSidebar, setShowSidebar] = useState(false);
-
   const { t } = useTranslation('app');
 
   return (
@@ -61,7 +60,7 @@ const App: React.FC<AppProps> = (props: AppProps): JSX.Element => {
             theme={theme}
             full>
           <Box fill>
-            <AppHeader toggleShowBar={ () => setShowSidebar(!showSidebar) } />
+            <AppHeader />
             <Box
                 direction='row'
                 flex
@@ -93,9 +92,7 @@ const App: React.FC<AppProps> = (props: AppProps): JSX.Element => {
                   </CurrentUser>
                 </Suspense>
               </Box>
-              <ResponsiveMenu
-                  showSidebar={showSidebar}
-                  setShowSidebar={setShowSidebar} />
+              <ResponsiveMenu />
             </Box>
           </Box>
         </Grommet>

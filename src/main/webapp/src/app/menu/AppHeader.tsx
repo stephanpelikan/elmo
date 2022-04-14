@@ -1,12 +1,14 @@
 import { Box, Button, Header, Heading, Image, ResponsiveContext } from "grommet";
 import { Menu as MenuIcon } from 'grommet-icons';
+import { useAppContext, setShowMenu } from '../../AppContext';
 
-type AppHeaderProps = {
-  toggleShowBar: () => void;
-};
+const AppHeader = () => {
+  const { state, dispatch } = useAppContext();
 
-const AppHeader = ({ toggleShowBar }: AppHeaderProps) => {
-
+  const toogleMenu = () => {
+    setShowMenu(dispatch, !state.showMenu);
+  };
+  
   return (
     <Header
         tag='header'
@@ -45,7 +47,7 @@ const AppHeader = ({ toggleShowBar }: AppHeaderProps) => {
       <Box>
         <Button
             icon={<MenuIcon />}
-            onClick={toggleShowBar} />
+            onClick={toogleMenu} />
       </Box>
     </Header>
   );

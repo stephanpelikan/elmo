@@ -2,22 +2,21 @@ import React from 'react';
 import { ResponsiveContext, Layer, Collapsible, Box, Button } from 'grommet';
 import { Menu } from './Menu';
 import { FormClose } from 'grommet-icons';
+import { useAppContext, setShowMenu } from '../../AppContext';
 
-type ResponsiveMenuProps = {
-  showSidebar: boolean;
-  setShowSidebar: (showSidebar: boolean) => void;
-};
+const ResponsiveMenu = () => {
+  const { state, dispatch } = useAppContext();
 
-const ResponsiveMenu: React.FC<ResponsiveMenuProps> = ({
-  showSidebar,
-  setShowSidebar
-}): JSX.Element => {
+  const hideMenu = () => {
+    setShowMenu(dispatch, false);
+  };
+  
   return (
     <ResponsiveContext.Consumer>
       {
         size => (
-          (!showSidebar || size !== 'small') ? (
-            <Collapsible direction="horizontal" open={showSidebar}>
+          (!state.showMenu || size !== 'small') ? (
+            <Collapsible direction="horizontal" open={state.showMenu}>
               <Box
                 flex
                 basis='medium'
@@ -39,7 +38,7 @@ const ResponsiveMenu: React.FC<ResponsiveMenuProps> = ({
               >
                 <Button
                   icon={<FormClose />}
-                  onClick={() => setShowSidebar(false)}
+                  onClick={hideMenu}
                 />
               </Box>
               <Box
