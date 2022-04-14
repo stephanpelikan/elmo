@@ -46,7 +46,7 @@ i18n.addResources('de', 'app', {
       "url-login": "/anmeldung",
     });
 
-const Administration = lazy(() => import('../administration/AdminMain'));
+const Administration = lazy(() => import('../administration/Main'));
 
 type AppProps = {};
 const App: React.FC<AppProps> = (props: AppProps): JSX.Element => {
@@ -70,7 +70,7 @@ const App: React.FC<AppProps> = (props: AppProps): JSX.Element => {
                   <CurrentUser>
                     <Routes>
                       <Route element={<ProtectedRoute roles={[ Role.Admin ]} />}>
-                        <Route path={t('url-administration')} element={<Administration />} />
+                        <Route path={t('url-administration') + '/*'} element={<Administration />} />
                       </Route>
                       <Route element={<ProtectedRoute />}>
                         <Route path='/' element={<Main />} />

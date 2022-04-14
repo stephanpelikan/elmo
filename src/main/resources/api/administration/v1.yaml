@@ -10,15 +10,15 @@ security:
   - JWT: []
 
 paths:
-  /administration/member-application:
+  /administration/member-onboarding:
     get:
       tags:
         - administration
-      summary: number of all member applications of status IN_PROGRESS
-      operationId: getCountOfInprogressMemberApplications
+      summary: number of all member onboardings of status IN_PROGRESS
+      operationId: getCountOfInprogressMemberOnboardings
       responses:
         200:
-          description: All member applications
+          description: Count of all member onboardings
           content:
             application/json:
               schema:
@@ -27,8 +27,8 @@ paths:
     post:
       tags:
         - administration
-      summary: all member applications
-      operationId: getMemberApplications
+      summary: all member onboarding applications
+      operationId: getMemberOnboardingApplications
       parameters:
         - in: query
           name: pageNumber
@@ -42,11 +42,11 @@ paths:
             format: int32
       responses:
         200:
-          description: All member applications
+          description: All member onboardings
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MemberApplications' 
+                $ref: '#/components/schemas/MemberOnboardingApplications' 
 components:
   schemas:
     Sex:
@@ -96,7 +96,7 @@ components:
         size:
           type: integer
           format: int32
-    MemberApplications:
+    MemberOnboardingApplications:
       type: object
       properties:
         page:

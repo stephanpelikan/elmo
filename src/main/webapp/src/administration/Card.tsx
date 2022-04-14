@@ -5,27 +5,28 @@ import { PropsWithChildren } from 'react';
 interface CardProps {
   title: string;
   icon: Icon;
+  onClick?: () => void;
 };
 
-const Card = ({ children, title, icon }: PropsWithChildren<CardProps>) => {
+const Card = ({ children, title, icon, onClick }: PropsWithChildren<CardProps>) => {
   const CardIcon = icon;
   return (
     <Box
         width="small"
         align="center"
-        pad="small"
         round="medium"
         elevation="xlarge"
-        margin="medium"
+        margin="large"
         direction="column"
         alignSelf="center"
         background={{"color":"accent-2"}}
-        style={{ position: 'relative' }}>
+        style={{ position: 'relative' }}
+        onClick={onClick}>
       <Box
           align="center"
           justify="center"
           pad="xsmall"
-          margin="xsmall">
+          margin={{ top: 'medium' }}>
         <CardIcon size='large' color='accent-1' />
         <Paragraph
             size="medium"

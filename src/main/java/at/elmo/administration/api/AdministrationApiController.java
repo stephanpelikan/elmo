@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import at.elmo.administration.api.v1.AdministrationApi;
-import at.elmo.administration.api.v1.MemberApplications;
+import at.elmo.administration.api.v1.MemberOnboardingApplications;
 import at.elmo.member.MemberService;
 
 @RestController
@@ -22,12 +22,13 @@ public class AdministrationApiController implements AdministrationApi {
     private AdministrationMapper mapper;
 
     @Override
-    public ResponseEntity<MemberApplications> getMemberApplications(final @Valid Integer pageNumber,
+    public ResponseEntity<MemberOnboardingApplications> getMemberOnboardingApplications(
+            final @Valid Integer pageNumber,
             final @Valid Integer pageSize) {
 
         final var applications = memberService.getMemberApplications(pageNumber, pageSize);
 
-        final var result = new MemberApplications();
+        final var result = new MemberOnboardingApplications();
         result.setApplications(
                 mapper.toApi(applications.getContent()));
         result.setPage(
@@ -38,7 +39,7 @@ public class AdministrationApiController implements AdministrationApi {
     }
 
     @Override
-    public ResponseEntity<Integer> getCountOfInprogressMemberApplications() {
+    public ResponseEntity<Integer> getCountOfInprogressMemberOnboardings() {
 
         final var count = memberService.getCountOfInprogressMemberApplications();
 
