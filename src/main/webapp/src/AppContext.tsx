@@ -6,12 +6,14 @@ type Action =
     | { type: 'updateOauth2Clients', oauth2Clients: Array<Oauth2Client> }
     | { type: 'updateCurrentUser', user: User }
     | { type: 'memberApplicationFormSubmitted' }
-    | { type: 'showMenu', visibility: boolean };
+    | { type: 'showMenu', visibility: boolean }
+    | { type: 'updateTitle', title: string };
 type Dispatch = (action: Action) => void;
 type State = {
   oauth2Clients: Array<Oauth2Client> | null;
   currentUser: User | null | undefined;
   showMenu: boolean;
+  title: string;
 };
 
 const AppContext = React.createContext<
@@ -49,6 +51,13 @@ const appContextReducer: React.Reducer<State, Action> = (state, action) => {
     };
     break;
   }
+  case 'updateTitle': {
+    newState = {
+      ...state,
+      title: action.title,
+    };
+    break;
+  }
   default: throw new Error(`Unhandled app-context action-type: ${action}`);
 	}
 	return newState;
@@ -62,7 +71,8 @@ const AppContextProvider = ({ children }: AppContextProviderProps) => {
 	const [state, dispatch] = React.useReducer(appContextReducer, {
     currentUser: undefined,
     oauth2Clients: null,
-    showMenu: false
+    showMenu: false,
+    title: 'app',
   });
 	const value = { state, dispatch };
 	return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
@@ -107,6 +117,10 @@ const setShowMenu = (dispatch: Dispatch, visibility: boolean) => {
   dispatch({ type: 'showMenu', visibility });
 }
 
+const updateTitle = (dispatch: Dispatch, title: string) => {
+  dispatch({ type: 'updateTitle', title });
+}
+
 function useAppContext() {
   const context = React.useContext(AppContext);
   if (context === undefined) {
@@ -121,5 +135,6 @@ export {
   fetchOauth2Clients,
   fetchCurrentUser,
   memberApplicationFormSubmitted,
-  setShowMenu
+  setShowMenu,
+  updateTitle
 }

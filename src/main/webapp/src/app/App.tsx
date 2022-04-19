@@ -34,12 +34,16 @@ const theme: ThemeType = {
 };
 
 i18n.addResources('en', 'app', {
+      "title.long": 'ElectroMobile Gänserndorf',
+      "title.short": 'Elmo GF',
       "not-found": "The requested page is unknown!",
       "not-found hint": "Maybe use used a link in a mail which is already expired.",
       "url-administration": "/administration",
       "url-login": "/login",
     });
 i18n.addResources('de', 'app', {
+      "title.long": 'ElektroMobil Gänserndorf',
+      "title.short": 'Elmo GF',
       "not-found": "Die angeforderte Seite ist unbekannt!",
       "not-found hint": "Eventuell hast du einen Link aus einer Mail verwendet, der bereits veraltet ist.",
       "url-administration": "/verwaltung",

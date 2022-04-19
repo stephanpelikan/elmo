@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import at.elmo.administration.api.v1.AdministrationApi;
+import at.elmo.administration.api.v1.CountOfInprogressMemberOnboardings;
 import at.elmo.administration.api.v1.MemberOnboardingApplications;
 import at.elmo.member.MemberService;
 
@@ -39,11 +40,11 @@ public class AdministrationApiController implements AdministrationApi {
     }
 
     @Override
-    public ResponseEntity<Integer> getCountOfInprogressMemberOnboardings() {
+    public ResponseEntity<CountOfInprogressMemberOnboardings> getCountOfInprogressMemberOnboardings() {
 
         final var count = memberService.getCountOfInprogressMemberApplications();
 
-        return ResponseEntity.ok(count);
+        return ResponseEntity.ok(new CountOfInprogressMemberOnboardings().count(count));
 
     }
 

@@ -22,8 +22,7 @@ paths:
           content:
             application/json:
               schema:
-                type: integer
-                format: int32 
+                $ref: '#/components/schemas/CountOfInprogressMemberOnboardings'
     post:
       tags:
         - administration
@@ -96,6 +95,12 @@ components:
         size:
           type: integer
           format: int32
+    CountOfInprogressMemberOnboardings:
+      type: object
+      properties:
+        count:
+          type: integer
+          format: int32 
     MemberOnboardingApplications:
       type: object
       properties:
