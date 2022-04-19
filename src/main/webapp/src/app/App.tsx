@@ -27,9 +27,18 @@ const theme: ThemeType = {
     }
   },
   button: {
-    primary: {
-      color: '#348eda',
+    default: {
+      background: '#ffffff',
+      border: { color: '#e2e2e2', width: 'xsmall' },
     },
+    primary: {
+      background: '#348eda',
+      border: { color: '#e0a244', width: 'xsmall' },
+    },
+    secondary: {
+      background: '#333333',
+      border: { color: '#e0a244', width: 'xsmall' },
+    }
   }
 };
 

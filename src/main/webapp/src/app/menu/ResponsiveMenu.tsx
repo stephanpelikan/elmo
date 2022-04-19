@@ -35,8 +35,11 @@ const ResponsiveMenu = () => {
                 justify='end'
                 align='center'
                 direction='row'
+                pad='small'
               >
                 <Button
+                  plain
+                  focusIndicator={false}
                   icon={<FormClose />}
                   onClick={hideMenu}
                 />

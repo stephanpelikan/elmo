@@ -57,6 +57,9 @@ const AppHeader = () => {
       </Box>
       <Box>
         <Button
+            plain
+            focusIndicator={false}
+            margin='small'
             icon={<MenuIcon />}
             onClick={toogleMenu} />
       </Box>

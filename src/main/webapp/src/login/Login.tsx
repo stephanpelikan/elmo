@@ -1,4 +1,4 @@
-import { Anchor, Box, Heading, Paragraph } from "grommet";
+import { Anchor, Box, Grid, Heading, Paragraph } from "grommet";
 import { Google, Amazon } from "grommet-icons";
 import { useEffect } from "react";
 import { useAppContext, fetchOauth2Clients } from '../AppContext';
@@ -43,6 +43,7 @@ const Login = () => {
   }, [state, dispatch]);
   
   return (
+    <Grid>
     <Box
         direction='column'
         fill='horizontal'
@@ -89,7 +90,8 @@ const Login = () => {
         <Paragraph>{t('visit the homepage')}</Paragraph>
         <Anchor target='_blank' href='https://www.elektromobil-gf.at'>https://www.elektromobil-gf.at</Anchor>
       </Box>
-    </Box>);
+    </Box>
+    </Grid>);
 }
 
 export { Login };
