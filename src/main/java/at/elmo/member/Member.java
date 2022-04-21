@@ -45,7 +45,25 @@ public class Member {
         PASSANGER,
         DRIVER,
         MANAGER,
-        ADMIN
+        ADMIN;
+
+        public static List<Role> orderedByConstraint(
+                final Role minimalConstraint) {
+            
+            final var result = new LinkedList<Role>();
+            boolean found = false;
+            for (final var role : Role.values()) {
+                if (role == minimalConstraint) {
+                    found = true;
+                }
+                if (found) {
+                    result.add(role);
+                }
+            }
+            return result;
+            
+        }
+
     }
     
     @Id

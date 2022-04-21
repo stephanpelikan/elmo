@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from 'react';
-import { Box,Grommet, Heading, Text, ThemeType } from 'grommet';
+import { Box, Grommet, Heading, Text, ThemeType } from 'grommet';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { AppContextProvider } from '../AppContext';
 import { AppHeader } from './menu/AppHeader';
@@ -11,6 +11,7 @@ import '../i18n';
 import { ProtectedRoute } from './ProtectedRoute';
 import { CurrentUser } from './CurrentUser';
 import { Role } from '../client/gui';
+import { Login } from '../login/Login';
 
 const theme: ThemeType = {
   global: {
@@ -48,7 +49,6 @@ i18n.addResources('en', 'app', {
       "not-found": "The requested page is unknown!",
       "not-found hint": "Maybe use used a link in a mail which is already expired.",
       "url-administration": "/administration",
-      "url-login": "/login",
     });
 i18n.addResources('de', 'app', {
       "title.long": 'ElektroMobil Gänserndorf',
@@ -56,7 +56,6 @@ i18n.addResources('de', 'app', {
       "not-found": "Die angeforderte Seite ist unbekannt!",
       "not-found hint": "Eventuell hast du einen Link aus einer Mail verwendet, der bereits veraltet ist.",
       "url-administration": "/verwaltung",
-      "url-login": "/anmeldung",
     });
 
 const Administration = lazy(() => import('../administration/Main'));
@@ -85,6 +84,7 @@ const App: React.FC<AppProps> = (props: AppProps): JSX.Element => {
                       <Route element={<ProtectedRoute roles={[ Role.Admin ]} />}>
                         <Route path={t('url-administration') + '/*'} element={<Administration />} />
                       </Route>
+                      <Route path='/login' element={<Login />} />
                       <Route element={<ProtectedRoute />}>
                         <Route path='/' element={<Main />} />
                       </Route>

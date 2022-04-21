@@ -23,6 +23,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CountOfInprogressMemberOnboardings'
+    put:
+      tags:
+        - administration
+      summary: all member onboarding applications
+      operationId: updateMemberOnboardingApplication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMemberOnboarding'
+      responses:
+        200:
+          description: The updated member onboarding application
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberApplication' 
     post:
       tags:
         - administration
@@ -110,6 +127,13 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/MemberApplication'
+    UpdateMemberOnboarding:
+      type: object
+      properties:
+        complete:
+          type: string
+        application:
+          $ref: '#/components/schemas/MemberApplication'
     MemberApplication:
       type: object
       properties:

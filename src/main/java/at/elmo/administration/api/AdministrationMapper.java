@@ -3,12 +3,13 @@ package at.elmo.administration.api;
 import java.util.List;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
+import at.elmo.administration.api.v1.Member;
 import at.elmo.administration.api.v1.MemberApplication;
 import at.elmo.administration.api.v1.Page;
 import at.elmo.administration.api.v1.Role;
 import at.elmo.administration.api.v1.Sex;
-import at.elmo.member.Member;
 import at.elmo.member.login.RoleMembership;
 
 @Mapper
@@ -24,6 +25,14 @@ public abstract class AdministrationMapper {
 
     public abstract at.elmo.member.Member.Sex toDomain(Sex sex);
     
+    @Mapping(target = "roles", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "lastEmailConfirmationCode", ignore = true)
+    @Mapping(target = "lastPhoneConfirmationCode", ignore = true)
+    @Mapping(target = "oauth2Ids", ignore = true)
+    public abstract at.elmo.member.Member toDomain(Member member);
+
     public abstract MemberApplication toApi(at.elmo.member.onboarding.MemberApplication application);
 
     public abstract List<MemberApplication> toApi(List<at.elmo.member.onboarding.MemberApplication> application);

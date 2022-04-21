@@ -9,7 +9,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import at.elmo.administration.api.v1.AdministrationApi;
 import at.elmo.administration.api.v1.CountOfInprogressMemberOnboardings;
+import at.elmo.administration.api.v1.MemberApplication;
 import at.elmo.administration.api.v1.MemberOnboardingApplications;
+import at.elmo.administration.api.v1.UpdateMemberOnboarding;
+import at.elmo.member.Member.Status;
 import at.elmo.member.MemberService;
 
 @RestController
@@ -45,6 +48,37 @@ public class AdministrationApiController implements AdministrationApi {
         final var count = memberService.getCountOfInprogressMemberApplications();
 
         return ResponseEntity.ok(new CountOfInprogressMemberOnboardings().count(count));
+
+    }
+
+    @Override
+    public ResponseEntity<MemberApplication> updateMemberOnboardingApplication(
+            final @Valid UpdateMemberOnboarding updateMemberOnboarding) {
+
+        final var member = updateMemberOnboarding
+                .getApplication()
+                .getMember();
+        
+        final var updated = memberService.processMemberApplicationInformation(
+                updateMemberOnboarding.getApplication().getId(),
+                Status.valueOf(updateMemberOnboarding.getComplete()),
+                member.getFirstName(),
+                member.getLastName(),
+                member.getBirthdate(),
+                mapper.toDomain(member.getSex()),
+                member.getZip(),
+                member.getCity(),
+                member.getStreet(),
+                member.getStreetNumber(),
+                member.getEmail(),
+                null,
+                member.getPhoneNumber(),
+                null,
+                member.getPreferNotificationsPerSms());
+        
+        final var result = mapper.toApi(updated);
+        
+        return ResponseEntity.ok(result);
 
     }
 

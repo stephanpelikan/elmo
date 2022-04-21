@@ -138,6 +138,8 @@ components:
     MemberApplicationForm:
       type: object
       properties:
+        applicationId:
+          type: string
         firstName:
           type: string
         lastName:

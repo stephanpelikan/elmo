@@ -90,7 +90,33 @@ public class MemberService {
         
     }
     
-    public void processMemberApplicationInformation(
+    public Optional<Member> getMember(
+            final String memberId) {
+        
+        return members.findById(memberId);
+        
+    }
+    
+    private void validateMemberForApplicationInformationProcessing(final Status targetStatus, final Member member) {
+
+        if (!member.getId().equals(userContext.getLoggedInMember().getId()) && !userContext.hasRole(Role.MANAGER)) {
+
+            throw new ElmoException("Not allowed");
+
+        }
+
+        if (member.getStatus().equals(targetStatus)) {
+
+            throw new ElmoException("Application form of '" + member.getId() + "' expired since status already '"
+                    + member.getStatus() + "'!");
+
+        }
+
+    }
+
+    public MemberApplication processMemberApplicationInformation(
+            final String applicationId,
+            final Status targetStatus,
             final String firstName,
             final String lastName,
             final LocalDate birthdate,
@@ -105,19 +131,10 @@ public class MemberService {
             final String phoneConfirmationCode,
             final boolean preferNotificationsPerSms) {
 
-        final var member = userContext.getLoggedInMember();
-
-        if ((member.getStatus() != Status.NEW)
-                && (member.getStatus() != Status.EMAIL_VERIFIED)) {
-            
-            throw new ElmoException(
-                    "Application form of '"
-                    + member.getId()
-                    + "' expired since status already '"
-                    + member.getStatus()
-                    + "'!");
-
-        }
+        final var application = memberApplications
+                .getById(applicationId);
+        final var member = application.getMember();
+        validateMemberForApplicationInformationProcessing(targetStatus, member);
 
         member.setFirstName(firstName);
         member.setLastName(lastName);
@@ -134,10 +151,15 @@ public class MemberService {
         // configured administrator will become active immediately
         if (member.getEmail().equals(properties.getAdminIdentificationEmailAddress())) {
             member.setStatus(Status.ACTIVE);
-            return; // no onboarding configured administrator
+            return null; // no onboarding configured administrator
         }
 
-        member.setStatus(Status.APPLICATION_SUBMITTED);
+        member.setStatus(targetStatus);
+        
+        application.setMember(member);
+        memberApplications.saveAndFlush(application);
+        
+        return application;
         
     }
 
@@ -167,9 +189,13 @@ public class MemberService {
                 && member.getPhoneNumber().equals(phoneNumber)) {
             return member.getPhoneNumber();
         }
-        
-        if (!member.getLastPhoneConfirmationCode().equals(phoneConfirmationCode)) {
-            throw new RuntimeException("mismatching phone confirmation code");
+
+        if (!userContext.hasRole(Role.MANAGER)) {
+
+            if (!member.getLastPhoneConfirmationCode().equals(phoneConfirmationCode)) {
+                throw new RuntimeException("mismatching phone confirmation code");
+            }
+
         }
         
         member.setLastPhoneConfirmationCode(null);
@@ -188,8 +214,12 @@ public class MemberService {
             return member.getEmail();
         }
         
-        if (!member.getLastEmailConfirmationCode().equals(emailConfirmationCode)) {
-            throw new RuntimeException("mismatching email confirmation code");
+        if (!userContext.hasRole(Role.MANAGER)) {
+
+            if (!member.getLastEmailConfirmationCode().equals(emailConfirmationCode)) {
+                throw new RuntimeException("mismatching email confirmation code");
+            }
+
         }
         
         member.setLastEmailConfirmationCode(null);

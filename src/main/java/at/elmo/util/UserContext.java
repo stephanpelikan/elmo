@@ -5,6 +5,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import at.elmo.member.Member;
+import at.elmo.member.Member.Role;
 import at.elmo.member.MemberRepository;
 import at.elmo.member.login.ElmoOAuth2User;
 
@@ -37,5 +38,20 @@ public class UserContext {
         return result.get();
 
     }
+    
+    public boolean hasRole(
+            final Member.Role minimalConstraint) {
+        
+        final var member = getLoggedInMember();
+        
+        for (final var role : Role.orderedByConstraint(minimalConstraint)) {
+            if (member.hasRole(role)) {
+                return true;
+            }
+        }
 
+        return false;
+        
+    }
+    
 }

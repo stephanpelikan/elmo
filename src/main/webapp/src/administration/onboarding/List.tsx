@@ -1,8 +1,10 @@
-import { Box, Button, InfiniteScroll, ResponsiveContext, Text } from 'grommet';
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { Box, Button, ColumnConfig, DataTable, ResponsiveContext, Text } from 'grommet';
+import { FormEdit } from 'grommet-icons';
+import { useContext, useEffect, useLayoutEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { updateTitle, useAppContext } from '../../AppContext';
 import { administrationApi } from '../../client';
+import { MemberApplication } from '../../client/administration';
 import i18n from '../../i18n';
 
 i18n.addResources('en', 'administration/onboarding', {
@@ -51,47 +53,59 @@ const ListOfOnboardings = () => {
   }, [ dispatch ]);
 
   const { t } = useTranslation('administration/onboarding');
+  
+  const size = useContext(ResponsiveContext);
 
+  const columns: ColumnConfig<MemberApplication>[] = size !== 'small'
+      ? [
+          { property: 'createdAt', header: 'Von', primary: false,
+            render: application =>
+              application.createdAt && application.createdAt.toLocaleDateString(),
+          },
+          { property: 'member.lastName', header: 'Zuname'},
+          { property: 'member.firstName', header: 'Vorname'},
+          { property: 'member.status', header: 'Aktion', align: 'center',
+            render: application => {
+              const applicationSubmitted = application.member.status === 'APPLICATION_SUBMITTED';
+              return <Button
+                    secondary={applicationSubmitted}
+                    hoverIndicator
+                    icon={<FormEdit />}
+                    label={ t(applicationSubmitted ? 'check' : 'edit') }
+                    size='medium' />;
+            }
+          },
+        ]
+      : [
+          { property: 'createdAt', header: 'Von', size: '5rem',
+            render: application =>
+              application.createdAt && application.createdAt.toLocaleDateString(),
+          },
+          { property: 'member.email', header: 'Email',
+            render: application => <Text truncate>{ application.member.email.replace(/\./g, ' ') }</Text>
+          },
+          { property: 'member.status', header: 'Aktion', align: 'center', size: '3.5rem',
+            render: application => {
+              const applicationSubmitted = application.member.status === 'APPLICATION_SUBMITTED';
+              return <Button
+                    secondary={applicationSubmitted}
+                    hoverIndicator
+                    icon={<FormEdit />}
+                    size='small' />;
+            }
+          },
+        ];
+  
   return (
-    <Box
-        height="100%"
-        overflow="auto">
-      <ResponsiveContext.Consumer>{
-        size => (
-          <InfiniteScroll
-              step={20}
-              onMore={() => loadMemberApplications()}
-              items={memberApplications === undefined ? [] : Object.keys(memberApplications)}>
-            {index => {
-              const member = memberApplications[index].member;
-              const applicationSubmitted = memberApplications[index].member.status === 'APPLICATION_SUBMITTED';
-              return (
-                <Box
-                    key={memberApplications[index].id}
-                    flex={false}
-                    pad="medium"
-                    direction="row"
-                    justify='between'
-                    width='100%'
-                    align='center'
-                    background={`light-${(index % 3) + 1}`}>
-                  <Text
-                      style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{
-                    size === 'small'
-                        ? member.email
-                        : `${member.email} - ${member.lastName} ${applicationSubmitted ? '[ wartet auf Prüfung... ]' : ''}`
-                  }</Text>
-                  <Button
-                      secondary={applicationSubmitted}
-                      label={t(applicationSubmitted ? 'check' : 'edit')}
-                      size={ size === 'small' ? 'small': 'medium' } />
-                </Box>
-              );
-            }}
-          </InfiniteScroll>
-        )
-      }</ResponsiveContext.Consumer>
-    </Box>);
+    <Box width='100%' overflow="vertical">
+      <DataTable
+          size='100%'
+          columns={columns}
+          step={itemsBatchSize}
+          onMore={() => loadMemberApplications()}
+          data={memberApplications} />
+    </Box>
+    );
 }
 
 export { ListOfOnboardings };
