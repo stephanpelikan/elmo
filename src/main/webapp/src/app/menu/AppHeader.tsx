@@ -2,13 +2,16 @@ import { Box, Button, Header, Heading, Image, ResponsiveContext } from "grommet"
 import { Menu as MenuIcon } from 'grommet-icons';
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useAppContext, setShowMenu } from '../../AppContext';
+import { useNavigate } from "react-router-dom";
+import { useAppContext } from '../../AppContext';
 
 const AppHeader = () => {
   
-  const { state, dispatch } = useAppContext();
+  const { state, showMenu } = useAppContext();
 
   const { t, i18n } = useTranslation(state.title);
+  
+  const navigate = useNavigate();
   
   // see https://github.com/i18next/react-i18next/issues/1064
   useEffect(() => {
@@ -16,9 +19,7 @@ const AppHeader = () => {
     i18n.emit("languageChanged");
   }, [ state.title, i18n ]);
   
-  const toogleMenu = () => {
-    setShowMenu(dispatch, !state.showMenu);
-  };
+  const toogleMenu = () => showMenu(!state.showMenu);
   
   return (
     <Header
@@ -29,6 +30,8 @@ const AppHeader = () => {
         pad='xxsmall'
         style={{ zIndex: '1' }}>
       <Box
+          onClick={() => navigate('/')}
+          focusIndicator={false}
           direction='row'
           fill='vertical'
           align='center'>

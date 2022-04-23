@@ -6,6 +6,7 @@ import org.mapstruct.Mapping;
 import at.elmo.gui.api.v1.Role;
 import at.elmo.gui.api.v1.Sex;
 import at.elmo.gui.api.v1.User;
+import at.elmo.gui.api.v1.UserStatus;
 import at.elmo.member.login.RoleMembership;
 
 @Mapper
@@ -21,5 +22,7 @@ public abstract class GuiMapper {
     }
 
     public abstract at.elmo.member.Member.Sex toDomain(Sex sex);
+
+    public abstract at.elmo.member.Member.Status toDomain(UserStatus status);
 
 }

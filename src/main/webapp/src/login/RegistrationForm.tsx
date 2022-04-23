@@ -1,10 +1,9 @@
 import { Box, Button, DateInput, Heading, RadioButtonGroup, Select, TextInput } from "grommet";
 import { useState } from "react";
-import { useAppContext, memberApplicationFormSubmitted } from '../AppContext';
+import { useAppContext } from '../AppContext';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import { MemberApplicationForm, Sex } from '../client/gui';
-import { guiApi } from '../client';
 
 i18n.addResources('en', 'registration-form', {
       "registration data": "Registration form",
@@ -16,7 +15,7 @@ i18n.addResources('de', 'registration-form', {
 const RegistrationForm = () => {
   const { t } = useTranslation('registration-form');
   
-  const { state, dispatch } = useAppContext();
+  const { state, dispatch, guiApi, memberApplicationFormSubmitted } = useAppContext();
   
   const initialForm: MemberApplicationForm = {
       firstName: state.currentUser.firstName,
@@ -42,7 +41,7 @@ const RegistrationForm = () => {
     try {
       setSubmitting(true);
       await guiApi.submitMemberApplicationForm({ memberApplicationForm: form });
-      memberApplicationFormSubmitted(state, dispatch);
+      memberApplicationFormSubmitted();
     } catch (error) {
       console.error(error);
     } finally {

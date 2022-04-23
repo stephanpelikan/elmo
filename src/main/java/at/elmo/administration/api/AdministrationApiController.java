@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import at.elmo.administration.api.v1.AdministrationApi;
 import at.elmo.administration.api.v1.CountOfInprogressMemberOnboardings;
+import at.elmo.administration.api.v1.InlineObject;
 import at.elmo.administration.api.v1.MemberApplication;
 import at.elmo.administration.api.v1.MemberOnboardingApplications;
 import at.elmo.administration.api.v1.UpdateMemberOnboarding;
-import at.elmo.member.Member.Status;
 import at.elmo.member.MemberService;
 
 @RestController
@@ -52,7 +52,21 @@ public class AdministrationApiController implements AdministrationApi {
     }
 
     @Override
+    public ResponseEntity<Void> takeoverMemberOnboardingApplication(
+            final String applicationId,
+            final @Valid InlineObject currentStatus) {
+
+        memberService.takeoverMemberApplication(
+                applicationId,
+                mapper.toDomain(currentStatus.getStatus()));
+
+        return ResponseEntity.ok().build();
+
+    }
+    
+    @Override
     public ResponseEntity<MemberApplication> updateMemberOnboardingApplication(
+            final String applicationId,
             final @Valid UpdateMemberOnboarding updateMemberOnboarding) {
 
         final var member = updateMemberOnboarding
@@ -60,8 +74,9 @@ public class AdministrationApiController implements AdministrationApi {
                 .getMember();
         
         final var updated = memberService.processMemberApplicationInformation(
-                updateMemberOnboarding.getApplication().getId(),
-                Status.valueOf(updateMemberOnboarding.getComplete()),
+                applicationId,
+                updateMemberOnboarding.getComplete(),
+                mapper.toDomain(updateMemberOnboarding.getApplication().getMember().getStatus()),
                 member.getFirstName(),
                 member.getLastName(),
                 member.getBirthdate(),

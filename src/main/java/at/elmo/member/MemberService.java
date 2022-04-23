@@ -97,15 +97,16 @@ public class MemberService {
         
     }
     
-    private void validateMemberForApplicationInformationProcessing(final Status targetStatus, final Member member) {
+    private void validateMemberForApplicationInformationProcessing(final Status currentStatus, final Member member) {
 
-        if (!member.getId().equals(userContext.getLoggedInMember().getId()) && !userContext.hasRole(Role.MANAGER)) {
+        if (!member.getId().equals(userContext.getLoggedInMember().getId())
+                && !userContext.hasRole(Role.MANAGER)) {
 
             throw new ElmoException("Not allowed");
 
         }
 
-        if (member.getStatus().equals(targetStatus)) {
+        if (!member.getStatus().equals(currentStatus)) {
 
             throw new ElmoException("Application form of '" + member.getId() + "' expired since status already '"
                     + member.getStatus() + "'!");
@@ -114,9 +115,22 @@ public class MemberService {
 
     }
 
+    public void takeoverMemberApplication(
+            final String applicationId,
+            final Status currentStatus) {
+
+        final var application = memberApplications.getById(applicationId);
+        final var member = application.getMember();
+        validateMemberForApplicationInformationProcessing(currentStatus, member);
+
+        memberOnboarding.takeOver(application);
+        
+    }
+
     public MemberApplication processMemberApplicationInformation(
             final String applicationId,
-            final Status targetStatus,
+            final boolean isComplete,
+            final Status currentStatus,
             final String firstName,
             final String lastName,
             final LocalDate birthdate,
@@ -134,7 +148,7 @@ public class MemberService {
         final var application = memberApplications
                 .getById(applicationId);
         final var member = application.getMember();
-        validateMemberForApplicationInformationProcessing(targetStatus, member);
+        validateMemberForApplicationInformationProcessing(currentStatus, member);
 
         member.setFirstName(firstName);
         member.setLastName(lastName);
@@ -153,10 +167,7 @@ public class MemberService {
             member.setStatus(Status.ACTIVE);
             return null; // no onboarding configured administrator
         }
-
-        member.setStatus(targetStatus);
         
-        application.setMember(member);
         memberApplications.saveAndFlush(application);
         
         return application;

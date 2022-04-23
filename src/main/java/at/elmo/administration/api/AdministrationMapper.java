@@ -7,6 +7,7 @@ import org.mapstruct.Mapping;
 
 import at.elmo.administration.api.v1.Member;
 import at.elmo.administration.api.v1.MemberApplication;
+import at.elmo.administration.api.v1.MemberStatus;
 import at.elmo.administration.api.v1.Page;
 import at.elmo.administration.api.v1.Role;
 import at.elmo.administration.api.v1.Sex;
@@ -22,6 +23,8 @@ public abstract class AdministrationMapper {
         return Role.fromValue(roleMembership.getRole().name());
 
     }
+
+    public abstract at.elmo.member.Member.Status toDomain(MemberStatus status);
 
     public abstract at.elmo.member.Member.Sex toDomain(Sex sex);
     

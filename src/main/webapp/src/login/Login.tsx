@@ -1,7 +1,7 @@
 import { Anchor, Box, Grid, Heading, Paragraph } from "grommet";
 import { Google, Amazon } from "grommet-icons";
 import { useEffect } from "react";
-import { useAppContext, fetchOauth2Clients } from '../AppContext';
+import { useAppContext } from '../AppContext';
 import TextHeading from '../components/TextHeading';
 import { LinkedBox } from './LinkedBox';
 import { useTranslation } from 'react-i18next';
@@ -36,11 +36,11 @@ const icons = {
 const Login = () => {
   const { t } = useTranslation('login');
   
-  const { state, dispatch } = useAppContext();
+  const { state, fetchOauth2Clients } = useAppContext();
   
   useEffect(() => {
-    fetchOauth2Clients(state, dispatch);
-  }, [state, dispatch]);
+    fetchOauth2Clients();
+  }, [ fetchOauth2Clients ]);
   
   return (
     <Grid>

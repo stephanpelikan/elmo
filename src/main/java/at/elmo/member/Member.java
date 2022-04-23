@@ -316,10 +316,11 @@ public class Member {
     public boolean hasRole(
             final Role role) {
         
-        final var membership = new RoleMembership();
-        membership.setMember(this);
-        membership.setRole(role);
-        return roles.contains(membership);
+        return roles
+                .stream()
+                .filter(membership -> membership.getRole().equals(role))
+                .findFirst()
+                .isPresent();
         
     }
     

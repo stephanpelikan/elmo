@@ -1,15 +1,15 @@
 import { Box } from 'grommet';
 import { useLayoutEffect } from 'react';
-import { updateTitle, useAppContext } from '../AppContext';
+import { useAppContext } from '../AppContext';
 import { RegistrationMain } from '../login/RegistrationMain';
 
 const Main = () => {
 
-  const { state, dispatch } = useAppContext();
+  const { state, setAppHeaderTitle } = useAppContext();
   
   useLayoutEffect(() => {
-    updateTitle(dispatch, 'app');
-  }, [ dispatch ]);
+    setAppHeaderTitle('app');
+  }, [ setAppHeaderTitle ]);
   
   return (state.currentUser?.roles.length === 0
     ? <RegistrationMain />

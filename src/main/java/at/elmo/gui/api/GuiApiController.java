@@ -16,7 +16,6 @@ import at.elmo.gui.api.v1.GuiApi;
 import at.elmo.gui.api.v1.MemberApplicationForm;
 import at.elmo.gui.api.v1.Oauth2Client;
 import at.elmo.gui.api.v1.User;
-import at.elmo.member.Member.Status;
 import at.elmo.member.MemberService;
 import at.elmo.util.ElmoException;
 import at.elmo.util.UserContext;
@@ -104,7 +103,8 @@ public class GuiApiController implements GuiApi {
 
         memberService.processMemberApplicationInformation(
                 memberApplicationForm.getApplicationId(),
-                Status.APPLICATION_SUBMITTED,
+                memberApplicationForm.getComplete(),
+                mapper.toDomain(memberApplicationForm.getCurrentStatus()),
                 memberApplicationForm.getFirstName(),
                 memberApplicationForm.getLastName(),
                 memberApplicationForm.getBirthdate(),

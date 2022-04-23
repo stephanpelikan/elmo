@@ -1,10 +1,9 @@
 import { Box, Button, ColumnConfig, DataTable, ResponsiveContext, Text } from 'grommet';
 import { FormEdit } from 'grommet-icons';
-import { useContext, useEffect, useLayoutEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useLayoutEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { updateTitle, useAppContext } from '../../AppContext';
-import { administrationApi } from '../../client';
-import { MemberApplication } from '../../client/administration';
+import { useAppContext } from '../../AppContext';
+import { MemberApplication, MemberStatus } from '../../client/administration';
 import i18n from '../../i18n';
 
 i18n.addResources('en', 'administration/onboarding', {
@@ -23,10 +22,11 @@ i18n.addResources('de', 'administration/onboarding', {
 const itemsBatchSize = 20;
 
 const ListOfOnboardings = () => {
+  const { administrationApi, setAppHeaderTitle } = useAppContext();
   
   const [ memberApplications, setMemberApplications ] = useState(undefined);
   
-  const loadMemberApplications = async () => {
+  const loadMemberApplications = useCallback(async () => {
     const result = await administrationApi
         .getMemberOnboardingApplications({
             pageNumber: memberApplications === undefined
@@ -39,28 +39,43 @@ const ListOfOnboardings = () => {
         memberApplications === undefined
         ? result.applications
         : memberApplications.concat(result.applications));
-  };
+  }, [ memberApplications, administrationApi ]);
   
   useEffect(() => {
     if (memberApplications === undefined) {
       loadMemberApplications();
     }
-  });
+  }, [ memberApplications, loadMemberApplications ]);
   
-  const { dispatch } = useAppContext();
   useLayoutEffect(() => {
-    updateTitle(dispatch, 'administration/onboarding');
-  }, [ dispatch ]);
+    setAppHeaderTitle('administration/onboarding');
+  }, [ setAppHeaderTitle ]);
 
   const { t } = useTranslation('administration/onboarding');
   
   const size = useContext(ResponsiveContext);
+  
+  const onEdit = async (application: MemberApplication, takeOver: boolean) => {
+    
+    await administrationApi.takeoverMemberOnboardingApplication({
+        applicationId: application.id,
+        inlineObject: {
+          status: application.member.status,
+        }
+      });
+    
+    application.member.status = MemberStatus.ApplicationSubmitted;
+    
+  };
 
   const columns: ColumnConfig<MemberApplication>[] = size !== 'small'
       ? [
           { property: 'createdAt', header: 'Von', primary: false,
             render: application =>
               application.createdAt && application.createdAt.toLocaleDateString(),
+          },
+          { property: 'member.email', header: 'Email',
+            render: application => <Text truncate>{ application.member.email }</Text>
           },
           { property: 'member.lastName', header: 'Zuname'},
           { property: 'member.firstName', header: 'Vorname'},
@@ -69,6 +84,7 @@ const ListOfOnboardings = () => {
               const applicationSubmitted = application.member.status === 'APPLICATION_SUBMITTED';
               return <Button
                     secondary={applicationSubmitted}
+                    onClick={() => onEdit(application, !applicationSubmitted)}
                     hoverIndicator
                     icon={<FormEdit />}
                     label={ t(applicationSubmitted ? 'check' : 'edit') }
@@ -82,12 +98,13 @@ const ListOfOnboardings = () => {
               application.createdAt && application.createdAt.toLocaleDateString(),
           },
           { property: 'member.email', header: 'Email',
-            render: application => <Text truncate>{ application.member.email.replace(/\./g, ' ') }</Text>
+            render: application => <Text truncate>{ application.member.email }</Text>
           },
           { property: 'member.status', header: 'Aktion', align: 'center', size: '3.5rem',
             render: application => {
               const applicationSubmitted = application.member.status === 'APPLICATION_SUBMITTED';
               return <Button
+                    onClick={() => onEdit(application, !applicationSubmitted)}
                     secondary={applicationSubmitted}
                     hoverIndicator
                     icon={<FormEdit />}

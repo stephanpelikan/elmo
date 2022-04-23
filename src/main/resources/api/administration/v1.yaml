@@ -10,6 +10,55 @@ security:
   - JWT: []
 
 paths:
+  /administration/member-onboarding/{applicationId}/take-over:
+    put:
+      tags:
+        - administration
+      summary: as a member of management board take-over application from member
+      operationId: takeoverMemberOnboardingApplication
+      parameters:
+        - in: path
+          name: applicationId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  $ref: '#/components/schemas/MemberStatus'
+      responses:
+        200:
+          description: Takeover successful
+        400:
+          description: application is in wrong status
+  /administration/member-onboarding/{applicationId}:
+    put:
+      tags:
+        - administration
+      summary: all member onboarding applications
+      operationId: updateMemberOnboardingApplication
+      parameters:
+        - in: path
+          name: applicationId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMemberOnboarding'
+      responses:
+        200:
+          description: The updated member onboarding application
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberApplication' 
   /administration/member-onboarding:
     get:
       tags:
@@ -23,23 +72,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CountOfInprogressMemberOnboardings'
-    put:
-      tags:
-        - administration
-      summary: all member onboarding applications
-      operationId: updateMemberOnboardingApplication
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateMemberOnboarding'
-      responses:
-        200:
-          description: The updated member onboarding application
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MemberApplication' 
     post:
       tags:
         - administration
@@ -131,7 +163,7 @@ components:
       type: object
       properties:
         complete:
-          type: string
+          type: boolean
         application:
           $ref: '#/components/schemas/MemberApplication'
     MemberApplication:

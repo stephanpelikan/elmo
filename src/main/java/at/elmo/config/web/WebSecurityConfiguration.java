@@ -81,6 +81,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     				.logoutSuccessUrl(properties.getGatewayUrl())
     				.and()
                 .oauth2Login()
+                    .loginPage(properties.getGatewayUrl() + "/login")
                     .userInfoEndpoint()
                         .userService(oauth2UserService())
                         .and()

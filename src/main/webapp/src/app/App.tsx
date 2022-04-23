@@ -39,6 +39,16 @@ const theme: ThemeType = {
     secondary: {
       background: '#333333',
       border: { color: '#e0a244', width: 'xsmall' },
+    },
+    hover: {
+      default: {
+        background: '#ff0000',
+        color: '#333333',
+      },
+      secondary: {
+        background: '#e0a244',
+        color: '#333333',
+      }
     }
   }
 };
@@ -46,6 +56,8 @@ const theme: ThemeType = {
 i18n.addResources('en', 'app', {
       "title.long": 'ElectroMobile Gänserndorf',
       "title.short": 'Elmo GF',
+      "error": "Error",
+      "unexpected": "An unexpected event occured. Please try again later",
       "not-found": "The requested page is unknown!",
       "not-found hint": "Maybe use used a link in a mail which is already expired.",
       "url-administration": "/administration",
@@ -53,6 +65,8 @@ i18n.addResources('en', 'app', {
 i18n.addResources('de', 'app', {
       "title.long": 'ElektroMobil Gänserndorf',
       "title.short": 'Elmo GF',
+      "error": "Fehler",
+      "unexpected": "Ein unerwartetes Ereignis ist aufgetreten. Bitte versuche es später nochmals.",
       "not-found": "Die angeforderte Seite ist unbekannt!",
       "not-found hint": "Eventuell hast du einen Link aus einer Mail verwendet, der bereits veraltet ist.",
       "url-administration": "/verwaltung",
@@ -66,11 +80,11 @@ const App: React.FC<AppProps> = (props: AppProps): JSX.Element => {
   const { t } = useTranslation('app');
 
   return (
-    <AppContextProvider>
-      <Router>
-        <Grommet
-            theme={theme}
-            full>
+    <Grommet
+        theme={theme}
+        full>
+      <AppContextProvider>
+        <Router>
           <Box fill>
             <AppHeader />
             <Box
@@ -108,9 +122,9 @@ const App: React.FC<AppProps> = (props: AppProps): JSX.Element => {
               <ResponsiveMenu />
             </Box>
           </Box>
-        </Grommet>
-      </Router>
-    </AppContextProvider>
+        </Router>
+      </AppContextProvider>
+    </Grommet>
   );
 };
 

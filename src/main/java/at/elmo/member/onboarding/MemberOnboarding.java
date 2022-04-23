@@ -36,12 +36,19 @@ public class MemberOnboarding {
 
     }
     
+    public void takeOver(
+            final MemberApplication application) {
+
+        processService.correlateMessage(application, "TakeOver");
+
+    }
+    
     @WorkflowTask
-    public void setUserStatusToEmailVerified(
+    public void setMemberStatusToDataInvalid(
             final MemberApplication application) throws Exception {
         
         final var member = application.getMember();
-        member.setStatus(Status.EMAIL_VERIFIED);
+        member.setStatus(Status.DATA_INVALID);
 
     }
     
@@ -62,12 +69,16 @@ public class MemberOnboarding {
     }
 
     @WorkflowTask
-    public void setUserStatusAccordingToValidation() {
+    public void setMemberStatusAccordingToValidation() {
 
     }
 
     @WorkflowTask
-    public void setUserStatusToDataMissing() {
+    public void setMemberStatusApplicationSubmitted(
+            final MemberApplication application) {
+
+        final var member = application.getMember();
+        member.setStatus(Status.APPLICATION_SUBMITTED);
 
     }
 

@@ -1,24 +1,43 @@
-import React from 'react';
-import { User, Oauth2Client, UserStatus } from './client/gui';
-import { guiApi } from './client';
+import React, { useCallback, useMemo } from 'react';
+import { User, Oauth2Client, UserStatus, GuiApi } from './client/gui';
+import { getGuiApi } from './client';
+import { getAdministrationApi } from './client';
+import { AdministrationApi } from 'client/administration';
+import { MessageToast } from './components/Toast';
 
 type Action =
     | { type: 'updateOauth2Clients', oauth2Clients: Array<Oauth2Client> }
-    | { type: 'updateCurrentUser', user: User }
+    | { type: 'updateCurrentUser', user: User | null }
     | { type: 'memberApplicationFormSubmitted' }
     | { type: 'showMenu', visibility: boolean }
+    | { type: 'toast', toast: Toast | undefined }
     | { type: 'updateTitle', title: string };
-type Dispatch = (action: Action) => void;
+export type Dispatch = (action: Action) => void;
+export type Toast = {
+  namespace: string;
+  title: string | undefined;
+  message: string;
+};
 type State = {
   oauth2Clients: Array<Oauth2Client> | null;
   currentUser: User | null | undefined;
   showMenu: boolean;
   title: string;
+  toast: Toast | undefined;
 };
 
-const AppContext = React.createContext<
-  {state: State; dispatch: Dispatch} | undefined
->(undefined);
+const AppContext = React.createContext<{
+  state: State;
+  dispatch: Dispatch;
+  administrationApi: AdministrationApi;
+  guiApi: GuiApi;
+  toast: (toast: Toast) => void;
+  fetchOauth2Clients: () => void;
+  fetchCurrentUser: (resolve: (value: User | null) => void, reject: (error: any) => void) => void;
+  showMenu: (visibility: boolean) => void;
+  setAppHeaderTitle: (title: string) => void;
+  memberApplicationFormSubmitted: () => void;
+} | undefined>(undefined);
 
 const appContextReducer: React.Reducer<State, Action> = (state, action) => {
   let newState: State;
@@ -51,6 +70,13 @@ const appContextReducer: React.Reducer<State, Action> = (state, action) => {
     };
     break;
   }
+  case 'toast': {
+    newState = {
+      ...state,
+      toast: action.toast,
+    };
+    break;
+  }
   case 'updateTitle': {
     newState = {
       ...state,
@@ -73,15 +99,46 @@ const AppContextProvider = ({ children }: AppContextProviderProps) => {
     oauth2Clients: null,
     showMenu: false,
     title: 'app',
+    toast: undefined,
   });
-	const value = { state, dispatch };
-	return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+  const administrationApi = useMemo(() => getAdministrationApi(dispatch), [ dispatch ]);
+  const guiApi = useMemo(() => getGuiApi(dispatch), [ dispatch ]);
+  
+  const fetchOauth2Clients = useCallback(() => fetchOauth2ClientsFromGuiApi(state, dispatch, guiApi),
+      [ guiApi, state ]);
+  const fetchCurrentUser = useCallback((resolve, reject) => fetchCurrentUserFromGui(state, dispatch, guiApi, resolve, reject),
+      [ guiApi, state ]);
+  const showMenu = useCallback((visibility: boolean) => setShowMenu(dispatch, visibility),
+      [ dispatch ]);
+  const setAppHeaderTitle = useCallback((title: string) => updateTitle(dispatch, title),
+      [ dispatch ]); 
+  const memberApplicationFormSubmitted = useCallback(() => doMemberApplicationFormSubmitted(dispatch),
+      [ dispatch ]);
+	const value = {
+    state,
+    dispatch,
+    administrationApi,
+    guiApi,
+    toast: (t: Toast) => dispatch({ type: 'toast', toast: t }),
+    fetchOauth2Clients,
+    fetchCurrentUser,
+    showMenu,
+    setAppHeaderTitle,
+    memberApplicationFormSubmitted,
+  };
+  
+	return (<AppContext.Provider value={value}>
+	   {state.toast && (
+      <MessageToast dispatch={dispatch} msg={state.toast} />
+    )}
+	   {children}
+   </AppContext.Provider>);
 };
 
-const fetchOauth2Clients = async (appContextState: State, dispatch: Dispatch): Promise<Array<Oauth2Client>> => {
+const fetchOauth2ClientsFromGuiApi = async (appContextState: State, dispatch: Dispatch, guiApi: GuiApi) => {
   if (appContextState.oauth2Clients != null) {
     return new Promise((resolve, reject) => {
-        resolve(appContextState.oauth2Clients);
+        resolve(appContextState.oauth2Clients as Oauth2Client[]);
     });
   }
   try {
@@ -92,24 +149,25 @@ const fetchOauth2Clients = async (appContextState: State, dispatch: Dispatch): P
   }
 }
 
-const fetchCurrentUser = async (appContextState: State, dispatch: Dispatch): Promise<User> => {
+const fetchCurrentUserFromGui = async (appContextState: State, dispatch: Dispatch, guiApi: GuiApi, resolve: (value: User | null) => void, reject: (error: any) => void) => {
   if (appContextState.currentUser != null) {
-    return new Promise((resolve, reject) => {
-        resolve(appContextState.currentUser);
-    });
+    resolve(appContextState.currentUser);
+    return;
   }
   try {
     const user = await guiApi.currentUser();
     dispatch({ type: 'updateCurrentUser', user });
-  } catch (error) {
-    if (error.status !== 404) {
-      throw error;
+    resolve(user);
+  } catch (error: any) {
+    if (error['status'] !== 404) {
+      reject(error);
     }
     dispatch({ type: 'updateCurrentUser', user: null });
+    resolve(null);
   }
 }
 
-const memberApplicationFormSubmitted = (appContextState: State, dispatch: Dispatch) => {
+const doMemberApplicationFormSubmitted = (dispatch: Dispatch) => {
   dispatch({ type: 'memberApplicationFormSubmitted' });
 }
 
@@ -132,9 +190,4 @@ function useAppContext() {
 export {
   AppContextProvider,
   useAppContext,
-  fetchOauth2Clients,
-  fetchCurrentUser,
-  memberApplicationFormSubmitted,
-  setShowMenu,
-  updateTitle
 }

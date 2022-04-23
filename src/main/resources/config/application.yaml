@@ -10,6 +10,7 @@ elmo:
     - POST
     - DELETE
     - PATCH
+    maxAge: 43200
   websockets:
     message-broker-max-pool-size: 64
     message-broker-core-pool-size: 4

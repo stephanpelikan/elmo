@@ -2,14 +2,12 @@ import React from 'react';
 import { ResponsiveContext, Layer, Collapsible, Box, Button } from 'grommet';
 import { Menu } from './Menu';
 import { FormClose } from 'grommet-icons';
-import { useAppContext, setShowMenu } from '../../AppContext';
+import { useAppContext } from '../../AppContext';
 
 const ResponsiveMenu = () => {
-  const { state, dispatch } = useAppContext();
+  const { state, showMenu } = useAppContext();
 
-  const hideMenu = () => {
-    setShowMenu(dispatch, false);
-  };
+  const hideMenu = () => showMenu(false);
   
   return (
     <ResponsiveContext.Consumer>

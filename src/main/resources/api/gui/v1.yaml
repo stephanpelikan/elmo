@@ -140,6 +140,10 @@ components:
       properties:
         applicationId:
           type: string
+        complete:
+          type: boolean
+        currentStatus:
+          $ref: '#/components/schemas/UserStatus'
         firstName:
           type: string
         lastName:

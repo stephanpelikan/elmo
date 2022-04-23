@@ -1,6 +1,6 @@
 import React from 'react';
 import User from './User';
-import { useAppContext, setShowMenu } from '../../AppContext';
+import { useAppContext } from '../../AppContext';
 import { Grid, Text } from 'grommet';
 import { Logout, UserAdmin } from 'grommet-icons';
 import { MenuItem } from './MenuItem';
@@ -20,11 +20,9 @@ i18n.addResources('de', 'menu', {
     });
 
 const Menu = () => {
-  const { state, dispatch } = useAppContext();
+  const { state, showMenu } = useAppContext();
 
-  const hideMenu = () => {
-    setShowMenu(dispatch, false);
-  };
+  const hideMenu = () => showMenu(false);
 
   const navigate = useNavigate();
   
