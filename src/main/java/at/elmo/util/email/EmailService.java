@@ -3,6 +3,7 @@ package at.elmo.util.email;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,9 @@ import freemarker.template.Configuration;
 @Service
 public class EmailService {
 
+    private static final Pattern EMAIL_PATTERN = Pattern.compile(
+            "^(?=.{1,64}@)[A-Za-z0-9_-]+(\\\\.[A-Za-z0-9_-]+)*@[^-][A-Za-z0-9-]+(\\\\.[A-Za-z0-9-]+)*(\\\\.[A-Za-z]{2,})$");
+    
     @Autowired
     private Logger logger;
 
@@ -28,6 +32,13 @@ public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
 
+    public boolean isValidEmailAddressFormat(
+            final String email) {
+        
+        return EMAIL_PATTERN.matcher(email).matches();
+        
+    }
+    
     @Autowired
     @Qualifier(FreemarkerConfiguration.EMAIL_TEMPLATES)
     private Configuration templating;

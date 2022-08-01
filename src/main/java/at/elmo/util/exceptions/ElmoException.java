@@ -1,4 +1,4 @@
-package at.elmo.util;
+package at.elmo.util.exceptions;
 
 public class ElmoException extends RuntimeException {
 
@@ -22,11 +22,6 @@ public class ElmoException extends RuntimeException {
 
     public ElmoException(Throwable cause) {
         super(cause);
-    }
-
-    @Override
-    public synchronized Throwable fillInStackTrace() {
-        return this;
     }
 
 }

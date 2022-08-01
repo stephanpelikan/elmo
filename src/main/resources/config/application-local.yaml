@@ -38,14 +38,6 @@ spring:
             redirect-uri: 'http://localhost:3000/{action}/oauth2/code/{registrationId}'
             scope:
             - profile
-          keycloak:
-            client-name: Keycloak
-            client-id: pfm
-            client-secret: ZwTT6oVtyT0U3Qv7OzDRepcQDZ4WuNvd
-            authorization-grant-type: authorization_code
-            redirect-uri: 'http://localhost:3000/{action}/oauth2/code/{registrationId}'
-            scope:
-            - profile
         provider:
           amazon:
             id: amazon
@@ -53,11 +45,6 @@ spring:
             token-uri: https://api.amazon.co.uk/auth/o2/token
             user-info-uri: https://api.amazon.com/user/profile
             userNameAttribute: name
-          keycloak:
-            id: keycloak
-            authorization-uri: http://localhost:9080/realms/pfm/protocol/openid-connect/auth
-            token-uri: http://localhost:9080/realms/pfm/protocol/openid-connect/token
-            user-info-uri: http://localhost:9080/realms/pfm/protocol/openid-connect/userinfo
 camunda:
   bpm:
     admin-user:

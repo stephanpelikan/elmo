@@ -36,7 +36,7 @@ const TaskCards = () => {
       <Card
           title='Anmeldungen'
           icon={DocumentUser}
-          onClick={ () => navigate('.' + t('url-list-onboardings')) }>
+          onClick={ () => navigate('.' + t('url-onboardings')) }>
         {
           countOfInprogressMemberOnboardings > 0
           ? <CardBadge

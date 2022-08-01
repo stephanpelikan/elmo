@@ -1,0 +1,11 @@
+version: '3'
+services:
+  postgres:
+    image: library/postgres:13.3-alpine
+    restart: "no"
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_DB=elmo
+      - POSTGRES_USER=elmo
+      - POSTGRES_PASSWORD=elmo

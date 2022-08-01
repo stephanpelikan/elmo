@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_0jikfoh" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.12.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.15.0">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_0jikfoh" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.0.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.15.0">
   <bpmn:collaboration id="Collaboration_0o6mceo">
     <bpmn:participant id="Participant_1k1w0l5" name="member onboarding" processRef="MemberOnboarding" />
     <bpmn:participant id="Participant_1a58p8f" name="applicant" />
@@ -34,9 +34,6 @@
     <bpmn:sequenceFlow id="Flow_1oxl5al" sourceRef="Event_136h1i4" targetRef="Activity_0fdcnuy" />
     <bpmn:sequenceFlow id="Flow_01b1q70" sourceRef="Event_15nlzwx" targetRef="Event_1qdxmgm" />
     <bpmn:sequenceFlow id="Flow_0hd50id" sourceRef="Event_11fqxxw" targetRef="Event_1i2j3tq" />
-    <bpmn:sequenceFlow id="Flow_0sbhsm5" name="user information invalid" sourceRef="Activity_1xsbd59" targetRef="Event_136h1i4">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${userInformationInvalid}</bpmn:conditionExpression>
-    </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="Flow_16r1pcp" sourceRef="Activity_1xsbd59" targetRef="Gateway_1nqhem9" />
     <bpmn:sequenceFlow id="Flow_0eiqn0g" sourceRef="Event_0q0dsgi" targetRef="Activity_0q1kx0a" />
     <bpmn:sequenceFlow id="Flow_028tx4x" sourceRef="Activity_0q1kx0a" targetRef="Event_0wt8pwc" />
@@ -65,29 +62,20 @@
     </bpmn:userTask>
     <bpmn:intermediateThrowEvent id="Event_1qdxmgm" name="abort onboarding">
       <bpmn:incoming>Flow_01b1q70</bpmn:incoming>
-      <bpmn:linkEventDefinition id="LinkEventDefinition_14lan9u" name="AbortOnboarding" />
+      <bpmn:linkEventDefinition id="LinkEventDefinition_14lan9u" name="abort onboarding" />
     </bpmn:intermediateThrowEvent>
     <bpmn:endEvent id="Event_1i2j3tq" name="notify applicant">
       <bpmn:incoming>Flow_0hd50id</bpmn:incoming>
       <bpmn:messageEventDefinition id="MessageEventDefinition_1l44ku2" camunda:expression="${notifyApplicant}" />
     </bpmn:endEvent>
-    <bpmn:boundaryEvent id="Event_11fqxxw" name="every second day" attachedToRef="Activity_0fdcnuy">
-      <bpmn:outgoing>Flow_0hd50id</bpmn:outgoing>
-      <bpmn:timerEventDefinition id="TimerEventDefinition_1tyqp34">
-        <bpmn:timeCycle xsi:type="bpmn:tFormalExpression">R/P1D</bpmn:timeCycle>
-      </bpmn:timerEventDefinition>
-    </bpmn:boundaryEvent>
-    <bpmn:userTask id="Activity_1xsbd59" name="validate user information" camunda:formRef="userValidationForm" camunda:formRefBinding="latest">
+    <bpmn:userTask id="Activity_1xsbd59" name="validate user information" camunda:formKey="userValidationForm">
       <bpmn:incoming>Flow_0dl88pw</bpmn:incoming>
-      <bpmn:outgoing>Flow_0sbhsm5</bpmn:outgoing>
       <bpmn:outgoing>Flow_16r1pcp</bpmn:outgoing>
     </bpmn:userTask>
     <bpmn:intermediateThrowEvent id="Event_136h1i4" name="user status &#10;&#39;data invalid&#39;" camunda:asyncBefore="true">
-      <bpmn:extensionElements>
-        <camunda:executionListener delegateExpression="${setMemberStatusToDataInvalid}" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>Flow_0sbhsm5</bpmn:incoming>
+      <bpmn:extensionElements />
       <bpmn:incoming>Flow_03yy9xf</bpmn:incoming>
+      <bpmn:incoming>Flow_04n9ffo</bpmn:incoming>
       <bpmn:outgoing>Flow_1oxl5al</bpmn:outgoing>
     </bpmn:intermediateThrowEvent>
     <bpmn:intermediateThrowEvent id="Event_0urlpkz" name="application submitted">
@@ -108,14 +96,15 @@
       <bpmn:outgoing>Flow_0f9c3ta</bpmn:outgoing>
       <bpmn:outgoing>Flow_0ublxcn</bpmn:outgoing>
       <bpmn:outgoing>Flow_0frr5p2</bpmn:outgoing>
+      <bpmn:outgoing>Flow_04n9ffo</bpmn:outgoing>
     </bpmn:exclusiveGateway>
     <bpmn:intermediateCatchEvent id="Event_0q0dsgi" name="abort onboarding">
       <bpmn:outgoing>Flow_0eiqn0g</bpmn:outgoing>
-      <bpmn:linkEventDefinition id="LinkEventDefinition_0y1vnbj" name="AbortOnboarding" />
+      <bpmn:linkEventDefinition id="LinkEventDefinition_0y1vnbj" name="abort onboarding" />
     </bpmn:intermediateCatchEvent>
     <bpmn:intermediateThrowEvent id="Event_1nlnwqa" name="abort onboarding">
       <bpmn:incoming>Flow_0xpxlmx</bpmn:incoming>
-      <bpmn:linkEventDefinition id="LinkEventDefinition_1t0ul0e" name="AbortOnboarding" />
+      <bpmn:linkEventDefinition id="LinkEventDefinition_1t0ul0e" name="abort onboarding" />
     </bpmn:intermediateThrowEvent>
     <bpmn:sendTask id="Activity_02sciyb" name="inform drivers about new member" camunda:asyncBefore="true" camunda:delegateExpression="${informDriversAboutNewMember}">
       <bpmn:incoming>Flow_12kqhj0</bpmn:incoming>
@@ -179,10 +168,19 @@
     </bpmn:boundaryEvent>
     <bpmn:sequenceFlow id="Flow_0999a5r" sourceRef="Event_0y2fnwz" targetRef="Event_0urlpkz" />
     <bpmn:sequenceFlow id="Flow_03yy9xf" sourceRef="Event_0tmbe6i" targetRef="Event_136h1i4" />
+    <bpmn:boundaryEvent id="Event_11fqxxw" name="every second day" cancelActivity="false" attachedToRef="Activity_0fdcnuy">
+      <bpmn:outgoing>Flow_0hd50id</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_09yymu2">
+        <bpmn:timeCycle xsi:type="bpmn:tFormalExpression">R/P1D</bpmn:timeCycle>
+      </bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
     <bpmn:boundaryEvent id="Event_0tmbe6i" name="takeover by member" attachedToRef="Activity_1xsbd59">
       <bpmn:outgoing>Flow_03yy9xf</bpmn:outgoing>
       <bpmn:messageEventDefinition id="MessageEventDefinition_0fcf1g1" messageRef="Message_0pngawu" />
     </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="Flow_04n9ffo" name="data&#10;wrong/&#10;missing" sourceRef="Gateway_1nqhem9" targetRef="Event_136h1i4">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${userInformationInvalid}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
   </bpmn:process>
   <bpmn:error id="Error_0msatxo" name="Email_Not_Verified" errorCode="Email_Not_Verified" />
   <bpmn:category id="Category_1j14ln8">
@@ -197,9 +195,8 @@
         <dc:Bounds x="160" y="310" width="1410" height="510" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_03yy9xf_di" bpmnElement="Flow_03yy9xf">
-        <di:waypoint x="780" y="489" />
-        <di:waypoint x="780" y="360" />
-        <di:waypoint x="748" y="360" />
+        <di:waypoint x="730" y="489" />
+        <di:waypoint x="730" y="378" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0999a5r_di" bpmnElement="Flow_0999a5r">
         <di:waypoint x="480" y="605" />
@@ -280,13 +277,6 @@
         <di:waypoint x="780" y="547" />
         <di:waypoint x="854" y="547" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0sbhsm5_di" bpmnElement="Flow_0sbhsm5">
-        <di:waypoint x="730" y="507" />
-        <di:waypoint x="730" y="378" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="640" y="466" width="79" height="27" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0hd50id_di" bpmnElement="Flow_0hd50id">
         <di:waypoint x="470" y="489" />
         <di:waypoint x="470" y="410" />
@@ -306,6 +296,15 @@
       <bpmndi:BPMNEdge id="Flow_1gn81iw_di" bpmnElement="Flow_1gn81iw">
         <di:waypoint x="501" y="547" />
         <di:waypoint x="572" y="547" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_04n9ffo_di" bpmnElement="Flow_04n9ffo">
+        <di:waypoint x="866" y="535" />
+        <di:waypoint x="830" y="500" />
+        <di:waypoint x="830" y="360" />
+        <di:waypoint x="748" y="360" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="781" y="450" width="38" height="40" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
         <dc:Bounds x="252" y="529" width="36" height="36" />
@@ -415,10 +414,10 @@
           <dc:Bounds x="1442" y="745" width="56" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_1ojl20u_di" bpmnElement="Event_0tmbe6i">
-        <dc:Bounds x="762" y="489" width="36" height="36" />
+      <bpmndi:BPMNShape id="Event_0df81as_di" bpmnElement="Event_11fqxxw">
+        <dc:Bounds x="452" y="489" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="791" y="466" width="58" height="27" />
+          <dc:Bounds x="485" y="477" width="87" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_0lwrvp0_di" bpmnElement="Event_0y2fnwz">
@@ -433,10 +432,10 @@
           <dc:Bounds x="357" y="613" width="65" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_06sgqqw_di" bpmnElement="Event_11fqxxw">
-        <dc:Bounds x="452" y="489" width="36" height="36" />
+      <bpmndi:BPMNShape id="Event_1ojl20u_di" bpmnElement="Event_0tmbe6i">
+        <dc:Bounds x="712" y="489" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="485" y="477" width="87" height="14" />
+          <dc:Bounds x="671" y="456" width="58" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Participant_1nm0da2_di" bpmnElement="Participant_1a58p8f" isHorizontal="true">

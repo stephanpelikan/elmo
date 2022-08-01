@@ -1,18 +1,18 @@
 import { useTranslation } from "react-i18next";
 import { Route, Routes } from "react-router-dom";
 import { TaskCards } from './TaskCards';
-import { ListOfOnboardings } from './onboarding/List';
+import { Main as Onboardings } from './onboarding/Main';
 import i18n from '../i18n';
 
 i18n.addResources('en', 'administration', {
       "title.long": 'Administration',
       "title.short": 'Administration',
-      "url-list-onboardings": "/onboarding",
+      "url-onboardings": "/onboardings",
     });
 i18n.addResources('de', 'administration', {
       "title.long": 'Verwaltung',
       "title.short": 'Verwaltung',
-      "url-list-onboardings": "/anmeldung",
+      "url-onboardings": "/anmeldungen",
     });
 
 const Main = () => {
@@ -21,7 +21,7 @@ const Main = () => {
 
   return (
     <Routes>
-      <Route path={t('url-list-onboardings')} element={<ListOfOnboardings />} />
+      <Route path={t('url-onboardings') + '/*'} element={<Onboardings />} />
       <Route path='/' element={<TaskCards />} />
     </Routes>);
 }

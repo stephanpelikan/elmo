@@ -1,9 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog
-	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd"
-	logicalFilePath="./00.00.01.xml">
+		xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd"
+		logicalFilePath="./00.00.01.xml">
+  <changeSet id="http-session-store" author="stephanpelikan">
+    <comment>Create table necessary to use EnableJdbcHttpSession</comment>
+    <sqlFile dbms="h2" path="classpath:org/springframework/session/jdbc/schema-h2.sql" relativeToChangelogFile="false" />
+    <sqlFile dbms="postgresql" path="classpath:org/springframework/session/jdbc/schema-postgresql.sql" relativeToChangelogFile="false" />
+    <sqlFile dbms="db2" path="classpath:org/springframework/session/jdbc/schema-db2.sql" relativeToChangelogFile="false" />
+    <sqlFile dbms="derby" path="classpath:org/springframework/session/jdbc/schema-derby.sql" relativeToChangelogFile="false" />
+    <sqlFile dbms="hsqldb" path="classpath:org/springframework/session/jdbc/schema-hsqldb.sql" relativeToChangelogFile="false" />
+    <sqlFile dbms="mysql" path="classpath:org/springframework/session/jdbc/schema-mysql.sql" relativeToChangelogFile="false" />
+    <sqlFile dbms="oracle" path="classpath:org/springframework/session/jdbc/schema-oracle.sql" relativeToChangelogFile="false" />
+    <sqlFile dbms="sqlite" path="classpath:org/springframework/session/jdbc/schema-sqlite.sql" relativeToChangelogFile="false" />
+    <sqlFile dbms="sqlserver" path="classpath:org/springframework/session/jdbc/schema-sqlserver.sql" relativeToChangelogFile="false" />
+    <sqlFile dbms="sybase" path="classpath:org/springframework/session/jdbc/schema-sybase.sql" relativeToChangelogFile="false" />
+  </changeSet>
+  <changeSet id="oauth2-token-store" author="stephanpelikan">
+    <comment>Create table necessary to use JdbcOAuth2AuthorizedClientService</comment>
+    <sqlFile dbms="!postgresql" path="classpath:org/springframework/security/oauth2/client/oauth2-client-schema.sql" relativeToChangelogFile="false" />
+    <sqlFile dbms="postgresql" path="classpath:org/springframework/security/oauth2/client/oauth2-client-schema-postgres.sql" relativeToChangelogFile="false" />
+  </changeSet>
 	<changeSet id="initial-setup-of-members"
 		author="stephanpelikan">
 		<comment>Create table for Member</comment>
@@ -43,6 +61,7 @@
 			<column name="PHONE_NUMBER" type="varchar(30)" />
 			<column name="LAST_PHONE_CODE" type="varchar(4)" />
 			<column name="NOTIFY_PER_SMS" type="boolean" />
+			<column name="COMMENT" type="clob" />
 		</createTable>
 		<createTable tableName="ELMO_MEMBER_APPLICATIONS">
 			<column name="ID" type="varchar(40)">
@@ -56,7 +75,8 @@
 			</column>
 			<column name="UPDATED_AT" type="timestamp" />
 			<column name="MEMBER" type="varchar(40)" />
-		</createTable>
+      <column name="USERTASK" type="varchar(40)" />
+ 		</createTable>
     <createTable tableName="ELMO_MEMBER_ROLES">
       <column name="MEMBER" type="varchar(40)">
         <constraints primaryKey="true" />

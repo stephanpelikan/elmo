@@ -40,7 +40,19 @@ paths:
                 $ref: '#/components/schemas/User'
         404:
           description: No user logged in
-  /gui/member/submitApplication:
+  /gui/member/application:
+    get:
+      tags:
+        - gui
+      summary: load the member application form
+      operationId: loadMemberApplicationForm
+      responses:
+        200:
+          description: Submission successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberApplicationForm'
     post:
       tags:
         - gui
@@ -140,10 +152,8 @@ components:
       properties:
         applicationId:
           type: string
-        complete:
-          type: boolean
-        currentStatus:
-          $ref: '#/components/schemas/UserStatus'
+        taskId:
+          type: string
         firstName:
           type: string
         lastName:
@@ -175,6 +185,8 @@ components:
           type: string
         preferNotificationsPerSms:
           type: boolean
+        comment:
+          type: string
       required:
         - firstName
         - lastName

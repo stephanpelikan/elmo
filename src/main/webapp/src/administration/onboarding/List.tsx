@@ -1,32 +1,31 @@
 import { Box, Button, ColumnConfig, DataTable, ResponsiveContext, Text } from 'grommet';
 import { FormEdit } from 'grommet-icons';
-import { useCallback, useContext, useEffect, useLayoutEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../AppContext';
-import { MemberApplication, MemberStatus } from '../../client/administration';
+import { AdministrationApi, MemberApplication } from '../../client/administration';
 import i18n from '../../i18n';
 
 i18n.addResources('en', 'administration/onboarding', {
-      "title.long": 'Member applications',
-      "title.short": 'Member applications',
       "edit": "edit",
       "check": "check",
+      "loading": "loading...",
     });
 i18n.addResources('de', 'administration/onboarding', {
-      "title.long": 'Anmeldungen',
-      "title.short": 'Anmeldungen',
       "edit": "Bearbeiten",
       "check": "Prüfen",
+      "loading": "Lade Daten...",
     });
-
+    
 const itemsBatchSize = 20;
 
-const ListOfOnboardings = () => {
-  const { administrationApi, setAppHeaderTitle } = useAppContext();
-  
-  const [ memberApplications, setMemberApplications ] = useState(undefined);
-  
-  const loadMemberApplications = useCallback(async () => {
+const loadData = async (
+    administrationApi: AdministrationApi,
+    setMemberApplications: (applications: Array<MemberApplication>) => void,
+    memberApplications: Array<MemberApplication>
+  ) => {
+
     const result = await administrationApi
         .getMemberOnboardingApplications({
             pageNumber: memberApplications === undefined
@@ -39,32 +38,39 @@ const ListOfOnboardings = () => {
         memberApplications === undefined
         ? result.applications
         : memberApplications.concat(result.applications));
-  }, [ memberApplications, administrationApi ]);
+  
+};
+
+const ListOfOnboardings = () => {
+  const { administrationApi } = useAppContext();
+  
+  const [ memberApplications, setMemberApplications ] = useState(undefined);
   
   useEffect(() => {
     if (memberApplications === undefined) {
-      loadMemberApplications();
+      loadData(administrationApi, setMemberApplications, memberApplications);
     }
-  }, [ memberApplications, loadMemberApplications ]);
-  
-  useLayoutEffect(() => {
-    setAppHeaderTitle('administration/onboarding');
-  }, [ setAppHeaderTitle ]);
+  }, [ administrationApi, setMemberApplications, memberApplications ]);
 
   const { t } = useTranslation('administration/onboarding');
+  
+  const navigate = useNavigate();
   
   const size = useContext(ResponsiveContext);
   
   const onEdit = async (application: MemberApplication, takeOver: boolean) => {
     
-    await administrationApi.takeoverMemberOnboardingApplication({
-        applicationId: application.id,
-        inlineObject: {
-          status: application.member.status,
-        }
-      });
+    if (takeOver) {
+      await administrationApi.takeoverMemberOnboardingApplication({
+          applicationId: application.id,
+          xxx: new Date('2022-06-05T00:00:00'),
+          takeoverMemberOnboardingApplicationRequest: {
+            taskId: application.taskId,
+          }
+        });
+    }
     
-    application.member.status = MemberStatus.ApplicationSubmitted;
+    navigate('./' + application.id);
     
   };
 
@@ -117,9 +123,10 @@ const ListOfOnboardings = () => {
     <Box width='100%' overflow="vertical">
       <DataTable
           size='100%'
+          placeholder={ memberApplications === undefined ? t('loading') : undefined }
           columns={columns}
           step={itemsBatchSize}
-          onMore={() => loadMemberApplications()}
+          onMore={() => loadData(administrationApi, setMemberApplications, memberApplications)}
           data={memberApplications} />
     </Box>
     );

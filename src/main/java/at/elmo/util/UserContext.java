@@ -8,6 +8,8 @@ import at.elmo.member.Member;
 import at.elmo.member.Member.Role;
 import at.elmo.member.MemberRepository;
 import at.elmo.member.login.ElmoOAuth2User;
+import at.elmo.util.exceptions.ElmoException;
+import at.elmo.util.exceptions.ElmoForbiddenException;
 
 @Component
 public class UserContext {
@@ -19,13 +21,13 @@ public class UserContext {
 
         final var authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null) {
-            throw new ElmoException("No security context");
+            throw new ElmoForbiddenException("No security context");
         }
         if (!authentication.isAuthenticated()) {
-            throw new ElmoException("User anonymous");
+            throw new ElmoForbiddenException("User anonymous");
         }
         if (!(authentication.getPrincipal() instanceof ElmoOAuth2User)) {
-            throw new ElmoException("User logged in not of incstance '" + ElmoOAuth2User.class + "'");
+            throw new ElmoForbiddenException("User logged in not of incstance '" + ElmoOAuth2User.class + "'");
         }
 
         final var oauth2User = (ElmoOAuth2User) authentication.getPrincipal();

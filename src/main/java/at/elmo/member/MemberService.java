@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import at.elmo.config.ElmoProperties;
 import at.elmo.member.Member.Role;
@@ -20,8 +21,9 @@ import at.elmo.member.login.OAuth2Identifier;
 import at.elmo.member.onboarding.MemberApplication;
 import at.elmo.member.onboarding.MemberApplicationRepository;
 import at.elmo.member.onboarding.MemberOnboarding;
-import at.elmo.util.ElmoException;
 import at.elmo.util.UserContext;
+import at.elmo.util.exceptions.ElmoException;
+import at.elmo.util.exceptions.ElmoForbiddenException;
 
 @Service
 @Transactional
@@ -97,19 +99,21 @@ public class MemberService {
         
     }
     
-    private void validateMemberForApplicationInformationProcessing(final Status currentStatus, final Member member) {
+    private void validateMemberForApplicationInformationProcessing(
+            final String taskId,
+            final MemberApplication application) {
 
+        final var member = application.getMember();
         if (!member.getId().equals(userContext.getLoggedInMember().getId())
                 && !userContext.hasRole(Role.MANAGER)) {
 
-            throw new ElmoException("Not allowed");
+            throw new ElmoForbiddenException("Not allowed");
 
         }
 
-        if (!member.getStatus().equals(currentStatus)) {
+        if (!taskId.equals(application.getUserTaskId())) {
 
-            throw new ElmoException("Application form of '" + member.getId() + "' expired since status already '"
-                    + member.getStatus() + "'!");
+            throw new ElmoException("Application form of '" + member.getId() + "' expired!");
 
         }
 
@@ -117,20 +121,27 @@ public class MemberService {
 
     public void takeoverMemberApplication(
             final String applicationId,
-            final Status currentStatus) {
+            final String taskId) {
 
         final var application = memberApplications.getById(applicationId);
-        final var member = application.getMember();
-        validateMemberForApplicationInformationProcessing(currentStatus, member);
+        validateMemberForApplicationInformationProcessing(taskId, application);
 
         memberOnboarding.takeOver(application);
         
     }
 
+    public static enum MemberApplicationUpdate {
+        SAVE,
+        DONE,
+        REJECT,
+        INQUIRY
+    };
+    
     public MemberApplication processMemberApplicationInformation(
             final String applicationId,
-            final boolean isComplete,
-            final Status currentStatus,
+            final String taskId,
+            final MemberApplicationUpdate action,
+            final Integer memberId,
             final String firstName,
             final String lastName,
             final LocalDate birthdate,
@@ -143,24 +154,30 @@ public class MemberService {
             final String emailConfirmationCode,
             final String phoneNumber,
             final String phoneConfirmationCode,
-            final boolean preferNotificationsPerSms) {
+            final boolean preferNotificationsPerSms,
+            final String comment) {
 
         final var application = memberApplications
                 .getById(applicationId);
         final var member = application.getMember();
-        validateMemberForApplicationInformationProcessing(currentStatus, member);
+        validateMemberForApplicationInformationProcessing(taskId, application);
 
+        member.setMemberId(memberId);
+        member.setSex(sex);
         member.setFirstName(firstName);
         member.setLastName(lastName);
         member.setBirthdate(birthdate);
         member.setZip(zip);
         member.setCity(city);
-        member.setStreet(streetNumber);
+        member.setStreet(street);
         member.setStreetNumber(streetNumber);
         member.setEmail(getEmail(member, email, emailConfirmationCode));
         //member.setPhoneNumber(getPhoneNumber(member, phoneNumber, phoneConfirmationCode));
         member.setPhoneNumber(phoneNumber); // TODO: use confirmation code once SMS is available
         member.setPreferNotificationsPerSms(preferNotificationsPerSms);
+        if (StringUtils.hasText(comment)) {
+            member.setComment(comment);
+        }
         
         // configured administrator will become active immediately
         if (member.getEmail().equals(properties.getAdminIdentificationEmailAddress())) {
@@ -168,9 +185,41 @@ public class MemberService {
             return null; // no onboarding configured administrator
         }
         
-        memberApplications.saveAndFlush(application);
-        
+        if (action == MemberApplicationUpdate.INQUIRY) {
+            
+            memberOnboarding.completeUserValidationFormForInvalidData(application, taskId);
+            
+        } else if (action == MemberApplicationUpdate.REJECT) {
+            
+            memberOnboarding.completeUserValidationFormAsRejected(application, taskId);
+            
+        } else if (action == MemberApplicationUpdate.DONE) {
+            
+            memberOnboarding.completeUserValidationFormAsAccepted(application, taskId);
+            
+        } else  if (action == MemberApplicationUpdate.SAVE) {
+
+            return memberApplications.saveAndFlush(application);
+
+        }
+
         return application;
+        
+    }
+    
+    public Optional<MemberApplication> getMemberApplication(
+            final String applicationId) {
+
+        return memberApplications.findById(applicationId);
+        
+    }
+
+    public Optional<MemberApplication> getCurrentMemberApplication(
+            final String memberId) {
+
+        return memberApplications.findByMemberIdAndStatus(
+                memberId,
+                MemberApplication.Status.IN_PROGRESS);
         
     }
 

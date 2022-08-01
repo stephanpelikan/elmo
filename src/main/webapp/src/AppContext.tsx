@@ -179,7 +179,7 @@ const updateTitle = (dispatch: Dispatch, title: string) => {
   dispatch({ type: 'updateTitle', title });
 }
 
-function useAppContext() {
+const useAppContext = () => {
   const context = React.useContext(AppContext);
   if (context === undefined) {
     throw new Error('useAppContext must be used within a <AppContext>...</AppContext>');
@@ -187,7 +187,41 @@ function useAppContext() {
   return context;
 }
 
+// see https://blog.logrocket.com/react-suspense-data-fetching/
+const supportSuspense = <T extends any>(promise: Promise<T>) => {
+  
+  let status = 'pending';
+  let response: T;
+
+  const suspender = promise.then(
+    (res) => {
+      status = 'success';
+      response = res;
+    },
+    (err) => {
+      status = 'error';
+      response = err;
+    },
+  );
+  
+  const read = () => {
+    switch (status) {
+      case 'pending':
+        throw suspender;
+      case 'error':
+        throw response;
+      default:
+        return response;
+    }
+  }
+
+  // eslint-disable-next-line
+  return useCallback(read, [ ]);
+
+}
+  
 export {
   AppContextProvider,
   useAppContext,
+  supportSuspense,
 }

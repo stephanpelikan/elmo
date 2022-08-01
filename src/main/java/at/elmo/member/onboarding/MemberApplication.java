@@ -2,6 +2,7 @@ package at.elmo.member.onboarding;
 
 import java.time.OffsetDateTime;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -31,7 +32,7 @@ public class MemberApplication {
     @Column(name = "ID")
     private String id;
     
-    @OneToOne
+    @OneToOne(cascade = { CascadeType.PERSIST })
     @JoinColumn(name = "MEMBER", referencedColumnName = "ID")
     private Member member;
     
@@ -46,6 +47,9 @@ public class MemberApplication {
     @Enumerated(EnumType.STRING)
     @Column(name = "STATUS")
     private Status status;
+
+    @Column(name = "USERTASK")
+    private String userTaskId;
 
     public boolean isEmailVerified() {
 
@@ -115,6 +119,14 @@ public class MemberApplication {
 
     public void setUpdatedAt(OffsetDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getUserTaskId() {
+        return userTaskId;
+    }
+
+    public void setUserTaskId(String userTaskId) {
+        this.userTaskId = userTaskId;
     }
 
 }

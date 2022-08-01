@@ -28,18 +28,36 @@ paths:
             schema:
               type: object
               properties:
-                status:
-                  $ref: '#/components/schemas/MemberStatus'
+                taskId:
+                  type: string
       responses:
         200:
           description: Takeover successful
         400:
           description: application is in wrong status
   /administration/member-onboarding/{applicationId}:
+    get:
+      tags:
+        - administration
+      summary: get a member onboarding application
+      operationId: getMemberOnboardingApplication
+      parameters:
+        - in: path
+          name: applicationId
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: The updated member onboarding application
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberApplication' 
     put:
       tags:
         - administration
-      summary: all member onboarding applications
+      summary: update a member onboarding application
       operationId: updateMemberOnboardingApplication
       parameters:
         - in: path
@@ -129,6 +147,13 @@ components:
         - DONE
         - REJECTED
         - DUPLICATE
+    MemberApplicationUpdate:
+      type: string
+      enum:
+        - SAVE
+        - DONE
+        - REJECT
+        - INQUIRY
     Page:
       type: object
       properties:
@@ -162,14 +187,18 @@ components:
     UpdateMemberOnboarding:
       type: object
       properties:
-        complete:
-          type: boolean
-        application:
-          $ref: '#/components/schemas/MemberApplication'
+        action:
+          $ref: '#/components/schemas/MemberApplicationUpdate'
+        taskId:
+          type: string
+        member:
+          $ref: '#/components/schemas/Member'
     MemberApplication:
       type: object
       properties:
         id:
+          type: string
+        taskId:
           type: string
         status:
           $ref: '#/components/schemas/MemberApplicationStatus'
@@ -213,6 +242,8 @@ components:
           type: string
         preferNotificationsPerSms:
           type: boolean
+        comment:
+          type: string
         roles:
           type: array
           items:

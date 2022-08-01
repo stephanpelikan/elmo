@@ -1,17 +1,23 @@
 package at.elmo.config.web;
 
+import javax.annotation.Resource;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.session.jdbc.config.annotation.web.http.EnableJdbcHttpSession;
 
 import at.elmo.config.ElmoProperties;
 import at.elmo.member.Member.Role;
@@ -20,6 +26,7 @@ import at.elmo.member.login.OAuth2UserService;
 
 @Configuration
 @EnableWebSecurity
+@EnableJdbcHttpSession
 public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     
     @Value("${camunda.bpm.admin-user.id}")
@@ -33,12 +40,17 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private MemberService memberService;
-	
+    
+    @Resource
+    private ClientRegistrationRepository repo;
+
+    @Resource
+    private JdbcTemplate jdbcTemplate;
+    
 	@Override
     protected void configure(final HttpSecurity http) throws Exception {
 
 		final RequestMatcher[] unprotectedGuiApi = new RequestMatcher[] {
-                new AntPathRequestMatcher("/api/v*/gui/currentUser"),
                 new AntPathRequestMatcher("/api/v*/gui/currentUser"),
                 new AntPathRequestMatcher("/api/v*/gui/oauth2-clients"),
 		};
@@ -67,7 +79,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     		        .frameOptions().disable()
     		        .and()
                 .sessionManagement()
-    	            .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                .sessionCreationPolicy(SessionCreationPolicy.NEVER)
     		        .and()
     			.authorizeRequests()
     	            .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
@@ -82,6 +94,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     				.and()
                 .oauth2Login()
                     .loginPage(properties.getGatewayUrl() + "/login")
+                    .authorizedClientService(oAuth2AuthorizedClientService())
                     .userInfoEndpoint()
                         .userService(oauth2UserService())
                         .and()
@@ -103,4 +116,11 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     }
 
+    @Bean
+    public OAuth2AuthorizedClientService oAuth2AuthorizedClientService() {
+        
+        return new TransactionalJdbcOAuth2AuthorizedClientService(jdbcTemplate, repo);
+        
+    }
+    
 }

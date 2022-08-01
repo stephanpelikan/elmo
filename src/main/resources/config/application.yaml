@@ -59,8 +59,8 @@ camunda:
       max-wait: 20000
     generic-properties:
       properties:
-        historyCleanupBatchWindowStartTime: '20:00'
-        historyCleanupBatchWindowEndTime: 05:00
+        historyCleanupBatchWindowStartTime: '22:00'
+        historyCleanupBatchWindowEndTime: '04:00'
         historyCleanupBatchSize: 100
         initializeTelemetry: false
     authorization:
@@ -70,7 +70,7 @@ camunda:
       schema-update: false
       jdbc-batch-processing: true
     metrics:
-      enabled: false
+      enabled: true
     webapp:
       index-redirect-enabled: false
   xstream-serialization:

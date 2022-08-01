@@ -17,8 +17,9 @@ import at.elmo.gui.api.v1.MemberApplicationForm;
 import at.elmo.gui.api.v1.Oauth2Client;
 import at.elmo.gui.api.v1.User;
 import at.elmo.member.MemberService;
-import at.elmo.util.ElmoException;
+import at.elmo.member.MemberService.MemberApplicationUpdate;
 import at.elmo.util.UserContext;
+import at.elmo.util.exceptions.ElmoException;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -83,6 +84,21 @@ public class GuiApiController implements GuiApi {
     }
 
     @Override
+    public ResponseEntity<MemberApplicationForm> loadMemberApplicationForm() {
+
+        final var user = userContext.getLoggedInMember();
+
+        final var application = memberService.getCurrentMemberApplication(user.getId());
+        if (application.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(
+                mapper.toApplicationFormApi(application.get().getMember(), application.get()));
+
+    }
+
+    @Override
     public ResponseEntity<String> submitMemberApplicationForm(
             final MemberApplicationForm memberApplicationForm) {
 
@@ -103,8 +119,9 @@ public class GuiApiController implements GuiApi {
 
         memberService.processMemberApplicationInformation(
                 memberApplicationForm.getApplicationId(),
-                memberApplicationForm.getComplete(),
-                mapper.toDomain(memberApplicationForm.getCurrentStatus()),
+                memberApplicationForm.getTaskId(),
+                MemberApplicationUpdate.INQUIRY,
+                null,
                 memberApplicationForm.getFirstName(),
                 memberApplicationForm.getLastName(),
                 memberApplicationForm.getBirthdate(),
@@ -117,7 +134,8 @@ public class GuiApiController implements GuiApi {
                 memberApplicationForm.getEmailConfirmationCode(),
                 phoneCountryCode + phoneProviderCode + memberApplicationForm.getPhoneNumber(),
                 memberApplicationForm.getPhoneConfirmationCode(),
-                referNotificationsPerSms);
+                referNotificationsPerSms,
+                memberApplicationForm.getComment());
         
         return ResponseEntity.ok().build();
         

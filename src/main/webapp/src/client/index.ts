@@ -26,10 +26,26 @@ const buildFetchApi = (dispatch: Dispatch): FetchAPI => {
                 title: 'error',
                 message: 'unexpected'
               }});
+          } else if (r.status === 400) {
+            dispatch({ type: 'toast', toast: {
+                namespace: 'app',
+                title: 'error',
+                message: 'validation'
+              }});
+          } else if (r.status === 403) {
+            dispatch({ type: 'toast', toast: {
+                namespace: 'app',
+                title: 'error',
+                message: 'forbidden'
+              }});
           }
           resolve(response);
         }).catch(error => {
-          console.warn("F: ", error);
+          dispatch({ type: 'toast', toast: {
+              namespace: 'app',
+              title: 'error',
+              message: 'unexpected'
+            }});
           resolve(error);
         });
       });

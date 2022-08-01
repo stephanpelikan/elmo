@@ -129,6 +129,9 @@ public class Member {
     @Column(name = "NOTIFY_PER_SMS")
     private boolean preferNotificationsPerSms;
     
+    @Column(name = "COMMENT")
+    private String comment;
+
     @OneToMany(mappedBy = "member", fetch = FetchType.EAGER, cascade = { CascadeType.MERGE, CascadeType.PERSIST,
             CascadeType.DETACH })
     private List<RoleMembership> roles = new LinkedList<>();
@@ -283,6 +286,14 @@ public class Member {
 
     public void setLastPhoneConfirmationCode(String lastPhoneConfirmationCode) {
         this.lastPhoneConfirmationCode = lastPhoneConfirmationCode;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
     }
 
     public List<RoleMembership> getRoles() {

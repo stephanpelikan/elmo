@@ -1,5 +1,5 @@
 import { Notification } from "grommet";
-import { useLayoutEffect } from "react";
+import { useCallback, useEffect, useLayoutEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Dispatch, Toast } from '../AppContext';
 
@@ -17,12 +17,19 @@ const MessageToast = ({ dispatch, msg }: MessageToastProps) => {
     i18n.emit("languageChanged");
   }, [ msg, i18n ]);
   
+  const close = useCallback(() => dispatch({ type: 'toast', toast: undefined }), [dispatch]);
+  
+  useEffect(() => {
+    const timer = setTimeout(close, 4000);
+    return () => clearTimeout(timer);
+  }, [msg, close]);
+  
   return (
     <Notification
-        toast
+        toast={{ autoClose: false }}
         title={msg.title ? t(msg.title as string) : undefined}
         message={t(msg.message)}
-        onClose={() => dispatch({ type: 'toast', toast: undefined })}
+        onClose={close}
     />
   );
 }
