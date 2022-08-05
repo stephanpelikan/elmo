@@ -1,6 +1,6 @@
-import { Anchor, Box, Grid, Heading, Paragraph } from "grommet";
+import { Anchor, Box, Button, Grid, Heading, Paragraph, TextInput } from "grommet";
 import { Google, Amazon } from "grommet-icons";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { useAppContext } from '../AppContext';
 import TextHeading from '../components/TextHeading';
 import { LinkedBox } from './LinkedBox';
@@ -38,6 +38,22 @@ const Login = () => {
   
   const { state, fetchOauth2Clients } = useAppContext();
   
+  const [smsNumber, setSmsNumber] = React.useState('');
+  const sendSMS = () => {
+    // @ts-ignore
+    const nativeCommunicator = typeof webkit !== 'undefined' ? webkit.messageHandlers.native : window.native;
+    if (!nativeCommunicator) {
+      alert('neither webkit.messageHandlers.native nor window.native is available!');
+      return;
+    }
+    nativeCommunicator.postMessage(JSON.stringify([
+      {
+        "phoneNumber": smsNumber,
+        "smsText": "JUHU!"
+      }
+    ]));
+  }
+  
   useEffect(() => {
     fetchOauth2Clients();
   }, [ fetchOauth2Clients ]);
@@ -56,6 +72,16 @@ const Login = () => {
         <Heading size='small' level='2'>{t('climate-friendly')}</Heading>
         <TextHeading>{t('already a part of?')}</TextHeading>
         <Paragraph>{t('login to book a ride')}</Paragraph>
+      </Box>
+      <Box direction='row'>
+        <TextInput
+           value={smsNumber}
+           onChange={event => setSmsNumber(event.target.value)} />
+        <Button
+           type='submit'
+           label='Send'
+           margin={{left: 'small'}}
+           onClick={sendSMS} />
       </Box>
       {
         state.oauth2Clients === null ? '' : Object.keys(icons).map(clientId => {
