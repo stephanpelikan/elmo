@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "grommet": "^2.25.0",
+    "grommet": "^2.25.1",
     "grommet-icons": "^4.7.0",
     "i18next": "^21.6.14",
     "react": "^17.0.2",

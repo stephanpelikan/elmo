@@ -3,6 +3,7 @@ package at.elmo.member;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,12 +23,15 @@ import at.elmo.member.onboarding.MemberApplication;
 import at.elmo.member.onboarding.MemberApplicationRepository;
 import at.elmo.member.onboarding.MemberOnboarding;
 import at.elmo.util.UserContext;
+import at.elmo.util.email.EmailService;
 import at.elmo.util.exceptions.ElmoException;
 import at.elmo.util.exceptions.ElmoForbiddenException;
 
 @Service
 @Transactional
 public class MemberService {
+
+    private static final Random random = new Random(System.currentTimeMillis());
 
     @Autowired
     private ElmoProperties properties;
@@ -43,6 +47,9 @@ public class MemberService {
     
     @Autowired
     private UserContext userContext;
+
+    @Autowired
+    private EmailService emailService;
     
     public Optional<Member> getMemberByOAuth2User(
             final String oauth2Id) {
@@ -236,6 +243,21 @@ public class MemberService {
         
         return (int) memberApplications.countByStatus(
                 at.elmo.member.onboarding.MemberApplication.Status.IN_PROGRESS);
+        
+    }
+    
+    public void requestEmailCode(
+            final Member member,
+            final String emailAddress) throws Exception {
+
+        final var code = String.format("%04d", random.nextInt(10000));
+        member.setEmail(emailAddress);
+        member.setLastEmailConfirmationCode(code);
+
+        emailService.sendEmail(
+                "member/email-confirmation",
+                emailAddress,
+                member);
         
     }
     

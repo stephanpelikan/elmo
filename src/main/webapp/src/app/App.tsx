@@ -52,15 +52,15 @@ export const theme: ThemeType = {
   button: {
     default: {
       background: '#ffffff',
-      border: { color: '#e2e2e2', width: 'xsmall' },
+      border: { color: '#e2e2e2', width: '3px' },
     },
     primary: {
       background: '#348eda',
-      border: { color: '#e0a244', width: 'xsmall' },
+      border: { color: '#e0a244', width: '3px' },
     },
     secondary: {
       background: '#333333',
-      border: { color: '#e0a244', width: 'xsmall' },
+      border: { color: '#e0a244', width: '3px' },
     },
     hover: {
       default: {

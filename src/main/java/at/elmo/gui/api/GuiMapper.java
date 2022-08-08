@@ -28,8 +28,6 @@ public abstract class GuiMapper {
     @Mapping(target = "taskId", source = "application.userTaskId")
     @Mapping(target = "emailConfirmationCode", ignore = true)
     @Mapping(target = "phoneConfirmationCode", ignore = true)
-    @Mapping(target = "phoneCountryCode", ignore = true)
-    @Mapping(target = "phoneProviderCode", ignore = true)
     public abstract MemberApplicationForm toApplicationFormApi(Member member, MemberApplication application);
 
     public abstract at.elmo.member.Member.Sex toDomain(Sex sex);

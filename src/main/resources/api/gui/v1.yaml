@@ -25,7 +25,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Oauth2Client'
-  /gui/currentUser:
+  /gui/current-user:
     get:
       tags:
         - gui
@@ -90,6 +90,44 @@ paths:
               schema:
                 type: string
                 format: binary
+        404:
+          description: The member-id is unknown
+  /gui/member/request-phone-code:
+    get:
+      tags:
+        - gui
+      summary: Request a code sent to phone via SMS
+      operationId: requestPhoneCode
+      parameters:
+        - in: query
+          name: phoneNo
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: The code was sent
+        400:
+          description: phone number is wrong format
+        404:
+          description: The member-id is unknown
+  /gui/member/request-email-code:
+    get:
+      tags:
+        - gui
+      summary: Request a code sent via email
+      operationId: requestEmailCode
+      parameters:
+        - in: query
+          name: emailAddress
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: The code was sent
+        400:
+          description: email address is wrong format
         404:
           description: The member-id is unknown
 components:
@@ -175,10 +213,6 @@ components:
           type: string
         streetNumber:
           type: string
-        phoneCountryCode:
-          type: string
-        phoneProviderCode:
-          type: string
         phoneNumber:
           type: string
         phoneConfirmationCode:
@@ -198,7 +232,5 @@ components:
         - streetNumber
         - email
         - emailConfirmationCode
-        - phoneCountryCode
-        - phoneProviderCode
         - phoneNumber
         - phoneConfirmationCode
