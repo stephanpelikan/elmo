@@ -34,8 +34,6 @@ public abstract class AdministrationMapper {
     @Mapping(target = "roles", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "lastEmailConfirmationCode", ignore = true)
-    @Mapping(target = "lastPhoneConfirmationCode", ignore = true)
     @Mapping(target = "oauth2Ids", ignore = true)
     public abstract at.elmo.member.Member toDomain(Member member);
 

@@ -28,6 +28,7 @@ import at.elmo.util.UserContext;
 import at.elmo.util.email.EmailService;
 import at.elmo.util.exceptions.ElmoException;
 import at.elmo.util.exceptions.ElmoValidationException;
+import at.elmo.util.sms.SmsService;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -50,6 +51,9 @@ public class GuiApiController implements GuiApi {
 
     @Autowired
     private EmailService emailService;
+    
+    @Autowired
+    private SmsService smsService;
 
     @Override
     public ResponseEntity<User> currentUser() {
@@ -149,13 +153,16 @@ public class GuiApiController implements GuiApi {
         } else if (!emailService.isValidEmailAddressFormat(memberApplicationForm.getEmail())) {
             violations.put("email", "format");
         }
+        if (!StringUtils.hasText(memberApplicationForm.getEmailConfirmationCode())) {
+            violations.put("emailConfirmationCode", "missing");
+        }
         if (!StringUtils.hasText(memberApplicationForm.getPhoneNumber())) {
             violations.put("phoneNumber", "missing");
         } else if (!memberApplicationForm.getPhoneNumber().startsWith("+")) {
             violations.put("phoneNumber", "format");
         }
-        if (!violations.isEmpty()) {
-            throw new ElmoValidationException(violations);
+        if (!StringUtils.hasText(memberApplicationForm.getPhoneConfirmationCode())) {
+            violations.put("phoneConfirmationCode", "missing");
         }
 
         final var referNotificationsPerSms =
@@ -167,6 +174,7 @@ public class GuiApiController implements GuiApi {
                 memberApplicationForm.getApplicationId(),
                 memberApplicationForm.getTaskId(),
                 MemberApplicationUpdate.INQUIRY,
+                violations,
                 null,
                 memberApplicationForm.getFirstName(),
                 memberApplicationForm.getLastName(),
@@ -183,13 +191,18 @@ public class GuiApiController implements GuiApi {
                 referNotificationsPerSms,
                 memberApplicationForm.getComment());
         
+        if (!violations.isEmpty()) {
+            throw new ElmoValidationException(violations);
+        }
+
         return ResponseEntity.ok().build();
         
     }
     
     @Override
     public ResponseEntity<Void> requestEmailCode(
-            final @NotNull @Valid String emailAddress) {
+            final @NotNull @Valid String emailAddress,
+            final @Valid String applicationId) {
         
         final var user = userContext.getLoggedInMember();
 
@@ -197,10 +210,43 @@ public class GuiApiController implements GuiApi {
         if (application.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
+        if (!emailService.isValidEmailAddressFormat(emailAddress)) {
+            throw new ElmoValidationException("email", "format");
+        }
+
+        try {
+
+            memberService.requestEmailCode(applicationId, user, emailAddress);
+
+        } catch (Exception e) {
+
+            logger.error("Could not send email-confirmation code for member '{}'", user.getId(), e);
+            return ResponseEntity.internalServerError().build();
+
+        }
+
+        return ResponseEntity.ok().build();
+
+    }
+
+    @Override
+    public ResponseEntity<Void> requestPhoneCode(
+            final @NotNull @Valid String phoneNumber,
+            final @Valid String applicationId) {
+
+        final var user = userContext.getLoggedInMember();
+
+        final var application = memberService.getCurrentMemberApplication(user.getId());
+        if (application.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        if (!smsService.isValidPhoneNumberFormat(phoneNumber)) {
+            throw new ElmoValidationException("phoneNumber", "format");
+        }
         
         try {
             
-            memberService.requestEmailCode(user, emailAddress);
+            // memberService.requestEmailCode(applicationId, user, phoneNumber);
             
         } catch (Exception e) {
             

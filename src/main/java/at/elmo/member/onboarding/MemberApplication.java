@@ -51,6 +51,18 @@ public class MemberApplication {
     @Column(name = "USERTASK")
     private String userTaskId;
 
+    @Column(name = "EMAIL")
+    private String email;
+
+    @Column(name = "LAST_EMAIL_CODE")
+    private String lastEmailConfirmationCode;
+
+    @Column(name = "PHONE_NUMBER")
+    private String phoneNumber;
+
+    @Column(name = "LAST_PHONE_CODE")
+    private String lastPhoneConfirmationCode;
+
     public boolean isEmailVerified() {
 
         return member.getStatus() == Member.Status.EMAIL_VERIFIED;
@@ -127,6 +139,38 @@ public class MemberApplication {
 
     public void setUserTaskId(String userTaskId) {
         this.userTaskId = userTaskId;
+    }
+
+    public String getLastEmailConfirmationCode() {
+        return lastEmailConfirmationCode;
+    }
+
+    public void setLastEmailConfirmationCode(String lastEmailConfirmationCode) {
+        this.lastEmailConfirmationCode = lastEmailConfirmationCode;
+    }
+
+    public String getLastPhoneConfirmationCode() {
+        return lastPhoneConfirmationCode;
+    }
+
+    public void setLastPhoneConfirmationCode(String lastPhoneConfirmationCode) {
+        this.lastPhoneConfirmationCode = lastPhoneConfirmationCode;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
 }

@@ -70,6 +70,12 @@ paths:
             application/json:
               schema:
                 type: string
+        400:
+          description: Some application values are not accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrors'
   /gui/member/{memberId}/avatar:
     get:
       tags:
@@ -104,6 +110,11 @@ paths:
           required: true
           schema:
             type: string
+        - in: query
+          name: applicationId
+          required: false
+          schema:
+            type: string
       responses:
         200:
           description: The code was sent
@@ -123,6 +134,11 @@ paths:
           required: true
           schema:
             type: string
+        - in: query
+          name: applicationId
+          required: false
+          schema:
+            type: string
       responses:
         200:
           description: The code was sent
@@ -132,6 +148,9 @@ paths:
           description: The member-id is unknown
 components:
   schemas:
+    ValidationErrors:
+      type: object
+      additionalProperties: {}
     Sex:
       type: string
       enum:
@@ -221,16 +240,3 @@ components:
           type: boolean
         comment:
           type: string
-      required:
-        - firstName
-        - lastName
-        - birthdate
-        - sex
-        - zip
-        - city
-        - street
-        - streetNumber
-        - email
-        - emailConfirmationCode
-        - phoneNumber
-        - phoneConfirmationCode

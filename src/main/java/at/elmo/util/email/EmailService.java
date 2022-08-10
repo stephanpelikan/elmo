@@ -20,8 +20,7 @@ import freemarker.template.Configuration;
 @Service
 public class EmailService {
 
-    private static final Pattern EMAIL_PATTERN = Pattern.compile(
-            "^(?=.{1,64}@)[A-Za-z0-9_-]+(\\\\.[A-Za-z0-9_-]+)*@[^-][A-Za-z0-9-]+(\\\\.[A-Za-z0-9-]+)*(\\\\.[A-Za-z]{2,})$");
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[^@]+@[^@]+$");
     
     @Autowired
     private Logger logger;
@@ -35,8 +34,11 @@ public class EmailService {
     public boolean isValidEmailAddressFormat(
             final String email) {
         
+        if (email == null) {
+            return false;
+        }
         return EMAIL_PATTERN.matcher(email).matches();
-        
+
     }
     
     @Autowired
@@ -89,7 +91,9 @@ public class EmailService {
         
         // build context with e.g. 'member' -> Member
         final var templateContext = Map.of(
-                context.getClass().getSimpleName().toLowerCase(), context);
+                context.getClass().getSimpleName().substring(0, 1).toLowerCase()
+                        + context.getClass().getSimpleName().substring(1),
+                context);
 
         final var locale = Locale.forLanguageTag(properties.getDefaultLocale());
 

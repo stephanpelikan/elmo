@@ -1,10 +1,11 @@
 import { Box, Button, CheckBox, DateInput, Form, FormField, Heading, ResponsiveContext, Select, TextInput } from "grommet";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useLayoutEffect, useState } from "react";
 import { useAppContext } from '../AppContext';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
-import { MemberApplicationForm, Sex } from '../client/gui';
+import { GuiApi, MemberApplicationForm, Sex } from '../client/gui';
 import { CalendarHeader } from "../components/CalendarHeader";
+import { ViolationsAwareFormField } from "../components/ViolationsAwareFormField";
 import styled from "styled-components";
 
 const CodeButton = styled(Button)`
@@ -21,6 +22,8 @@ const CodeButton = styled(Button)`
 `;
 
 i18n.addResources('en', 'registration-form', {
+      "title.long": 'Registration',
+      "title.short": 'Registration',
       "personal data": "Personal data",
       "first-name": "First name:",
       "last-name": "Last name:",
@@ -44,56 +47,85 @@ i18n.addResources('en', 'registration-form', {
       "submit-form": "Submit",
     });
 i18n.addResources('de', 'registration-form', {
+      "title.long": 'Registrierung',
+      "title.short": 'Registrierung',
       "personal data": "Persönliche Daten",
       "first-name": "Vorname:",
+      "first-name_missing": "Bitte trage deinen Vornamen ein!",
       "last-name": "Nachname:",
+      "last-name_missing": "Bitte trage deinen Nachnamen ein!",
       "sex": "Geschlecht:",
+      "sex_missing": "Bitte wähle ein Geschlecht!",
       "MALE": "Mann",
       "FEMALE": "Frau",
       "OTHER": "Andere",
       "birthdate": "Geburtstag:",
       "birthdate_format": "d.m.yyyy",
-      "birthdate_validation": "Falsches Format, bitte DD.MM.JJJJ verwenden",
+      "birthdate_validation": "Format: DD.MM.JJJJ",
       "address data": "Adressdaten",
       "street": "Straße:",
+      "street_missing": "Bitte trage deine Straße ein!",
       "street-number": "Hausnummer:",
+      "street-number_missing": "Bitte trage deine Hausnummer ein!",
       "zip": "PLZ:",
+      "zip_missing": "Bitte trage deine Postleitzahl ein!",
       "city": "Stadt:",
+      "city_missing": "Bitte trage deine Stadt ein!",
       "contact data": "Kontaktdaten",
       "email": "Email-Adresse:",
+      "email_missing": "Bitte trage deine Email-Adresse ein!",
+      "email_format": "Format: [deine Adresse]@[deine Domäne]",
       "email-confirmation-code": "Email Bestätigungscode:",
+      "email-confirmation-code_missing": "Drücke den Knopf rechts, um einen Code per Email zu bekommen!",
+      "email-confirmation-code_mismatch": "Der Code passt nicht! Fordere einen Neuen an.",
       "request-email-confirmation-code": "Anfordern",
       "phone-number": "Telefon:",
+      "phone-number_missing": "Bitte trage deine Telefonnummer ein!",
+      "phone-number_format": "Falsches Format: +[Land][Vorwahl ohne Null][Nummer]!",
       "phone-confirmation-code": "SMS Bestätigungscode:",
       "phone-confirmation-code-title": "SMS Bestätigungscode:",
       "phone-confirmation-code-message": "Der Code wurde an die angegebene Email-Adresse versendet!",
+      "phone-confirmation-code_missing": "Drücke den Knopf rechts, um einen Code per SMS zu bekommen!",
+      "phone-confirmation-code_mismatch": "Der Code passt nicht! Fordere einen Neuen an.",
       "request-phone-confirmation-code": "Anfordern",
-      "prefer-notifications-per-sms": "Hinweise per SMS statt Email?",
+      "prefer-notifications-per-sms": "Hinweise zu deinen Fahrten per SMS statt Email?",
       "submit-form": "Absenden",
     });
+
+const loadData = async (
+    guiApi: GuiApi,
+    setMemberApplicationForm: (applicationForm: MemberApplicationForm) => void,
+    setSubmitting: (submitting: boolean) => void,
+  ) => {
+
+  try {
+    setSubmitting(true);
+    const application = await guiApi.loadMemberApplicationForm();
+    setMemberApplicationForm(application);
+  } finally {
+    setSubmitting(false);
+  }
+  
+};
 
 const RegistrationForm = () => {
   const { t } = useTranslation('registration-form');
   
-  const { state, guiApi, memberApplicationFormSubmitted, toast } = useAppContext();
+  const { guiApi, memberApplicationFormSubmitted, toast, setAppHeaderTitle } = useAppContext();
   
-  const initialForm: MemberApplicationForm = {
-      firstName: state.currentUser.firstName,
-      lastName: state.currentUser.name,
-      sex: null,
-      birthdate: null,
-      zip: "",
-      city: "",
-      street: "",
-      streetNumber: "",
-      email: state.currentUser.email,
-      emailConfirmationCode: null,
-      phoneNumber: "",
-      phoneConfirmationCode: null,
-      preferNotificationsPerSms: false
-  };
-  const [ formValue, setFormValue ] = useState(initialForm);
+  const [ formValue, setFormValue ] = useState<MemberApplicationForm>(undefined);
   const [ submitting, setSubmitting ] = useState(false);
+  const [ violations, setViolations ] = useState({});
+
+  useEffect(() => {
+      if (formValue === undefined) { 
+        loadData(guiApi, setFormValue, setSubmitting);
+      };
+    }, [ formValue, guiApi, setFormValue ]);
+
+  useLayoutEffect(() => {
+    setAppHeaderTitle('registration-form');
+  }, [ setAppHeaderTitle ]);
 
   const submitForm = async () => {
     try {
@@ -101,32 +133,44 @@ const RegistrationForm = () => {
       await guiApi.submitMemberApplicationForm({ memberApplicationForm: formValue });
       memberApplicationFormSubmitted();
     } catch (error) {
-      console.error(error);
+      setViolations(await error.response.json());
     } finally {
       setSubmitting(false);
     }
   };
   
   const requestSmsCode = async () => {
-    guiApi
-        .requestEmailCode({ emailAddress: formValue.phoneNumber })
-        .then(() =>
-          toast({
-            namespace: 'registration-form',
-            title: t('phone-confirmation-code-title'),
-            message: t('phone-confirmation-code-message'),
-          }));
+    try {
+      await guiApi
+          .requestPhoneCode({ phoneNo: formValue.phoneNumber, applicationId: formValue.applicationId })
+          .then(() =>
+            toast({
+              namespace: 'registration-form',
+              title: t('phone-confirmation-code-title'),
+              message: t('phone-confirmation-code-message'),
+            }));
+      setViolations({ ...violations, phoneNumber: undefined });
+    } catch (error) {
+      const v = await error.response.json();
+      setViolations({ ...violations, ...v });
+    }
   };
   
   const requestEmailCode = async () => {
-    guiApi
-        .requestEmailCode({ emailAddress: formValue.email })
-        .then(() =>
-          toast({
-            namespace: 'registration-form',
-            title: t('phone-confirmation-code-title'),
-            message: t('phone-confirmation-code-message'),
-          }));
+    try {
+      await guiApi
+          .requestEmailCode({ emailAddress: formValue.email, applicationId: formValue.applicationId })
+          .then(() =>
+            toast({
+              namespace: 'registration-form',
+              title: t('phone-confirmation-code-title'),
+              message: t('phone-confirmation-code-message'),
+            }));
+      setViolations({ ...violations, email: undefined });
+    } catch (error) {
+      const v = await error.response.json();
+      setViolations({ ...violations, ...v });
+    }
   };
   
   const setBirthdate = (dateInput: string|Date) => {
@@ -175,31 +219,37 @@ const RegistrationForm = () => {
           onSubmit={ value => submitForm() }>
         <Heading
             size='small'
-            level='2'>{t('personal data')}</Heading>
+            level='2'>{ t('personal data') }</Heading>
         {/* first name */}
-        <FormField
+        <ViolationsAwareFormField
             name="firstName"
-            label={ t('first-name') }
+            label='first-name'
+            t={ t }
+            violations={ violations }
             disabled={ submitting } />
         {/* last name */}
-        <FormField
+        <ViolationsAwareFormField
             name="lastName"
-            label={ t('last-name') }
+            label='last-name'
+            t={ t }
+            violations={ violations }
             disabled={ submitting } />
         {/* sex */}
-        <FormField
+        <ViolationsAwareFormField
             name="sex"
-            label={ t('sex') }
+            label='sex'
+            t={ t }
+            violations={ violations }
             disabled={ submitting }
             htmlFor="sexSelect">
           <Select
               id="sexSelect"
               options={[ Sex.Female, Sex.Male, Sex.Other ]}
               value={ formValue?.sex }
-              labelKey={t}
+              labelKey={ t }
               onChange={({ value }) => setSex(value)}
             />
-        </FormField>
+        </ViolationsAwareFormField>
         {/* birthdate */}
         <FormField
             name="birthdate"
@@ -220,36 +270,49 @@ const RegistrationForm = () => {
             size='small'
             level='2'>{t('address data')}</Heading>
         {/* street */}
-        <FormField
+        <ViolationsAwareFormField
             name="street"
-            label={ t('street') }
+            label='street'
+            t={ t }
+            violations={ violations }
             disabled={ submitting } />
         {/* street number */}
-        <FormField
+        <ViolationsAwareFormField
             name="streetNumber"
-            label={ t('street-number') }
+            label='street-number'
+            t={ t }
+            violations={ violations }
             disabled={ submitting } />
         {/* zip */}
-        <FormField
+        <ViolationsAwareFormField
             name="zip"
-            label={ t('zip') }
+            label='zip'
+            t={ t }
+            violations={ violations }
             disabled={ submitting } />
         {/* city */}
-        <FormField
+        <ViolationsAwareFormField
             name="city"
-            label={ t('city') }
+            label='city'
+            t={ t }
+            violations={ violations }
             disabled={ submitting } />
         <Heading
             size='small'
             level='2'>{t('contact data')}</Heading>
         {/* email */}
-        <FormField
+        <ViolationsAwareFormField
             name="email"
-            label={ t('email') }
+            label='email'
+            t={ t }
+            violations={ violations }
             disabled={ submitting } />
-        <FormField
+        <ViolationsAwareFormField
+            name="emailConfirmationCode"
             htmlFor="emailConfirmationCode"
-            label={ t('email-confirmation-code') }
+            label='email-confirmation-code'
+            t={ t }
+            violations={ violations }
             disabled={ submitting }>
           <Box
               direction="row"
@@ -257,6 +320,8 @@ const RegistrationForm = () => {
             >
           <TextInput
               id="emailConfirmationCode"
+              value={ formValue?.emailConfirmationCode }
+              onChange={ code => setFormValue({ ...formValue, emailConfirmationCode: code.target.value }) }
               focusIndicator={false}
               plain />
           <CodeButton
@@ -266,15 +331,21 @@ const RegistrationForm = () => {
               onClick={ value => requestEmailCode() }
               label={ t('request-email-confirmation-code') } />
           </Box>
-        </FormField>
+        </ViolationsAwareFormField>
         {/* phone */}
-        <FormField
+        <ViolationsAwareFormField
             name="phoneNumber"
-            label={ t('phone-number') }
+            label='phone-number'
+            placeholder="+436641234567"
+            t={t}
+            violations={ violations }
             disabled={ submitting } />
-        <FormField
+        <ViolationsAwareFormField
+            name="phoneConfirmationCode"
             htmlFor="phoneConfirmationCode"
-            label={ t('phone-confirmation-code') }
+            label='phone-confirmation-code'
+            t={ t }
+            violations={ violations }
             disabled={ submitting }>
           <Box
               direction="row"
@@ -282,15 +353,18 @@ const RegistrationForm = () => {
             >
           <TextInput
               id="phoneConfirmationCode"
+              value={ formValue?.phoneConfirmationCode }
+              onChange={ code => setFormValue({ ...formValue, phoneConfirmationCode: code.target.value }) }
               focusIndicator={false}
               plain />
           <CodeButton
               secondary
               fill={false}
               disabled={ submitting }
+              onClick={ value => requestSmsCode() }
               label={ t('request-phone-confirmation-code') } />
           </Box>
-        </FormField>
+        </ViolationsAwareFormField>
         {/* prefer notifications per sms */}
         <FormField
             contentProps={ { border: false } }

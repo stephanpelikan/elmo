@@ -51,7 +51,6 @@
 			<column name="EMAIL" type="varchar(2048)" />
 			<column name="FIRST_NAME" type="varchar(255)" />
 			<column name="LAST_NAME" type="varchar(255)" />
-			<column name="LAST_EMAIL_CODE" type="varchar(4)" />
 			<column name="BIRTHDATE" type="date" />
 			<column name="SEX" type="varchar(6)" />
 			<column name="ZIP" type="varchar(10)" />
@@ -59,7 +58,6 @@
 			<column name="STREET" type="varchar(255)" />
 			<column name="STREET_NUMBER" type="varchar(25)" />
 			<column name="PHONE_NUMBER" type="varchar(30)" />
-			<column name="LAST_PHONE_CODE" type="varchar(4)" />
 			<column name="NOTIFY_PER_SMS" type="boolean" />
 			<column name="COMMENT" type="clob" />
 		</createTable>
@@ -76,6 +74,10 @@
 			<column name="UPDATED_AT" type="timestamp" />
 			<column name="MEMBER" type="varchar(40)" />
       <column name="USERTASK" type="varchar(40)" />
+      <column name="PHONE_NUMBER" type="varchar(30)" />
+      <column name="LAST_PHONE_CODE" type="varchar(4)" />
+      <column name="EMAIL" type="varchar(2048)" />
+      <column name="LAST_EMAIL_CODE" type="varchar(4)" />
  		</createTable>
     <createTable tableName="ELMO_MEMBER_ROLES">
       <column name="MEMBER" type="varchar(40)">

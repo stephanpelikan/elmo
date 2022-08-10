@@ -12,7 +12,7 @@ public class ElmoValidationException extends ElmoException {
             final String field,
             final String userMessage) {
 
-        super();
+        super(field + ": " + userMessage);
         violations = Map.of(field, userMessage);
         
     }
@@ -30,7 +30,7 @@ public class ElmoValidationException extends ElmoException {
     public ElmoValidationException(
             final Map<String, String> violations) {
 
-        super();
+        super(violations.toString());
         this.violations = violations;
         
     }

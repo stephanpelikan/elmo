@@ -80,10 +80,11 @@ public class AdministrationApiController implements AdministrationApi {
 
         final var member = updateMemberOnboarding
                 .getMember();
-        
+
+        final var violations = new HashMap<String, String>();
+
         if (updateMemberOnboarding.getAction() == MemberApplicationUpdate.DONE) {
 
-            final var violations = new HashMap<String, String>();
             if (member.getMemberId() == null) {
                 violations.put("memberId", "missing");
             }
@@ -137,6 +138,7 @@ public class AdministrationApiController implements AdministrationApi {
                 applicationId,
                 updateMemberOnboarding.getTaskId(),
                 mapper.toDomain(updateMemberOnboarding.getAction()),
+                violations,
                 member.getMemberId(),
                 member.getFirstName(),
                 member.getLastName(),

@@ -2,6 +2,7 @@ package at.elmo.member;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
@@ -26,6 +27,7 @@ import at.elmo.util.UserContext;
 import at.elmo.util.email.EmailService;
 import at.elmo.util.exceptions.ElmoException;
 import at.elmo.util.exceptions.ElmoForbiddenException;
+import at.elmo.util.exceptions.ElmoValidationException;
 
 @Service
 @Transactional
@@ -144,10 +146,12 @@ public class MemberService {
         INQUIRY
     };
     
+    @Transactional(noRollbackFor = ElmoValidationException.class)
     public MemberApplication processMemberApplicationInformation(
             final String applicationId,
             final String taskId,
             final MemberApplicationUpdate action,
+            final Map<String, String> violations,
             final Integer memberId,
             final String firstName,
             final String lastName,
@@ -169,6 +173,25 @@ public class MemberService {
         final var member = application.getMember();
         validateMemberForApplicationInformationProcessing(taskId, application);
 
+        if (action == MemberApplicationUpdate.INQUIRY) {
+
+            if (application.getLastEmailConfirmationCode() == null) {
+                violations.put("emailConfirmationCode", "missing");
+            } else if (!application.getLastEmailConfirmationCode().equals(emailConfirmationCode)) {
+                violations.put("emailConfirmationCode", "mismatch");
+            } else if (!application.getEmail().equals(email)) {
+                violations.put("emailConfirmationCode", "mismatch");
+            }
+            if (application.getLastPhoneConfirmationCode() == null) {
+                violations.put("phoneConfirmationCode", "missing");
+            } else if (!application.getLastPhoneConfirmationCode().equals(phoneConfirmationCode)) {
+                violations.put("phoneConfirmationCode", "mismatch");
+            } else if (!application.getPhoneNumber().equals(phoneNumber)) {
+                violations.put("phoneConfirmationCode", "mismatch");
+            }
+
+        }
+
         member.setMemberId(memberId);
         member.setSex(sex);
         member.setFirstName(firstName);
@@ -178,14 +201,17 @@ public class MemberService {
         member.setCity(city);
         member.setStreet(street);
         member.setStreetNumber(streetNumber);
-        member.setEmail(getEmail(member, email, emailConfirmationCode));
-        //member.setPhoneNumber(getPhoneNumber(member, phoneNumber, phoneConfirmationCode));
-        member.setPhoneNumber(phoneNumber); // TODO: use confirmation code once SMS is available
+        member.setEmail(email);
+        member.setPhoneNumber(phoneNumber);
         member.setPreferNotificationsPerSms(preferNotificationsPerSms);
         if (StringUtils.hasText(comment)) {
             member.setComment(comment);
         }
         
+        if (!violations.isEmpty()) {
+            return application;
+        }
+
         // configured administrator will become active immediately
         if (member.getEmail().equals(properties.getAdminIdentificationEmailAddress())) {
             member.setStatus(Status.ACTIVE);
@@ -247,67 +273,22 @@ public class MemberService {
     }
     
     public void requestEmailCode(
+            final String applicationId,
             final Member member,
             final String emailAddress) throws Exception {
 
+        final var application = memberApplications
+                .getById(applicationId);
+
         final var code = String.format("%04d", random.nextInt(10000));
-        member.setEmail(emailAddress);
-        member.setLastEmailConfirmationCode(code);
+        application.setEmail(emailAddress);
+        application.setLastEmailConfirmationCode(code);
 
         emailService.sendEmail(
                 "member/email-confirmation",
                 emailAddress,
-                member);
+                application);
         
-    }
-    
-    @SuppressWarnings("unused")
-    private String getPhoneNumber(
-            final Member member,
-            final String phoneNumber,
-            final String phoneConfirmationCode) {
-        
-        if ((member.getPhoneNumber() != null)
-                && member.getPhoneNumber().equals(phoneNumber)) {
-            return member.getPhoneNumber();
-        }
-
-        if (!userContext.hasRole(Role.MANAGER)) {
-
-            if (!member.getLastPhoneConfirmationCode().equals(phoneConfirmationCode)) {
-                throw new RuntimeException("mismatching phone confirmation code");
-            }
-
-        }
-        
-        member.setLastPhoneConfirmationCode(null);
-        
-        return phoneNumber;
-    
-    }
-
-    private String getEmail(
-            final Member member,
-            final String email,
-            final String emailConfirmationCode) {
-        
-        if ((member.getEmail() != null)
-                && member.getEmail().equals(email)) {
-            return member.getEmail();
-        }
-        
-        if (!userContext.hasRole(Role.MANAGER)) {
-
-            if (!member.getLastEmailConfirmationCode().equals(emailConfirmationCode)) {
-                throw new RuntimeException("mismatching email confirmation code");
-            }
-
-        }
-        
-        member.setLastEmailConfirmationCode(null);
-        
-        return email;
-    
     }
     
 }

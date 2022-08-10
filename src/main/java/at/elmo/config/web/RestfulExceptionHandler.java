@@ -1,15 +1,15 @@
 package at.elmo.config.web;
 
-import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.context.request.WebRequest;
 
 import at.elmo.util.exceptions.ElmoException;
 import at.elmo.util.exceptions.ElmoForbiddenException;
@@ -28,14 +28,15 @@ public class RestfulExceptionHandler {
     private Logger logger;
 
     @ExceptionHandler(ElmoValidationException.class)
-    public ResponseEntity<Map<String, String>> handleValidationException(
-            final HttpServletRequest request,
+    public ResponseEntity<Object> handleValidationException(
+            final WebRequest request,
             final Exception exception) {
         
         logger.debug("Validation failed", exception);
         
         return ResponseEntity
                 .badRequest()
+                .contentType(MediaType.APPLICATION_JSON)
                 .body(((ElmoValidationException) exception).getViolations());
         
     }

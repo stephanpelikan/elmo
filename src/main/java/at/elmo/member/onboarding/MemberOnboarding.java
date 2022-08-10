@@ -34,6 +34,7 @@ public class MemberOnboarding {
         application.setId(UUID.randomUUID().toString());
         application.setMember(member);
         application.setStatus(MemberApplication.Status.IN_PROGRESS);
+        application.setEmail(member.getEmail());
         
         processService.startWorkflow(application);
 

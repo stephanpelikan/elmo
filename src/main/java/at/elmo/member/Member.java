@@ -98,9 +98,6 @@ public class Member {
     @Column(name = "FIRST_NAME")
     private String firstName;
 
-    @Column(name = "LAST_EMAIL_CODE")
-    private String lastEmailConfirmationCode;
-
     @Column(name = "BIRTHDATE", columnDefinition = "DATE")
     private LocalDate birthdate;
 
@@ -122,9 +119,6 @@ public class Member {
 
     @Column(name = "PHONE_NUMBER")
     private String phoneNumber;
-
-    @Column(name = "LAST_PHONE_CODE")
-    private String lastPhoneConfirmationCode;
 
     @Column(name = "NOTIFY_PER_SMS")
     private boolean preferNotificationsPerSms;
@@ -270,22 +264,6 @@ public class Member {
 
     public void setPreferNotificationsPerSms(boolean preferNotificationsPerSms) {
         this.preferNotificationsPerSms = preferNotificationsPerSms;
-    }
-
-    public String getLastEmailConfirmationCode() {
-        return lastEmailConfirmationCode;
-    }
-
-    public void setLastEmailConfirmationCode(String lastEmailConfirmationCode) {
-        this.lastEmailConfirmationCode = lastEmailConfirmationCode;
-    }
-
-    public String getLastPhoneConfirmationCode() {
-        return lastPhoneConfirmationCode;
-    }
-
-    public void setLastPhoneConfirmationCode(String lastPhoneConfirmationCode) {
-        this.lastPhoneConfirmationCode = lastPhoneConfirmationCode;
     }
 
     public String getComment() {

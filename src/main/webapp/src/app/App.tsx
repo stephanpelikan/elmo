@@ -21,6 +21,7 @@ export const theme: ThemeType = {
       'accent-1': '#e2e2e2',
       'accent-2': '#333333',
       'accent-3': '#348eda',
+      'placeholder': '#bbbbbb'
     },
     font: {
       family: 'Roboto',
@@ -42,6 +43,12 @@ export const theme: ThemeType = {
     }
   },
   textInput: {
+    extend: css`
+      ::placeholder {
+        font-weight: normal;
+        color: ${props => props.theme.global.colors.placeholder};
+      }
+    `,
     placeholder: {
       extend: css`
           font-weight: normal;
@@ -91,7 +98,7 @@ i18n.addResources('de', 'app', {
       "title.short": 'Elmo GF',
       "error": "Fehler",
       "unexpected": "Ein unerwartetes Ereignis ist aufgetreten. Bitte versuche es später nochmals.",
-      "validation": "Du hast Daten angegeben, die wir nicht verarbeiten konnte. Bitte korrigiere sie und versuche es nochmal.",
+      "validation": "Du hast Daten angegeben, die wir nicht verarbeiten konnten. Bitte korrigiere sie und versuche es nochmal.",
       "forbidden": "Diese Aktion ist verboten. Wenn du denkst, dass es sich um einen Fehler handelt, dann versuche es nochmals und melde dich davor ab und wieder an. Besteht das Problem weiterhin, dann kontaktiere bitte den Vereinsvorstand.",
       "not-found": "Die angeforderte Seite ist unbekannt!",
       "not-found hint": "Eventuell hast du einen Link aus einer Mail verwendet, der bereits veraltet ist.",

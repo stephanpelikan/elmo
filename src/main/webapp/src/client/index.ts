@@ -39,7 +39,7 @@ const buildFetchApi = (dispatch: Dispatch): FetchAPI => {
                 message: 'forbidden'
               }});
           }
-          resolve(response);
+          resolve(r);
         }).catch(error => {
           dispatch({ type: 'toast', toast: {
               namespace: 'app',
