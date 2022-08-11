@@ -28,6 +28,7 @@ import at.elmo.util.email.EmailService;
 import at.elmo.util.exceptions.ElmoException;
 import at.elmo.util.exceptions.ElmoForbiddenException;
 import at.elmo.util.exceptions.ElmoValidationException;
+import at.elmo.util.sms.SmsService;
 
 @Service
 @Transactional
@@ -52,6 +53,9 @@ public class MemberService {
 
     @Autowired
     private EmailService emailService;
+    
+    @Autowired
+    private SmsService smsService;
     
     public Optional<Member> getMemberByOAuth2User(
             final String oauth2Id) {
@@ -287,6 +291,28 @@ public class MemberService {
         emailService.sendEmail(
                 "member/email-confirmation",
                 emailAddress,
+                application);
+        
+    }
+    
+    public void requestPhoneCode(
+            final String applicationId,
+            final Member member,
+            final String phoneNumber) throws Exception {
+
+        final var application = memberApplications
+                .getById(applicationId);
+
+        final var code = String.format("%04d", random.nextInt(10000));
+        application.setPhoneNumber(phoneNumber);
+        application.setLastPhoneConfirmationCode(code);
+
+        smsService.sendSms(
+                "member/phone-number-confirmation",
+                properties.getTransportServiceCarName(),
+                properties.getTransportServicePhoneNumber(),
+                member.getId(),
+                phoneNumber,
                 application);
         
     }

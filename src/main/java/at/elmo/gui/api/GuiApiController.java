@@ -18,6 +18,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import at.elmo.config.ElmoProperties;
+import at.elmo.gui.api.v1.AppInformation;
 import at.elmo.gui.api.v1.GuiApi;
 import at.elmo.gui.api.v1.MemberApplicationForm;
 import at.elmo.gui.api.v1.Oauth2Client;
@@ -44,6 +46,9 @@ public class GuiApiController implements GuiApi {
     private UserContext userContext;
 
     @Autowired
+    private ElmoProperties properties;
+
+    @Autowired
     private MemberService memberService;
 
     @Autowired
@@ -68,6 +73,19 @@ public class GuiApiController implements GuiApi {
             return ResponseEntity.notFound().build();
 
         }
+
+    }
+
+    @Override
+    public ResponseEntity<AppInformation> appInformation() {
+
+        final var result = new AppInformation();
+        result.setVersion(properties.getVersion());
+        result.setHomepageUrl(properties.getHomepage());
+        result.setTitleShort(properties.getTitleShort());
+        result.setTitleLong(properties.getTitleLong());
+
+        return ResponseEntity.ok(result);
 
     }
 
@@ -158,7 +176,7 @@ public class GuiApiController implements GuiApi {
         }
         if (!StringUtils.hasText(memberApplicationForm.getPhoneNumber())) {
             violations.put("phoneNumber", "missing");
-        } else if (!memberApplicationForm.getPhoneNumber().startsWith("+")) {
+        } else if (!smsService.isValidPhoneNumberFormat(memberApplicationForm.getPhoneNumber())) {
             violations.put("phoneNumber", "format");
         }
         if (!StringUtils.hasText(memberApplicationForm.getPhoneConfirmationCode())) {
@@ -246,7 +264,7 @@ public class GuiApiController implements GuiApi {
         
         try {
             
-            // memberService.requestEmailCode(applicationId, user, phoneNumber);
+            memberService.requestPhoneCode(applicationId, user, phoneNumber);
             
         } catch (Exception e) {
             

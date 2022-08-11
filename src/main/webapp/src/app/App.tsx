@@ -1,7 +1,7 @@
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useEffect } from 'react';
 import { Box, Grommet, Heading, Text, ThemeType } from 'grommet';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import { AppContextProvider } from '../AppContext';
+import { useAppContext } from '../AppContext';
 import { AppHeader } from './menu/AppHeader';
 import { ResponsiveMenu } from './menu/ResponsiveMenu';
 import { Main } from './Main';
@@ -82,9 +82,11 @@ export const theme: ThemeType = {
   }
 };
 
-i18n.addResources('en', 'app', {
-      "title.long": 'ElectroMobile Gänserndorf',
-      "title.short": 'Elmo GF',
+const appNs = 'app';
+
+i18n.addResources('en', appNs, {
+      "title.long": 'ElectroMobile',
+      "title.short": 'Elmo',
       "error": "Error",
       "unexpected": "An unexpected event occured. Please try again later.",
       "validation": "You have enter data we could not process. Please fix them and try again.",
@@ -93,9 +95,9 @@ i18n.addResources('en', 'app', {
       "not-found hint": "Maybe use used a link in a mail which is already expired.",
       "url-administration": "/administration",
     });
-i18n.addResources('de', 'app', {
-      "title.long": 'ElektroMobil Gänserndorf',
-      "title.short": 'Elmo GF',
+i18n.addResources('de', appNs, {
+      "title.long": 'ElektroMobil',
+      "title.short": 'Elmo',
       "error": "Fehler",
       "unexpected": "Ein unerwartetes Ereignis ist aufgetreten. Bitte versuche es später nochmals.",
       "validation": "Du hast Daten angegeben, die wir nicht verarbeiten konnten. Bitte korrigiere sie und versuche es nochmal.",
@@ -108,15 +110,29 @@ i18n.addResources('de', 'app', {
 const Administration = lazy(() => import('../administration/Main'));
 
 type AppProps = {};
+
 const App: React.FC<AppProps> = (props: AppProps): JSX.Element => {
 
-  const { t } = useTranslation('app');
+  const { state, fetchAppInformation } = useAppContext();
+  
+  useEffect(() => {
+    fetchAppInformation();
+  }, [ fetchAppInformation ]);
+  
+  const { t, i18n } = useTranslation('app');
+  if (state?.appInformation !== null) {
+    ['en', 'de']
+        .forEach(lng => {
+          i18n.addResource(lng, appNs, 'title.long', state.appInformation.titleLong);
+          i18n.addResource(lng, appNs, 'title.short', state.appInformation.titleShort);
+          i18n.addResource(lng, appNs, 'homepage', state.appInformation.homepageUrl);
+        });
+  }
 
   return (
     <Grommet
         theme={theme}
         full>
-      <AppContextProvider>
         <Router>
           <Box fill>
             <AppHeader />
@@ -156,7 +172,6 @@ const App: React.FC<AppProps> = (props: AppProps): JSX.Element => {
             </Box>
           </Box>
         </Router>
-      </AppContextProvider>
     </Grommet>
   );
 };

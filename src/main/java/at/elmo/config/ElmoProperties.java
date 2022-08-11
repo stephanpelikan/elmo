@@ -1,7 +1,5 @@
 package at.elmo.config;
 
-import java.util.List;
-
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.lang.NonNull;
@@ -24,13 +22,19 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties {
     }
 
     @NonNull
-    private String title;
+    private String version;
 
     @NonNull
-    private String gatewayUrl;
+    private String titleShort;
+
+    @NonNull
+    private String titleLong;
 
     @NonNull
     private String homepage;
+
+    @NonNull
+    private String gatewayUrl;
 
     @NonNull
     private String adminIdentificationEmailAddress;
@@ -43,11 +47,10 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties {
     private WebsocketProperties websockets;
 
     @NonNull
-    private String emailSender;
+    private String transportServiceCarName;
 
-    private String redirectAllEmailsToAddress;
-
-    private List<String> dontRedirectEmailsToAddresses = List.of();
+    @NonNull
+    private String transportServicePhoneNumber;
 
     public WebsocketProperties getWebsockets() {
         return websockets;
@@ -65,6 +68,22 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties {
         this.cors = cors;
     }
 
+    public String getTitleShort() {
+        return titleShort;
+    }
+
+    public void setTitleShort(String titleShort) {
+        this.titleShort = titleShort;
+    }
+
+    public String getTitleLong() {
+        return titleLong;
+    }
+
+    public void setTitleLong(String titleLong) {
+        this.titleLong = titleLong;
+    }
+
     public String getGatewayUrl() {
         return gatewayUrl;
     }
@@ -76,38 +95,6 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties {
     @Override
     public String getWorkflowModuleId() {
         return WORKFLOW_MODULE_ID;
-    }
-
-    public String getRedirectAllEmailsToAddress() {
-        return redirectAllEmailsToAddress;
-    }
-
-    public void setRedirectAllEmailsToAddress(String redirectAllEmailsToAddress) {
-        this.redirectAllEmailsToAddress = redirectAllEmailsToAddress;
-    }
-
-    public List<String> getDontRedirectEmailsToAddresses() {
-        return dontRedirectEmailsToAddresses;
-    }
-
-    public void setDontRedirectEmailsToAddresses(List<String> dontRedirectEmailsToAddresses) {
-        this.dontRedirectEmailsToAddresses = dontRedirectEmailsToAddresses;
-    }
-
-    public String getEmailSender() {
-        return emailSender;
-    }
-
-    public void setEmailSender(String emailSender) {
-        this.emailSender = emailSender;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
     }
 
     public String getHomepage() {
@@ -132,6 +119,30 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties {
 
     public void setAdminIdentificationEmailAddress(String adminIdentificationEmailAddress) {
         this.adminIdentificationEmailAddress = adminIdentificationEmailAddress;
+    }
+
+    public String getTransportServiceCarName() {
+        return transportServiceCarName;
+    }
+
+    public void setTransportServiceCarName(String transportServiceCarName) {
+        this.transportServiceCarName = transportServiceCarName;
+    }
+
+    public String getTransportServicePhoneNumber() {
+        return transportServicePhoneNumber;
+    }
+
+    public void setTransportServicePhoneNumber(String transportServicePhoneNumber) {
+        this.transportServicePhoneNumber = transportServicePhoneNumber;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
     }
 
 }

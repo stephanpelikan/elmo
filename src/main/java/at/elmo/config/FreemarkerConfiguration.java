@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.ui.freemarker.FreeMarkerConfigurationFactoryBean;
 
+import at.elmo.util.email.EmailProperties;
 import freemarker.cache.TemplateLookupStrategy;
 import freemarker.template.TemplateException;
 
@@ -17,15 +18,21 @@ import freemarker.template.TemplateException;
 public class FreemarkerConfiguration {
 
     public static final String EMAIL_TEMPLATES = "email";
+
+    public static final String SMS_TEMPLATES = "sms";
+
     @Autowired
     private ElmoProperties properties;
     
+    @Autowired
+    private EmailProperties emailProperties;
+
     @Value("${spring.freemarker.template-loader-path}")
     private String templateLoaderPath;
     
     @Bean
     @Qualifier(EMAIL_TEMPLATES)
-    public FreeMarkerConfigurationFactoryBean freemarkerConfig(
+    public FreeMarkerConfigurationFactoryBean freemarkerEmailConfig(
             final ResourceLoader resourceLoader) throws Exception {
 
         final var result = new FreeMarkerConfigurationFactoryBean() {
@@ -46,24 +53,24 @@ public class FreemarkerConfiguration {
                 config.setLocalizedLookup(true);
                 config.setRecognizeStandardFileExtensions(true);
 
-                final var elmoInformation = new ElmoInformation();
-                elmoInformation.setTitle(properties.getTitle());
+                final var elmoInformation = new ElmoEmailInformation();
+                elmoInformation.setTitle(properties.getTitleLong());
                 elmoInformation.setGatewayUrl(properties.getGatewayUrl());
                 elmoInformation.setHomepage(properties.getHomepage());
-                elmoInformation.setEmailSender(properties.getEmailSender());
+                elmoInformation.setEmailSender(emailProperties.getSender());
                 config.setSharedVariable("elmo", elmoInformation);
 
             }
 
         };
         
-        result.setTemplateLoaderPath(templateLoaderPath);
+        result.setTemplateLoaderPath(templateLoaderPath + "/email");
         
         return result;
         
     }
 
-    public static class ElmoInformation {
+    public static class ElmoEmailInformation {
 
         private String title;
 
@@ -103,6 +110,80 @@ public class FreemarkerConfiguration {
 
         public void setEmailSender(String emailSender) {
             this.emailSender = emailSender;
+        }
+
+    }
+
+    
+    @Bean
+    @Qualifier(SMS_TEMPLATES)
+    public FreeMarkerConfigurationFactoryBean freemarkerSmsConfig(
+            final ResourceLoader resourceLoader) throws Exception {
+
+        final var result = new FreeMarkerConfigurationFactoryBean() {
+
+            @Override
+            protected freemarker.template.Configuration newConfiguration() throws IOException, TemplateException {
+                
+                return new freemarker.template.Configuration(
+                        freemarker.template.Configuration.VERSION_2_3_31);
+                
+            }
+            
+            @Override
+            protected void postProcessConfiguration(
+                    final freemarker.template.Configuration config) throws IOException, TemplateException {
+
+                config.setTemplateLookupStrategy(TemplateLookupStrategy.DEFAULT_2_3_0);
+                config.setLocalizedLookup(true);
+                config.setRecognizeStandardFileExtensions(true);
+
+                final var elmoInformation = new ElmoSmsInformation();
+                elmoInformation.setTitle(properties.getTitleShort());
+                elmoInformation.setGatewayUrl(properties.getGatewayUrl());
+                elmoInformation.setHomepage(properties.getHomepage());
+                config.setSharedVariable("elmo", elmoInformation);
+
+            }
+
+        };
+        
+        result.setTemplateLoaderPath(templateLoaderPath + "/sms");
+        
+        return result;
+        
+    }
+
+    public static class ElmoSmsInformation {
+
+        private String title;
+
+        private String gatewayUrl;
+
+        private String homepage;
+
+        public String getTitle() {
+            return title;
+        }
+
+        public void setTitle(String title) {
+            this.title = title;
+        }
+
+        public String getGatewayUrl() {
+            return gatewayUrl;
+        }
+
+        public void setGatewayUrl(String gatewayUrl) {
+            this.gatewayUrl = gatewayUrl;
+        }
+
+        public String getHomepage() {
+            return homepage;
+        }
+
+        public void setHomepage(String homepage) {
+            this.homepage = homepage;
         }
 
     }

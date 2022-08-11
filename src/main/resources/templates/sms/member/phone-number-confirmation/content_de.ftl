@@ -1,0 +1,1 @@
+${elmo.title}: Bitte trage den Code ${memberApplication.lastPhoneConfirmationCode} in das Formular ein, in dem du deine Telefonnummer angegeben hast. 

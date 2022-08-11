@@ -10,7 +10,7 @@ import javax.persistence.Table;
 import at.elmo.member.Member;
 
 @Entity
-@Table(name = "ELMO_OAUTH_IDS")
+@Table(name = "ELMO_OAUTH_ID")
 public class OAuth2Identifier {
 
     @Id

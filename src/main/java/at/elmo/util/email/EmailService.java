@@ -1,8 +1,9 @@
 package at.elmo.util.email;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
@@ -26,10 +27,17 @@ public class EmailService {
     private Logger logger;
 
     @Autowired
-    private ElmoProperties properties;
+    private ElmoProperties elmoProperties;
+
+    @Autowired
+    private EmailProperties properties;
     
     @Autowired
     private JavaMailSender mailSender;
+
+    @Autowired
+    @Qualifier(FreemarkerConfiguration.EMAIL_TEMPLATES)
+    private Configuration templating;
 
     public boolean isValidEmailAddressFormat(
             final String email) {
@@ -40,24 +48,20 @@ public class EmailService {
         return EMAIL_PATTERN.matcher(email).matches();
 
     }
-    
-    @Autowired
-    @Qualifier(FreemarkerConfiguration.EMAIL_TEMPLATES)
-    private Configuration templating;
 
     public void sendEmail(
             final String templatePath,
             final String toAddress,
-            final Object context) throws Exception {
+            final Object ...context) throws Exception {
         
-        final var body = processTemplate("email/" + templatePath + "/body.ftlh", context);
-        final var subject = processTemplate("email/" + templatePath + "/subject.ftl", context);
+        final var body = processTemplate(templatePath + "/body.ftlh", context);
+        final var subject = processTemplate(templatePath + "/subject.ftl", context);
         final var targetToAddress = determineToAddress(toAddress);
         
         final var mimeMessage = mailSender.createMimeMessage();
         final var helper = new MimeMessageHelper(mimeMessage, StandardCharsets.UTF_8.name());
         
-        helper.setFrom(properties.getEmailSender());
+        helper.setFrom(properties.getSender());
         helper.setTo(targetToAddress);
         helper.setSubject(subject);
         helper.setText(body, true);
@@ -73,29 +77,37 @@ public class EmailService {
 
         return
                 // don't redirect emails (at production)?
-                properties.getRedirectAllEmailsToAddress() == null
+                properties.getRedirectAllTo() == null
                 // then use given to-address
                 ? toAddress
                 // redirect emails (at development)?
-                : properties.getDontRedirectEmailsToAddresses().contains(toAddress)
+                : properties.getDontRedirect().contains(toAddress)
                         // and given to-address is white-listed, then use it 
                         ? toAddress
                         // otherwise redirect email
-                        : properties.getRedirectAllEmailsToAddress();
+                        : properties.getRedirectAllTo();
 
     }
     
     private String processTemplate(
             final String template,
-            final Object context) throws Exception {
+            final Object ...context) throws Exception {
         
-        // build context with e.g. 'member' -> Member
-        final var templateContext = Map.of(
-                context.getClass().getSimpleName().substring(0, 1).toLowerCase()
-                        + context.getClass().getSimpleName().substring(1),
-                context);
+        final var templateContext = new HashMap<String, Object>();
+        
+        if (context != null) {
+            
+            // build context with e.g. 'member' -> Member
+            Arrays
+                    .stream(context)
+                    .forEach(c -> templateContext.put(
+                            c.getClass().getSimpleName().substring(0, 1).toLowerCase()
+                                    + c.getClass().getSimpleName().substring(1),
+                            c));
+            
+        }
 
-        final var locale = Locale.forLanguageTag(properties.getDefaultLocale());
+        final var locale = Locale.forLanguageTag(elmoProperties.getDefaultLocale());
 
         return FreeMarkerTemplateUtils
                 .processTemplateIntoString(

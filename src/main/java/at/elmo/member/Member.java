@@ -22,7 +22,7 @@ import at.elmo.member.login.OAuth2Identifier;
 import at.elmo.member.login.RoleMembership;
 
 @Entity
-@Table(name = "ELMO_MEMBERS")
+@Table(name = "ELMO_MEMBER")
 public class Member {
 
     public static enum Sex {

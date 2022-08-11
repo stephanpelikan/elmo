@@ -25,7 +25,7 @@
 	<changeSet id="initial-setup-of-members"
 		author="stephanpelikan">
 		<comment>Create table for Member</comment>
-		<createTable tableName="ELMO_OAUTH_IDS">
+		<createTable tableName="ELMO_OAUTH_ID">
 			<column name="ID" type="varchar(255)">
 				<constraints primaryKey="true" />
 			</column>
@@ -36,7 +36,7 @@
 				<constraints nullable="false" />
 			</column>
 		</createTable>
-		<createTable tableName="ELMO_MEMBERS">
+		<createTable tableName="ELMO_MEMBER">
 			<column name="ID" type="varchar(40)">
 				<constraints primaryKey="true" />
 			</column>
@@ -61,7 +61,7 @@
 			<column name="NOTIFY_PER_SMS" type="boolean" />
 			<column name="COMMENT" type="clob" />
 		</createTable>
-		<createTable tableName="ELMO_MEMBER_APPLICATIONS">
+		<createTable tableName="ELMO_MEMBER_APPLICATION">
 			<column name="ID" type="varchar(40)">
 				<constraints primaryKey="true" />
 			</column>
@@ -79,7 +79,7 @@
       <column name="EMAIL" type="varchar(2048)" />
       <column name="LAST_EMAIL_CODE" type="varchar(4)" />
  		</createTable>
-    <createTable tableName="ELMO_MEMBER_ROLES">
+    <createTable tableName="ELMO_MEMBER_ROLE">
       <column name="MEMBER" type="varchar(40)">
         <constraints primaryKey="true" />
       </column>
@@ -88,4 +88,20 @@
       </column>
     </createTable>
 	</changeSet>
+  <changeSet id="introduce-sms-service"
+    author="stephanpelikan">
+    <comment>Create table for SMS to be sent</comment>
+    <createTable tableName="ELMO_SMS">
+      <column name="ID" type="varchar(40)">
+        <constraints primaryKey="true" />
+      </column>
+      <column name="STATUS" type="varchar(30)">
+        <constraints nullable="false" />
+      </column>
+      <column name="CREATED_AT" type="timestamp">
+        <constraints nullable="false" />
+      </column>
+      <column name="UPDATED_AT" type="timestamp" />
+    </createTable>
+  </changeSet>
 </databaseChangeLog>

@@ -1,7 +1,8 @@
 elmo:
-  title: ElektroMobil Gänserndorf
-  gateway-url: http://localhost:3000
+  title-short: Elmo GF
+  title-long: ElektroMobil Gänserndorf
   homepage: https://www.elektromobil-gf.at
+  gateway-url: http://localhost:3000
   default-locale: de
   cors:
     allowed-origins: "*"

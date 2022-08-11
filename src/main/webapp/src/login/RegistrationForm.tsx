@@ -1,5 +1,5 @@
 import { Box, Button, CheckBox, DateInput, Form, FormField, Heading, ResponsiveContext, Select, TextInput } from "grommet";
-import { useContext, useEffect, useLayoutEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useAppContext } from '../AppContext';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
@@ -118,14 +118,14 @@ const RegistrationForm = () => {
   const [ violations, setViolations ] = useState({});
 
   useEffect(() => {
+      setAppHeaderTitle('registration-form');
+   }, [ setAppHeaderTitle ]);
+  
+  useEffect(() => {
       if (formValue === undefined) { 
         loadData(guiApi, setFormValue, setSubmitting);
       };
     }, [ formValue, guiApi, setFormValue ]);
-
-  useLayoutEffect(() => {
-    setAppHeaderTitle('registration-form');
-  }, [ setAppHeaderTitle ]);
 
   const submitForm = async () => {
     try {

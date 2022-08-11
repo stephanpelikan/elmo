@@ -13,7 +13,7 @@ const MessageToast = ({ dispatch, msg }: MessageToastProps) => {
   
   // see https://github.com/i18next/react-i18next/issues/1064
   useLayoutEffect(() => {
-    //Manually emitting a languageChanged-Event would work around this problem
+    // manually emitting a languageChanged-Event would work around this problem
     i18n.emit("languageChanged");
   }, [ msg, i18n ]);
   

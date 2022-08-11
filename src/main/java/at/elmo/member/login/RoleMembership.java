@@ -14,7 +14,7 @@ import at.elmo.member.Member;
 import at.elmo.member.Member.Role;
 
 @Entity
-@Table(name = "ELMO_MEMBER_ROLES")
+@Table(name = "ELMO_MEMBER_ROLE")
 @IdClass(RoleMembershipId.class)
 public class RoleMembership {
 

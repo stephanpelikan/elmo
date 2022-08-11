@@ -1,7 +1,7 @@
 import React from 'react';
 import User from './User';
 import { useAppContext } from '../../AppContext';
-import { Grid, Text } from 'grommet';
+import { Anchor, Grid, Text } from 'grommet';
 import { Logout, UserAdmin } from 'grommet-icons';
 import { MenuItem } from './MenuItem';
 
@@ -51,6 +51,9 @@ const Menu = () => {
           </MenuItem>
         </>
       }
+      <Text margin={ { top: 'medium' } }>{tApp('title.long')}</Text>
+      <Anchor target='_blank' href={ state.appInformation?.homepageUrl }>{ state.appInformation?.homepageUrl }</Anchor>
+      <Text margin={ { top: 'medium' } }>Version { state.appInformation.version }</Text>
     </Grid>;
 }
 

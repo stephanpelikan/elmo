@@ -5,6 +5,7 @@ import { FormClose } from 'grommet-icons';
 import { useAppContext } from '../../AppContext';
 
 const ResponsiveMenu = () => {
+  
   const { state, showMenu } = useAppContext();
 
   const hideMenu = () => showMenu(false);
@@ -16,6 +17,7 @@ const ResponsiveMenu = () => {
           (!state.showMenu || size !== 'small') ? (
             <Collapsible direction="horizontal" open={state.showMenu}>
               <Box
+                style={ { position: 'absolute', right: '0' } }
                 flex
                 basis='medium'
                 width='medium'

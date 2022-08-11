@@ -114,7 +114,7 @@ const Login = () => {
         <TextHeading>{t('wanna be a part of?')}</TextHeading>
         <Paragraph>{t('login to become a member')}</Paragraph>
         <Paragraph>{t('visit the homepage')}</Paragraph>
-        <Anchor target='_blank' href='https://www.elektromobil-gf.at'>https://www.elektromobil-gf.at</Anchor>
+        <Anchor target='_blank' href={ state.appInformation?.homepageUrl }>{ state.appInformation?.homepageUrl }</Anchor>
       </Box>
     </Box>
     </Grid>);

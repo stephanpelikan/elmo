@@ -18,7 +18,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import at.elmo.member.Member;
 
 @Entity
-@Table(name = "ELMO_MEMBER_APPLICATIONS")
+@Table(name = "ELMO_MEMBER_APPLICATION")
 public class MemberApplication {
 
     public static enum Status {
