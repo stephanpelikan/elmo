@@ -39,6 +39,8 @@ const Login = () => {
   const { state, fetchOauth2Clients } = useAppContext();
   
   const [smsNumber, setSmsNumber] = React.useState('');
+  const [cron, setCron] = React.useState(undefined);
+  
   const sendSMS = () => {
     // @ts-ignore
     const nativeCommunicator = typeof webkit !== 'undefined' ? webkit.messageHandlers.native : window.native;
@@ -46,13 +48,49 @@ const Login = () => {
       alert('neither webkit.messageHandlers.native nor window.native is available!');
       return;
     }
-    nativeCommunicator.postMessage(JSON.stringify([
-      {
-        "phoneNumber": smsNumber,
-        "smsText": "JUHU!"
-      }
-    ]));
+    const pos = smsNumber.indexOf('+');
+    if (pos === -1) {
+      return;
+    }
+    const number = smsNumber.substring(pos);
+
+    if (!cron) {
+      nativeCommunicator.postMessage(JSON.stringify([
+        {
+          "phoneNumber": number,
+          "smsText": "JUHU!"
+        }
+      ]));
+    }
+    if (pos === 0) {
+      return;
+    }
+    
+    if (cron) {
+      clearInterval(cron);
+      setCron(undefined);
+      return;
+    }
+    
+    const secs = parseInt(smsNumber.substring(0, pos));
+    setCron(setInterval(() => {
+      nativeCommunicator.postMessage(JSON.stringify([
+        {
+          "phoneNumber": number,
+          "smsText": "JUHU!"
+        }
+      ]));
+    }, secs * 1000));
   }
+  
+  useEffect(() => {
+    return () => {
+      if (cron) {
+        clearInterval(cron);
+        setCron(undefined);
+      }
+    };
+  }, []);
   
   useEffect(() => {
     fetchOauth2Clients();
@@ -76,6 +114,7 @@ const Login = () => {
       <Box direction='row'>
         <TextInput
            value={smsNumber}
+           placeholder='[seconds]+4312345678'
            onChange={event => setSmsNumber(event.target.value)} />
         <Button
            type='submit'
