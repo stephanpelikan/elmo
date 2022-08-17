@@ -9,6 +9,7 @@ import { theme as appTheme } from '../../app/App';
 import i18n from '../../i18n';
 import { css } from "styled-components";
 import { CalendarHeader } from '../../components/CalendarHeader';
+import { ViolationsAwareFormField } from "../../components/ViolationsAwareFormField";
 
 i18n.addResources('en', 'administration/onboarding/review', {
       "member-id": "Member ID:",
@@ -98,19 +99,19 @@ const setFormValueByApplication = (
   
   const formValue: FormState = {
     taskId: application.taskId,
-    memberId: application.member.memberId,
-    firstName: application.member.firstName,
-    lastName: application.member.lastName,
-    birthdate: application.member.birthdate,
-    sex: application.member.sex,
-    street: application.member.street,
-    streetNumber: application.member.streetNumber,
-    city: application.member.city,
-    zip: application.member.zip,
-    email: application.member.email,
-    phoneNumber: application.member.phoneNumber,
-    preferNotificationsPerSms: application.member.preferNotificationsPerSms,
-    comment: application.member.comment,
+    memberId: application.memberId,
+    firstName: application.firstName,
+    lastName: application.lastName,
+    birthdate: application.birthdate,
+    sex: application.sex,
+    street: application.street,
+    streetNumber: application.streetNumber,
+    city: application.city,
+    zip: application.zip,
+    email: application.email,
+    phoneNumber: application.phoneNumber,
+    preferNotificationsPerSms: application.preferNotificationsPerSms,
+    comment: application.comment,
   };
   setFormValue(formValue);
   
@@ -136,30 +137,34 @@ const updateData = async (
     applicationId: string,
     action: MemberApplicationUpdate,
   ): Promise<boolean> => {
-  const application = await administrationApi.updateMemberOnboardingApplication({
-    applicationId,
-    updateMemberOnboarding: {
-      action,
-      taskId: formValue.taskId,
-      member: {
-        birthdate: formValue.birthdate,
-        city: formValue.city,
-        email: formValue.email,
-        firstName: formValue.firstName,
-        lastName: formValue.lastName,
-        memberId: formValue.memberId,
-        phoneNumber: formValue.phoneNumber,
-        preferNotificationsPerSms: formValue.preferNotificationsPerSms,
-        sex: formValue.sex,
-        street: formValue.street,
-        streetNumber: formValue.streetNumber,
-        zip: formValue.zip,
-        comment: formValue.comment,
+  try {
+    const application = await administrationApi.updateMemberOnboardingApplication({
+      applicationId,
+      updateMemberOnboarding: {
+        action,
+        taskId: formValue.taskId,
+        memberApplication: {
+          birthdate: formValue.birthdate,
+          city: formValue.city,
+          email: formValue.email,
+          firstName: formValue.firstName,
+          lastName: formValue.lastName,
+          memberId: formValue.memberId,
+          phoneNumber: formValue.phoneNumber,
+          preferNotificationsPerSms: formValue.preferNotificationsPerSms,
+          sex: formValue.sex,
+          street: formValue.street,
+          streetNumber: formValue.streetNumber,
+          zip: formValue.zip,
+          comment: formValue.comment,
+        }
       }
-    }
-  });  
-  setFormValueByApplication(application, setFormValue);
-  return new Promise((resolve, reject) => resolve(true));  
+    });  
+    setFormValueByApplication(application, setFormValue);
+    return new Promise((resolve, reject) => resolve(true));
+  } catch (error) {
+    return new Promise((resolve, reject) => reject(error.response.json()));
+  }
 };
 
 const theme: ThemeType = deepMerge(appTheme, {
@@ -180,6 +185,7 @@ const Review = () => {
   const params = useParams();
   
   const [ formValue, setFormValue ] = useState<FormState>(undefined);
+  const [ violations, setViolations ] = useState({});
   
   const loading = formValue === undefined;
   useEffect(() => {
@@ -223,7 +229,8 @@ const Review = () => {
         setFormValue,
         params.applicationId,
         MemberApplicationUpdate.Reject)
-      .then(() => navigate('../'));
+      .then(() => navigate('../'))
+      .catch(error => error.then(violations => setViolations(violations)));
   };
 
   const inquiry = () => {
@@ -233,7 +240,19 @@ const Review = () => {
         setFormValue,
         params.applicationId,
         MemberApplicationUpdate.Inquiry)
-      .then(() => navigate('../'));
+      .then(() => navigate('../'))
+      .catch(error => error.then(violations => setViolations(violations)));
+  };
+
+  const accept = () => {
+    updateData(
+        administrationApi,
+        formValue,
+        setFormValue,
+        params.applicationId,
+        MemberApplicationUpdate.Accepted)
+      .then(() => navigate('../'))
+      .catch(error => error.then(violations => setViolations(violations)));
   };
   
   const save = () => {
@@ -248,7 +267,8 @@ const Review = () => {
             namespace: 'administration/onboarding/review',
             title: t('save_title'),
             message: t('save_success'),
-          }));
+          }))
+      .catch(error => error.then(violations => setViolations(violations)));
   }
   
   const size = useContext(ResponsiveContext);
@@ -275,31 +295,37 @@ const Review = () => {
               setFormValue(nextValue);
             } }
           onReset={ () => setFormValue(undefined) }
-          onSubmit={ value => save() }>
+          onSubmit={ value => accept() }>
         {/* first name */}
-        <FormField
+        <ViolationsAwareFormField
             name="firstName"
-            label={ t('first-name') }
+            label='first-name'
+            t={ t }
+            violations={ violations }
             disabled={ loading } />
         {/* last name */}
-        <FormField
+        <ViolationsAwareFormField
             name="lastName"
-            label={ t('last-name') }
+            label='last-name'
+            t={ t }
+            violations={ violations }
             disabled={ loading } />
         {/* sex */}
-        <FormField
+        <ViolationsAwareFormField
             name="sex"
-            label={ t('sex') }
+            label='sex'
+            t={ t }
+            violations={ violations }
             disabled={ loading }
             htmlFor="sexSelect">
           <Select
               id="sexSelect"
               options={[ Sex.Female, Sex.Male, Sex.Other ]}
               value={ formValue?.sex }
-              labelKey={t}
+              labelKey={ t }
               onChange={({ value }) => setSex(value)}
             />
-        </FormField>
+        </ViolationsAwareFormField>
         {/* birthdate */}
         <FormField
             name="birthdate"
@@ -317,34 +343,47 @@ const Review = () => {
                 } } />
         </FormField>
         {/* street */}
-        <FormField
+        <ViolationsAwareFormField
             name="street"
-            label={ t('street') }
+            label='street'
+            t={ t }
+            violations={ violations }
             disabled={ loading } />
         {/* street number */}
-        <FormField
+        <ViolationsAwareFormField
             name="streetNumber"
-            label={ t('street-number') }
+            label='street-number'
+            t={ t }
+            violations={ violations }
             disabled={ loading } />
         {/* zip */}
-        <FormField
+        <ViolationsAwareFormField
             name="zip"
-            label={ t('zip') }
+            label='zip'
+            t={ t }
+            violations={ violations }
             disabled={ loading } />
         {/* city */}
-        <FormField
+        <ViolationsAwareFormField
             name="city"
-            label={ t('city') }
+            label='city'
+            t={ t }
+            violations={ violations }
             disabled={ loading } />
         {/* phone */}
-        <FormField
+        <ViolationsAwareFormField
             name="phoneNumber"
-            label={ t('phone-number') }
+            label='phone-number'
+            placeholder="+436641234567"
+            t={t}
+            violations={ violations }
             disabled={ loading } />
         {/* email */}
-        <FormField
+        <ViolationsAwareFormField
             name="email"
-            label={ t('email') }
+            label='email'
+            t={ t }
+            violations={ violations }
             disabled={ loading } />
         {/* prefer notifications per sms */}
         <FormField
@@ -356,11 +395,13 @@ const Review = () => {
             />
         </FormField>
         {/* Member ID */}
-        <FormField
+        <ViolationsAwareFormField
             name="memberId"
-            label={ t('member-id') }
-            placeholder={<Text>{ t('member-id_placeholder') }</Text>}
+            label='member-id'
+            t={ t }
+            violations={ violations }
             disabled={ loading }
+            placeholder={<Text>{ t('member-id_placeholder') }</Text>}
             info={ t('member-id_info') } />
         {/* comment */}
         <FormField

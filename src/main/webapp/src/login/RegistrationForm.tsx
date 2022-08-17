@@ -1,4 +1,4 @@
-import { Box, Button, CheckBox, DateInput, Form, FormField, Heading, ResponsiveContext, Select, TextInput } from "grommet";
+import { Anchor, Box, Button, CheckBox, DateInput, Form, FormField, Heading, Paragraph, ResponsiveContext, Select, TextInput } from "grommet";
 import { useContext, useEffect, useState } from "react";
 import { useAppContext } from '../AppContext';
 import { useTranslation } from 'react-i18next';
@@ -44,6 +44,8 @@ i18n.addResources('en', 'registration-form', {
       "email-confirmation-code": "Email confirmation code:",
       "phone-number": "Phone number:",
       "prefer-notifications-per-sms": "Notify by SMS instead email?",
+      "terms-and-conditions": "I agree to service conditions:",
+      "terms-and-conditions-details": "details",
       "submit-form": "Submit",
     });
 i18n.addResources('de', 'registration-form', {
@@ -76,19 +78,27 @@ i18n.addResources('de', 'registration-form', {
       "email_missing": "Bitte trage deine Email-Adresse ein!",
       "email_format": "Format: [deine Adresse]@[deine Domäne]",
       "email-confirmation-code": "Email Bestätigungscode:",
+      "email-confirmation-code-title": "Email Bestätigungscode:",
+      "email-confirmation-code-message": "Der Code wurde an die angegebene Email-Adresse versendet!",
       "email-confirmation-code_missing": "Drücke den Knopf rechts, um einen Code per Email zu bekommen!",
       "email-confirmation-code_mismatch": "Der Code passt nicht! Fordere einen Neuen an.",
+      "email-confirmation-code_format": "Der Code muss 4 Zeichen haben!",
+      "email-confirmation-code_enter": "Trage den zugesendeted Code hier ein!",
       "request-email-confirmation-code": "Anfordern",
       "phone-number": "Telefon:",
       "phone-number_missing": "Bitte trage deine Telefonnummer ein!",
       "phone-number_format": "Falsches Format: +[Land][Vorwahl ohne Null][Nummer]!",
       "phone-confirmation-code": "SMS Bestätigungscode:",
       "phone-confirmation-code-title": "SMS Bestätigungscode:",
-      "phone-confirmation-code-message": "Der Code wurde an die angegebene Email-Adresse versendet!",
+      "phone-confirmation-code-message": "Der Code wurde an die angegebene Telefonnummer versendet!",
       "phone-confirmation-code_missing": "Drücke den Knopf rechts, um einen Code per SMS zu bekommen!",
       "phone-confirmation-code_mismatch": "Der Code passt nicht! Fordere einen Neuen an.",
+      "phone-confirmation-code_format": "Der Code muss 4 Zeichen haben!",
+      "phone-confirmation-code_enter": "Trage den zugesendeted Code hier ein!",
       "request-phone-confirmation-code": "Anfordern",
       "prefer-notifications-per-sms": "Hinweise zu deinen Fahrten per SMS statt Email?",
+      "terms-and-conditions": "Ich stimme den AGBs und Datenschutzbedingungen zu:",
+      "terms-and-conditions-details": "Details",
       "submit-form": "Absenden",
     });
 
@@ -111,10 +121,11 @@ const loadData = async (
 const RegistrationForm = () => {
   const { t } = useTranslation('registration-form');
   
-  const { guiApi, memberApplicationFormSubmitted, toast, setAppHeaderTitle } = useAppContext();
+  const { guiApi, memberApplicationFormSubmitted, toast, setAppHeaderTitle, state } = useAppContext();
   
   const [ formValue, setFormValue ] = useState<MemberApplicationForm>(undefined);
   const [ submitting, setSubmitting ] = useState(false);
+  const [ termsAccepted, setTermsAccepted ] = useState(false);
   const [ violations, setViolations ] = useState({});
 
   useEffect(() => {
@@ -142,7 +153,7 @@ const RegistrationForm = () => {
   const requestSmsCode = async () => {
     try {
       await guiApi
-          .requestPhoneCode({ phoneNo: formValue.phoneNumber, applicationId: formValue.applicationId })
+          .requestPhoneCode({ phoneNo: formValue.phoneNumber })
           .then(() =>
             toast({
               namespace: 'registration-form',
@@ -159,12 +170,12 @@ const RegistrationForm = () => {
   const requestEmailCode = async () => {
     try {
       await guiApi
-          .requestEmailCode({ emailAddress: formValue.email, applicationId: formValue.applicationId })
+          .requestEmailCode({ emailAddress: formValue.email })
           .then(() =>
             toast({
               namespace: 'registration-form',
-              title: t('phone-confirmation-code-title'),
-              message: t('phone-confirmation-code-message'),
+              title: t('email-confirmation-code-title'),
+              message: t('email-confirmation-code-message'),
             }));
       setViolations({ ...violations, email: undefined });
     } catch (error) {
@@ -375,6 +386,25 @@ const RegistrationForm = () => {
               disabled={ submitting }
             />
         </FormField>
+        {/* terms and conditions */}
+        <FormField
+            contentProps={ { border: false } }
+            name="termsAndConditions">
+          <CheckBox
+              name="termsAndConditions"
+              onChange={ event => setTermsAccepted(event.target.checked) }
+              label={
+                <Paragraph margin="none">
+                  { t('terms-and-conditions') }
+                  <Anchor
+                      target='_blank'
+                      href={ state.appInformation?.homepageServiceConditionsUrl }
+                      margin={ { left: 'xsmall' } }
+                      label={ t('terms-and-conditions-details') } />
+                </Paragraph> }
+              disabled={ submitting }
+            />
+        </FormField>
         <Box
             margin={ { vertical: '2rem' } }
             direction="row-responsive"
@@ -383,7 +413,7 @@ const RegistrationForm = () => {
           <Button
               type="submit"
               primary
-              disabled={ submitting }
+              disabled={ submitting || !termsAccepted }
               label={ t('submit-form') } />
         </Box>
       </Form>

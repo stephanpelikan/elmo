@@ -1,11 +1,9 @@
 package at.elmo.member;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -15,18 +13,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import at.elmo.config.ElmoProperties;
-import at.elmo.member.Member.Role;
-import at.elmo.member.Member.Sex;
-import at.elmo.member.Member.Status;
-import at.elmo.member.login.ElmoOAuth2User;
-import at.elmo.member.login.OAuth2Identifier;
+import at.elmo.member.MemberBase.Sex;
 import at.elmo.member.onboarding.MemberApplication;
 import at.elmo.member.onboarding.MemberApplicationRepository;
 import at.elmo.member.onboarding.MemberOnboarding;
-import at.elmo.util.UserContext;
 import at.elmo.util.email.EmailService;
-import at.elmo.util.exceptions.ElmoException;
-import at.elmo.util.exceptions.ElmoForbiddenException;
 import at.elmo.util.exceptions.ElmoValidationException;
 import at.elmo.util.sms.SmsService;
 
@@ -47,9 +38,6 @@ public class MemberService {
 
     @Autowired
     private MemberOnboarding memberOnboarding;
-    
-    @Autowired
-    private UserContext userContext;
 
     @Autowired
     private EmailService emailService;
@@ -63,91 +51,19 @@ public class MemberService {
         return members.findByOauth2Ids_Id(oauth2Id);
         
     }
-    
-    public void registerMemberByOAuth2User(
-            final ElmoOAuth2User oauth2User) throws Exception {
 
-        final String oauth2Id = oauth2User.getOAuth2Id();
-        
-        final var user = members.findByOauth2Ids_Id(oauth2Id);
-        if (user.isPresent()) {
-            return;
-        }
-
-        final boolean emailVerified = oauth2User.isEmailVerified();
-
-        final var newOAuth2Id = new OAuth2Identifier();
-        newOAuth2Id.setId(oauth2Id);
-        newOAuth2Id.setProvider(oauth2User.getProvider());
-
-        final var newMember = new Member();
-        newOAuth2Id.setOwner(newMember);
-
-        newMember.setOauth2Ids(List.of(newOAuth2Id));
-        newMember.setId(UUID.randomUUID().toString());
-        newMember.setEmail(oauth2User.getEmail());
-        newMember.setStatus(emailVerified ? Status.EMAIL_VERIFIED : Status.NEW);
-        newMember.setLastName(oauth2User.getName());
-        newMember.setFirstName(oauth2User.getFirstName());
-
-        // configured administrator will get admin-role
-        if (oauth2User.getEmail().equals(properties.getAdminIdentificationEmailAddress())) {
-            newMember.addRole(Role.ADMIN);
-            newMember.setStatus(Status.ACTIVE);
-
-            members.saveAndFlush(newMember);
-            return; // no onboarding configured administrator
-        }
-
-        final var result = members.saveAndFlush(newMember);
-
-        memberOnboarding.doOnboarding(result);
-        
-    }
-    
     public Optional<Member> getMember(
             final String memberId) {
         
         return members.findById(memberId);
         
     }
-    
-    private void validateMemberForApplicationInformationProcessing(
-            final String taskId,
-            final MemberApplication application) {
-
-        final var member = application.getMember();
-        if (!member.getId().equals(userContext.getLoggedInMember().getId())
-                && !userContext.hasRole(Role.MANAGER)) {
-
-            throw new ElmoForbiddenException("Not allowed");
-
-        }
-
-        if (!taskId.equals(application.getUserTaskId())) {
-
-            throw new ElmoException("Application form of '" + member.getId() + "' expired!");
-
-        }
-
-    }
-
-    public void takeoverMemberApplication(
-            final String applicationId,
-            final String taskId) {
-
-        final var application = memberApplications.getById(applicationId);
-        validateMemberForApplicationInformationProcessing(taskId, application);
-
-        memberOnboarding.takeOver(application);
-        
-    }
 
     public static enum MemberApplicationUpdate {
         SAVE,
-        DONE,
+        ACCEPTED,
         REJECT,
-        INQUIRY
+        INQUIRY, REQUEST
     };
     
     @Transactional(noRollbackFor = ElmoValidationException.class)
@@ -174,21 +90,24 @@ public class MemberService {
 
         final var application = memberApplications
                 .getById(applicationId);
-        final var member = application.getMember();
-        validateMemberForApplicationInformationProcessing(taskId, application);
+        memberOnboarding.validateMemberForApplicationInformationProcessing(taskId, application);
 
-        if (action == MemberApplicationUpdate.INQUIRY) {
+        if (action == MemberApplicationUpdate.REQUEST) {
 
-            if (application.getLastEmailConfirmationCode() == null) {
+            if (application.getGeneratedEmailConfirmationCode() == null) {
                 violations.put("emailConfirmationCode", "missing");
-            } else if (!application.getLastEmailConfirmationCode().equals(emailConfirmationCode)) {
+            } else if (!StringUtils.hasText(emailConfirmationCode)) {
+                violations.put("emailConfirmationCode", "enter");
+            } else if (!application.getGeneratedEmailConfirmationCode().equals(emailConfirmationCode)) {
                 violations.put("emailConfirmationCode", "mismatch");
             } else if (!application.getEmail().equals(email)) {
                 violations.put("emailConfirmationCode", "mismatch");
             }
-            if (application.getLastPhoneConfirmationCode() == null) {
+            if (application.getGeneratedPhoneConfirmationCode() == null) {
                 violations.put("phoneConfirmationCode", "missing");
-            } else if (!application.getLastPhoneConfirmationCode().equals(phoneConfirmationCode)) {
+            } else if (!StringUtils.hasText(phoneConfirmationCode)) {
+                violations.put("phoneConfirmationCode", "enter");
+            } else if (!application.getGeneratedPhoneConfirmationCode().equals(phoneConfirmationCode)) {
                 violations.put("phoneConfirmationCode", "mismatch");
             } else if (!application.getPhoneNumber().equals(phoneNumber)) {
                 violations.put("phoneConfirmationCode", "mismatch");
@@ -196,20 +115,26 @@ public class MemberService {
 
         }
 
-        member.setMemberId(memberId);
-        member.setSex(sex);
-        member.setFirstName(firstName);
-        member.setLastName(lastName);
-        member.setBirthdate(birthdate);
-        member.setZip(zip);
-        member.setCity(city);
-        member.setStreet(street);
-        member.setStreetNumber(streetNumber);
-        member.setEmail(email);
-        member.setPhoneNumber(phoneNumber);
-        member.setPreferNotificationsPerSms(preferNotificationsPerSms);
+        application.setMemberId(memberId);
+        application.setSex(sex);
+        application.setFirstName(firstName);
+        application.setLastName(lastName);
+        application.setBirthdate(birthdate);
+        application.setZip(zip);
+        application.setCity(city);
+        application.setStreet(street);
+        application.setStreetNumber(streetNumber);
+        application.setEmail(email);
+        if (emailConfirmationCode != null) {
+            application.setGivenEmailConfirmationCode(emailConfirmationCode);
+        }
+        application.setPhoneNumber(phoneNumber);
+        if (phoneConfirmationCode != null) {
+            application.setGivenPhoneConfirmationCode(phoneConfirmationCode);
+        }
+        application.setPreferNotificationsPerSms(preferNotificationsPerSms);
         if (StringUtils.hasText(comment)) {
-            member.setComment(comment);
+            application.setComment(comment);
         }
         
         if (!violations.isEmpty()) {
@@ -217,12 +142,17 @@ public class MemberService {
         }
 
         // configured administrator will become active immediately
-        if (member.getEmail().equals(properties.getAdminIdentificationEmailAddress())) {
-            member.setStatus(Status.ACTIVE);
-            return null; // no onboarding configured administrator
+        if (application.getEmail().equals(properties.getAdminIdentificationEmailAddress())) {
+            throw new UnsupportedOperationException();
+            // application.setStatus(Status.ACTIVE);
+            // return null; // no onboarding configured administrator
         }
         
-        if (action == MemberApplicationUpdate.INQUIRY) {
+        if (action == MemberApplicationUpdate.REQUEST) {
+
+            memberOnboarding.completeUserRegistrationForm(application, taskId);
+
+        } else if (action == MemberApplicationUpdate.INQUIRY) {
             
             memberOnboarding.completeUserValidationFormForInvalidData(application, taskId);
             
@@ -230,7 +160,7 @@ public class MemberService {
             
             memberOnboarding.completeUserValidationFormAsRejected(application, taskId);
             
-        } else if (action == MemberApplicationUpdate.DONE) {
+        } else if (action == MemberApplicationUpdate.ACCEPTED) {
             
             memberOnboarding.completeUserValidationFormAsAccepted(application, taskId);
             
@@ -251,15 +181,6 @@ public class MemberService {
         
     }
 
-    public Optional<MemberApplication> getCurrentMemberApplication(
-            final String memberId) {
-
-        return memberApplications.findByMemberIdAndStatus(
-                memberId,
-                MemberApplication.Status.IN_PROGRESS);
-        
-    }
-
     public Page<MemberApplication> getMemberApplications(
             final int page,
             final int amount) {
@@ -272,21 +193,17 @@ public class MemberService {
     public int getCountOfInprogressMemberApplications() {
         
         return (int) memberApplications.countByStatus(
-                at.elmo.member.onboarding.MemberApplication.Status.IN_PROGRESS);
+                at.elmo.member.onboarding.MemberApplication.Status.APPLICATION_SUBMITTED);
         
     }
     
     public void requestEmailCode(
-            final String applicationId,
-            final Member member,
+            final MemberApplication application,
             final String emailAddress) throws Exception {
-
-        final var application = memberApplications
-                .getById(applicationId);
 
         final var code = String.format("%04d", random.nextInt(10000));
         application.setEmail(emailAddress);
-        application.setLastEmailConfirmationCode(code);
+        application.setGeneratedEmailConfirmationCode(code);
 
         emailService.sendEmail(
                 "member/email-confirmation",
@@ -296,22 +213,18 @@ public class MemberService {
     }
     
     public void requestPhoneCode(
-            final String applicationId,
-            final Member member,
+            final MemberApplication application,
             final String phoneNumber) throws Exception {
-
-        final var application = memberApplications
-                .getById(applicationId);
 
         final var code = String.format("%04d", random.nextInt(10000));
         application.setPhoneNumber(phoneNumber);
-        application.setLastPhoneConfirmationCode(code);
+        application.setGeneratedPhoneConfirmationCode(code);
 
         smsService.sendSms(
                 "member/phone-number-confirmation",
                 properties.getTransportServiceCarName(),
                 properties.getTransportServicePhoneNumber(),
-                member.getId(),
+                application.getId(),
                 phoneNumber,
                 application);
         

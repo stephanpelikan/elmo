@@ -11,19 +11,19 @@ import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 
 import at.elmo.config.ElmoProperties;
-import at.elmo.member.MemberService;
+import at.elmo.member.onboarding.MemberOnboarding;
 
 public class AuthenticationSuccessHandler
         extends SavedRequestAwareAuthenticationSuccessHandler {
 
-    private final MemberService memberService;
+    private final MemberOnboarding memberOnboarding;
     
     public AuthenticationSuccessHandler(
             final ElmoProperties properties,
-            final MemberService memberService) {
+            final MemberOnboarding memberOnboarding) {
         
         super();
-        this.memberService = memberService;
+        this.memberOnboarding = memberOnboarding;
         
         final var redirectStrategy = new RedirectStrategy() {
             @Override
@@ -52,7 +52,7 @@ public class AuthenticationSuccessHandler
         if (oauth2User.isNewUser()) {
 
             try {
-                memberService.registerMemberByOAuth2User(oauth2User);
+                memberOnboarding.doOnboarding(oauth2User);
             } catch (Exception e) {
                 throw new ServletException("Could not register oauth2 user", e);
             }

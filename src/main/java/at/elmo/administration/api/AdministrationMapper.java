@@ -35,9 +35,14 @@ public abstract class AdministrationMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "oauth2Ids", ignore = true)
+    @Mapping(target = "givenEmailConfirmationCode", ignore = true)
+    @Mapping(target = "givenPhoneConfirmationCode", ignore = true)
+    @Mapping(target = "generatedEmailConfirmationCode", ignore = true)
+    @Mapping(target = "generatedPhoneConfirmationCode", ignore = true)
     public abstract at.elmo.member.Member toDomain(Member member);
 
     @Mapping(target = "taskId", source = "userTaskId")
+    @Mapping(target = "member", ignore = true)
     public abstract MemberApplication toApi(at.elmo.member.onboarding.MemberApplication application);
 
     public abstract List<MemberApplication> toApi(List<at.elmo.member.onboarding.MemberApplication> application);

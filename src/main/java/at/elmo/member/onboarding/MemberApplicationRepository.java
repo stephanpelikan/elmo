@@ -14,4 +14,6 @@ public interface MemberApplicationRepository extends JpaRepository<MemberApplica
 
     Optional<MemberApplication> findByMemberIdAndStatus(String memberId, MemberApplication.Status status);
 
+    Optional<MemberApplication> findByOauth2Id_Id(String oauth2Id);
+
 }

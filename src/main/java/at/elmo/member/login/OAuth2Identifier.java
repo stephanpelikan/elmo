@@ -7,7 +7,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-import at.elmo.member.Member;
+import at.elmo.member.MemberBase;
 
 @Entity
 @Table(name = "ELMO_OAUTH_ID")
@@ -19,7 +19,7 @@ public class OAuth2Identifier {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "OWNER", nullable = false, updatable = false)
-    private Member owner;
+    private MemberBase owner;
 
     @Column(name = "PROVIDER")
     private ElmoOAuth2Provider provider;
@@ -32,11 +32,11 @@ public class OAuth2Identifier {
         this.id = id;
     }
 
-    public Member getOwner() {
+    public MemberBase getOwner() {
         return owner;
     }
 
-    public void setOwner(Member owner) {
+    public void setOwner(MemberBase owner) {
         this.owner = owner;
     }
 

@@ -53,6 +53,23 @@ paths:
                 $ref: '#/components/schemas/User'
         404:
           description: No user logged in
+  /gui/member/application/take-over:
+    put:
+      tags:
+        - gui
+      summary: take-over the member application form
+      operationId: takeoverMemberApplicationForm
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                taskId:
+                  type: string
+      responses:
+        200:
+          description: Take-over successfully
   /gui/member/application:
     get:
       tags:
@@ -123,11 +140,6 @@ paths:
           required: true
           schema:
             type: string
-        - in: query
-          name: applicationId
-          required: false
-          schema:
-            type: string
       responses:
         200:
           description: The code was sent
@@ -145,11 +157,6 @@ paths:
         - in: query
           name: emailAddress
           required: true
-          schema:
-            type: string
-        - in: query
-          name: applicationId
-          required: false
           schema:
             type: string
       responses:
@@ -181,14 +188,11 @@ components:
       type: string
       enum:
         - NEW
-        - EMAIL_VERIFIED
         - APPLICATION_SUBMITTED
         - DATA_INVALID
+        - REJECTED
         - ACTIVE
         - INACTIVE
-        - TO_BE_DELETED
-        - REJECTED
-        - DUPLICATE
     AppInformation:
       type: object
       properties:
@@ -197,6 +201,8 @@ components:
         titleLong:
           type: string
         homepageUrl:
+          type: string
+        homepageServiceConditionsUrl:
           type: string
         version:
           type: string

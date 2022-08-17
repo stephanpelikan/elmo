@@ -3,13 +3,13 @@ import { User, Oauth2Client, UserStatus, GuiApi, AppInformation } from './client
 import { getGuiApi } from './client';
 import { getAdministrationApi } from './client';
 import { AdministrationApi } from 'client/administration';
-import { MessageToast } from './components/Toast';
 
 type Action =
     | { type: 'updateOauth2Clients', oauth2Clients: Array<Oauth2Client> }
     | { type: 'updateAppInformation', appInformation: AppInformation }
     | { type: 'updateCurrentUser', user: User | null }
     | { type: 'memberApplicationFormSubmitted' }
+    | { type: 'memberApplicationFormRevoked' }
     | { type: 'showMenu', visibility: boolean }
     | { type: 'toast', toast: Toast | undefined }
     | { type: 'updateTitle', title: string };
@@ -40,6 +40,7 @@ const AppContext = React.createContext<{
   showMenu: (visibility: boolean) => void;
   setAppHeaderTitle: (title: string) => void;
   memberApplicationFormSubmitted: () => void;
+  memberApplicationFormRevoked: () => void;
 } | undefined>(undefined);
 
 const appContextReducer: React.Reducer<State, Action> = (state, action) => {
@@ -49,6 +50,15 @@ const appContextReducer: React.Reducer<State, Action> = (state, action) => {
     newState = {
       ...state,
       currentUser: action.user,
+    };
+    break;
+  case 'memberApplicationFormRevoked':
+    newState = {
+      ...state,
+      currentUser: {
+        ...state.currentUser,
+        status: UserStatus.DataInvalid,
+      }
     };
     break;
   case 'memberApplicationFormSubmitted':
@@ -118,13 +128,15 @@ const AppContextProvider = ({ children }: AppContextProviderProps) => {
       [ guiApi, state ]);
   const fetchAppInformation = useCallback(() => fetchAppInformationFromGuiApi(state, dispatch, guiApi),
       [ guiApi, state ]);
-  const fetchCurrentUser = useCallback((resolve, reject) => fetchCurrentUserFromGui(state, dispatch, guiApi, resolve, reject),
+  const fetchCurrentUser = useCallback((resolve: (value: User | null) => void, reject: (error: any) => void) => fetchCurrentUserFromGui(state, dispatch, guiApi, resolve, reject),
       [ guiApi, state ]);
   const showMenu = useCallback((visibility: boolean) => setShowMenu(dispatch, visibility),
       [ dispatch ]);
   const setAppHeaderTitle = useCallback((title: string) => updateTitle(dispatch, title),
       [ dispatch ]); 
   const memberApplicationFormSubmitted = useCallback(() => doMemberApplicationFormSubmitted(dispatch),
+      [ dispatch ]);
+  const memberApplicationFormRevoked = useCallback(() => doMemberApplicationFormRevoked(dispatch),
       [ dispatch ]);
 	const value = {
     state,
@@ -138,12 +150,10 @@ const AppContextProvider = ({ children }: AppContextProviderProps) => {
     showMenu,
     setAppHeaderTitle,
     memberApplicationFormSubmitted,
+    memberApplicationFormRevoked,
   };
   
 	return (<AppContext.Provider value={value}>
-	   {state.toast && (
-      <MessageToast dispatch={dispatch} msg={state.toast} />
-    )}
 	   {children}
    </AppContext.Provider>);
 };
@@ -196,6 +206,10 @@ const fetchCurrentUserFromGui = async (appContextState: State, dispatch: Dispatc
 
 const doMemberApplicationFormSubmitted = (dispatch: Dispatch) => {
   dispatch({ type: 'memberApplicationFormSubmitted' });
+}
+
+const doMemberApplicationFormRevoked = (dispatch: Dispatch) => {
+  dispatch({ type: 'memberApplicationFormRevoked' });
 }
 
 const setShowMenu = (dispatch: Dispatch, visibility: boolean) => {

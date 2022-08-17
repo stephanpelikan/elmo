@@ -16,10 +16,13 @@ public class ElmoOAuth2User extends DefaultOAuth2User {
 
     private final String elmoId;
 
+    private final String memberApplicationId;
+
     public ElmoOAuth2User(
             final ElmoOAuth2Provider provider,
             final String oauth2Id,
             final String elmoId,
+            final String memberApplicationId,
             final Collection<? extends GrantedAuthority> authorities,
             final Map<String, Object> attributes) {
         
@@ -27,6 +30,7 @@ public class ElmoOAuth2User extends DefaultOAuth2User {
         this.provider = provider;
         this.oauth2Id = oauth2Id;
         this.elmoId = elmoId;
+        this.memberApplicationId = memberApplicationId;
         
     };
     
@@ -48,9 +52,15 @@ public class ElmoOAuth2User extends DefaultOAuth2User {
 
     }
 
+    public String getMemberApplicationId() {
+
+        return memberApplicationId;
+
+    }
+
     public boolean isNewUser() {
 
-        return elmoId == null;
+        return (elmoId == null) && (memberApplicationId == null);
 
     }
 

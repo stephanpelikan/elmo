@@ -13,6 +13,7 @@ import { CurrentUser } from './CurrentUser';
 import { Role } from '../client/gui';
 import { Login } from '../login/Login';
 import { css } from 'styled-components';
+import { MessageToast } from '../components/Toast';
 
 export const theme: ThemeType = {
   global: {
@@ -113,7 +114,7 @@ type AppProps = {};
 
 const App: React.FC<AppProps> = (props: AppProps): JSX.Element => {
 
-  const { state, fetchAppInformation } = useAppContext();
+  const { state, fetchAppInformation, dispatch } = useAppContext();
   
   useEffect(() => {
     fetchAppInformation();
@@ -133,6 +134,10 @@ const App: React.FC<AppProps> = (props: AppProps): JSX.Element => {
     <Grommet
         theme={theme}
         full>
+      <>
+        {state.toast && (
+          <MessageToast dispatch={dispatch} msg={state.toast} />
+        )}
         <Router>
           <Box fill>
             <AppHeader />
@@ -172,6 +177,7 @@ const App: React.FC<AppProps> = (props: AppProps): JSX.Element => {
             </Box>
           </Box>
         </Router>
+      </>
     </Grommet>
   );
 };

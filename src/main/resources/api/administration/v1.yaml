@@ -131,27 +131,23 @@ components:
     MemberStatus:
       type: string
       enum:
-        - NEW
-        - EMAIL_VERIFIED
-        - APPLICATION_SUBMITTED
-        - DATA_INVALID
         - ACTIVE
         - INACTIVE
         - TO_BE_DELETED
-        - REJECTED
-        - DUPLICATE
     MemberApplicationStatus:
       type: string
       enum:
-        - IN_PROGRESS
-        - DONE
+        - NEW
+        - DATA_INVALID
+        - APPLICATION_SUBMITTED
+        - ACCEPTED
         - REJECTED
         - DUPLICATE
     MemberApplicationUpdate:
       type: string
       enum:
         - SAVE
-        - DONE
+        - ACCEPTED
         - REJECT
         - INQUIRY
     Page:
@@ -191,8 +187,8 @@ components:
           $ref: '#/components/schemas/MemberApplicationUpdate'
         taskId:
           type: string
-        member:
-          $ref: '#/components/schemas/Member'
+        memberApplication:
+          $ref: '#/components/schemas/MemberApplication'
     MemberApplication:
       type: object
       properties:
@@ -204,12 +200,39 @@ components:
           $ref: '#/components/schemas/MemberApplicationStatus'
         member:
           $ref: '#/components/schemas/Member'
+        memberId:
+          type: int
         createdAt:
           type: string
           format: date-time
         updatedAt:
           type: string
           format: date-time
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        birthdate:
+          type: string
+          format: date
+        sex:
+          $ref: '#/components/schemas/Sex'
+        zip:
+          type: string
+        city:
+          type: string
+        street:
+          type: string
+        streetNumber:
+          type: string
+        phoneNumber:
+          type: string
+        preferNotificationsPerSms:
+          type: boolean
+        comment:
+          type: string
     Member:
       type: object
       properties:
@@ -218,7 +241,8 @@ components:
         status:
           $ref: '#/components/schemas/MemberStatus'
         memberId:
-          type: int
+          type: integer
+          format: int32
         firstName:
           type: string
         lastName:

@@ -6,6 +6,8 @@ import org.springframework.lang.NonNull;
 import org.springframework.web.cors.CorsConfiguration;
 
 import at.elmo.config.websockets.WebsocketProperties;
+import at.elmo.util.email.EmailProperties;
+import at.elmo.util.sms.SmsProperties;
 import at.phactum.bp.blueprint.modules.ModuleSpecificProperties;
 import at.phactum.bp.blueprint.modules.WorkflowModuleIdAwareProperties;
 
@@ -31,7 +33,10 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties {
     private String titleLong;
 
     @NonNull
-    private String homepage;
+    private String homepageUrl;
+
+    @NonNull
+    private String homepageServiceConditionsUrl;
 
     @NonNull
     private String gatewayUrl;
@@ -45,6 +50,10 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties {
     private CorsConfiguration cors = new CorsConfiguration();
 
     private WebsocketProperties websockets;
+
+    private SmsProperties sms;
+
+    private EmailProperties email;
 
     @NonNull
     private String transportServiceCarName;
@@ -97,12 +106,20 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties {
         return WORKFLOW_MODULE_ID;
     }
 
-    public String getHomepage() {
-        return homepage;
+    public String getHomepageUrl() {
+        return homepageUrl;
     }
 
-    public void setHomepage(String homepage) {
-        this.homepage = homepage;
+    public void setHomepageUrl(String homepageUrl) {
+        this.homepageUrl = homepageUrl;
+    }
+
+    public String getHomepageServiceConditionsUrl() {
+        return homepageServiceConditionsUrl;
+    }
+
+    public void setHomepageServiceConditionsUrl(String homepageServiceConditionsUrl) {
+        this.homepageServiceConditionsUrl = homepageServiceConditionsUrl;
     }
 
     public String getDefaultLocale() {
@@ -143,6 +160,22 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties {
 
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    public EmailProperties getEmail() {
+        return email;
+    }
+
+    public void setEmail(EmailProperties email) {
+        this.email = email;
+    }
+
+    public SmsProperties getSms() {
+        return sms;
+    }
+
+    public void setSms(SmsProperties sms) {
+        this.sms = sms;
     }
 
 }

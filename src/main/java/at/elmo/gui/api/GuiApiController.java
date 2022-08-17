@@ -23,9 +23,11 @@ import at.elmo.gui.api.v1.AppInformation;
 import at.elmo.gui.api.v1.GuiApi;
 import at.elmo.gui.api.v1.MemberApplicationForm;
 import at.elmo.gui.api.v1.Oauth2Client;
+import at.elmo.gui.api.v1.TakeoverMemberApplicationFormRequest;
 import at.elmo.gui.api.v1.User;
 import at.elmo.member.MemberService;
 import at.elmo.member.MemberService.MemberApplicationUpdate;
+import at.elmo.member.onboarding.MemberOnboarding;
 import at.elmo.util.UserContext;
 import at.elmo.util.email.EmailService;
 import at.elmo.util.exceptions.ElmoException;
@@ -50,6 +52,9 @@ public class GuiApiController implements GuiApi {
 
     @Autowired
     private MemberService memberService;
+    
+    @Autowired
+    private MemberOnboarding memberOnboarding;
 
     @Autowired
     private GuiMapper mapper;
@@ -64,16 +69,21 @@ public class GuiApiController implements GuiApi {
     public ResponseEntity<User> currentUser() {
 
         try {
-
-            final var user = userContext.getLoggedInMember();
-            return ResponseEntity.ok(mapper.toApi(user));
+            
+            final var member = userContext.getLoggedInMember();
+            if (member != null) {
+                return ResponseEntity.ok(mapper.toApi(member));
+            }
+    
+            final var application = userContext.getLoggedInMemberApplication();
+            return ResponseEntity.ok(mapper.toApi(application));
 
         } catch (ElmoException e) {
 
             return ResponseEntity.notFound().build();
 
         }
-
+            
     }
 
     @Override
@@ -81,7 +91,8 @@ public class GuiApiController implements GuiApi {
 
         final var result = new AppInformation();
         result.setVersion(properties.getVersion());
-        result.setHomepageUrl(properties.getHomepage());
+        result.setHomepageUrl(properties.getHomepageUrl());
+        result.setHomepageServiceConditionsUrl(properties.getHomepageServiceConditionsUrl());
         result.setTitleShort(properties.getTitleShort());
         result.setTitleLong(properties.getTitleLong());
 
@@ -118,19 +129,28 @@ public class GuiApiController implements GuiApi {
         return ResponseEntity.ok(result);
         
     }
-
+    
+    @Override
+    public ResponseEntity<Void> takeoverMemberApplicationForm(
+            final @Valid TakeoverMemberApplicationFormRequest takeoverMemberApplicationFormRequest) {
+        
+        final var application = userContext.getLoggedInMemberApplication();
+        
+        memberOnboarding.takeoverMemberApplicationByApplicant(
+                application.getId(),
+                takeoverMemberApplicationFormRequest.getTaskId());
+        
+        return ResponseEntity.ok().build();
+        
+    }
+    
     @Override
     public ResponseEntity<MemberApplicationForm> loadMemberApplicationForm() {
 
-        final var user = userContext.getLoggedInMember();
-
-        final var application = memberService.getCurrentMemberApplication(user.getId());
-        if (application.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+        final var application = userContext.getLoggedInMemberApplication();
 
         return ResponseEntity.ok(
-                mapper.toApplicationFormApi(application.get().getMember(), application.get()));
+                mapper.toApplicationFormApi(application));
 
     }
 
@@ -171,16 +191,24 @@ public class GuiApiController implements GuiApi {
         } else if (!emailService.isValidEmailAddressFormat(memberApplicationForm.getEmail())) {
             violations.put("email", "format");
         }
-        if (!StringUtils.hasText(memberApplicationForm.getEmailConfirmationCode())) {
-            violations.put("emailConfirmationCode", "missing");
-        }
         if (!StringUtils.hasText(memberApplicationForm.getPhoneNumber())) {
             violations.put("phoneNumber", "missing");
         } else if (!smsService.isValidPhoneNumberFormat(memberApplicationForm.getPhoneNumber())) {
             violations.put("phoneNumber", "format");
         }
+        if (!StringUtils.hasText(memberApplicationForm.getEmailConfirmationCode())) {
+            violations.put("emailConfirmationCode", "missing");
+            throw new ElmoValidationException(violations); // going ahead would case DB failure
+        } else if (memberApplicationForm.getEmailConfirmationCode().length() > 4) {
+            violations.put("emailConfirmationCode", "format");
+            throw new ElmoValidationException(violations); // going ahead would case DB failure
+        }
         if (!StringUtils.hasText(memberApplicationForm.getPhoneConfirmationCode())) {
             violations.put("phoneConfirmationCode", "missing");
+            throw new ElmoValidationException(violations); // going ahead would case DB failure
+        } else if (memberApplicationForm.getPhoneConfirmationCode().length() > 4) {
+            violations.put("phoneConfirmationCode", "format");
+            throw new ElmoValidationException(violations); // going ahead would case DB failure
         }
 
         final var referNotificationsPerSms =
@@ -191,7 +219,7 @@ public class GuiApiController implements GuiApi {
         memberService.processMemberApplicationInformation(
                 memberApplicationForm.getApplicationId(),
                 memberApplicationForm.getTaskId(),
-                MemberApplicationUpdate.INQUIRY,
+                MemberApplicationUpdate.REQUEST,
                 violations,
                 null,
                 memberApplicationForm.getFirstName(),
@@ -219,26 +247,21 @@ public class GuiApiController implements GuiApi {
     
     @Override
     public ResponseEntity<Void> requestEmailCode(
-            final @NotNull @Valid String emailAddress,
-            final @Valid String applicationId) {
+            final @NotNull @Valid String emailAddress) {
         
-        final var user = userContext.getLoggedInMember();
+        final var application = userContext.getLoggedInMemberApplication();
 
-        final var application = memberService.getCurrentMemberApplication(user.getId());
-        if (application.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
         if (!emailService.isValidEmailAddressFormat(emailAddress)) {
             throw new ElmoValidationException("email", "format");
         }
 
         try {
 
-            memberService.requestEmailCode(applicationId, user, emailAddress);
+            memberService.requestEmailCode(application, emailAddress);
 
         } catch (Exception e) {
 
-            logger.error("Could not send email-confirmation code for member '{}'", user.getId(), e);
+            logger.error("Could not send email-confirmation code for member-application '{}'", application.getId(), e);
             return ResponseEntity.internalServerError().build();
 
         }
@@ -249,26 +272,21 @@ public class GuiApiController implements GuiApi {
 
     @Override
     public ResponseEntity<Void> requestPhoneCode(
-            final @NotNull @Valid String phoneNumber,
-            final @Valid String applicationId) {
+            final @NotNull @Valid String phoneNumber) {
 
-        final var user = userContext.getLoggedInMember();
+        final var application = userContext.getLoggedInMemberApplication();
 
-        final var application = memberService.getCurrentMemberApplication(user.getId());
-        if (application.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
         if (!smsService.isValidPhoneNumberFormat(phoneNumber)) {
             throw new ElmoValidationException("phoneNumber", "format");
         }
         
         try {
             
-            memberService.requestPhoneCode(applicationId, user, phoneNumber);
+            memberService.requestPhoneCode(application, phoneNumber);
             
         } catch (Exception e) {
             
-            logger.error("Could not send email-confirmation code for member '{}'", user.getId(), e);
+            logger.error("Could not send email-confirmation code for member-application '{}'", application.getId(), e);
             return ResponseEntity.internalServerError().build();
             
         }

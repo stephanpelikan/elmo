@@ -56,7 +56,7 @@ public class FreemarkerConfiguration {
                 final var elmoInformation = new ElmoEmailInformation();
                 elmoInformation.setTitle(properties.getTitleLong());
                 elmoInformation.setGatewayUrl(properties.getGatewayUrl());
-                elmoInformation.setHomepage(properties.getHomepage());
+                elmoInformation.setHomepage(properties.getHomepageUrl());
                 elmoInformation.setEmailSender(emailProperties.getSender());
                 config.setSharedVariable("elmo", elmoInformation);
 
@@ -141,7 +141,7 @@ public class FreemarkerConfiguration {
                 final var elmoInformation = new ElmoSmsInformation();
                 elmoInformation.setTitle(properties.getTitleShort());
                 elmoInformation.setGatewayUrl(properties.getGatewayUrl());
-                elmoInformation.setHomepage(properties.getHomepage());
+                elmoInformation.setHomepage(properties.getHomepageUrl());
                 config.setSharedVariable("elmo", elmoInformation);
 
             }

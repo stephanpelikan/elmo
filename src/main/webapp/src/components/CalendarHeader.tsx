@@ -1,4 +1,4 @@
-import { Box, Button, HeaderProps, Heading, RangeInput, ResponsiveContext } from "grommet";
+import { Box, Button, CalendarHeaderProps, Heading, RangeInput, ResponsiveContext } from "grommet";
 import { useContext } from "react";
 import { ThemeContext } from "styled-components";
 
@@ -8,7 +8,7 @@ const headingPadMap = {
   large: 'medium',
 };
 
-interface CalendarHeaderProps extends HeaderProps {
+interface ExtendedCalendarHeaderProps extends CalendarHeaderProps {
   setDate: (date: Date) => void;
 };
 
@@ -20,19 +20,13 @@ const CalendarHeader = ({
   onNextMonth,
   previousInBound,
   nextInBound
-}: CalendarHeaderProps) => {
+}: ExtendedCalendarHeaderProps) => {
   const size = useContext(ResponsiveContext);
   const theme = useContext(ThemeContext);
   
-  const PreviousIcon =
-    size === 'small'
-      ? theme.calendar.icons.small.previous
-      : theme.calendar.icons.previous;
+  const PreviousIcon = theme.calendar.icons.small.previous;
 
-  const NextIcon =
-    size === 'small'
-      ? theme.calendar.icons.small.next
-      : theme.calendar.icons.next;
+  const NextIcon = theme.calendar.icons.small.next;
       
   const year = date.getFullYear();
   
@@ -52,10 +46,8 @@ const CalendarHeader = ({
           <Heading
             level={
               size === 'small'
-                ? (theme.calendar.heading && theme.calendar.heading.level) ||
-                  4
-                : ((theme.calendar.heading && theme.calendar.heading.level) ||
-                    4) - 1
+                ? ((theme.calendar.heading && theme.calendar.heading.level) || 4)
+                : ((theme.calendar.heading && theme.calendar.heading.level) || 4) - 1
             }
             size={size}
             margin="none"
@@ -68,12 +60,12 @@ const CalendarHeader = ({
         </Box>
         <Box flex={false} direction="row" align="center" gap="small">
           <Button
-            icon={<PreviousIcon size={size !== 'small' ? size : undefined} />}
+            icon={<PreviousIcon size="medium" />}
             disabled={!previousInBound}
             onClick={onPreviousMonth}
           />
           <Button
-            icon={<NextIcon size={size !== 'small' ? size : undefined} />}
+            icon={<NextIcon size="medium" />}
             disabled={!nextInBound}
             onClick={onNextMonth}
           />

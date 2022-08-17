@@ -23,6 +23,7 @@ import at.elmo.config.ElmoProperties;
 import at.elmo.member.Member.Role;
 import at.elmo.member.MemberService;
 import at.elmo.member.login.OAuth2UserService;
+import at.elmo.member.onboarding.MemberOnboarding;
 
 @Configuration
 @EnableWebSecurity
@@ -40,6 +41,9 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private MemberService memberService;
+    
+    @Autowired
+    private MemberOnboarding memberOnboarding;
     
     @Resource
     private ClientRegistrationRepository repo;
@@ -106,14 +110,17 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Bean
     public AuthenticationSuccessHandler authenticationSuccessHandler() {
 
-        return new at.elmo.member.login.AuthenticationSuccessHandler(properties, memberService);
+        return new at.elmo.member.login.AuthenticationSuccessHandler(
+                properties,
+                memberOnboarding);
 
     }
 
     @Bean
     public OAuth2UserService oauth2UserService() {
 
-        return new OAuth2UserService(memberService);
+        return new OAuth2UserService(
+                memberOnboarding, memberService);
 
     }
 

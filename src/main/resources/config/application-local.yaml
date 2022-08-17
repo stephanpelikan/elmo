@@ -1,9 +1,12 @@
 elmo:
   title-short: Elmo GF
   title-long: ElektroMobil Gänserndorf
-  homepage: https://www.elektromobil-gf.at
+  homepage-url: https://www.elektromobil-gf.at
+  homepage-service-conditions-url: https://www.elektromobil-gf.at/wp/kontakt-und-impressum
   gateway-url: http://localhost:3000
   default-locale: de
+  sms:
+    supported: false
   cors:
     allowed-origins: "*"
 logging:

@@ -78,17 +78,25 @@ public class SmsService {
         final var content = processTemplate(templatePath + "/content.ftl", context);
         final var targetToNumber = determineToNumber(toNumber);
         
-        final var sms = new Sms();
-        sms.setId(UUID.randomUUID().toString());
-        sms.setContent(content);
-        sms.setRecipientName(toName);
-        sms.setRecipientNumber(targetToNumber);
-        sms.setSenderName(fromName);
-        sms.setSenderNumber(fromNumber);
-        sms.setStatus(Status.READY);
-        smses.save(sms);
+        if (properties.isSupported()) {
 
-        logger.info("Sent SMS to {}", targetToNumber);
+            final var sms = new Sms();
+            sms.setId(UUID.randomUUID().toString());
+            sms.setContent(content);
+            sms.setRecipientName(toName);
+            sms.setRecipientNumber(targetToNumber);
+            sms.setSenderName(fromName);
+            sms.setSenderNumber(fromNumber);
+            sms.setStatus(Status.READY);
+            // smses.save(sms);
+
+            logger.info("Sent SMS to {}", targetToNumber);
+
+        } else {
+
+            logger.info("Will not send SMS to {}: {}", targetToNumber, content);
+
+        }
         
     }
 

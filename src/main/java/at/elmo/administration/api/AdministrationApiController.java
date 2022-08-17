@@ -18,8 +18,10 @@ import at.elmo.administration.api.v1.MemberOnboardingApplications;
 import at.elmo.administration.api.v1.TakeoverMemberOnboardingApplicationRequest;
 import at.elmo.administration.api.v1.UpdateMemberOnboarding;
 import at.elmo.member.MemberService;
+import at.elmo.member.onboarding.MemberOnboarding;
 import at.elmo.util.email.EmailService;
 import at.elmo.util.exceptions.ElmoValidationException;
+import at.elmo.util.sms.SmsService;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -29,10 +31,16 @@ public class AdministrationApiController implements AdministrationApi {
     private MemberService memberService;
     
     @Autowired
+    private MemberOnboarding memberOnboarding;
+
+    @Autowired
     private AdministrationMapper mapper;
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private SmsService smsService;
 
     @Override
     public ResponseEntity<MemberOnboardingApplications> getMemberOnboardingApplications(
@@ -65,7 +73,7 @@ public class AdministrationApiController implements AdministrationApi {
             final String applicationId,
             final @Valid TakeoverMemberOnboardingApplicationRequest usertask) {
 
-        memberService.takeoverMemberApplication(
+        memberOnboarding.takeoverMemberApplicationByManagementComitee(
                 applicationId,
                 usertask.getTaskId());
 
@@ -78,48 +86,45 @@ public class AdministrationApiController implements AdministrationApi {
             final String applicationId,
             final @Valid UpdateMemberOnboarding updateMemberOnboarding) {
 
-        final var member = updateMemberOnboarding
-                .getMember();
+        final var application = updateMemberOnboarding
+                .getMemberApplication();
 
         final var violations = new HashMap<String, String>();
 
-        if (updateMemberOnboarding.getAction() == MemberApplicationUpdate.DONE) {
+        if (updateMemberOnboarding.getAction() == MemberApplicationUpdate.ACCEPTED) {
 
-            if (member.getMemberId() == null) {
-                violations.put("memberId", "missing");
-            }
-            if (!StringUtils.hasText(member.getFirstName())) {
+            if (!StringUtils.hasText(application.getFirstName())) {
                 violations.put("firstName", "missing");
             }
-            if (!StringUtils.hasText(member.getLastName())) {
+            if (!StringUtils.hasText(application.getLastName())) {
                 violations.put("lastName", "missing");
             }
-            if (member.getBirthdate() == null) {
+            if (application.getBirthdate() == null) {
                 violations.put("birthdate", "missing");
             }
-            if (member.getSex() == null) {
+            if (application.getSex() == null) {
                 violations.put("sex", "missing");
             }
-            if (!StringUtils.hasText(member.getZip())) {
+            if (!StringUtils.hasText(application.getZip())) {
                 violations.put("zip", "missing");
             }
-            if (!StringUtils.hasText(member.getCity())) {
+            if (!StringUtils.hasText(application.getCity())) {
                 violations.put("city", "missing");
             }
-            if (!StringUtils.hasText(member.getStreet())) {
+            if (!StringUtils.hasText(application.getStreet())) {
                 violations.put("street", "missing");
             }
-            if (!StringUtils.hasText(member.getStreetNumber())) {
+            if (!StringUtils.hasText(application.getStreetNumber())) {
                 violations.put("streetNumber", "missing");
             }
-            if (!StringUtils.hasText(member.getEmail())) {
+            if (!StringUtils.hasText(application.getEmail())) {
                 violations.put("email", "missing");
-            } else if (!emailService.isValidEmailAddressFormat(member.getEmail())) {
+            } else if (!emailService.isValidEmailAddressFormat(application.getEmail())) {
                 violations.put("email", "format");
             }
-            if (!StringUtils.hasText(member.getPhoneNumber())) {
+            if (!StringUtils.hasText(application.getPhoneNumber())) {
                 violations.put("phoneNumber", "missing");
-            } else if (!member.getPhoneNumber().startsWith("+")) {
+            } else if (!smsService.isValidPhoneNumberFormat(application.getPhoneNumber())) {
                 violations.put("phoneNumber", "format");
             }
             if (!violations.isEmpty()) {
@@ -128,7 +133,7 @@ public class AdministrationApiController implements AdministrationApi {
 
         } else if (updateMemberOnboarding.getAction() == MemberApplicationUpdate.REJECT) {
 
-            if (!StringUtils.hasText(updateMemberOnboarding.getMember().getComment())) {
+            if (!StringUtils.hasText(updateMemberOnboarding.getMemberApplication().getComment())) {
                 throw new ElmoValidationException("comment", "missing");
             }
 
@@ -139,21 +144,21 @@ public class AdministrationApiController implements AdministrationApi {
                 updateMemberOnboarding.getTaskId(),
                 mapper.toDomain(updateMemberOnboarding.getAction()),
                 violations,
-                member.getMemberId(),
-                member.getFirstName(),
-                member.getLastName(),
-                member.getBirthdate(),
-                mapper.toDomain(member.getSex()),
-                member.getZip(),
-                member.getCity(),
-                member.getStreet(),
-                member.getStreetNumber(),
-                member.getEmail(),
+                application.getMemberId(),
+                application.getFirstName(),
+                application.getLastName(),
+                application.getBirthdate(),
+                mapper.toDomain(application.getSex()),
+                application.getZip(),
+                application.getCity(),
+                application.getStreet(),
+                application.getStreetNumber(),
+                application.getEmail(),
                 null,
-                member.getPhoneNumber(),
+                application.getPhoneNumber(),
                 null,
-                member.getPreferNotificationsPerSms(),
-                member.getComment());
+                application.getPreferNotificationsPerSms(),
+                application.getComment());
         
         final var result = mapper.toApi(updated);
         
