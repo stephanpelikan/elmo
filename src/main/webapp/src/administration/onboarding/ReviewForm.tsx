@@ -176,7 +176,7 @@ const theme: ThemeType = deepMerge(appTheme, {
   },
 });
 
-const Review = () => {
+const ReviewForm = () => {
   
   const { administrationApi, toast } = useAppContext();
   
@@ -448,4 +448,4 @@ const Review = () => {
   );
 };
 
-export { Review };
+export { ReviewForm };

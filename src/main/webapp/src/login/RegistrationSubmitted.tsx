@@ -1,4 +1,4 @@
-import { Box, Button, Heading, Markdown, Paragraph } from 'grommet';
+import { Box, Button, Grid, Heading, Markdown, Paragraph } from 'grommet';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import { useAppContext } from "../AppContext";
@@ -114,8 +114,8 @@ const RegistrationSubmitted = () => {
         </Box>);
     default:
       return (
-        <Box
-            pad='medium'>
+        <Grid
+            pad={ { horizontal: 'medium' } }>
           <Heading
               size='small'
               level='2'>{ t(`title_${state.currentUser.status}`) }</Heading>
@@ -125,8 +125,10 @@ const RegistrationSubmitted = () => {
               birthdate: memberApplicationForm.birthdate.toLocaleDateString(),
               notificationChannel: memberApplicationForm.preferNotificationsPerSms ? t('label_notification_sms') : t('label_notification_email') }
           )}</Markdown>
-          <Box align='center'><Button secondary onClick={takeOver} label={ t('button_changedata') } /></Box>
-        </Box>);
+          <Box align='center' pad={{ bottom: 'medium' }}>
+            <Button secondary onClick={takeOver} label={ t('button_changedata') } />
+          </Box>
+        </Grid>);
   }
 }
 

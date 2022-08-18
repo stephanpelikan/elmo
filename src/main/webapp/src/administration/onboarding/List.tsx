@@ -102,6 +102,7 @@ const ListOfOnboardings = () => {
                         onClick={() => onEdit(application, !applicationSubmitted)}
                         secondary={applicationSubmitted}
                         hoverIndicator
+                        label={ t(applicationSubmitted ? 'check' : 'edit') }
                         icon={<FormEdit />}
                         size='small' />;
                 default:

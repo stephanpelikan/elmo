@@ -1,6 +1,6 @@
 import { Route, Routes } from "react-router-dom";
 import { ListOfOnboardings } from './List';
-import { Review } from './Review';
+import { ReviewForm } from './ReviewForm';
 import i18n from '../../i18n';
 import { useLayoutEffect } from "react";
 import { useAppContext } from "../../AppContext";
@@ -25,7 +25,7 @@ const Main = () => {
   return (
     <Routes>
       <Route path='/' element={<ListOfOnboardings />} />
-      <Route path=':applicationId' element={<Review />} />
+      <Route path=':applicationId' element={<ReviewForm />} />
     </Routes>);
 }
 
