@@ -1,17 +1,23 @@
 package at.elmo.member.onboarding;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import at.elmo.config.ElmoProperties;
 import at.elmo.member.Member;
-import at.elmo.member.Member.Role;
+import at.elmo.member.MemberBase.Sex;
 import at.elmo.member.MemberRepository;
+import at.elmo.member.MemberService.MemberApplicationUpdate;
+import at.elmo.member.Role;
 import at.elmo.member.login.ElmoOAuth2User;
 import at.elmo.member.login.OAuth2Identifier;
 import at.elmo.member.onboarding.MemberApplication.Status;
@@ -21,6 +27,7 @@ import at.elmo.util.config.ConfigValueRepository;
 import at.elmo.util.email.EmailService;
 import at.elmo.util.exceptions.ElmoException;
 import at.elmo.util.exceptions.ElmoForbiddenException;
+import at.elmo.util.exceptions.ElmoValidationException;
 import at.phactum.bp.blueprint.process.ProcessService;
 import at.phactum.bp.blueprint.service.TaskEvent;
 import at.phactum.bp.blueprint.service.TaskEvent.Event;
@@ -33,6 +40,9 @@ import at.phactum.bp.blueprint.service.WorkflowTask;
 @Transactional
 public class MemberOnboarding {
     
+    @Autowired
+    private Logger logger;
+
     @Autowired
     private UserContext userContext;
 
@@ -104,6 +114,118 @@ public class MemberOnboarding {
 
     }
 
+    @Transactional(noRollbackFor = ElmoValidationException.class)
+    public MemberApplication processMemberApplicationInformation(
+            final String applicationId,
+            final String taskId,
+            final MemberApplicationUpdate action,
+            final Map<String, String> violations,
+            final Integer memberId,
+            final String firstName,
+            final String lastName,
+            final LocalDate birthdate,
+            final Sex sex,
+            final String zip,
+            final String city,
+            final String street,
+            final String streetNumber,
+            final String email,
+            final String emailConfirmationCode,
+            final String phoneNumber,
+            final String phoneConfirmationCode,
+            final boolean preferNotificationsPerSms,
+            final String comment,
+            final String applicationComment,
+            final Role initialRole) {
+
+        final var application = memberApplications
+                .getById(applicationId);
+        validateMemberForApplicationInformationProcessing(taskId, application);
+
+        if (action == MemberApplicationUpdate.REQUEST) {
+
+            if (application.getGeneratedEmailConfirmationCode() == null) {
+                violations.put("emailConfirmationCode", "missing");
+            } else if (!StringUtils.hasText(emailConfirmationCode)) {
+                violations.put("emailConfirmationCode", "enter");
+            } else if (!application.getGeneratedEmailConfirmationCode().equals(emailConfirmationCode)) {
+                violations.put("emailConfirmationCode", "mismatch");
+            } else if (!application.getEmail().equals(email)) {
+                violations.put("emailConfirmationCode", "mismatch");
+            }
+            if (application.getGeneratedPhoneConfirmationCode() == null) {
+                violations.put("phoneConfirmationCode", "missing");
+            } else if (!StringUtils.hasText(phoneConfirmationCode)) {
+                violations.put("phoneConfirmationCode", "enter");
+            } else if (!application.getGeneratedPhoneConfirmationCode().equals(phoneConfirmationCode)) {
+                violations.put("phoneConfirmationCode", "mismatch");
+            } else if (!application.getPhoneNumber().equals(phoneNumber)) {
+                violations.put("phoneConfirmationCode", "mismatch");
+            }
+
+        }
+
+        application.setMemberId(memberId);
+        application.setSex(sex);
+        application.setFirstName(firstName);
+        application.setLastName(lastName);
+        application.setBirthdate(birthdate);
+        application.setZip(zip);
+        application.setCity(city);
+        application.setStreet(street);
+        application.setStreetNumber(streetNumber);
+        application.setEmail(email);
+        if (emailConfirmationCode != null) {
+            application.setGivenEmailConfirmationCode(emailConfirmationCode);
+        }
+        application.setPhoneNumber(phoneNumber);
+        if (phoneConfirmationCode != null) {
+            application.setGivenPhoneConfirmationCode(phoneConfirmationCode);
+        }
+        application.setPreferNotificationsPerSms(preferNotificationsPerSms);
+        application.setComment(comment);
+        application.setApplicationComment(applicationComment);
+        if (initialRole != null) {
+            application.setInitialRole(initialRole);
+        }
+        
+        if (!violations.isEmpty()) {
+            return application;
+        }
+
+        // configured administrator will become active immediately
+        if (application.getEmail().equals(properties.getAdminIdentificationEmailAddress())) {
+            throw new UnsupportedOperationException();
+            // application.setStatus(Status.ACTIVE);
+            // return null; // no onboarding configured administrator
+        }
+        
+        if (action == MemberApplicationUpdate.REQUEST) {
+
+            completeUserRegistrationForm(application, taskId);
+
+        } else if (action == MemberApplicationUpdate.INQUIRY) {
+            
+            completeUserValidationFormForInvalidData(application, taskId);
+            
+        } else if (action == MemberApplicationUpdate.REJECT) {
+            
+            completeUserValidationFormAsRejected(application, taskId);
+            
+        } else if (action == MemberApplicationUpdate.ACCEPTED) {
+            
+            completeUserValidationFormAsAccepted(application, taskId);
+            
+        } else  if (action == MemberApplicationUpdate.SAVE) {
+
+            return memberApplications.saveAndFlush(application);
+
+        }
+
+        return application;
+        
+    }
+    
     public Optional<MemberApplication> getMemberApplicationByOAuth2User(
             final String oauth2Id) {
         
@@ -280,6 +402,7 @@ public class MemberOnboarding {
                 .orElse(new ConfigValue(ConfigValue.LAST_MEMBER_ID, "0"));
 
         final var newMemberId = Integer.parseInt(lastMemberId.getValue()) + 1;
+        application.setMemberId(newMemberId);
 
         lastMemberId.setValue(Integer.toString(newMemberId));
         configValues.save(lastMemberId);
@@ -289,7 +412,7 @@ public class MemberOnboarding {
         member.setMemberId(newMemberId);
         member.setStatus(at.elmo.member.Member.Status.ACTIVE);
         member.setOauth2Ids(List.of(application.getOauth2Id()));
-        member.addRole(Role.PASSANGER);
+        member.addRole(application.getInitialRole());
 
         member.setBirthdate(application.getBirthdate());
         member.setCity(application.getCity());
@@ -303,6 +426,9 @@ public class MemberOnboarding {
         member.setStreet(application.getStreet());
         member.setStreetNumber(application.getStreetNumber());
         member.setZip(application.getZip());
+
+        final var oauth2Id = application.getOauth2Id();
+        oauth2Id.setOwner(member);
 
         members.saveAndFlush(member);
 
@@ -319,17 +445,44 @@ public class MemberOnboarding {
     }
 
     @WorkflowTask
-    public void informDriversAboutNewMember() {
+    public void informDriversAboutNewMember(
+        final MemberApplication application) {
+
+        members
+                .findByRoles_Role(Role.DRIVER)
+                .forEach(driver -> {
+                    try {
+                        emailService.sendEmail(
+                                "onboarding/inform-drivers-about-new-member",
+                                application.getEmail(),
+                                application,
+                                driver);
+                    } catch (Exception e) {
+                        logger.warn("Could not inform driver about new member by email!", e);
+                    }
+                });
+        
+    }
+
+    @WorkflowTask
+    public void sendConfirmationOfApplication(
+            final MemberApplication application) throws Exception {
+
+        emailService.sendEmail(
+                "onboarding/confirmation-of-application",
+                application.getEmail(),
+                application);
 
     }
 
     @WorkflowTask
-    public void sendConfirmationOfApplication() {
+    public void sendRejectionOfApplication(
+            final MemberApplication application) throws Exception {
 
-    }
-
-    @WorkflowTask
-    public void sendRejectionOfApplication() {
+        emailService.sendEmail(
+                "onboarding/rejection-of-application",
+                application.getEmail(),
+                application);
 
     }
     

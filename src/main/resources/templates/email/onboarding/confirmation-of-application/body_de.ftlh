@@ -3,7 +3,7 @@
 <head>
 <meta name="viewport" content="width=device-width" />
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title>Erinnerung: Deine Elmo-Anmeldung ist noch unvollständig!</title>
+<title>Deine Elmo-Anmeldung ist nun freigeschaltet!</title>
 <style type="text/css">
 img {
 max-width: 100%;
@@ -88,22 +88,24 @@ background-color: #f6f6f6;
                 </tr>
                 <tr style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
                   <td class="content-block" style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; vertical-align: top; margin: 0; padding: 0 0 20px;" valign="top">
-                    Damit du Fahrten buchen kannst und wir dich dann mit unseren Elektroautos mitnehmen können, <b>bitten wir dich die Registrierung abzuschließen</b>.
+                    <b>Deine Elmo-Anmeldung ist nun freigeschaltet!</b>
+                    Du kannst nun den Dienst nutzen.
+                    Rufe dafür <a href="${elmo.gatewayUrl?no_esc}">${elmo.gatewayUrl}</a> in deinem Browser
+                    auf und melde dich erneut an.
                   </td>
                 </tr>
                 <tr style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
                   <td class="content-block" style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; vertical-align: top; margin: 0; padding: 0 0 20px;" valign="top">
-                    Bitte rufe dafür die Seite <a href="${elmo.gatewayUrl?no_esc}">${elmo.gatewayUrl}</a> in deinem Browser auf und melde dich erneut an. Es erscheint sofort das Formular mit einem Hinweis welche Daten noch fehlen oder klicke die blauen Taste an:
+                    Solltest du Buchungen telefonisch unter ${elmo.phoneNumber} abwickeln, dann halte bitte deine Mitgliedsnummer bereit!
                   </td>
                 </tr>
                 <tr style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
                   <td class="content-block" style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; vertical-align: top; margin: 0; padding: 0 0 20px;" valign="top">
-                    <a href="${elmo.gatewayUrl?no_esc}" class="btn-primary" style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; color: #FFF; text-decoration: none; line-height: 2em; font-weight: bold; text-align: center; cursor: pointer; display: inline-block; border-radius: 5px; text-transform: capitalize; background-color: #348eda; margin: 0; border-color: #348eda; border-style: solid; border-width: 10px 20px;">Registerung abschließen</a>
+                    <div class="btn-primary" style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; color: #FFF; text-decoration: none; line-height: 2em; font-weight: bold; text-align: center; cursor: pointer; display: inline-block; border-radius: 5px; text-transform: capitalize; background-color: #348eda; margin: 0; border-color: #348eda; border-style: solid; border-width: 10px 20px;">Mitgliedsnummer: ${memberApplication.memberId!"-"}</div>
                   </td>
                 </tr>
                 <tr style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
                   <td class="content-block" style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; vertical-align: top; margin: 0; padding: 0 0 20px;" valign="top">
-                    Vielen Dank,<br>
                     Dein <i>${elmo.title}</i>
                   </td>
                 </tr>

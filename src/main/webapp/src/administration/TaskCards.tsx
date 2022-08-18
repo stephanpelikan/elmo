@@ -28,7 +28,7 @@ const TaskCards = () => {
   }, [ countOfInprogressMemberOnboardings, loadCountOfInprogressMemberOnboardings ]);
 
   useLayoutEffect(() => {
-    setAppHeaderTitle('administration');
+    setAppHeaderTitle('administration', true);
   }, [ setAppHeaderTitle ]);
   
   return (
@@ -43,7 +43,7 @@ const TaskCards = () => {
               count={countOfInprogressMemberOnboardings}
               textSize={countOfInprogressMemberOnboardings > 99 ? 'xsmall' : 'small'}
               size='large'
-              background='accent-3' />
+              background='brand' />
           : <></>
         }
       </Card>

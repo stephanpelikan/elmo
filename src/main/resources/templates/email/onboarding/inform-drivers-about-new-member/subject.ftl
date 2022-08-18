@@ -1,0 +1,1 @@
+A new Elmo member has joined!

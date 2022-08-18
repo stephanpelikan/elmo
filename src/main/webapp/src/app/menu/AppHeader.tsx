@@ -17,7 +17,7 @@ const AppHeader = () => {
   return (
     <Header
         tag='header'
-        background='brand'
+        background={ state.intern ? 'accent-3' : 'brand' }
         elevation='medium'
         height='xxsmall'
         pad='xxsmall'

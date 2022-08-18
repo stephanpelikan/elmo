@@ -216,7 +216,7 @@ public class GuiApiController implements GuiApi {
                 ? memberApplicationForm.getPreferNotificationsPerSms().booleanValue()
                 : false;
 
-        memberService.processMemberApplicationInformation(
+        memberOnboarding.processMemberApplicationInformation(
                 memberApplicationForm.getApplicationId(),
                 memberApplicationForm.getTaskId(),
                 MemberApplicationUpdate.REQUEST,
@@ -235,7 +235,9 @@ public class GuiApiController implements GuiApi {
                 memberApplicationForm.getPhoneNumber(),
                 memberApplicationForm.getPhoneConfirmationCode(),
                 referNotificationsPerSms,
-                memberApplicationForm.getComment(), memberApplicationForm.getApplicationComment());
+                memberApplicationForm.getComment(),
+                memberApplicationForm.getApplicationComment(),
+                null);
         
         if (!violations.isEmpty()) {
             throw new ElmoValidationException(violations);

@@ -132,7 +132,7 @@ const RegistrationSubmitted = () => {
           <Markdown options={ { forceBlock: true } }>{ t(`text_${state.currentUser.status}`, {
               memberApplicationForm,
               salutation: t(`salutation_${memberApplicationForm.sex}`),
-              birthdate: memberApplicationForm.birthdate.toLocaleDateString(),
+              birthdate: memberApplicationForm.birthdate?.toLocaleDateString(),
               applicationComment: Boolean(memberApplicationForm.applicationComment) ? memberApplicationForm.applicationComment : t('no_comments'),
               notificationChannel: memberApplicationForm.preferNotificationsPerSms ? t('label_notification_sms') : t('label_notification_email') }
           )}</Markdown>

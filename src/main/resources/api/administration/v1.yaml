@@ -235,6 +235,8 @@ components:
           type: string
         applicationComment:
           type: string
+        initialRole:
+          $ref: '#/components/schemas/Role'
     Member:
       type: object
       properties:

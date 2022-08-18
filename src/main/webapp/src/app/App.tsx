@@ -51,6 +51,14 @@ export const theme: ThemeType = {
       }
     `,
   },
+  maskedInput: {
+    extend: css`
+      ::placeholder {
+        font-weight: normal;
+        color: ${props => props.theme.global.colors.placeholder};
+      }
+    `,
+  },
   textInput: {
     extend: css`
       ::placeholder {

@@ -1,0 +1,1 @@
+Your Elmo registration has been rejected!

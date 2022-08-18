@@ -19,7 +19,7 @@ const Main = () => {
   const { setAppHeaderTitle } = useAppContext();
   
   useLayoutEffect(() => {
-    setAppHeaderTitle('administration/onboarding');
+    setAppHeaderTitle('administration/onboarding', true);
   }, [ setAppHeaderTitle ]);
 
   return (

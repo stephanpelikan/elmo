@@ -58,6 +58,7 @@ public class FreemarkerConfiguration {
                 elmoInformation.setGatewayUrl(properties.getGatewayUrl());
                 elmoInformation.setHomepage(properties.getHomepageUrl());
                 elmoInformation.setEmailSender(emailProperties.getSender());
+                elmoInformation.setPhoneNumber(properties.getTransportServicePhoneNumber());
                 config.setSharedVariable("elmo", elmoInformation);
 
             }
@@ -79,6 +80,8 @@ public class FreemarkerConfiguration {
         private String homepage;
 
         private String emailSender;
+
+        private String phoneNumber;
 
         public String getTitle() {
             return title;
@@ -110,6 +113,14 @@ public class FreemarkerConfiguration {
 
         public void setEmailSender(String emailSender) {
             this.emailSender = emailSender;
+        }
+
+        public String getPhoneNumber() {
+            return phoneNumber;
+        }
+
+        public void setPhoneNumber(String phoneNumber) {
+            this.phoneNumber = phoneNumber;
         }
 
     }

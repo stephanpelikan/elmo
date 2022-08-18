@@ -4,7 +4,7 @@ import { useContext, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAppContext } from "../../AppContext";
-import { AdministrationApi, MemberApplication, MemberApplicationUpdate, Sex } from "../../client/administration";
+import { AdministrationApi, MemberApplication, MemberApplicationUpdate, Role, Sex } from "../../client/administration";
 import { theme as appTheme } from '../../app/App';
 import i18n from '../../i18n';
 import { css } from "styled-components";
@@ -22,6 +22,11 @@ i18n.addResources('en', 'administration/onboarding/review', {
       "MALE": "Male",
       "FEMALE": "Female",
       "OTHER": "Other",
+      "initial-role": "Initial role:",
+      "PASSANGER": "Passanger",
+      "DRIVER": "Driver",
+      "MANAGER": "Manager",
+      "ADMIN": "Administrator",
       "birthdate": "Birthdate:",
       "birthdate_format": "yyyy/m/d",
       "birthdate_validation": "Wrong format, use yyyy/mm/dd",
@@ -56,6 +61,11 @@ i18n.addResources('de', 'administration/onboarding/review', {
       "MALE": "Mann",
       "FEMALE": "Frau",
       "OTHER": "Andere",
+      "initial-role": "Role des Mitglieds:",
+      "PASSANGER": "Passagier",
+      "DRIVER": "FahrerIn",
+      "MANAGER": "ManagerIn",
+      "ADMIN": "AdministratorIn",
       "birthdate": "Geburtstag:",
       "birthdate_format": "d.m.yyyy",
       "birthdate_validation": "Falsches Format, bitte DD.MM.JJJJ verwenden",
@@ -96,6 +106,7 @@ interface FormState {
   preferNotificationsPerSms: boolean;
   comment: string;
   applicationComment: string;
+  initialRole: Role;
 };
 
 const setFormValueByApplication = (
@@ -118,6 +129,7 @@ const setFormValueByApplication = (
     preferNotificationsPerSms: application.preferNotificationsPerSms,
     comment: application.comment,
     applicationComment: application.applicationComment,
+    initialRole: application.initialRole ? application.initialRole : Role.Passanger,
   };
   setFormValue(formValue);
   
@@ -164,6 +176,7 @@ const updateData = async (
           zip: formValue.zip,
           comment: formValue.comment,
           applicationComment: formValue.applicationComment,
+          initialRole: formValue.initialRole,
         }
       }
     });  
@@ -226,6 +239,13 @@ const ReviewForm = () => {
     setFormValue({
       ...formValue,
       sex
+    })
+  };
+
+  const setInitialRole = (initialRole: Role) => {
+    setFormValue({
+      ...formValue,
+      initialRole
     })
   };
   
@@ -422,6 +442,22 @@ const ReviewForm = () => {
             disabled={ loading }
             placeholder={<Text>{ t('member-id_placeholder') }</Text>}
             info={ t('member-id_info') } />
+        {/* initial role */}
+        <ViolationsAwareFormField
+            name="initialRole"
+            label='initial-role'
+            t={ t }
+            violations={ violations }
+            disabled={ loading }
+            htmlFor="initialRoleSelect">
+          <Select
+              id="initialRoleSelect"
+              options={[ Role.Passanger, Role.Driver, Role.Manager, Role.Admin ]}
+              value={ formValue?.initialRole }
+              labelKey={ t }
+              onChange={({ value }) => setInitialRole(value)}
+            />
+        </ViolationsAwareFormField>
         {/* comment */}
         <FormField
             name="comment"

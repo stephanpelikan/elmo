@@ -139,7 +139,7 @@ public class AdministrationApiController implements AdministrationApi {
 
         }
 
-        final var updated = memberService.processMemberApplicationInformation(
+        final var updated = memberOnboarding.processMemberApplicationInformation(
                 applicationId,
                 updateMemberOnboarding.getTaskId(),
                 mapper.toDomain(updateMemberOnboarding.getAction()),
@@ -158,7 +158,9 @@ public class AdministrationApiController implements AdministrationApi {
                 application.getPhoneNumber(),
                 null,
                 application.getPreferNotificationsPerSms(),
-                application.getComment(), application.getApplicationComment());
+                application.getComment(),
+                application.getApplicationComment(),
+                mapper.toDomain(application.getInitialRole()));
         
         final var result = mapper.toApi(updated);
         

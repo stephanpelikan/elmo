@@ -12,7 +12,7 @@ type Action =
     | { type: 'memberApplicationFormRevoked' }
     | { type: 'showMenu', visibility: boolean }
     | { type: 'toast', toast: Toast | undefined }
-    | { type: 'updateTitle', title: string };
+    | { type: 'updateTitle', title: string, intern?: boolean };
 export type Dispatch = (action: Action) => void;
 export type Toast = {
   namespace: string;
@@ -25,6 +25,7 @@ type State = {
   currentUser: User | null | undefined;
   showMenu: boolean;
   title: string;
+  intern: boolean;
   toast: Toast | undefined;
 };
 
@@ -38,7 +39,7 @@ const AppContext = React.createContext<{
   fetchAppInformation: () => void;
   fetchCurrentUser: (resolve: (value: User | null) => void, reject: (error: any) => void) => void;
   showMenu: (visibility: boolean) => void;
-  setAppHeaderTitle: (title: string) => void;
+  setAppHeaderTitle: (title: string, intern?: boolean) => void;
   memberApplicationFormSubmitted: () => void;
   memberApplicationFormRevoked: () => void;
 } | undefined>(undefined);
@@ -100,6 +101,7 @@ const appContextReducer: React.Reducer<State, Action> = (state, action) => {
     newState = {
       ...state,
       title: action.title,
+      intern: action.intern ? true : false,
     };
     break;
   }
@@ -120,6 +122,7 @@ const AppContextProvider = ({ children }: AppContextProviderProps) => {
     showMenu: false,
     title: 'app',
     toast: undefined,
+    intern: false,
   });
   const administrationApi = useMemo(() => getAdministrationApi(dispatch), [ dispatch ]);
   const guiApi = useMemo(() => getGuiApi(dispatch), [ dispatch ]);
@@ -132,7 +135,7 @@ const AppContextProvider = ({ children }: AppContextProviderProps) => {
       [ guiApi, state ]);
   const showMenu = useCallback((visibility: boolean) => setShowMenu(dispatch, visibility),
       [ dispatch ]);
-  const setAppHeaderTitle = useCallback((title: string) => updateTitle(dispatch, title),
+  const setAppHeaderTitle = useCallback((title: string, intern?: boolean) => updateTitle(dispatch, title, intern),
       [ dispatch ]); 
   const memberApplicationFormSubmitted = useCallback(() => doMemberApplicationFormSubmitted(dispatch),
       [ dispatch ]);
@@ -216,8 +219,8 @@ const setShowMenu = (dispatch: Dispatch, visibility: boolean) => {
   dispatch({ type: 'showMenu', visibility });
 }
 
-const updateTitle = (dispatch: Dispatch, title: string) => {
-  dispatch({ type: 'updateTitle', title });
+const updateTitle = (dispatch: Dispatch, title: string, intern?: boolean) => {
+  dispatch({ type: 'updateTitle', title, intern });
 }
 
 const useAppContext = () => {

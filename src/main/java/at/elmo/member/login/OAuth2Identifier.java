@@ -18,7 +18,7 @@ public class OAuth2Identifier {
     private String id;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "OWNER", nullable = false, updatable = false)
+    @JoinColumn(name = "OWNER", nullable = false, updatable = true)
     private MemberBase owner;
 
     @Column(name = "PROVIDER")

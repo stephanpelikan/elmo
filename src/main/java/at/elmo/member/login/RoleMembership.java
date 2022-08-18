@@ -11,7 +11,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import at.elmo.member.Member;
-import at.elmo.member.Member.Role;
+import at.elmo.member.Role;
 
 @Entity
 @Table(name = "ELMO_MEMBER_ROLE")

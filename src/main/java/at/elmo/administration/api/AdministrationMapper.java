@@ -25,6 +25,8 @@ public abstract class AdministrationMapper {
 
     }
 
+    public abstract at.elmo.member.Role toDomain(Role role);
+
     public abstract at.elmo.member.Member.Status toDomain(MemberStatus status);
 
     public abstract at.elmo.member.Member.Sex toDomain(Sex sex);

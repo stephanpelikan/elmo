@@ -25,31 +25,6 @@ public class Member extends MemberBase {
         TO_BE_DELETED
     };
     
-    public static enum Role {
-        PASSANGER,
-        DRIVER,
-        MANAGER,
-        ADMIN;
-
-        public static List<Role> orderedByConstraint(
-                final Role minimalConstraint) {
-            
-            final var result = new LinkedList<Role>();
-            boolean found = false;
-            for (final var role : Role.values()) {
-                if (role == minimalConstraint) {
-                    found = true;
-                }
-                if (found) {
-                    result.add(role);
-                }
-            }
-            return result;
-            
-        }
-
-    }
-
     @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY, cascade = { CascadeType.MERGE, CascadeType.PERSIST,
             CascadeType.DETACH })
     private List<OAuth2Identifier> oauth2Ids;

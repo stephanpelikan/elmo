@@ -20,8 +20,8 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.session.jdbc.config.annotation.web.http.EnableJdbcHttpSession;
 
 import at.elmo.config.ElmoProperties;
-import at.elmo.member.Member.Role;
 import at.elmo.member.MemberService;
+import at.elmo.member.Role;
 import at.elmo.member.login.OAuth2UserService;
 import at.elmo.member.onboarding.MemberOnboarding;
 

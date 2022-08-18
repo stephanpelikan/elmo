@@ -3,7 +3,7 @@ package at.elmo.member.login;
 import java.io.Serializable;
 
 import at.elmo.member.Member;
-import at.elmo.member.Member.Role;
+import at.elmo.member.Role;
 
 public class RoleMembershipId implements Serializable {
 

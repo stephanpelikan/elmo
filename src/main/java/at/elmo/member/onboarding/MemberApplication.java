@@ -10,6 +10,7 @@ import javax.persistence.FetchType;
 import javax.persistence.OneToOne;
 
 import at.elmo.member.MemberBase;
+import at.elmo.member.Role;
 import at.elmo.member.login.OAuth2Identifier;
 
 @Entity
@@ -38,6 +39,10 @@ public class MemberApplication extends MemberBase {
 
     @Column(name = "APPLICATION_COMMENT")
     private String applicationComment;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "APPLICATION_ROLE")
+    private Role initialRole;
 
     public boolean isUserInformationInvalid() {
 
@@ -101,6 +106,14 @@ public class MemberApplication extends MemberBase {
 
     public void setApplicationComment(String applicationComment) {
         this.applicationComment = applicationComment;
+    }
+
+    public Role getInitialRole() {
+        return initialRole;
+    }
+
+    public void setInitialRole(Role initialRole) {
+        this.initialRole = initialRole;
     }
 
 }

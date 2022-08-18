@@ -1,0 +1,1 @@
+Deine Elmo-Anmeldung wurde nicht akzeptiert!
