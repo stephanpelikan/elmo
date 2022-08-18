@@ -43,6 +43,7 @@
       <column name="TYPE" type="varchar(1)" />
 			<column name="STATUS" type="varchar(30)" />
       <column name="APPLICATION_USERTASK" type="varchar(40)" />
+      <column name="APPLICATION_COMMENT" type="clob" />
 			<column name="CREATED_AT" type="timestamp">
 				<constraints nullable="false" />
 			</column>

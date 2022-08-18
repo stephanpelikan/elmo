@@ -86,7 +86,7 @@ public class MemberService {
             final String phoneNumber,
             final String phoneConfirmationCode,
             final boolean preferNotificationsPerSms,
-            final String comment) {
+            final String comment, final String applicationComment) {
 
         final var application = memberApplications
                 .getById(applicationId);
@@ -133,9 +133,8 @@ public class MemberService {
             application.setGivenPhoneConfirmationCode(phoneConfirmationCode);
         }
         application.setPreferNotificationsPerSms(preferNotificationsPerSms);
-        if (StringUtils.hasText(comment)) {
-            application.setComment(comment);
-        }
+        application.setComment(comment);
+        application.setApplicationComment(applicationComment);
         
         if (!violations.isEmpty()) {
             return application;

@@ -270,3 +270,5 @@ components:
           type: boolean
         comment:
           type: string
+        applicationComment:
+          type: string

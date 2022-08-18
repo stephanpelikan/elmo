@@ -235,7 +235,7 @@ public class GuiApiController implements GuiApi {
                 memberApplicationForm.getPhoneNumber(),
                 memberApplicationForm.getPhoneConfirmationCode(),
                 referNotificationsPerSms,
-                memberApplicationForm.getComment());
+                memberApplicationForm.getComment(), memberApplicationForm.getApplicationComment());
         
         if (!violations.isEmpty()) {
             throw new ElmoValidationException(violations);

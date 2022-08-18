@@ -14,6 +14,7 @@ i18n.addResources('en', 'login/registration/submitted', {
       "text_APPLICATION_SUBMITTED": "You have complete your application. The Elmo-association's management board will check your data and give you a clearance soon. You will receive an email or a text message.",
       "text_INACTIVE": "Your access to the Elmo service is currently inactive. Get in contact with the Elmo-association's management board if you want to reactivate it.",
       "button_changedata": "Fix data",
+      "no_comments": "None",
       "salutation_MALE": "Mr. ",
       "salutation_FEMALE": "Mrs. ",
       "salutation_OTHER": "",
@@ -46,11 +47,20 @@ Geboren: {{birthdate}}
 Email: {{memberApplicationForm.email}}<br>
 Telefon {{memberApplicationForm.phoneNumber}}<br>
 Bevorzugt: {{notificationChannel}}
+
+### Zur Registrierung:
+
+Bermerkungen:
+
+\`\`\`
+{{applicationComment}}
+\`\`\`
 `,
       "text_INACTIVE": "Dein Zugang zum Elmo-Dienst ist derzeit inaktiv. Bitte wende dich an den Vereinsvorstand, wenn du ihn wieder aktivieren möchtest.",
       "button_changedata": "Daten korrigieren",
       "label_notification_email": "Email",
       "label_notification_sms": "SMS",
+      "no_comments": "Keine",
       "salutation_MALE": "Herr ",
       "salutation_FEMALE": "Frau ",
       "salutation_OTHER": "",
@@ -123,6 +133,7 @@ const RegistrationSubmitted = () => {
               memberApplicationForm,
               salutation: t(`salutation_${memberApplicationForm.sex}`),
               birthdate: memberApplicationForm.birthdate.toLocaleDateString(),
+              applicationComment: Boolean(memberApplicationForm.applicationComment) ? memberApplicationForm.applicationComment : t('no_comments'),
               notificationChannel: memberApplicationForm.preferNotificationsPerSms ? t('label_notification_sms') : t('label_notification_email') }
           )}</Markdown>
           <Box align='center' pad={{ bottom: 'medium' }}>

@@ -37,6 +37,8 @@ i18n.addResources('en', 'administration/onboarding/review', {
       "reject-member": "Reject",
       "inquiry": "Inquiry",
       "comment": "Comment on reject/inquiry",
+      "application-comment": "Remarks on application:",
+      "application-comment_placeholder": "None",
       "loading": "Loading...",
       "reset": "Reset",
       "save": "Save",
@@ -69,6 +71,8 @@ i18n.addResources('de', 'administration/onboarding/review', {
       "inquiry": "Rückfrage",
       "reject-member": "Ablehnen",
       "comment": "Kommentar für Rückfragen/Abweisen",
+      "application-comment": "Bermerkungen zum Antrag:",
+      "application-comment_placeholder": "Keine",
       "loading": "Lade Daten...",
       "reset": "Zurücksetzen",
       "save": "Speichern",
@@ -91,6 +95,7 @@ interface FormState {
   phoneNumber: string;
   preferNotificationsPerSms: boolean;
   comment: string;
+  applicationComment: string;
 };
 
 const setFormValueByApplication = (
@@ -112,6 +117,7 @@ const setFormValueByApplication = (
     phoneNumber: application.phoneNumber,
     preferNotificationsPerSms: application.preferNotificationsPerSms,
     comment: application.comment,
+    applicationComment: application.applicationComment,
   };
   setFormValue(formValue);
   
@@ -157,6 +163,7 @@ const updateData = async (
           streetNumber: formValue.streetNumber,
           zip: formValue.zip,
           comment: formValue.comment,
+          applicationComment: formValue.applicationComment,
         }
       }
     });  
@@ -296,6 +303,18 @@ const ReviewForm = () => {
             } }
           onReset={ () => setFormValue(undefined) }
           onSubmit={ value => accept() }>
+        {/* application comment */}
+        <FormField
+            name="applicationComment"
+            label={ t('application-comment') }
+            htmlFor="applicationComment">
+          <Text
+              id="applicationComment"
+              style={ { fontFamily: 'monospace', whiteSpace: 'pre' } }
+              margin={ { horizontal: 'small' } }
+              wordBreak="keep-all"
+              >{ Boolean(formValue?.applicationComment) ? formValue?.applicationComment : t('application-comment_placeholder') }</Text>
+        </FormField>
         {/* first name */}
         <ViolationsAwareFormField
             name="firstName"

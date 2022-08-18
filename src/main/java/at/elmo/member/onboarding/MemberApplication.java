@@ -36,6 +36,9 @@ public class MemberApplication extends MemberBase {
     @Column(name = "APPLICATION_USERTASK")
     private String userTaskId;
 
+    @Column(name = "APPLICATION_COMMENT")
+    private String applicationComment;
+
     public boolean isUserInformationInvalid() {
 
         return getStatus() == Status.DATA_INVALID;
@@ -90,6 +93,14 @@ public class MemberApplication extends MemberBase {
 
     public void setOauth2Id(OAuth2Identifier oauth2Id) {
         this.oauth2Id = oauth2Id;
+    }
+
+    public String getApplicationComment() {
+        return applicationComment;
+    }
+
+    public void setApplicationComment(String applicationComment) {
+        this.applicationComment = applicationComment;
     }
 
 }

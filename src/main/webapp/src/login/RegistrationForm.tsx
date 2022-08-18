@@ -1,4 +1,4 @@
-import { Anchor, Box, Button, CheckBox, DateInput, Form, FormField, Heading, Paragraph, ResponsiveContext, Select, TextInput } from "grommet";
+import { Anchor, Box, Button, CheckBox, DateInput, Form, FormField, Heading, Paragraph, ResponsiveContext, Select, Text, TextArea, TextInput } from "grommet";
 import { useContext, useEffect, useState } from "react";
 import { useAppContext } from '../AppContext';
 import { useTranslation } from 'react-i18next';
@@ -44,6 +44,10 @@ i18n.addResources('en', 'registration-form', {
       "email-confirmation-code": "Email confirmation code:",
       "phone-number": "Phone number:",
       "prefer-notifications-per-sms": "Notify by SMS instead email?",
+      "about application": "About your application",
+      "comment": "Change notices:",
+      "application-comment": "Remarks you want to make:",
+      "application-comment_placeholder": "What would you like to tell us?",
       "terms-and-conditions": "I agree to service conditions:",
       "terms-and-conditions-details": "details",
       "submit-form": "Submit",
@@ -97,6 +101,10 @@ i18n.addResources('de', 'registration-form', {
       "phone-confirmation-code_enter": "Trage den zugesendeted Code hier ein!",
       "request-phone-confirmation-code": "Anfordern",
       "prefer-notifications-per-sms": "Hinweise zu deinen Fahrten per SMS statt Email?",
+      "comment": "Änderungshinweise:",
+      "about application": "Zur Registrierung",
+      "application-comment": "Bermerkungen von dir:",
+      "application-comment_placeholder": "Was möchtest du uns mitteilen?",
       "terms-and-conditions": "Ich stimme den AGBs und Datenschutzbedingungen zu:",
       "terms-and-conditions-details": "Details",
       "submit-form": "Absenden",
@@ -228,6 +236,21 @@ const RegistrationForm = () => {
             } }
           onReset={ () => setFormValue(undefined) }
           onSubmit={ value => submitForm() }>
+        {
+          Boolean(formValue?.comment)
+            ? <>
+                <Heading
+                    size='small'
+                    color='red'
+                    level='2'>{ t('comment') }</Heading>
+                <Text
+                    style={ { fontFamily: 'monospace', whiteSpace: 'pre' } }
+                    margin={ { horizontal: 'small' } }
+                    wordBreak="keep-all"
+                    >{ formValue?.comment }</Text>
+              </>
+            : <></> 
+        }
         <Heading
             size='small'
             level='2'>{ t('personal data') }</Heading>
@@ -385,6 +408,19 @@ const RegistrationForm = () => {
               label={ t('prefer-notifications-per-sms') }
               disabled={ submitting }
             />
+        </FormField>
+        <Heading
+            size='small'
+            level='2'>{t('about application')}</Heading>
+        {/* application comment */}
+        <FormField
+            name="applicationComment"
+            label={ t('application-comment') }
+            disabled={ submitting }
+            htmlFor="applicationComment">
+          <TextArea
+              name="applicationComment"
+              placeholder={ t('application-comment_placeholder') } />
         </FormField>
         {/* terms and conditions */}
         <FormField

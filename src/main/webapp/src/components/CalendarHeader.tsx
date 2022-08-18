@@ -71,7 +71,8 @@ const CalendarHeader = ({
           />
         </Box>
       </Box>
-      <Box>
+      <Box
+          margin={ { vertical: 'small' } }>
         <RangeInput
             min={firstYear}
             max={thisYear}

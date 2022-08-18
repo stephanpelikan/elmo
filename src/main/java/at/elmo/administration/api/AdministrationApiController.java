@@ -158,7 +158,7 @@ public class AdministrationApiController implements AdministrationApi {
                 application.getPhoneNumber(),
                 null,
                 application.getPreferNotificationsPerSms(),
-                application.getComment());
+                application.getComment(), application.getApplicationComment());
         
         final var result = mapper.toApi(updated);
         

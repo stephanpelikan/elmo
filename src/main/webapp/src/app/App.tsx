@@ -43,6 +43,14 @@ export const theme: ThemeType = {
       requiredIndicator: true,
     }
   },
+  textArea: {
+    extend: css`
+      ::placeholder {
+        font-weight: normal;
+        color: ${props => props.theme.global.colors.placeholder};
+      }
+    `,
+  },
   textInput: {
     extend: css`
       ::placeholder {

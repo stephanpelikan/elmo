@@ -233,6 +233,8 @@ components:
           type: boolean
         comment:
           type: string
+        applicationComment:
+          type: string
     Member:
       type: object
       properties:
