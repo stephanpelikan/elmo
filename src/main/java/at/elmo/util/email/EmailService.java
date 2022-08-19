@@ -1,5 +1,6 @@
 package at.elmo.util.email;
 
+import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -59,12 +60,33 @@ public class EmailService {
         final var targetToAddress = determineToAddress(toAddress);
         
         final var mimeMessage = mailSender.createMimeMessage();
-        final var helper = new MimeMessageHelper(mimeMessage, StandardCharsets.UTF_8.name());
+        final var helper = new MimeMessageHelper(
+                mimeMessage,
+                true,
+                StandardCharsets.UTF_8.name());
         
         helper.setFrom(properties.getSender());
         helper.setTo(targetToAddress);
         helper.setSubject(subject);
         helper.setText(body, true);
+        Arrays
+                .stream(context)
+                .filter(c -> c != null)
+                .filter(c -> (c instanceof NamedObject))
+                .map(c -> (NamedObject) c)
+                .filter(c -> (c.getObject() instanceof File))
+                .forEach(c -> {
+                    try {
+                        helper.addAttachment(c.getName(), (File) c.getObject());
+                    } catch (Exception e) {
+                        logger.error(
+                                "Could not attach file '{}' to email '{}' sent to {}",
+                                c.getName(),
+                                templatePath,
+                                toAddress,
+                                e);
+                    }
+                });
 
         mailSender.send(mimeMessage);
 
@@ -100,10 +122,10 @@ public class EmailService {
             // build context with e.g. 'member' -> Member
             Arrays
                     .stream(context)
-                    .forEach(c -> templateContext.put(
-                            c.getClass().getSimpleName().substring(0, 1).toLowerCase()
-                                    + c.getClass().getSimpleName().substring(1),
-                            c));
+                    .filter(c -> c != null)
+                    .map(c -> NamedObject.from(c))
+                    .filter(c -> !(c.getObject() instanceof File))
+                    .forEach(c -> templateContext.put(c.getName(), c.getObject()));
             
         }
 

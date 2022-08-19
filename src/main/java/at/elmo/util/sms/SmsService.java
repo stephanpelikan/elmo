@@ -15,6 +15,7 @@ import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
 import at.elmo.config.ElmoProperties;
 import at.elmo.config.FreemarkerConfiguration;
+import at.elmo.util.email.NamedObject;
 import at.elmo.util.sms.Sms.Status;
 import freemarker.template.Configuration;
 
@@ -111,10 +112,8 @@ public class SmsService {
             // build context with e.g. 'member' -> Member
             Arrays
                     .stream(context)
-                    .forEach(c -> templateContext.put(
-                            c.getClass().getSimpleName().substring(0, 1).toLowerCase()
-                                    + c.getClass().getSimpleName().substring(1),
-                            c));
+                    .map(c -> NamedObject.from(c))
+                    .forEach(c -> templateContext.put(c.getName(), c.getObject()));
             
         }
 

@@ -1,0 +1,2 @@
+id;memberId;email;firstName;lastName;birthdate;sex;zip;city;street;streetNumber;phoneNumber
+339d461f-5743-406a-a00d-34d46babe4a0;1;max@mustermann.com;Max;Mustermann;1980-01-11;MALE;1234;Downtown;Musterstraße;1A;+436641234567

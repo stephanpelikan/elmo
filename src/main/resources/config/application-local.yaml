@@ -3,6 +3,7 @@ elmo:
   title-long: ElektroMobil Gänserndorf
   homepage-url: https://www.elektromobil-gf.at
   homepage-service-conditions-url: https://www.elektromobil-gf.at/wp/kontakt-und-impressum
+  passanger-agreement-pdf-directory: src/test/attachments/passanger-agreement  
   gateway-url: http://localhost:3000
   default-locale: de
   sms:

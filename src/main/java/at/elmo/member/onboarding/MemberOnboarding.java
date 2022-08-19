@@ -1,6 +1,9 @@
 package at.elmo.member.onboarding;
 
+import java.io.File;
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -8,12 +11,14 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import at.elmo.config.ElmoProperties;
 import at.elmo.member.Member;
+import at.elmo.member.MemberBase;
 import at.elmo.member.MemberBase.Sex;
 import at.elmo.member.MemberRepository;
 import at.elmo.member.MemberService.MemberApplicationUpdate;
@@ -25,9 +30,12 @@ import at.elmo.util.UserContext;
 import at.elmo.util.config.ConfigValue;
 import at.elmo.util.config.ConfigValueRepository;
 import at.elmo.util.email.EmailService;
+import at.elmo.util.email.NamedObject;
 import at.elmo.util.exceptions.ElmoException;
 import at.elmo.util.exceptions.ElmoForbiddenException;
 import at.elmo.util.exceptions.ElmoValidationException;
+import at.elmo.util.pdf.fillin.PdfFillIn;
+import at.elmo.util.pdf.fillin.processors.FreemarkerCsvProcessor;
 import at.phactum.bp.blueprint.process.ProcessService;
 import at.phactum.bp.blueprint.service.TaskEvent;
 import at.phactum.bp.blueprint.service.TaskEvent.Event;
@@ -42,7 +50,7 @@ public class MemberOnboarding {
     
     @Autowired
     private Logger logger;
-
+    
     @Autowired
     private UserContext userContext;
 
@@ -456,7 +464,7 @@ public class MemberOnboarding {
                                 "onboarding/inform-drivers-about-new-member",
                                 application.getEmail(),
                                 application,
-                                driver);
+                                NamedObject.from(driver).as("driver"));
                     } catch (Exception e) {
                         logger.warn("Could not inform driver about new member by email!", e);
                     }
@@ -468,10 +476,64 @@ public class MemberOnboarding {
     public void sendConfirmationOfApplication(
             final MemberApplication application) throws Exception {
 
-        emailService.sendEmail(
-                "onboarding/confirmation-of-application",
-                application.getEmail(),
-                application);
+        final NamedObject agreement;
+        if (application.getInitialRole() == Role.PASSANGER) {
+            agreement = buildPassangerAgreementPdf(application);
+        } else {
+            agreement = null;
+        }
+        
+        try {
+            
+            emailService.sendEmail(
+                    "onboarding/confirmation-of-application",
+                    application.getEmail(),
+                    application,
+                    agreement);
+            
+        } finally {
+
+            if (agreement != null) {
+                ((File) agreement.getObject()).delete();
+            }
+            
+        }
+
+    }
+
+    public NamedObject buildPassangerAgreementPdf(
+            final MemberBase application) throws Exception {
+
+        final var dir = new File(properties.getPassangerAgreementPdfDirectory());
+        final var configuration = new File(dir, "config.csv");
+        final var result = File.createTempFile("elmo", "passanger-agreement_" + application.getMemberId());
+        final var template = new File(dir, "template.pdf");
+        
+        final var data = new HashMap<String, Object>();
+        Arrays
+                .stream(MemberBase.class.getDeclaredFields())
+                .map(field -> {
+                    Object value;
+                    try {
+                        field.setAccessible(true); // access private fields
+                        value = field.get(application);
+                    } catch (Exception e) {
+                        logger.warn(
+                                "Could not access field '{}' of '{}'",
+                                field.getName(),
+                                application.getClass().getName(),
+                                e);
+                        value = null;
+                    }
+                    return Pair.of(field.getName(), Optional.ofNullable(value));
+                })
+                .forEach(pair -> data.put(pair.getFirst(), pair.getSecond().orElse(null)));
+
+        final var pdfProcessor = new FreemarkerCsvProcessor(configuration);
+        result.createNewFile();
+        pdfProcessor.process(template, data, PdfFillIn.CSV_ENCODING, result);
+
+        return NamedObject.from(result).as("PassangerAgreement.pdf");
 
     }
 

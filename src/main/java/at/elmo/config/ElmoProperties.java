@@ -33,6 +33,9 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties {
     private String titleLong;
 
     @NonNull
+    private String generalEmailAddress;
+
+    @NonNull
     private String homepageUrl;
 
     @NonNull
@@ -43,6 +46,9 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties {
 
     @NonNull
     private String adminIdentificationEmailAddress;
+
+    @NonNull
+    private String passangerAgreementPdfDirectory;
 
     @NonNull
     private String defaultLocale;
@@ -176,6 +182,22 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties {
 
     public void setSms(SmsProperties sms) {
         this.sms = sms;
+    }
+
+    public String getPassangerAgreementPdfDirectory() {
+        return passangerAgreementPdfDirectory;
+    }
+
+    public void setPassangerAgreementPdfDirectory(String passangerAgreementPdfDirectory) {
+        this.passangerAgreementPdfDirectory = passangerAgreementPdfDirectory;
+    }
+
+    public String getGeneralEmailAddress() {
+        return generalEmailAddress;
+    }
+
+    public void setGeneralEmailAddress(String generalEmailAddress) {
+        this.generalEmailAddress = generalEmailAddress;
     }
 
 }

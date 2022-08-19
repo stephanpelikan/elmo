@@ -106,6 +106,14 @@ background-color: #f6f6f6;
                 </tr>
                 <tr style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
                   <td class="content-block" style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; vertical-align: top; margin: 0; padding: 0 0 20px;" valign="top">
+                    Anbei findest du ein SEPA-Mandat als Anhang. Bitte drucke es aus und schicke es unterschrieben
+                    innerhalb von 2 Wochen per Mail an ${elmo.generalEmailAddress}.
+                    Das erste Monat deiner Mitgliedschaft ist gratis, danach buchen wir den vereinbarten Betrag
+                    von deinem Konto ab.
+                  </td>
+                </tr>
+                <tr style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
+                  <td class="content-block" style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; vertical-align: top; margin: 0; padding: 0 0 20px;" valign="top">
                     Dein <i>${elmo.title}</i>
                   </td>
                 </tr>

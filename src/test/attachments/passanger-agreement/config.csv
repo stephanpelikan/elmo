@@ -1,0 +1,12 @@
+Seite;X;Y;maximale Laenge;Schriftart;Schriftgroesze;Inhalt;Feld
+1;170;30;42;HELVETICA;3.5;(Kann auch;foto1
+1;170;33.5;42;HELVETICA;3.5; in der App;foto2
+1;170;37;42;HELVETICA;3.5; hochgeladen;foto3
+1;170;40.5;42;HELVETICA;3.5; werden);foto3
+1;140;53.5;55;COURIER;4.5;${ memberId!"-" };memberId
+1;133;121;65;COURIER;4.5;${ firstName!"-" };firstName
+1;47;121;58.5;COURIER;4.5;${ lastName!"-" };lastName
+1;47;132.5;149;COURIER;4.5;${ zip!"-" } ${ city!"-" }, ${ street!"-" } ${ streetNumber!"-" };address
+1;47;143.5;58.5;COURIER;4.5;${ birthdate!"-" };birthdate
+1;47;155;57;COURIER;4.5;${ email!"-" };email
+1;133;155;63;COURIER;4.5;${ phoneNumber!"-" };phoneNumber
