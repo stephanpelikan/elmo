@@ -105,6 +105,14 @@ background-color: #f6f6f6;
                 </tr>
                 <tr style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
                   <td class="content-block" style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; vertical-align: top; margin: 0; padding: 0 0 20px;" valign="top">
+                     Attached you will find a registration form (incl. SEPA mandate) as an attachment. Please print it out and
+                     send it signed to ${elmo.generalEmailAddress} within 2 weeks.
+                     The first month of your membership is free, after that we will charge the amount accordingly
+                     of the tariff selected in the registration form from your account.                
+                  </td>
+                </tr>
+                <tr style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
+                  <td class="content-block" style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; vertical-align: top; margin: 0; padding: 0 0 20px;" valign="top">
                     Yours <i>${elmo.title}</i>
                   </td>
                 </tr>

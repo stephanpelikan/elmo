@@ -458,6 +458,8 @@ public class MemberOnboarding {
 
         members
                 .findByRoles_Role(Role.DRIVER)
+                .stream()
+                .filter(driver -> !driver.getMemberId().equals(application.getMemberId()))
                 .forEach(driver -> {
                     try {
                         emailService.sendEmail(
@@ -478,7 +480,17 @@ public class MemberOnboarding {
 
         final NamedObject agreement;
         if (application.getInitialRole() == Role.PASSANGER) {
-            agreement = buildPassangerAgreementPdf(application);
+            final var dir = new File(properties.getPassangerAgreementPdfDirectory());
+            agreement = buildAgreementPdf(
+                    application,
+                    dir,
+                    Role.PASSANGER.name());
+        } else if (application.getInitialRole() == Role.DRIVER) {
+            final var dir = new File(properties.getDriverAgreementPdfDirectory());
+            agreement = buildAgreementPdf(
+                    application,
+                    dir,
+                    Role.DRIVER.name());
         } else {
             agreement = null;
         }
@@ -501,12 +513,13 @@ public class MemberOnboarding {
 
     }
 
-    public NamedObject buildPassangerAgreementPdf(
-            final MemberBase application) throws Exception {
+    public NamedObject buildAgreementPdf(
+            final MemberBase application,
+            final File dir,
+            final String role) throws Exception {
 
-        final var dir = new File(properties.getPassangerAgreementPdfDirectory());
         final var configuration = new File(dir, "config.csv");
-        final var result = File.createTempFile("elmo", "passanger-agreement_" + application.getMemberId());
+        final var result = File.createTempFile("elmo", role + "-agreement_" + application.getMemberId());
         final var template = new File(dir, "template.pdf");
         
         final var data = new HashMap<String, Object>();
@@ -533,7 +546,7 @@ public class MemberOnboarding {
         result.createNewFile();
         pdfProcessor.process(template, data, PdfFillIn.CSV_ENCODING, result);
 
-        return NamedObject.from(result).as("PassangerAgreement.pdf");
+        return NamedObject.from(result).as("Agreement.pdf");
 
     }
 

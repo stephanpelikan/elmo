@@ -51,6 +51,9 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties {
     private String passangerAgreementPdfDirectory;
 
     @NonNull
+    private String driverAgreementPdfDirectory;
+
+    @NonNull
     private String defaultLocale;
 
     private CorsConfiguration cors = new CorsConfiguration();
@@ -198,6 +201,14 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties {
 
     public void setGeneralEmailAddress(String generalEmailAddress) {
         this.generalEmailAddress = generalEmailAddress;
+    }
+
+    public String getDriverAgreementPdfDirectory() {
+        return driverAgreementPdfDirectory;
+    }
+
+    public void setDriverAgreementPdfDirectory(String driverAgreementPdfDirectory) {
+        this.driverAgreementPdfDirectory = driverAgreementPdfDirectory;
     }
 
 }
