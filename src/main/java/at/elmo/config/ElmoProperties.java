@@ -11,6 +11,8 @@ import at.elmo.util.sms.SmsProperties;
 import at.phactum.bp.blueprint.modules.ModuleSpecificProperties;
 import at.phactum.bp.blueprint.modules.WorkflowModuleIdAwareProperties;
 
+import java.util.List;
+
 @ConfigurationProperties(prefix = "elmo", ignoreUnknownFields = false)
 public class ElmoProperties implements WorkflowModuleIdAwareProperties {
 
@@ -22,6 +24,21 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties {
         return new ModuleSpecificProperties(ElmoProperties.class, WORKFLOW_MODULE_ID);
 
     }
+
+    public static class Shift {
+        private String start;
+        private String end;
+        private List<Long> days;
+
+        public String getStart() {return start;}
+        public void setStart(String start) {this.start = start;}
+        public String getEnd() {return end;}
+        public void setEnd(String end) {this.end = end;}
+        public List<Long> getDays() {return days;}
+        public void setDays(List<Long> days) {this.days = days;}
+    }
+
+    private List<Shift> shifts;
 
     @NonNull
     private String version;
@@ -211,4 +228,7 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties {
         this.driverAgreementPdfDirectory = driverAgreementPdfDirectory;
     }
 
+    public List<Shift> getShifts() {return shifts;}
+
+    public void setShifts(List<Shift> shifts) {this.shifts = shifts;}
 }
