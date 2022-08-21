@@ -1,9 +1,13 @@
 package at.elmo.administration.api;
 
+import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.validation.Valid;
 
+import at.elmo.reservation.shift.ShiftService;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
@@ -28,6 +32,9 @@ import at.elmo.util.sms.SmsService;
 public class AdministrationApiController implements AdministrationApi {
 
     @Autowired
+    private Logger logger;
+
+    @Autowired
     private MemberService memberService;
     
     @Autowired
@@ -41,6 +48,9 @@ public class AdministrationApiController implements AdministrationApi {
 
     @Autowired
     private SmsService smsService;
+
+    @Autowired
+    private ShiftService shiftService;
 
     @Override
     public ResponseEntity<MemberOnboardingApplications> getMemberOnboardingApplications(
@@ -180,6 +190,17 @@ public class AdministrationApiController implements AdministrationApi {
         return ResponseEntity.ok(
                 mapper.toApi(application.get()));
     
+    }
+
+    @Override
+    public ResponseEntity<List<at.elmo.administration.api.v1.Shift>> loadShifts(LocalDate startDate, LocalDate endDate) {
+
+        try{
+            return ResponseEntity.ok(mapper.toApiShifts(shiftService.getShifts()));
+        }catch(Exception e){
+            logger.error("Could not get shifts", e);
+            return ResponseEntity.internalServerError().build();
+        }
     }
     
 }

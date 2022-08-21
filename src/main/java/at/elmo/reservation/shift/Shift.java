@@ -20,7 +20,7 @@ import java.util.Set;
 
 
 @Entity
-@DiscriminatorValue("SHIFT")
+@DiscriminatorValue("S")
 public class Shift extends ReservationBase {
 
     @ManyToOne()

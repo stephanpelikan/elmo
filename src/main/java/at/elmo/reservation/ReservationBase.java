@@ -40,10 +40,10 @@ public abstract class ReservationBase {
     @Column(name = "UPDATED_AT", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime updatedAt;
 
-    @Column(name = "STARTS_AT", nullable = false, updatable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    @Column(name = "STARTS_AT", nullable = false, updatable = false, columnDefinition = "TIMESTAMP")
     private LocalDateTime startsAt;
 
-    @Column(name = "ENDS_AT", nullable = false, updatable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    @Column(name = "ENDS_AT", nullable = false, updatable = false, columnDefinition = "TIMESTAMP")
     private LocalDateTime endsAt;
 
     @ManyToOne()

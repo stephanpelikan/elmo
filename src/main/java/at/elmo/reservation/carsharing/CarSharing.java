@@ -10,7 +10,7 @@ import javax.persistence.ManyToOne;
 
 
 @Entity
-@DiscriminatorValue("CARSHARING")
+@DiscriminatorValue("CS")
 public class CarSharing extends ReservationBase {
 
     @ManyToOne()

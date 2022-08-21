@@ -60,4 +60,12 @@ public abstract class AdministrationMapper {
 
     }
 
+
+    @Mapping(target = "driverId", source = "driver.id")
+    @Mapping(target = "carId", source = "car.id")
+    public abstract at.elmo.administration.api.v1.Shift toApi(at.elmo.reservation.shift.Shift shift);
+    public abstract List<at.elmo.administration.api.v1.Shift> toApiShifts(List<at.elmo.reservation.shift.Shift> shifts);
+
+
+
 }

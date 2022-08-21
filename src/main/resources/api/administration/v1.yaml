@@ -113,10 +113,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MemberOnboardingApplications'
-  /gui/reservations/shifts:
+  /administration/reservations/shifts:
     get:
       tags:
-        - gui
+        - administration
       summary: load all shifts
       operationId: loadShifts
       parameters:
