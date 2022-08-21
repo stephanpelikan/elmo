@@ -112,7 +112,35 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MemberOnboardingApplications' 
+                $ref: '#/components/schemas/MemberOnboardingApplications'
+  /gui/reservations/shifts:
+    get:
+      tags:
+        - gui
+      summary: load all shifts
+      operationId: loadShifts
+      parameters:
+        - in: query
+          name: startDate
+          required: false
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: endDate
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        200:
+          description: The user logged in
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Shift'
 components:
   schemas:
     Sex:
@@ -276,3 +304,18 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Role'
+    Shift:
+      type: object
+      properties:
+        id:
+          type: string
+        driverId:
+          type: string
+        startsAt:
+          type: string
+          format: date
+        endsAt:
+          type: string
+          format: date
+        carId:
+          type: string
