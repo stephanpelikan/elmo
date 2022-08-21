@@ -90,7 +90,7 @@ const Login = () => {
         setCron(undefined);
       }
     };
-  }, []);
+  }, [cron]);
   
   useEffect(() => {
     fetchOauth2Clients();

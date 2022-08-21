@@ -38,6 +38,9 @@ export const theme: ThemeType = {
       }
     }
   },
+  heading: {
+    color: '#444444'
+  },
   formField: {
     label: {
       requiredIndicator: true,
@@ -94,6 +97,22 @@ export const theme: ThemeType = {
       secondary: {
         background: '#e0a244',
         color: '#333333',
+      }
+    }
+  },
+  accordion: {
+    heading: {
+      margin: 'small'
+    },
+    icons: {
+      color: 'accent-3'
+    }
+  },
+  page: {
+    wide: {
+      width: {
+        min: 'small',
+        max: 'xlarge'
       }
     }
   }
