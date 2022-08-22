@@ -11,10 +11,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import at.elmo.administration.api.v1.AdministrationApi;
+import at.elmo.administration.api.v1.CountOfActiveMembers;
 import at.elmo.administration.api.v1.CountOfInprogressMemberOnboardings;
 import at.elmo.administration.api.v1.MemberApplication;
 import at.elmo.administration.api.v1.MemberApplicationUpdate;
 import at.elmo.administration.api.v1.MemberOnboardingApplications;
+import at.elmo.administration.api.v1.Members;
 import at.elmo.administration.api.v1.TakeoverMemberOnboardingApplicationRequest;
 import at.elmo.administration.api.v1.UpdateMemberOnboarding;
 import at.elmo.member.MemberService;
@@ -47,11 +49,11 @@ public class AdministrationApiController implements AdministrationApi {
             final @Valid Integer pageNumber,
             final @Valid Integer pageSize) {
 
-        final var applications = memberService.getMemberApplications(pageNumber, pageSize);
+        final var applications = memberOnboarding.getMemberApplications(pageNumber, pageSize);
 
         final var result = new MemberOnboardingApplications();
         result.setApplications(
-                mapper.toApi(applications.getContent()));
+                mapper.toApplicationApi(applications.getContent()));
         result.setPage(
                 mapper.toApi(applications));
 
@@ -62,9 +64,18 @@ public class AdministrationApiController implements AdministrationApi {
     @Override
     public ResponseEntity<CountOfInprogressMemberOnboardings> getCountOfInprogressMemberOnboardings() {
 
-        final var count = memberService.getCountOfInprogressMemberApplications();
+        final var count = memberOnboarding.getCountOfInprogressMemberApplications();
 
         return ResponseEntity.ok(new CountOfInprogressMemberOnboardings().count(count));
+
+    }
+
+    @Override
+    public ResponseEntity<CountOfActiveMembers> getCountOfActiveMembers() {
+
+        final var count = memberService.getCountOfActiveMembers();
+
+        return ResponseEntity.ok(new CountOfActiveMembers().count(count));
 
     }
 
@@ -145,6 +156,7 @@ public class AdministrationApiController implements AdministrationApi {
                 mapper.toDomain(updateMemberOnboarding.getAction()),
                 violations,
                 application.getMemberId(),
+                application.getTitle(),
                 application.getFirstName(),
                 application.getLastName(),
                 application.getBirthdate(),
@@ -169,10 +181,27 @@ public class AdministrationApiController implements AdministrationApi {
     }
 
     @Override
+    public ResponseEntity<Members> getMembers(
+            final @Valid Integer pageNumber,
+            final @Valid Integer pageSize) {
+
+        final var members = memberService.getMembers(pageNumber, pageSize);
+
+        final var result = new Members();
+        result.setMembers(
+                mapper.toMemberApi(members.getContent()));
+        result.setPage(
+                mapper.toApi(members));
+
+        return ResponseEntity.ok(result);
+
+    }
+
+    @Override
     public ResponseEntity<MemberApplication> getMemberOnboardingApplication(
             final String applicationId) {
         
-        final var application = memberService.getMemberApplication(applicationId);
+        final var application = memberOnboarding.getMemberApplication(applicationId);
         if (application.isEmpty()) {
             return ResponseEntity.notFound().build();
         }

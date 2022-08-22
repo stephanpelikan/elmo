@@ -222,6 +222,7 @@ public class GuiApiController implements GuiApi {
                 MemberApplicationUpdate.REQUEST,
                 violations,
                 null,
+                memberApplicationForm.getTitle(),
                 memberApplicationForm.getFirstName(),
                 memberApplicationForm.getLastName(),
                 memberApplicationForm.getBirthdate(),

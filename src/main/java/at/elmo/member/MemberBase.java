@@ -27,6 +27,10 @@ public abstract class MemberBase {
         FEMALE, MALE, OTHER
     };
 
+    public static enum Payment {
+        MONTHLY, ANNUALLY, NONE
+    }
+
     @Id
     @Column(name = "ID")
     private String id;
@@ -45,6 +49,9 @@ public abstract class MemberBase {
     @Column(name = "EMAIL")
     private String email;
 
+    @Column(name = "TITLE")
+    private String title;
+
     @Column(name = "LAST_NAME")
     private String lastName;
 
@@ -53,6 +60,13 @@ public abstract class MemberBase {
 
     @Column(name = "BIRTHDATE", columnDefinition = "DATE")
     private LocalDate birthdate;
+
+    @Column(name = "IBAN")
+    private String iban;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "PAYMENT")
+    private Payment payment;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "SEX")
@@ -249,6 +263,30 @@ public abstract class MemberBase {
 
     public void setGivenPhoneConfirmationCode(String givenPhoneConfirmationCode) {
         this.givenPhoneConfirmationCode = givenPhoneConfirmationCode;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getIban() {
+        return iban;
+    }
+
+    public void setIban(String iban) {
+        this.iban = iban;
+    }
+
+    public Payment getPayment() {
+        return payment;
+    }
+
+    public void setPayment(Payment payment) {
+        this.payment = payment;
     }
 
 }

@@ -108,6 +108,16 @@ export const theme: ThemeType = {
       color: 'accent-3'
     }
   },
+  dataTable: {
+    pinned: {
+      header: {
+        background: {
+          color: 'accent-2',
+          opacity: 'strong'
+        }
+      }
+    }
+  },
   page: {
     wide: {
       width: {

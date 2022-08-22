@@ -16,6 +16,7 @@ i18n.addResources('en', 'administration/onboarding/review', {
       "member-id_placeholder": "If already a member, then enter the known ID",
       "member-id_info": "For new members a new number will be assigned automatically. If an existing member registers again, then enter the exists member id. The other form data will not be accepted and the member will be informed by email.",
       "member-id_validation": "1-5 digits",
+      "title": "Title:",
       "first-name": "First name:",
       "last-name": "Last name:",
       "sex": "Sex:",
@@ -55,6 +56,7 @@ i18n.addResources('de', 'administration/onboarding/review', {
       "member-id_placeholder": "Für bestehende Mitglieder ausfüllen",
       "member-id_info": "Neuen Mitgliedern wird automatisch eine Nummer vergeben. Bei wiederholter Anmeldung eines bereits bestehenden Mitglieds hier die vorhandene Mitgliedsnummer eintragen. Die anderen Formulardaten werden nicht übernommen und das Mitglied per Mail darüber informiert.",
       "member-id_validation": "1-5 stellige Nummer",
+      "titel": "Titel:",
       "first-name": "Vorname:",
       "last-name": "Nachname:",
       "sex": "Geschlecht:",
@@ -93,6 +95,7 @@ i18n.addResources('de', 'administration/onboarding/review', {
 interface FormState {
   taskId: string;
   memberId: number;
+  title: string;
   firstName: string;
   lastName: string;
   sex: Sex;
@@ -116,6 +119,7 @@ const setFormValueByApplication = (
   const formValue: FormState = {
     taskId: application.taskId,
     memberId: application.memberId,
+    title: application.title,
     firstName: application.firstName,
     lastName: application.lastName,
     birthdate: application.birthdate,
@@ -165,6 +169,7 @@ const updateData = async (
           birthdate: formValue.birthdate,
           city: formValue.city,
           email: formValue.email,
+          title: formValue.title,
           firstName: formValue.firstName,
           lastName: formValue.lastName,
           memberId: formValue.memberId,
@@ -335,6 +340,13 @@ const ReviewForm = () => {
               wordBreak="keep-all"
               >{ Boolean(formValue?.applicationComment) ? formValue?.applicationComment : t('application-comment_placeholder') }</Text>
         </FormField>
+        {/* title */}
+        <ViolationsAwareFormField
+            name="title"
+            label='title'
+            t={ t }
+            violations={ violations }
+            disabled={ loading } />
         {/* first name */}
         <ViolationsAwareFormField
             name="firstName"

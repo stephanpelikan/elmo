@@ -25,6 +25,7 @@ i18n.addResources('en', 'registration-form', {
       "title.long": 'Registration',
       "title.short": 'Registration',
       "personal data": "Personal data",
+      "title": "Title:",
       "first-name": "First name:",
       "last-name": "Last name:",
       "sex": "Sex:",
@@ -56,6 +57,7 @@ i18n.addResources('de', 'registration-form', {
       "title.long": 'Registrierung',
       "title.short": 'Registrierung',
       "personal data": "Persönliche Daten",
+      "title": "Titel:",
       "first-name": "Vorname:",
       "first-name_missing": "Bitte trage deinen Vornamen ein!",
       "last-name": "Nachname:",
@@ -104,7 +106,7 @@ i18n.addResources('de', 'registration-form', {
       "comment": "Änderungshinweise:",
       "about application": "Zur Registrierung",
       "application-comment": "Bermerkungen von dir:",
-      "application-comment_placeholder": "Was möchtest du uns mitteilen?",
+      "application-comment_placeholder": "Was möchtest du uns mitteilen? Wenn dies eine zusätzliche Anmeldung (z.B. Familienmitglied), dann gib uns hier die Mitgliedsnummer des zahlenden Mitglieds bekannt.",
       "terms-and-conditions": "Ich stimme den AGBs und Datenschutzbedingungen zu:",
       "terms-and-conditions-details": "Details",
       "submit-form": "Absenden",
@@ -254,6 +256,13 @@ const RegistrationForm = () => {
         <Heading
             size='small'
             level='2'>{ t('personal data') }</Heading>
+        {/* title */}
+        <ViolationsAwareFormField
+            name="title"
+            label='title'
+            t={ t }
+            violations={ violations }
+            disabled={ submitting } />
         {/* first name */}
         <ViolationsAwareFormField
             name="firstName"
@@ -418,9 +427,16 @@ const RegistrationForm = () => {
             label={ t('application-comment') }
             disabled={ submitting }
             htmlFor="applicationComment">
-          <TextArea
-              name="applicationComment"
-              placeholder={ t('application-comment_placeholder') } />
+          <Box
+              height={ size === 'small' ? '9rem': undefined}>
+            <TextArea
+                name="applicationComment"
+                fill
+                focusIndicator={false}
+                plain
+                size="medium"
+                placeholder={ t('application-comment_placeholder') } />
+          </Box>
         </FormField>
         {/* terms and conditions */}
         <FormField

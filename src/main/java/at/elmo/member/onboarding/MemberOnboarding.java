@@ -11,6 +11,8 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -92,10 +94,13 @@ public class MemberOnboarding {
 
             newOAuth2Id.setOwner(admin);
 
+            final var newMemberId = getNewMemberId();
+
             admin.setOauth2Ids(List.of(newOAuth2Id));
             admin.setId(UUID.randomUUID().toString());
+            admin.setMemberId(newMemberId);
             admin.setEmail(oauth2User.getEmail());
-            admin.setStatus(at.elmo.member.Member.Status.ACTIVE);
+            admin.setStatus(at.elmo.member.Member.Status.INACTIVE);
             admin.setLastName(oauth2User.getName());
             admin.setFirstName(oauth2User.getFirstName());
 
@@ -129,6 +134,7 @@ public class MemberOnboarding {
             final MemberApplicationUpdate action,
             final Map<String, String> violations,
             final Integer memberId,
+            final String title,
             final String firstName,
             final String lastName,
             final LocalDate birthdate,
@@ -175,6 +181,7 @@ public class MemberOnboarding {
 
         application.setMemberId(memberId);
         application.setSex(sex);
+        application.setTitle(title);
         application.setFirstName(firstName);
         application.setLastName(lastName);
         application.setBirthdate(birthdate);
@@ -400,20 +407,29 @@ public class MemberOnboarding {
         application.setStatus(Status.APPLICATION_SUBMITTED);
 
     }
-
-    @WorkflowTask
-    public void createMember(
-            final MemberApplication application) {
-
+    
+    private int getNewMemberId() {
+        
         final var lastMemberId = configValues
                 .findById(ConfigValue.LAST_MEMBER_ID)
                 .orElse(new ConfigValue(ConfigValue.LAST_MEMBER_ID, "0"));
 
         final var newMemberId = Integer.parseInt(lastMemberId.getValue()) + 1;
-        application.setMemberId(newMemberId);
 
         lastMemberId.setValue(Integer.toString(newMemberId));
         configValues.save(lastMemberId);
+
+        return newMemberId;
+
+    }
+
+    @WorkflowTask
+    public void createMember(
+            final MemberApplication application) {
+
+        final var newMemberId = getNewMemberId();
+        
+        application.setMemberId(newMemberId);
 
         final var member = new Member();
         member.setId(UUID.randomUUID().toString());
@@ -426,6 +442,7 @@ public class MemberOnboarding {
         member.setCity(application.getCity());
         member.setComment(application.getComment());
         member.setEmail(application.getEmail());
+        member.setTitle(application.getTitle());
         member.setFirstName(application.getFirstName());
         member.setLastName(application.getLastName());
         member.setPhoneNumber(application.getPhoneNumber());
@@ -559,6 +576,29 @@ public class MemberOnboarding {
                 application.getEmail(),
                 application);
 
+    }
+    
+    public Optional<MemberApplication> getMemberApplication(
+            final String applicationId) {
+
+        return memberApplications.findById(applicationId);
+        
+    }
+
+    public Page<MemberApplication> getMemberApplications(
+            final int page,
+            final int amount) {
+        
+        return memberApplications.findAll(
+                Pageable.ofSize(amount).withPage(page));
+        
+    }
+
+    public int getCountOfInprogressMemberApplications() {
+        
+        return (int) memberApplications.countByStatus(
+                at.elmo.member.onboarding.MemberApplication.Status.APPLICATION_SUBMITTED);
+        
     }
     
 }

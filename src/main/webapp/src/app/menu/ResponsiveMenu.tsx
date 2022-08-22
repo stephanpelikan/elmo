@@ -17,7 +17,7 @@ const ResponsiveMenu = () => {
           (!state.showMenu || size !== 'small') ? (
             <Collapsible direction="horizontal" open={state.showMenu}>
               <Box
-                style={ { position: 'absolute', right: '0' } }
+                style={ { position: 'absolute', right: '0', zIndex: 1000 } }
                 flex
                 basis='medium'
                 width='medium'

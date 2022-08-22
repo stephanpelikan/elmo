@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import at.elmo.config.ElmoProperties;
 import at.elmo.member.onboarding.MemberApplication;
-import at.elmo.member.onboarding.MemberApplicationRepository;
 import at.elmo.util.email.EmailService;
 import at.elmo.util.sms.SmsService;
 
@@ -26,9 +25,6 @@ public class MemberService {
 
     @Autowired
     private MemberRepository members;
-
-    @Autowired
-    private MemberApplicationRepository memberApplications;
 
     @Autowired
     private EmailService emailService;
@@ -56,27 +52,20 @@ public class MemberService {
         REJECT,
         INQUIRY, REQUEST
     };
-    
-    public Optional<MemberApplication> getMemberApplication(
-            final String applicationId) {
 
-        return memberApplications.findById(applicationId);
-        
-    }
-
-    public Page<MemberApplication> getMemberApplications(
+    public Page<Member> getMembers(
             final int page,
             final int amount) {
         
-        return memberApplications.findAll(
+        return members.findAll(
                 Pageable.ofSize(amount).withPage(page));
         
     }
-    
-    public int getCountOfInprogressMemberApplications() {
+
+    public int getCountOfActiveMembers() {
         
-        return (int) memberApplications.countByStatus(
-                at.elmo.member.onboarding.MemberApplication.Status.APPLICATION_SUBMITTED);
+        return (int) members.countByStatus(
+                at.elmo.member.Member.Status.ACTIVE);
         
     }
     

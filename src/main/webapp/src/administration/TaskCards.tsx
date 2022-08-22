@@ -15,17 +15,31 @@ const TaskCards = () => {
   const navigate = useNavigate();
   
   const [ countOfInprogressMemberOnboardings, setCountOfInprogressMemberOnboardings ] = useState(-1);
+  const [ countOfActiveMembers, setCountOfActiveMembers ] = useState(-1);
   
   const loadCountOfInprogressMemberOnboardings = useCallback(async () => {
     const { count } = await administrationApi.getCountOfInprogressMemberOnboardings();
     setCountOfInprogressMemberOnboardings(count);
   }, [ administrationApi ]);
+
+  const loadCountOfActiveMembers = useCallback(async () => {
+    const { count } = await administrationApi.getCountOfActiveMembers();
+    setCountOfActiveMembers(count);
+  }, [ administrationApi ]);
   
   useEffect(() => {
     if (countOfInprogressMemberOnboardings === -1) {
+      setCountOfInprogressMemberOnboardings(0);
       loadCountOfInprogressMemberOnboardings();
     }
   }, [ countOfInprogressMemberOnboardings, loadCountOfInprogressMemberOnboardings ]);
+
+  useEffect(() => {
+    if (countOfActiveMembers === -1) {
+      setCountOfActiveMembers(0);
+      loadCountOfActiveMembers();
+    }
+  }, [ countOfActiveMembers, loadCountOfActiveMembers ]);
 
   useLayoutEffect(() => {
     setAppHeaderTitle('administration', true);
@@ -49,7 +63,18 @@ const TaskCards = () => {
       </Card>
       <Card
           title='Mitglieder'
-          icon={Group} />
+          icon={Group}
+          onClick={ () => navigate('.' + t('url-members')) }>
+        {
+          countOfActiveMembers > 0
+          ? <CardBadge
+              count={countOfActiveMembers}
+              textSize={countOfActiveMembers > 99 ? 'xsmall' : 'small'}
+              size='large'
+              background='accent-3' />
+          : <></>
+        }
+      </Card>
       <Card
           title='Fahrer'
           icon={Car} />

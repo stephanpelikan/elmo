@@ -17,7 +17,9 @@ import at.elmo.member.login.RoleMembership;
 @Mapper
 public abstract class AdministrationMapper {
 
-    public abstract Member toApi(at.elmo.member.Member user);
+    public abstract Member toApi(at.elmo.member.Member member);
+
+    public abstract List<Member> toMemberApi(List<at.elmo.member.Member> members);
 
     protected Role toApi(RoleMembership roleMembership) {
 
@@ -44,10 +46,10 @@ public abstract class AdministrationMapper {
     public abstract at.elmo.member.Member toDomain(Member member);
 
     @Mapping(target = "taskId", source = "userTaskId")
-    @Mapping(target = "member", ignore = true)
     public abstract MemberApplication toApi(at.elmo.member.onboarding.MemberApplication application);
 
-    public abstract List<MemberApplication> toApi(List<at.elmo.member.onboarding.MemberApplication> application);
+    public abstract List<MemberApplication> toApplicationApi(
+            List<at.elmo.member.onboarding.MemberApplication> applications);
 
     public Page toApi(org.springframework.data.domain.Page<?> page) {
 

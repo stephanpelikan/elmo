@@ -34,7 +34,7 @@ Der Vereinsvorstand wird deine Daten prüfen und dir in Kürze den Zugang zum El
 
 ### Persönliche Daten:
 
-{{salutation}}{{memberApplicationForm.firstName}} {{memberApplicationForm.lastName}}<br>
+{{salutation}} {{title}} {{memberApplicationForm.firstName}} {{memberApplicationForm.lastName}}<br>
 Geboren: {{birthdate}}
 
 ### Adressdaten:
@@ -131,6 +131,7 @@ const RegistrationSubmitted = () => {
               level='2'>{ t(`title_${state.currentUser.status}`) }</Heading>
           <Markdown options={ { forceBlock: true } }>{ t(`text_${state.currentUser.status}`, {
               memberApplicationForm,
+              title: memberApplicationForm?.title ? memberApplicationForm.title : '',
               salutation: t(`salutation_${memberApplicationForm.sex}`),
               birthdate: memberApplicationForm.birthdate?.toLocaleDateString(),
               applicationComment: Boolean(memberApplicationForm.applicationComment) ? memberApplicationForm.applicationComment : t('no_comments'),
