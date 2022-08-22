@@ -113,6 +113,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MemberOnboardingApplications' 
+  /administration/member/download:
+    get:
+      tags:
+        - administration
+      summary: Download members in Excel format
+      operationId: generateMembersExcelFile
+      responses:
+        200:
+          description: The Excel file
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
   /administration/member:
     get:
       tags:

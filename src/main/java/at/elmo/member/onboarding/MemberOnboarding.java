@@ -94,13 +94,11 @@ public class MemberOnboarding {
 
             newOAuth2Id.setOwner(admin);
 
-            final var newMemberId = getNewMemberId();
-
             admin.setOauth2Ids(List.of(newOAuth2Id));
             admin.setId(UUID.randomUUID().toString());
-            admin.setMemberId(newMemberId);
+            admin.setMemberId(properties.getAdminMemberId());
             admin.setEmail(oauth2User.getEmail());
-            admin.setStatus(at.elmo.member.Member.Status.INACTIVE);
+            admin.setStatus(at.elmo.member.Member.Status.ACTIVE);
             admin.setLastName(oauth2User.getName());
             admin.setFirstName(oauth2User.getFirstName());
 
@@ -412,7 +410,8 @@ public class MemberOnboarding {
         
         final var lastMemberId = configValues
                 .findById(ConfigValue.LAST_MEMBER_ID)
-                .orElse(new ConfigValue(ConfigValue.LAST_MEMBER_ID, "0"));
+                .orElse(new ConfigValue(ConfigValue.LAST_MEMBER_ID,
+                        Integer.toString(properties.getInitialNewMemberId() - 1)));
 
         final var newMemberId = Integer.parseInt(lastMemberId.getValue()) + 1;
 

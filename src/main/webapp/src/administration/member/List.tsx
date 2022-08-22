@@ -91,6 +91,23 @@ const ListOfMembers = () => {
   
   const size = useContext(ResponsiveContext);
   
+  const onDownloadExcel = async () => {
+    
+    const excel = await administrationApi.generateMembersExcelFileRaw();
+    const disposition = excel.raw.headers.get('content-disposition');
+    const anchor = window.document.createElement('a');
+    anchor.href = window.URL.createObjectURL(await excel.value());
+    const posOfEquals = disposition.indexOf('=');
+    if (posOfEquals !== -1) {
+      anchor.download = disposition.substring(posOfEquals + 1);
+    }
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    window.URL.revokeObjectURL(anchor.href);
+    
+  };
+  
   const onEdit = async (member: Member) => {
     
     navigate('./' + member.memberId);
@@ -142,6 +159,7 @@ const ListOfMembers = () => {
                 icon={ <Upload /> } />
             <Button
                 plain
+                onClick={() => onDownloadExcel()}
                 label={ size !== 'small' ? 'Excel herunterladen' : undefined}
                 icon={ <Download /> } />
           </Box>
@@ -153,6 +171,7 @@ const ListOfMembers = () => {
             <DataTable
                 fill
                 pin
+                size='100%'
                 background={ {
                   body: ['white', 'light-2']
                 } }

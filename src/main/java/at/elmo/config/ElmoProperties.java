@@ -48,6 +48,12 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties {
     private String adminIdentificationEmailAddress;
 
     @NonNull
+    private int adminMemberId;
+
+    @NonNull
+    private int initialNewMemberId;
+
+    @NonNull
     private String passangerAgreementPdfDirectory;
 
     @NonNull
@@ -209,6 +215,22 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties {
 
     public void setDriverAgreementPdfDirectory(String driverAgreementPdfDirectory) {
         this.driverAgreementPdfDirectory = driverAgreementPdfDirectory;
+    }
+
+    public int getAdminMemberId() {
+        return adminMemberId;
+    }
+
+    public void setAdminMemberId(int adminMemberId) {
+        this.adminMemberId = adminMemberId;
+    }
+
+    public int getInitialNewMemberId() {
+        return initialNewMemberId;
+    }
+
+    public void setInitialNewMemberId(int initialNewMemberId) {
+        this.initialNewMemberId = initialNewMemberId;
     }
 
 }

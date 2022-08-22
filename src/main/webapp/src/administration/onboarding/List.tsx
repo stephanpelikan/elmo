@@ -163,6 +163,7 @@ const ListOfOnboardings = () => {
       <DataTable
           pin
           fill
+          size='100%'
           background={ {
             body: ['white', 'light-2']
           } }

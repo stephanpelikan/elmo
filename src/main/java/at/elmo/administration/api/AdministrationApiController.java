@@ -1,10 +1,19 @@
 package at.elmo.administration.api;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.HashMap;
+import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,11 +28,14 @@ import at.elmo.administration.api.v1.MemberOnboardingApplications;
 import at.elmo.administration.api.v1.Members;
 import at.elmo.administration.api.v1.TakeoverMemberOnboardingApplicationRequest;
 import at.elmo.administration.api.v1.UpdateMemberOnboarding;
+import at.elmo.config.TranslationProperties;
+import at.elmo.member.Member;
 import at.elmo.member.MemberService;
 import at.elmo.member.onboarding.MemberOnboarding;
 import at.elmo.util.email.EmailService;
 import at.elmo.util.exceptions.ElmoValidationException;
 import at.elmo.util.sms.SmsService;
+import at.elmo.util.spring.FileCleanupInterceptor;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -43,6 +55,9 @@ public class AdministrationApiController implements AdministrationApi {
 
     @Autowired
     private SmsService smsService;
+    
+    @Autowired
+    private TranslationProperties translations;
 
     @Override
     public ResponseEntity<MemberOnboardingApplications> getMemberOnboardingApplications(
@@ -194,6 +209,108 @@ public class AdministrationApiController implements AdministrationApi {
                 mapper.toApi(members));
 
         return ResponseEntity.ok(result);
+
+    }
+    
+    @Override
+    public ResponseEntity<Resource> generateMembersExcelFile() {
+        
+        final var translation = translations.getDownloadMembers().get("de");
+        final var gTranslation = translations.getGeneral().get("de");
+        
+        final File tempFile;
+        try  {
+            
+            tempFile = File.createTempFile("members", "download");
+            FileCleanupInterceptor.setDownloadFile(tempFile);
+            
+            try (final var wb = new XSSFWorkbook()) {
+
+                final var dateStyle = wb.createCellStyle();
+                dateStyle.setDataFormat(
+                        wb.getCreationHelper()
+                                .createDataFormat()
+                                .getFormat(gTranslation.getDateFormat()));
+                
+                final var sheet = wb.createSheet(translation.getMembers());
+                int rowNo = 0;
+    
+                // header
+                final var headerRow = sheet.createRow(rowNo);
+                headerRow.createCell(0).setCellValue(translation.getMemberId());
+                headerRow.createCell(1).setCellValue(translation.getType());
+                headerRow.createCell(2).setCellValue(translation.getSalutation());
+                headerRow.createCell(3).setCellValue(translation.getTitle());
+                headerRow.createCell(4).setCellValue(translation.getLastName());
+                headerRow.createCell(5).setCellValue(translation.getFirstName());
+                headerRow.createCell(6).setCellValue(translation.getBirthdate());
+                headerRow.createCell(7).setCellValue(translation.getStreet());
+                headerRow.createCell(8).setCellValue(translation.getZip());
+                headerRow.createCell(9).setCellValue(translation.getCity());
+                headerRow.createCell(10).setCellValue(translation.getEmail());
+                headerRow.createCell(11).setCellValue(translation.getPhoneNumber());
+                headerRow.createCell(12).setCellValue(translation.getComment());
+                headerRow.createCell(13).setCellValue(translation.getIban());
+                headerRow.createCell(14).setCellValue(translation.getPayment());
+    
+                int pageNo = 0;
+                Page<Member> page;
+                while ((page = memberService.getMembers(pageNo, 10)).getNumberOfElements() != 0) {
+
+                    for (final var member : page.getContent()) {
+                        
+                        ++rowNo;
+                        final var dataRow = sheet.createRow(rowNo);
+                        dataRow.createCell(0).setCellValue(member.getMemberId());
+                        dataRow.createCell(1).setCellValue(member
+                                .getRoles()
+                                .stream()
+                                .map(roleMembership -> roleMembership.getRole())
+                                .map(role -> gTranslation.getRoleShortcuts().get(role))
+                                .collect(Collectors.joining()));
+                        dataRow.createCell(2).setCellValue(
+                                gTranslation.getSalutation().get(member.getSex()));
+                        dataRow.createCell(3).setCellValue(member.getTitle());
+                        dataRow.createCell(4).setCellValue(member.getLastName());
+                        dataRow.createCell(5).setCellValue(member.getFirstName());
+                        final var birthdate = dataRow.createCell(6);
+                        birthdate.setCellValue(member.getBirthdate());
+                        birthdate.setCellStyle(dateStyle);
+                        dataRow.createCell(7).setCellValue(
+                                member.getStreet() + " " + member.getStreetNumber());
+                        dataRow.createCell(8).setCellValue(member.getZip());
+                        dataRow.createCell(9).setCellValue(member.getCity());
+                        dataRow.createCell(10).setCellValue(member.getEmail());
+                        dataRow.createCell(11).setCellValue(member.getPhoneNumber());
+                        dataRow.createCell(12).setCellValue(member.getComment());
+                        dataRow.createCell(13).setCellValue(member.getIban());
+                        dataRow.createCell(14).setCellValue(
+                                gTranslation.getPayment().get(member.getPayment()));
+                        
+                    }
+                    
+                    ++pageNo;
+
+                }
+                
+                try (final var fileOut = new FileOutputStream(tempFile)) {
+                    wb.write(fileOut);
+                }
+                
+            }
+            
+            return ResponseEntity
+                    .ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=" + translation.getMembers() + ".xlsx")
+                    .contentType(new MediaType("application", "vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                    .body(new FileSystemResource(tempFile));
+            
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
     }
 
