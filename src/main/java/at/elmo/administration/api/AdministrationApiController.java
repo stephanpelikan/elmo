@@ -2,12 +2,17 @@ package at.elmo.administration.api;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -28,8 +33,11 @@ import at.elmo.administration.api.v1.MemberOnboardingApplications;
 import at.elmo.administration.api.v1.Members;
 import at.elmo.administration.api.v1.TakeoverMemberOnboardingApplicationRequest;
 import at.elmo.administration.api.v1.UpdateMemberOnboarding;
+import at.elmo.config.ElmoProperties;
 import at.elmo.config.TranslationProperties;
 import at.elmo.member.Member;
+import at.elmo.member.MemberBase.Payment;
+import at.elmo.member.MemberBase.Sex;
 import at.elmo.member.MemberService;
 import at.elmo.member.onboarding.MemberOnboarding;
 import at.elmo.util.email.EmailService;
@@ -41,6 +49,9 @@ import at.elmo.util.spring.FileCleanupInterceptor;
 @RequestMapping("/api/v1")
 public class AdministrationApiController implements AdministrationApi {
 
+    @Autowired
+    private Logger logger;
+    
     @Autowired
     private MemberService memberService;
     
@@ -58,6 +69,9 @@ public class AdministrationApiController implements AdministrationApi {
     
     @Autowired
     private TranslationProperties translations;
+
+    @Autowired
+    private ElmoProperties properties;
 
     @Override
     public ResponseEntity<MemberOnboardingApplications> getMemberOnboardingApplications(
@@ -210,6 +224,132 @@ public class AdministrationApiController implements AdministrationApi {
 
         return ResponseEntity.ok(result);
 
+    }
+    
+    @Override
+    public ResponseEntity<Void> uploadMembersExcelFile(
+            final Resource body) {
+        
+        final var gTranslation = translations.getGeneral().get("de");
+        
+        try (final var wb = new XSSFWorkbook(body.getInputStream())) {
+            
+            final var sheet = wb.getSheetAt(0);
+            for (final var row : sheet) {
+                
+                final int memberId;
+                try {
+                    memberId = (int) Math.floor(row.getCell(0).getNumericCellValue());
+                } catch (Exception e) {
+                    logger.info("Expecting member-id in first cell of row {} in uploaded Excel",
+                            row.getRowNum());
+                    continue;
+                }
+                
+                try {
+                    logger.info("About to import member {} from uploaded Excel",
+                            memberId);
+                    
+                    final var typeValue = row.getCell(1).getStringCellValue();
+                    final var roles = gTranslation
+                            .getRoleShortcuts()
+                            .entrySet()
+                            .stream()
+                            .filter(entry -> typeValue.contains(entry.getValue()))
+                            .map(Entry::getKey)
+                            .collect(Collectors.toList());
+                    final var salutation = row.getCell(2).getStringCellValue();
+                    final var sex = gTranslation
+                            .getSalutation()
+                            .entrySet()
+                            .stream()
+                            .filter(entry -> entry.getValue().equals(salutation))
+                            .findFirst()
+                            .map(Entry::getKey)
+                            .orElse(Sex.OTHER);
+                    final var title = row.getCell(3).getStringCellValue();
+                    final var lastName = row.getCell(4).getStringCellValue();
+                    final var firstName = row.getCell(5).getStringCellValue();
+                    final var birthdate = row.getCell(6).getCellType() == CellType.NUMERIC
+                            ? row.getCell(6).getLocalDateTimeCellValue().toLocalDate()
+                            : row.getCell(6).getStringCellValue().equals("-")
+                            ? null
+                            : LocalDate.parse(
+                                    row.getCell(6).getStringCellValue(),
+                                    DateTimeFormatter.ofPattern(gTranslation.getDateFormat()));
+                    final var streetValue = row.getCell(7).getStringCellValue();
+                    final var streetNumber = streetValue != null
+                            ? streetValue.replaceFirst("^\\D+", "")
+                            : null;
+                    final var street = streetValue != null
+                            ? streetValue.substring(0, streetValue.length() - streetNumber.length())
+                            : null;
+                    final var zip = row.getCell(8).getCellType() == CellType.NUMERIC
+                            ? Integer.toString((int) Math.floor(row.getCell(8).getNumericCellValue()))
+                            : row.getCell(8).getStringCellValue();
+                    final var city = row.getCell(9).getStringCellValue();
+                    final var email = row.getCell(10).getStringCellValue();
+                    final var phoneNumberValue = row.getCell(11).getStringCellValue();
+                    final String phoneNumber;
+                    if (!StringUtils.hasText(phoneNumberValue)) {
+                        phoneNumber = null;
+                    } else if (phoneNumberValue.trim().startsWith("+")) {
+                        phoneNumber = phoneNumberValue.trim().replaceAll("[-\\/\\s]+", "");
+                    } else if (phoneNumberValue.trim().startsWith("0")) {
+                        phoneNumber = properties.getDefaultPhoneCountry()
+                                + phoneNumberValue.trim().replaceAll("[-\\/\\s]+", "").substring(1);
+                    } else {
+                        phoneNumber = properties.getDefaultPhoneCountry()
+                                + phoneNumberValue.trim().replaceAll("[-\\/\\s]+", "");
+                    }
+                    final var comment = row.getCell(12).getStringCellValue();
+                    final var iban = row.getCell(13).getStringCellValue();
+                    final var paymentValue = row.getCell(14).getStringCellValue();
+                    final var payment = gTranslation
+                            .getPayment()
+                            .entrySet()
+                            .stream()
+                            .filter(entry -> entry.getValue().equals(paymentValue))
+                            .findFirst()
+                            .map(Entry::getKey)
+                            .orElse(Payment.MONTHLY);
+                    
+                    memberService.createMember(
+                            memberId,
+                            roles,
+                            sex,
+                            title,
+                            lastName,
+                            firstName,
+                            birthdate,
+                            street,
+                            streetNumber,
+                            zip,
+                            city,
+                            email,
+                            phoneNumber,
+                            comment,
+                            iban,
+                            payment);
+                    
+                } catch (Exception e) {
+                    
+                    logger.info("Could not import member {} from uploaded Excel",
+                            memberId,
+                            e);
+
+                }
+                
+            }
+            
+            return ResponseEntity.ok().build();
+            
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        
     }
     
     @Override

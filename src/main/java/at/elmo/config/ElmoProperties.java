@@ -62,6 +62,9 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties {
     @NonNull
     private String defaultLocale;
 
+    @NonNull
+    private String defaultPhoneCountry;
+
     private CorsConfiguration cors = new CorsConfiguration();
 
     private WebsocketProperties websockets;
@@ -231,6 +234,14 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties {
 
     public void setInitialNewMemberId(int initialNewMemberId) {
         this.initialNewMemberId = initialNewMemberId;
+    }
+
+    public String getDefaultPhoneCountry() {
+        return defaultPhoneCountry;
+    }
+
+    public void setDefaultPhoneCountry(String defaultPhoneCountry) {
+        this.defaultPhoneCountry = defaultPhoneCountry;
     }
 
 }

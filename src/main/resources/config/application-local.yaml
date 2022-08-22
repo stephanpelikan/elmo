@@ -1,4 +1,5 @@
 elmo:
+  default-phone-country: "+43"
   title-short: Elmo GF
   title-long: ElektroMobil Gänserndorf
   homepage-url: https://www.elektromobil-gf.at

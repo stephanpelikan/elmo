@@ -1,6 +1,6 @@
 import { Box, Button, ColumnConfig, DataTable, Grid, ResponsiveContext, Text } from 'grommet';
 import { Add, Download, Upload } from 'grommet-icons';
-import { useContext, useEffect, useState } from 'react';
+import { ChangeEvent, useContext, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../AppContext';
@@ -26,6 +26,8 @@ i18n.addResources('en', 'administration/member', {
       "total": "Total:",
       "download": "download Excel-file",
       "upload": "upload Excel-file",
+      "upload_title": "Upload Excel",
+      "upload_success": "The Excel-file was uploaded successfully. Members named in the Excel-sheet, which are already known to the system, were ignored during processing.",
     });
 i18n.addResources('de', 'administration/member', {
       "edit": "Bearbeiten",
@@ -45,6 +47,8 @@ i18n.addResources('de', 'administration/member', {
       "total": "Anzahl:",
       "download": "Excel hochladen",
       "upload": "Excel hochladen",
+      "upload_title": "Excel hochladen",
+      "upload_success": "Die Excel-Datei wurde erfolgreich hochgeladen. Mitglieder aus dem Excel, die bereits im System erfasst sind, wurden beim Verarbeiten ignoriert.",
     });
     
 const itemsBatchSize = 30;
@@ -74,7 +78,7 @@ const loadData = async (
 
 const ListOfMembers = () => {
   
-  const { administrationApi } = useAppContext();
+  const { administrationApi, toast } = useAppContext();
   
   const [ members, setMembers ] = useState(undefined);
   const [ numberOfMembers, setNumberOfMembers ] = useState(0);
@@ -90,6 +94,33 @@ const ListOfMembers = () => {
   const navigate = useNavigate();
   
   const size = useContext(ResponsiveContext);
+  
+  const uploadRef = useRef(null);
+  
+  const onUploadExcel = () => {
+    
+    uploadRef.current.click();
+    
+  };
+  
+  const onExcelUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+    
+    if (!event.target?.files) {
+      return;
+    }
+    
+    await administrationApi.uploadMembersExcelFile({ body: event.target.files[0] });
+    event.target.value = null; // reset file input
+
+    toast({
+        namespace: 'administration/member',
+        title: t('upload_title'),
+        message: t('upload_success'),
+      });
+    
+    setMembers(undefined);
+    
+  };
   
   const onDownloadExcel = async () => {
     
@@ -153,13 +184,19 @@ const ListOfMembers = () => {
           <Box
               direction='row'
               gap='medium'>
+            <input
+                style={ { display: 'none' } }
+                ref={ uploadRef }
+                onChange={ onExcelUpload }
+                type="file" />
             <Button
                 plain
+                onClick={ onUploadExcel }
                 label={ size !== 'small' ? 'Excel hochladen' : undefined}
                 icon={ <Upload /> } />
             <Button
                 plain
-                onClick={() => onDownloadExcel()}
+                onClick={ onDownloadExcel }
                 label={ size !== 'small' ? 'Excel herunterladen' : undefined}
                 icon={ <Download /> } />
           </Box>

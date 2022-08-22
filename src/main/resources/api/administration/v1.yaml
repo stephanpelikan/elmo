@@ -127,6 +127,20 @@ paths:
               schema:
                 type: string
                 format: binary
+    post:
+      tags:
+        - administration
+      summary: Upload members in Excel format
+      operationId: uploadMembersExcelFile
+      requestBody:
+        content:
+          application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+            schema:
+              type: string
+              format: binary
+      responses:
+        200:
+          description: Successfully uploaded
   /administration/member:
     get:
       tags:

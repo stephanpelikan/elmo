@@ -94,10 +94,10 @@ translations:
     en:
       passangerAgreement: Agreement-Passanger
       driverAgreement: Agreement-Driver
-      dateFormat: mm/dd/yyyy
+      dateFormat: MM/dd/yyyy
       salutation:
-        MALE: "Mr. "
-        FEMALE: "Mrs. "
+        MALE: "Mr."
+        FEMALE: "Mrs."
         OTHER: ""
       payment:
         MONTHLY: "monthly"
@@ -111,10 +111,10 @@ translations:
     de:
       passangerAgreement: Anmeldeformular-Passagier
       driverAgreement: Anmeldeformular-Fahrer
-      dateFormat: dd.mm.yyyy
+      dateFormat: dd.MM.yyyy
       salutation:
-        MALE: "Herr "
-        FEMALE: "Frau "
+        MALE: "Herr"
+        FEMALE: "Frau"
         OTHER: ""
       payment:
         MONTHLY: "Monatlich"
