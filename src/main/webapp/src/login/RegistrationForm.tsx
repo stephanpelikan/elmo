@@ -25,7 +25,7 @@ i18n.addResources('en', 'registration-form', {
       "title.long": 'Registration',
       "title.short": 'Registration',
       "personal data": "Personal data",
-      "title": "Title:",
+      "person-title": "Title:",
       "first-name": "First name:",
       "last-name": "Last name:",
       "sex": "Sex:",
@@ -57,7 +57,7 @@ i18n.addResources('de', 'registration-form', {
       "title.long": 'Registrierung',
       "title.short": 'Registrierung',
       "personal data": "Persönliche Daten",
-      "title": "Titel:",
+      "person-title": "Titel:",
       "first-name": "Vorname:",
       "first-name_missing": "Bitte trage deinen Vornamen ein!",
       "last-name": "Nachname:",
@@ -129,7 +129,7 @@ const loadData = async (
 };
 
 const RegistrationForm = () => {
-  const { t } = useTranslation('registration-form');
+  const { t, i18n } = useTranslation('registration-form');
   
   const { guiApi, memberApplicationFormSubmitted, toast, setAppHeaderTitle, state } = useAppContext();
   
@@ -139,8 +139,8 @@ const RegistrationForm = () => {
   const [ violations, setViolations ] = useState({});
 
   useEffect(() => {
-      setAppHeaderTitle('registration-form');
-   }, [ setAppHeaderTitle ]);
+     setAppHeaderTitle('registration-form');
+   }, [ setAppHeaderTitle, t ]);
   
   useEffect(() => {
       if (formValue === undefined) { 
@@ -259,7 +259,7 @@ const RegistrationForm = () => {
         {/* title */}
         <ViolationsAwareFormField
             name="title"
-            label='title'
+            label='person-title'
             t={ t }
             violations={ violations }
             disabled={ submitting } />

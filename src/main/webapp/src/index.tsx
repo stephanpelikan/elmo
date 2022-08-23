@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './app/App';
+import { SmsSending } from './app/SmsSending';
 import reportWebVitals from './reportWebVitals';
 import { AppContextProvider } from './AppContext';
 
@@ -8,6 +9,7 @@ ReactDOM.render(
   <React.StrictMode>
     <AppContextProvider>
       <App />
+      <SmsSending />{/* used to sent text messages on driver's tablets */}
     </AppContextProvider>
   </React.StrictMode>,
   document.getElementById('root')

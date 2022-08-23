@@ -8,11 +8,13 @@ import org.springframework.web.cors.CorsConfiguration;
 import at.elmo.config.websockets.WebsocketProperties;
 import at.elmo.util.email.EmailProperties;
 import at.elmo.util.sms.SmsProperties;
+import at.phactum.bp.blueprint.async.AsyncProperties;
+import at.phactum.bp.blueprint.async.AsyncPropertiesAware;
 import at.phactum.bp.blueprint.modules.ModuleSpecificProperties;
 import at.phactum.bp.blueprint.modules.WorkflowModuleIdAwareProperties;
 
 @ConfigurationProperties(prefix = "elmo", ignoreUnknownFields = false)
-public class ElmoProperties implements WorkflowModuleIdAwareProperties {
+public class ElmoProperties implements WorkflowModuleIdAwareProperties, AsyncPropertiesAware {
 
     private static final String WORKFLOW_MODULE_ID = "Elmo";
 
@@ -22,6 +24,8 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties {
         return new ModuleSpecificProperties(ElmoProperties.class, WORKFLOW_MODULE_ID);
 
     }
+
+    private AsyncProperties async = new AsyncProperties();
 
     @NonNull
     private String version;
@@ -78,6 +82,15 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties {
 
     @NonNull
     private String transportServicePhoneNumber;
+
+    @Override
+    public AsyncProperties getAsync() {
+        return async;
+    }
+
+    public void setAsync(AsyncProperties async) {
+        this.async = async;
+    }
 
     public WebsocketProperties getWebsockets() {
         return websockets;

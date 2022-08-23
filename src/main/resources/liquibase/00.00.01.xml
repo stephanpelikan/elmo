@@ -93,6 +93,11 @@
         <constraints nullable="false" />
       </column>
       <column name="UPDATED_AT" type="timestamp" />
+      <column name="SENDER_NUMBER" type="varchar(30)" />
+      <column name="SENDER_NAME" type="varchar(255)" />
+      <column name="RECIPIENT_NUMBER" type="varchar(30)" />
+      <column name="RECIPIENT_NAME" type="varchar(255)" />
+      <column name="CONTENT" type="clob" />
     </createTable>
   </changeSet>
   <changeSet id="introduce-config-value"
