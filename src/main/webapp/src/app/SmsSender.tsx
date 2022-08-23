@@ -31,7 +31,7 @@ const SmsSender = () => {
             {
               "type": "SMS",
               "phoneNumber": message.recipient,
-              "smsText": message.content,
+              "content": message.content,
             }
           ]));
         });
