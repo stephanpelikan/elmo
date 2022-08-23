@@ -29,6 +29,7 @@ const SmsSender = () => {
         message => {
           nativeCommunicator.postMessage(JSON.stringify([
             {
+              "type": "SMS",
               "phoneNumber": message.recipient,
               "smsText": message.content,
             }

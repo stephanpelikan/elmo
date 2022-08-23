@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './app/App';
-import { SmsSending } from './app/SmsSending';
+import { FlutterSupport } from './app/FlutterSupport';
 import reportWebVitals from './reportWebVitals';
 import { AppContextProvider } from './AppContext';
 
@@ -9,7 +9,7 @@ ReactDOM.render(
   <React.StrictMode>
     <AppContextProvider>
       <App />
-      <SmsSending />{/* used to sent text messages on driver's tablets */}
+      <FlutterSupport />
     </AppContextProvider>
   </React.StrictMode>,
   document.getElementById('root')
