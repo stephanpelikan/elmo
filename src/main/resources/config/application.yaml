@@ -24,6 +24,7 @@ elmo:
     out-bound-channel-max-pool-size: 64
     out-bound-channel-core-pool-size: 4
     out-bound-channel-queue-capacity: 512
+  days-for-initial-shift-creation:  90
   shifts:
     - start: '07:00:00'
       end: '10:00:00'

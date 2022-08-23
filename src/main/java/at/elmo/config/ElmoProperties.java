@@ -43,6 +43,8 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties {
     @NonNull
     private String version;
 
+    private Integer DaysForInitialShiftCreation;
+
     @NonNull
     private String titleShort;
 
@@ -231,4 +233,10 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties {
     public List<Shift> getShifts() {return shifts;}
 
     public void setShifts(List<Shift> shifts) {this.shifts = shifts;}
+
+
+
+    public Integer getDaysForInitialShiftCreation() {return DaysForInitialShiftCreation;}
+
+    public void setDaysForInitialShiftCreation(Integer daysForInitialShiftCreation) {DaysForInitialShiftCreation = daysForInitialShiftCreation;}
 }

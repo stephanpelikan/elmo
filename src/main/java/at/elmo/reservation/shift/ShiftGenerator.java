@@ -1,6 +1,8 @@
 package at.elmo.reservation.shift;
 
 import at.elmo.config.ElmoProperties;
+import at.elmo.util.config.ConfigValue;
+import at.elmo.util.config.ConfigValueRepository;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -27,37 +29,36 @@ public class ShiftGenerator {
     @Autowired
     private ShiftLifecycle shiftLifecycle;
 
-    //Generated Shifts for one Day in three Months
-    @Scheduled(cron = "0 0 * * * *")
-    public void createFutureShifts() throws Exception {
-        for (ElmoProperties.Shift configuredShift : elmoProperties.getShifts()) {
-            LocalDate date = LocalDate.now().plusMonths(3);
-            this.createShift(configuredShift, date);
-        }
-    }
+    @Autowired
+    private ConfigValueRepository configValues;
 
+    //Generated Shifts for one Day in three Months
     @EventListener(ApplicationReadyEvent.class)
-    public void createInitialShifts() throws Exception {
-        if (shiftRepository.findAll().size() != 0) {
-            logger.debug("DB not empty, no shifts created");
+    @Scheduled(cron = "0 0 * * * *")
+    public void generateShifts() throws Exception {
+        final var lastCreatedShift = configValues
+            .findById(ConfigValue.LAST_SHIFT_GENERATION_DATE)
+            .orElse(new ConfigValue(ConfigValue.LAST_SHIFT_GENERATION_DATE, LocalDate.now().toString()));
+
+        var lastCreatedShiftDate = LocalDate.parse(lastCreatedShift.getValue());
+        final var generateUntil = LocalDate.now().plusDays(elmoProperties.getDaysForInitialShiftCreation());
+        if(generateUntil.isBefore(lastCreatedShiftDate)){
             return;
         }
-        for (ElmoProperties.Shift configuredShift : elmoProperties.getShifts()) {
-            for (LocalDate date = LocalDate.now().plusDays(1); date.isBefore(LocalDate.now().plusMonths(3)); date = date.plusDays(1)) {
-                this.createShift(configuredShift, date);
+        for ( ; lastCreatedShiftDate.isBefore(generateUntil); lastCreatedShiftDate = lastCreatedShiftDate.plusDays(1)) {
+            for (ElmoProperties.Shift configuredShift : elmoProperties.getShifts()) {
+                Shift shift = new Shift();
+                if (!configuredShift.getDays().contains(lastCreatedShiftDate.getDayOfWeek().getValue())) {
+                    return;
+                }
+                shift.setStartsAt(lastCreatedShiftDate.atTime(LocalTime.parse(configuredShift.getStart())));
+                shift.setEndsAt(lastCreatedShiftDate.atTime(LocalTime.parse(configuredShift.getEnd())));
+
+                shiftLifecycle.createShift(shift);
             }
         }
+        lastCreatedShift.setValue(lastCreatedShiftDate.toString());
+        configValues.save(lastCreatedShift);
     }
 
-    private void createShift(ElmoProperties.Shift configuredShift, LocalDate date) throws Exception {
-        Shift shift = new Shift();
-        if (!configuredShift.getDays().contains(date.getDayOfWeek().getValue())) {
-            return;
-        }
-        shift.setStartsAt(date.atTime(LocalTime.parse(configuredShift.getStart())));
-        shift.setEndsAt(date.atTime(LocalTime.parse(configuredShift.getEnd())));
-
-        final var result = shiftRepository.saveAndFlush(shift);
-        shiftLifecycle.createShift(result);
-    }
 }
