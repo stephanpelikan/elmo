@@ -53,7 +53,7 @@ spring:
       data-source-properties:
       defaultRowPrefetch: 100
   freemarker:
-    template-loader-path: classpath:templates/
+    template-loader-path: classpath:templates
 camunda:
   bpm:
     default-number-of-retries: 1

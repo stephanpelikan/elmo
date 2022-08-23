@@ -129,7 +129,7 @@ const loadData = async (
 };
 
 const RegistrationForm = () => {
-  const { t, i18n } = useTranslation('registration-form');
+  const { t } = useTranslation('registration-form');
   
   const { guiApi, memberApplicationFormSubmitted, toast, setAppHeaderTitle, state } = useAppContext();
   
@@ -161,6 +161,10 @@ const RegistrationForm = () => {
   };
   
   const requestSmsCode = async () => {
+    if (!formValue.phoneNumber) {
+      setViolations({ ...violations, phoneNumber: 'missing' });
+      return;
+    }
     try {
       await guiApi
           .requestPhoneCode({ phoneNo: formValue.phoneNumber })
@@ -172,12 +176,20 @@ const RegistrationForm = () => {
             }));
       setViolations({ ...violations, phoneNumber: undefined });
     } catch (error) {
-      const v = await error.response.json();
-      setViolations({ ...violations, ...v });
+      if (error.response?.json) {
+        const v = await error.response.json();
+        setViolations({ ...violations, ...v });
+      } else {
+        console.error(error);
+      }
     }
   };
   
   const requestEmailCode = async () => {
+    if (!formValue.email) {
+      setViolations({ ...violations, email: 'missing' });
+      return;
+    }
     try {
       await guiApi
           .requestEmailCode({ emailAddress: formValue.email })
@@ -189,8 +201,12 @@ const RegistrationForm = () => {
             }));
       setViolations({ ...violations, email: undefined });
     } catch (error) {
-      const v = await error.response.json();
-      setViolations({ ...violations, ...v });
+      if (error.response?.json) {
+        const v = await error.response.json();
+        setViolations({ ...violations, ...v });
+      } else {
+        console.error(error);
+      }
     }
   };
   

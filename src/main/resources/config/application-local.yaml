@@ -12,9 +12,6 @@ elmo:
     supported: false
   cors:
     allowed-origins: "*"
-logging:
-  level:
-    org.springframework.ui.freemarker: DEBUG
 spring:
   datasource:
     url: jdbc:h2:file:./target/devdb.h2;DB_CLOSE_ON_EXIT=FALSE
