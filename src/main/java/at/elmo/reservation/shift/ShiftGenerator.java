@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.UUID;
 
 @Component
 public class ShiftGenerator {
@@ -49,11 +50,11 @@ public class ShiftGenerator {
             for (ElmoProperties.Shift configuredShift : elmoProperties.getShifts()) {
                 Shift shift = new Shift();
                 if (!configuredShift.getDays().contains(lastCreatedShiftDate.getDayOfWeek().getValue())) {
-                    return;
+                    continue;
                 }
                 shift.setStartsAt(lastCreatedShiftDate.atTime(LocalTime.parse(configuredShift.getStart())));
                 shift.setEndsAt(lastCreatedShiftDate.atTime(LocalTime.parse(configuredShift.getEnd())));
-
+                shift.setId(UUID.randomUUID().toString());
                 shiftLifecycle.createShift(shift);
             }
         }

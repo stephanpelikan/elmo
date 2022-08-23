@@ -28,14 +28,14 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties {
     public static class Shift {
         private String start;
         private String end;
-        private List<Long> days;
+        private List<Integer> days;
 
         public String getStart() {return start;}
         public void setStart(String start) {this.start = start;}
         public String getEnd() {return end;}
         public void setEnd(String end) {this.end = end;}
-        public List<Long> getDays() {return days;}
-        public void setDays(List<Long> days) {this.days = days;}
+        public List<Integer> getDays() {return days;}
+        public void setDays(List<Integer> days) {this.days = days;}
     }
 
     private List<Shift> shifts;
