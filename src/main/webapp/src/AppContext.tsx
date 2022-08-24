@@ -3,6 +3,7 @@ import { User, Oauth2Client, UserStatus, GuiApi, AppInformation } from './client
 import { getGuiApi } from './client';
 import { getAdministrationApi } from './client';
 import { AdministrationApi } from 'client/administration';
+import { StatusType } from 'grommet';
 
 type Action =
     | { type: 'updateOauth2Clients', oauth2Clients: Array<Oauth2Client> }
@@ -18,6 +19,7 @@ export type Toast = {
   namespace: string;
   title: string | undefined;
   message: string;
+  status?: StatusType;
 };
 type State = {
   oauth2Clients: Array<Oauth2Client> | null;

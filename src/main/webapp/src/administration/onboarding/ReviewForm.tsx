@@ -299,6 +299,7 @@ const ReviewForm = () => {
             namespace: 'administration/onboarding/review',
             title: t('save_title'),
             message: t('save_success'),
+            status: 'normal'
           }))
       .catch(error => error.then(violations => setViolations(violations)));
   }

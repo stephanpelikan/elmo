@@ -532,7 +532,25 @@ public class MemberOnboarding {
     }
 
     @WorkflowTask
-    public void sendConfirmationOfApplicationAsADuplicate() {
+    public void sendConfirmationOfApplicationAsADuplicate(
+        final MemberApplication application) throws Exception {
+
+        final var member = members.findByMemberId(
+                application.getMemberId());
+        if (member.isEmpty()) {
+            throw new RuntimeException(
+                    "Member '"
+                    + application.getMemberId()
+                    + "' unknown!");
+        }
+        
+        emailService.sendEmail(
+                "onboarding/confirmation-of-application-duplicate",
+                application.getEmail(),
+                application,
+                NamedObject.from(member).as("member"));
+
+        throw new Exception();
 
     }
 

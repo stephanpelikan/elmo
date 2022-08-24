@@ -28,6 +28,7 @@ i18n.addResources('en', 'administration/member', {
       "upload": "upload Excel-file",
       "upload_title": "Upload Excel",
       "upload_success": "The Excel-file was uploaded successfully. Members named in the Excel-sheet, which are already known to the system, were ignored during processing.",
+      "upload_wrong": "Unsupported content of Excel! Download the list to get a valid template.",
     });
 i18n.addResources('de', 'administration/member', {
       "edit": "Bearbeiten",
@@ -49,6 +50,7 @@ i18n.addResources('de', 'administration/member', {
       "upload": "Excel hochladen",
       "upload_title": "Excel hochladen",
       "upload_success": "Die Excel-Datei wurde erfolgreich hochgeladen. Mitglieder aus dem Excel, die bereits im System erfasst sind, wurden beim Verarbeiten ignoriert.",
+      "upload_wrong": "Falsches Tabellenformat! Lade die Liste herunter, um eine gültige Vorlage zu erhalten.",
     });
     
 const itemsBatchSize = 30;
@@ -109,16 +111,30 @@ const ListOfMembers = () => {
       return;
     }
     
-    await administrationApi.uploadMembersExcelFile({ body: event.target.files[0] });
-    event.target.value = null; // reset file input
-
-    toast({
-        namespace: 'administration/member',
-        title: t('upload_title'),
-        message: t('upload_success'),
-      });
+    try {
+      
+      await administrationApi.uploadMembersExcelFile({ body: event.target.files[0] });
+  
+      toast({
+          namespace: 'administration/member',
+          title: t('upload_title'),
+          message: t('upload_success'),
+          status: 'normal'
+        });
+      
+      setMembers(undefined);
     
-    setMembers(undefined);
+    } catch (error) {
+
+      toast({
+          namespace: 'administration/member',
+          title: t('upload_title'),
+          message: t('upload_wrong'),
+          status: 'critical'
+        });
+      
+    }
+    event.target.value = null; // reset file input
     
   };
   

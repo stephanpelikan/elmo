@@ -10,7 +10,7 @@ interface MessageToastProps {
 
 const MessageToast = ({ dispatch, msg }: MessageToastProps) => {
   const { t, i18n } = useTranslation(msg.namespace);
-  
+
   // see https://github.com/i18next/react-i18next/issues/1064
   useLayoutEffect(() => {
     // manually emitting a languageChanged-Event would work around this problem
@@ -29,6 +29,7 @@ const MessageToast = ({ dispatch, msg }: MessageToastProps) => {
         toast={{ autoClose: false }}
         title={msg.title ? t(msg.title as string) : undefined}
         message={t(msg.message)}
+        status={msg.status ? msg.status : 'unknown'}
         onClose={close}
     />
   );

@@ -177,6 +177,7 @@ const RegistrationForm = () => {
               namespace: 'registration-form',
               title: t('title.long'),
               message: t('completed'),
+              status: 'normal'
             }));
       } else {
         memberApplicationFormSubmitted();
