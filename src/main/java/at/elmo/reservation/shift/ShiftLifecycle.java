@@ -21,8 +21,6 @@ public class ShiftLifecycle {
 
     public void createShift(
         final Shift shift) throws Exception {
-
-        final var result = shiftRepository.saveAndFlush(shift);
-        processService.startWorkflow(result);
+        processService.startWorkflow(shift);
     }
 }
