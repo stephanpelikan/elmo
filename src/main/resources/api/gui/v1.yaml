@@ -280,6 +280,9 @@ components:
       properties:
         applicationId:
           type: string
+        memberId:
+          type: integer
+          format: int32
         taskId:
           type: string
         title:

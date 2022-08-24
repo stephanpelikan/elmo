@@ -1,4 +1,4 @@
-import { Anchor, Box, Button, CheckBox, DateInput, Form, FormField, Heading, Paragraph, ResponsiveContext, Select, Text, TextArea, TextInput } from "grommet";
+import { Anchor, Box, Button, CheckBox, Collapsible, DateInput, Form, FormField, Heading, Paragraph, ResponsiveContext, Select, Text, TextArea, TextInput } from "grommet";
 import { useContext, useEffect, useState } from "react";
 import { useAppContext } from '../AppContext';
 import { useTranslation } from 'react-i18next';
@@ -52,6 +52,12 @@ i18n.addResources('en', 'registration-form', {
       "terms-and-conditions": "I agree to service conditions:",
       "terms-and-conditions-details": "details",
       "submit-form": "Submit",
+      "already-member": "Already a member?",
+      "member-id": "Member ID:",
+      "member-id_placeholder": "The member ID you got on registration",
+      "member-id_format": "The member ID has to be a number",
+      "member-id_wrong": "The given form data does not match an existing member having this ID! Please register as a new member and enter your known member ID underneath as a comment.",
+      "completed": "Registration successfully completed!",
     });
 i18n.addResources('de', 'registration-form', {
       "title.long": 'Registrierung',
@@ -110,11 +116,18 @@ i18n.addResources('de', 'registration-form', {
       "terms-and-conditions": "Ich stimme den AGBs und Datenschutzbedingungen zu:",
       "terms-and-conditions-details": "Details",
       "submit-form": "Absenden",
+      "already-member": "Bereits Mitglied?",
+      "member-id": "Mitgliedsnummer:",
+      "member-id_placeholder": "..welche du ursprünglich erhalten hast",
+      "member-id_format": "Die Mitgliedsnummer muss eine Zahl sein",
+      "member-id_wrong": "Die eingegebenen Daten passen nicht zu einem Mitglied mit der angegebenen Nummer! Bitte registriere dich als neues Mitglied und gib die dir bekannte Nummer unten als Bemerkung an.",
+      "completed": "Registrierung erfolgreich!",
     });
 
 const loadData = async (
     guiApi: GuiApi,
     setMemberApplicationForm: (applicationForm: MemberApplicationForm) => void,
+    setIsAlreadyMember: (alreadyMember: boolean) => void,
     setSubmitting: (submitting: boolean) => void,
   ) => {
 
@@ -122,6 +135,7 @@ const loadData = async (
     setSubmitting(true);
     const application = await guiApi.loadMemberApplicationForm();
     setMemberApplicationForm(application);
+    setIsAlreadyMember(!!application.memberId);
   } finally {
     setSubmitting(false);
   }
@@ -131,9 +145,11 @@ const loadData = async (
 const RegistrationForm = () => {
   const { t } = useTranslation('registration-form');
   
-  const { guiApi, memberApplicationFormSubmitted, toast, setAppHeaderTitle, state } = useAppContext();
+  const { guiApi, memberApplicationFormSubmitted, toast,
+      setAppHeaderTitle, state, fetchCurrentUser } = useAppContext();
   
   const [ formValue, setFormValue ] = useState<MemberApplicationForm>(undefined);
+  const [ isAlreadyMember, setIsAlreadyMember ] = useState(false);
   const [ submitting, setSubmitting ] = useState(false);
   const [ termsAccepted, setTermsAccepted ] = useState(false);
   const [ violations, setViolations ] = useState({});
@@ -144,7 +160,7 @@ const RegistrationForm = () => {
   
   useEffect(() => {
       if (formValue === undefined) { 
-        loadData(guiApi, setFormValue, setSubmitting);
+        loadData(guiApi, setFormValue, setIsAlreadyMember, setSubmitting);
       };
     }, [ formValue, guiApi, setFormValue ]);
 
@@ -152,7 +168,19 @@ const RegistrationForm = () => {
     try {
       setSubmitting(true);
       await guiApi.submitMemberApplicationForm({ memberApplicationForm: formValue });
-      memberApplicationFormSubmitted();
+      if (isAlreadyMember) {
+        new Promise((resolve, reject) => {
+            fetchCurrentUser(resolve, reject, true);
+          })
+          .then(() =>
+            toast({
+              namespace: 'registration-form',
+              title: t('title.long'),
+              message: t('completed'),
+            }));
+      } else {
+        memberApplicationFormSubmitted();
+      }
     } catch (error) {
       setViolations(await error.response.json());
     } finally {
@@ -241,6 +269,15 @@ const RegistrationForm = () => {
     return formValue?.birthdate?.toISOString()
   };
   
+  const selectIsAlreadyMember = checked => {
+    
+    setIsAlreadyMember(checked);
+    if (!checked) {
+      setFormValue({ ...formValue, memberId: undefined })
+    }
+    
+  };
+  
   const size = useContext(ResponsiveContext);
   
   return (
@@ -269,16 +306,42 @@ const RegistrationForm = () => {
               </>
             : <></> 
         }
+        <CheckBox
+            label={ t('already-member') }
+            toggle
+            checked={ isAlreadyMember }
+            pad='small'
+            onChange={ event => selectIsAlreadyMember(event.target.checked) }
+            disabled={ submitting }
+          />
+        <Collapsible
+            open={ isAlreadyMember }>
+          <ViolationsAwareFormField
+              name="memberId"
+              label='member-id'
+              t={ t }
+              placeholder={ t('member-id_placeholder') }
+              validate={ {
+                  regexp: /^[0-9]+$/,
+                  message: t('member-id_format'),
+                  status: 'error'
+                } }
+              violations={ violations }
+              disabled={ submitting } />
+        </Collapsible>
         <Heading
             size='small'
             level='2'>{ t('personal data') }</Heading>
         {/* title */}
-        <ViolationsAwareFormField
-            name="title"
-            label='person-title'
-            t={ t }
-            violations={ violations }
-            disabled={ submitting } />
+        <Collapsible
+            open={ !isAlreadyMember }>
+          <ViolationsAwareFormField
+              name="title"
+              label='person-title'
+              t={ t }
+              violations={ violations }
+              disabled={ submitting } />
+        </Collapsible>
         {/* first name */}
         <ViolationsAwareFormField
             name="firstName"
@@ -294,21 +357,24 @@ const RegistrationForm = () => {
             violations={ violations }
             disabled={ submitting } />
         {/* sex */}
-        <ViolationsAwareFormField
-            name="sex"
-            label='sex'
-            t={ t }
-            violations={ violations }
-            disabled={ submitting }
-            htmlFor="sexSelect">
-          <Select
-              id="sexSelect"
-              options={[ Sex.Female, Sex.Male, Sex.Other ]}
-              value={ formValue?.sex }
-              labelKey={ t }
-              onChange={({ value }) => setSex(value)}
-            />
-        </ViolationsAwareFormField>
+        <Collapsible
+            open={ !isAlreadyMember }>
+          <ViolationsAwareFormField
+              name="sex"
+              label='sex'
+              t={ t }
+              violations={ violations }
+              disabled={ submitting }
+              htmlFor="sexSelect">
+            <Select
+                id="sexSelect"
+                options={[ Sex.Female, Sex.Male, Sex.Other ]}
+                value={ formValue?.sex }
+                labelKey={ t }
+                onChange={({ value }) => setSex(value)}
+              />
+          </ViolationsAwareFormField>
+        </Collapsible>
         {/* birthdate */}
         <FormField
             name="birthdate"
@@ -325,37 +391,40 @@ const RegistrationForm = () => {
                   header: props => CalendarHeader({ ...props, setDate: setBirthdate })
                 } } />
         </FormField>
-        <Heading
-            size='small'
-            level='2'>{t('address data')}</Heading>
-        {/* street */}
-        <ViolationsAwareFormField
-            name="street"
-            label='street'
-            t={ t }
-            violations={ violations }
-            disabled={ submitting } />
-        {/* street number */}
-        <ViolationsAwareFormField
-            name="streetNumber"
-            label='street-number'
-            t={ t }
-            violations={ violations }
-            disabled={ submitting } />
-        {/* zip */}
-        <ViolationsAwareFormField
-            name="zip"
-            label='zip'
-            t={ t }
-            violations={ violations }
-            disabled={ submitting } />
-        {/* city */}
-        <ViolationsAwareFormField
-            name="city"
-            label='city'
-            t={ t }
-            violations={ violations }
-            disabled={ submitting } />
+        <Collapsible
+            open={ !isAlreadyMember }>
+          <Heading
+              size='small'
+              level='2'>{t('address data')}</Heading>
+          {/* street */}
+          <ViolationsAwareFormField
+              name="street"
+              label='street'
+              t={ t }
+              violations={ violations }
+              disabled={ submitting } />
+          {/* street number */}
+          <ViolationsAwareFormField
+              name="streetNumber"
+              label='street-number'
+              t={ t }
+              violations={ violations }
+              disabled={ submitting } />
+          {/* zip */}
+          <ViolationsAwareFormField
+              name="zip"
+              label='zip'
+              t={ t }
+              violations={ violations }
+              disabled={ submitting } />
+          {/* city */}
+          <ViolationsAwareFormField
+              name="city"
+              label='city'
+              t={ t }
+              violations={ violations }
+              disabled={ submitting } />
+        </Collapsible>
         <Heading
             size='small'
             level='2'>{t('contact data')}</Heading>
@@ -438,22 +507,25 @@ const RegistrationForm = () => {
             size='small'
             level='2'>{t('about application')}</Heading>
         {/* application comment */}
-        <FormField
-            name="applicationComment"
-            label={ t('application-comment') }
-            disabled={ submitting }
-            htmlFor="applicationComment">
-          <Box
-              height={ size === 'small' ? '9rem': undefined}>
-            <TextArea
-                name="applicationComment"
-                fill
-                focusIndicator={false}
-                plain
-                size="medium"
-                placeholder={ t('application-comment_placeholder') } />
-          </Box>
-        </FormField>
+        <Collapsible
+            open={ !isAlreadyMember }>
+          <FormField
+              name="applicationComment"
+              label={ t('application-comment') }
+              disabled={ submitting }
+              htmlFor="applicationComment">
+            <Box
+                height={ size === 'small' ? '9rem': undefined}>
+              <TextArea
+                  name="applicationComment"
+                  fill
+                  focusIndicator={false}
+                  plain
+                  size="medium"
+                  placeholder={ t('application-comment_placeholder') } />
+            </Box>
+          </FormField>
+        </Collapsible>
         {/* terms and conditions */}
         <FormField
             contentProps={ { border: false } }

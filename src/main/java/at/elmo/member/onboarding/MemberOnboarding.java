@@ -215,6 +215,36 @@ public class MemberOnboarding {
         
         if (action == MemberApplicationUpdate.REQUEST) {
 
+            if (application.getMemberId() != null) {
+
+                final var member = members.findByMemberId(application.getMemberId());
+                if (member.isEmpty()) {
+                    violations.put("memberId", "wrong");
+                    return application;
+                }
+                if (!application.getFirstName().trim()
+                        .equals(member.get().getFirstName())) {
+                    violations.put("memberId", "wrong");
+                    return application;
+                }
+                if (!application.getLastName().trim()
+                        .equals(member.get().getLastName())) {
+                    violations.put("memberId", "wrong");
+                    return application;
+                }
+                if (!application.getBirthdate()
+                        .equals(member.get().getBirthdate())) {
+                    violations.put("memberId", "wrong");
+                    return application;
+                }
+                if (!application.getPhoneNumber().trim()
+                        .equals(member.get().getPhoneNumber())) {
+                    violations.put("memberId", "wrong");
+                    return application;
+                }
+                
+            }
+
             completeUserRegistrationForm(application, taskId);
 
         } else if (action == MemberApplicationUpdate.INQUIRY) {
@@ -387,7 +417,11 @@ public class MemberOnboarding {
             final MemberApplication application,
             final String taskId) {
         
-        application.setStatus(Status.APPLICATION_SUBMITTED);
+        if (application.getMemberId() != null) {
+            application.setStatus(Status.DUPLICATE);
+        } else {
+            application.setStatus(Status.APPLICATION_SUBMITTED);
+        }
         
         processService.completeUserTask(application, taskId);
         
@@ -459,8 +493,42 @@ public class MemberOnboarding {
     }
 
     @WorkflowTask
-    public void registerAdditionalSocialLogin() {
+    public void registerAdditionalSocialLogin(
+            final MemberApplication application) {
 
+        final var member = members.findByMemberId(
+                application.getMemberId());
+        if (member.isEmpty()) {
+            throw new RuntimeException(
+                    "Member '"
+                    + application.getMemberId()
+                    + "' unknown!");
+        }
+        
+        member.get().setEmail(
+                application.getEmail());
+        member.get().setGeneratedEmailConfirmationCode(
+                application.getGeneratedEmailConfirmationCode());
+        member.get().setGivenEmailConfirmationCode(
+                application.getGivenEmailConfirmationCode());
+        member.get().setPhoneNumber(
+                application.getPhoneNumber());
+        member.get().setGeneratedPhoneConfirmationCode(
+                application.getGeneratedPhoneConfirmationCode());
+        member.get().setGivenPhoneConfirmationCode(
+                application.getGivenPhoneConfirmationCode());
+        member.get().setPreferNotificationsPerSms(
+                application.isPreferNotificationsPerSms());
+        
+        application.getOauth2Id().setOwner(member.get());
+        if (member.get().getOauth2Ids() == null) {
+            member.get().setOauth2Ids(
+                    List.of(application.getOauth2Id()));
+        } else {
+            member.get().getOauth2Ids()
+                    .add(application.getOauth2Id());
+        }
+        
     }
 
     @WorkflowTask

@@ -172,9 +172,6 @@ public class GuiApiController implements GuiApi {
             final MemberApplicationForm memberApplicationForm) {
 
         final var violations = new HashMap<String, String>();
-//        if (memberApplicationForm.getMemberId() == null) {
-//            violations.put("memberId", "missing");
-//        }
         if (!StringUtils.hasText(memberApplicationForm.getFirstName())) {
             violations.put("firstName", "missing");
         }
@@ -184,20 +181,22 @@ public class GuiApiController implements GuiApi {
         if (memberApplicationForm.getBirthdate() == null) {
             violations.put("birthdate", "missing");
         }
-        if (memberApplicationForm.getSex() == null) {
-            violations.put("sex", "missing");
-        }
-        if (!StringUtils.hasText(memberApplicationForm.getZip())) {
-            violations.put("zip", "missing");
-        }
-        if (!StringUtils.hasText(memberApplicationForm.getCity())) {
-            violations.put("city", "missing");
-        }
-        if (!StringUtils.hasText(memberApplicationForm.getStreet())) {
-            violations.put("street", "missing");
-        }
-        if (!StringUtils.hasText(memberApplicationForm.getStreetNumber())) {
-            violations.put("streetNumber", "missing");
+        if (memberApplicationForm.getMemberId() == null) {
+            if (memberApplicationForm.getSex() == null) {
+                violations.put("sex", "missing");
+            }
+            if (!StringUtils.hasText(memberApplicationForm.getZip())) {
+                violations.put("zip", "missing");
+            }
+            if (!StringUtils.hasText(memberApplicationForm.getCity())) {
+                violations.put("city", "missing");
+            }
+            if (!StringUtils.hasText(memberApplicationForm.getStreet())) {
+                violations.put("street", "missing");
+            }
+            if (!StringUtils.hasText(memberApplicationForm.getStreetNumber())) {
+                violations.put("streetNumber", "missing");
+            }
         }
         if (!StringUtils.hasText(memberApplicationForm.getEmail())) {
             violations.put("email", "missing");
@@ -234,7 +233,7 @@ public class GuiApiController implements GuiApi {
                 memberApplicationForm.getTaskId(),
                 MemberApplicationUpdate.REQUEST,
                 violations,
-                null,
+                memberApplicationForm.getMemberId(),
                 memberApplicationForm.getTitle(),
                 memberApplicationForm.getFirstName(),
                 memberApplicationForm.getLastName(),

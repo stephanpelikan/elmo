@@ -37,7 +37,7 @@ const AppContext = React.createContext<{
   toast: (toast: Toast) => void;
   fetchOauth2Clients: () => void;
   fetchAppInformation: () => void;
-  fetchCurrentUser: (resolve: (value: User | null) => void, reject: (error: any) => void) => void;
+  fetchCurrentUser: (resolve: (value: User | null) => void, reject: (error: any) => void, forceUpdate?: boolean) => void;
   showMenu: (visibility: boolean) => void;
   setAppHeaderTitle: (title: string, intern?: boolean) => void;
   memberApplicationFormSubmitted: () => void;
@@ -131,7 +131,7 @@ const AppContextProvider = ({ children }: AppContextProviderProps) => {
       [ guiApi, state ]);
   const fetchAppInformation = useCallback(() => fetchAppInformationFromGuiApi(state, dispatch, guiApi),
       [ guiApi, state ]);
-  const fetchCurrentUser = useCallback((resolve: (value: User | null) => void, reject: (error: any) => void) => fetchCurrentUserFromGui(state, dispatch, guiApi, resolve, reject),
+  const fetchCurrentUser = useCallback((resolve: (value: User | null) => void, reject: (error: any) => void, forceUpdate?: boolean) => fetchCurrentUserFromGui(state, dispatch, guiApi, resolve, reject, forceUpdate),
       [ guiApi, state ]);
   const showMenu = useCallback((visibility: boolean) => setShowMenu(dispatch, visibility),
       [ dispatch ]);
@@ -189,8 +189,13 @@ const fetchAppInformationFromGuiApi = async (appContextState: State, dispatch: D
   }
 }
 
-const fetchCurrentUserFromGui = async (appContextState: State, dispatch: Dispatch, guiApi: GuiApi, resolve: (value: User | null) => void, reject: (error: any) => void) => {
-  if (appContextState.currentUser != null) {
+const fetchCurrentUserFromGui = async (appContextState: State,
+    dispatch: Dispatch,
+    guiApi: GuiApi,
+    resolve: (value: User | null) => void,
+    reject: (error: any) => void,
+    forceUpdate?: boolean) => {
+  if (!forceUpdate && appContextState.currentUser != null) {
     resolve(appContextState.currentUser);
     return;
   }
