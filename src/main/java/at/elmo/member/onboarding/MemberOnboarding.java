@@ -38,6 +38,7 @@ import at.elmo.util.exceptions.ElmoForbiddenException;
 import at.elmo.util.exceptions.ElmoValidationException;
 import at.elmo.util.pdf.fillin.PdfFillIn;
 import at.elmo.util.pdf.fillin.processors.FreemarkerCsvProcessor;
+import at.elmo.util.spring.Security;
 import at.phactum.bp.blueprint.process.ProcessService;
 import at.phactum.bp.blueprint.service.TaskEvent;
 import at.phactum.bp.blueprint.service.TaskEvent.Event;
@@ -105,6 +106,8 @@ public class MemberOnboarding {
             admin.addRole(Role.ADMIN);
 
             members.saveAndFlush(admin);
+
+            Security.updateRolesForLoggedInUser(admin);
             return; // no onboarding configured administrator
 
         }
@@ -424,6 +427,22 @@ public class MemberOnboarding {
         }
         
         processService.completeUserTask(application, taskId);
+        
+        // for already registered members, the current login of the user
+        // can be enriched to reflect the roles already applied to the member
+        //
+        // Hint: to make this work in BPMN of onboarding the service task
+        //       which matches to application to the existing member has to
+        //       be executed in the same transaction as this method
+        if (application.getMemberId() != null) {
+            
+            final var member = members.findByMemberId(
+                    application.getMemberId());
+            if (member.isPresent()) {
+                Security.updateRolesForLoggedInUser(member.get());
+            }
+            
+        }
         
     }
 

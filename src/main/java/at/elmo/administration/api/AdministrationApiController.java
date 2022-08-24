@@ -288,6 +288,8 @@ public class AdministrationApiController implements AdministrationApi {
                     final var firstName = row.getCell(5).getStringCellValue();
                     final var birthdate = row.getCell(6).getCellType() == CellType.NUMERIC
                             ? row.getCell(6).getLocalDateTimeCellValue().toLocalDate()
+                            : row.getCell(6).getStringCellValue() == null
+                            ? null
                             : row.getCell(6).getStringCellValue().equals("-")
                             ? null
                             : LocalDate.parse(
