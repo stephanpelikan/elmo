@@ -5,12 +5,17 @@ import java.io.FileOutputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
+import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.xssf.usermodel.DefaultIndexedColorMap;
+import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -230,11 +235,22 @@ public class AdministrationApiController implements AdministrationApi {
     public ResponseEntity<Void> uploadMembersExcelFile(
             final Resource body) {
         
+        final var translation = translations.getDownloadMembers().get("de");
         final var gTranslation = translations.getGeneral().get("de");
         
         try (final var wb = new XSSFWorkbook(body.getInputStream())) {
             
             final var sheet = wb.getSheetAt(0);
+            if (sheet.getRow(0) == null) {
+                throw new ElmoValidationException(Map.of("file", "wrong"));
+            }
+            final var memberIdHeader = sheet.getRow(0).getCell(0);
+            if ((memberIdHeader == null)
+                    || !memberIdHeader.getCellType().equals(CellType.STRING)
+                    || !memberIdHeader.getStringCellValue().equals(translation.getMemberId())) {
+                throw new ElmoValidationException(Map.of("file", "wrong"));
+            }
+
             for (final var row : sheet) {
                 
                 final int memberId;
@@ -344,6 +360,8 @@ public class AdministrationApiController implements AdministrationApi {
             
             return ResponseEntity.ok().build();
             
+        } catch (ElmoValidationException e) {
+            throw e;
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
@@ -366,6 +384,17 @@ public class AdministrationApiController implements AdministrationApi {
             
             try (final var wb = new XSSFWorkbook()) {
 
+                final var headerStyle = wb.createCellStyle();
+                headerStyle.setBorderBottom(BorderStyle.MEDIUM);
+                headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+                headerStyle.setFillForegroundColor(
+                        new XSSFColor(
+                                new byte[] { (byte) 220, (byte) 220, (byte) 220 },
+                                new DefaultIndexedColorMap()));
+                final var italicFont = wb.createFont();
+                italicFont.setItalic(true);
+                headerStyle.setFont(italicFont);
+
                 final var dateStyle = wb.createCellStyle();
                 dateStyle.setDataFormat(
                         wb.getCreationHelper()
@@ -373,6 +402,23 @@ public class AdministrationApiController implements AdministrationApi {
                                 .getFormat(gTranslation.getDateFormat()));
                 
                 final var sheet = wb.createSheet(translation.getMembers());
+                sheet.setColumnWidth(0, 4200);
+                sheet.setColumnWidth(1, 1800);
+                sheet.setColumnWidth(2, 2000);
+                sheet.setColumnWidth(3, 2000);
+                sheet.setColumnWidth(4, 6000);
+                sheet.setColumnWidth(5, 6000);
+                sheet.setColumnWidth(6, 2800);
+                sheet.setColumnWidth(7, 8000);
+                sheet.setColumnWidth(8, 1800);
+                sheet.setColumnWidth(9, 6000);
+                sheet.setColumnWidth(10, 8000);
+                sheet.setColumnWidth(11, 3800);
+                sheet.setColumnWidth(12, 7000);
+                sheet.setColumnWidth(13, 7000);
+                sheet.setColumnWidth(14, 3000);
+                sheet.createFreezePane(0, 1);
+
                 int rowNo = 0;
     
                 // header
@@ -392,6 +438,9 @@ public class AdministrationApiController implements AdministrationApi {
                 headerRow.createCell(12).setCellValue(translation.getComment());
                 headerRow.createCell(13).setCellValue(translation.getIban());
                 headerRow.createCell(14).setCellValue(translation.getPayment());
+                for (short i = headerRow.getFirstCellNum(); i < headerRow.getLastCellNum(); ++i) {
+                    headerRow.getCell(i).setCellStyle(headerStyle);
+                }
     
                 int pageNo = 0;
                 Page<Member> page;
