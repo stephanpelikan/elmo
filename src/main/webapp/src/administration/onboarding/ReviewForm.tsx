@@ -13,6 +13,7 @@ import { ViolationsAwareFormField } from "../../components/ViolationsAwareFormFi
 import useDebounce from '../../components/Debounce';
 import { Copy } from "grommet-icons";
 import { useAdministrationApi } from '../AdminAppContext';
+import { parseLocalDate, toLocalDateString } from '../../utils/timeUtils';
 
 i18n.addResources('en', 'administration/onboarding/review', {
       "member-id": "Member ID:",
@@ -32,7 +33,7 @@ i18n.addResources('en', 'administration/onboarding/review', {
       "MANAGER": "Manager",
       "ADMIN": "Administrator",
       "birthdate": "Birthdate:",
-      "birthdate_format": "yyyy/m/d",
+      "birthdate_format": "yyyy/mm/dd",
       "birthdate_validation": "Wrong format, use yyyy/mm/dd",
       "street": "Street:",
       "street-number": "Street number:",
@@ -74,7 +75,7 @@ i18n.addResources('de', 'administration/onboarding/review', {
       "MANAGER": "ManagerIn",
       "ADMIN": "AdministratorIn",
       "birthdate": "Geburtstag:",
-      "birthdate_format": "d.m.yyyy",
+      "birthdate_format": "dd.mm.yyyy",
       "birthdate_validation": "Falsches Format, bitte DD.MM.JJJJ verwenden",
       "street": "Straße:",
       "street-number": "Hausnummer:",
@@ -133,7 +134,7 @@ const setFormValueByApplication = (
     title: application.title,
     firstName: application.firstName,
     lastName: application.lastName,
-    birthdate: application.birthdate,
+    birthdate: parseLocalDate(application.birthdate),
     sex: application.sex,
     street: application.street,
     streetNumber: application.streetNumber,
@@ -177,7 +178,7 @@ const updateData = async (
         action,
         taskId: formValue.taskId,
         memberApplication: {
-          birthdate: formValue.birthdate,
+          birthdate: toLocalDateString(formValue.birthdate),
           city: formValue.city,
           email: formValue.email,
           title: formValue.title,
@@ -359,10 +360,6 @@ const ReviewForm = () => {
   };
   
   const size = useContext(ResponsiveContext);
-  const bdv = () => { 
-    console.log(`bdv: '${formValue?.birthdate}'`);
-    return formValue?.birthdate?.toISOString()
-  };
   
   const copyToClipbard = (data: string) => {
     if (!Boolean(data)) {
@@ -480,7 +477,7 @@ const ReviewForm = () => {
             disabled={ loading || !!member }>
           <DateInput
               format={ t('birthdate_format') }
-              value={ bdv() }
+              value={ formValue?.birthdate?.toISOString() }
               disabled={ loading || !!member }
               onChange={ ({ value }) => setBirthdate(value as string) }
               calendarProps={ {

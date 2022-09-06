@@ -7,6 +7,7 @@ import { GuiApi, MemberApplicationForm, Sex } from '../client/gui';
 import { CalendarHeader } from "../components/CalendarHeader";
 import { ViolationsAwareFormField } from "../components/ViolationsAwareFormField";
 import styled from "styled-components";
+import { parseLocalDate, toLocalDateString } from '../utils/timeUtils';
 
 const CodeButton = styled(Button)`
   position: relative;
@@ -33,7 +34,7 @@ i18n.addResources('en', 'registration-form', {
       "FEMALE": "Female",
       "OTHER": "Other",
       "birthdate": "Birthdate:",
-      "birthdate_format": "yyyy/m/d",
+      "birthdate_format": "yyyy/mm/dd",
       "birthdate_validation": "Wrong format, use yyyy/mm/dd",
       "address data": "Address data",
       "street": "Street:",
@@ -74,7 +75,7 @@ i18n.addResources('de', 'registration-form', {
       "FEMALE": "Frau",
       "OTHER": "Andere",
       "birthdate": "Geburtstag:",
-      "birthdate_format": "d.m.yyyy",
+      "birthdate_format": "dd.mm.yyyy",
       "birthdate_validation": "Format: DD.MM.JJJJ",
       "address data": "Adressdaten",
       "street": "Straße:",
@@ -87,6 +88,7 @@ i18n.addResources('de', 'registration-form', {
       "city_missing": "Bitte trage deine Stadt ein!",
       "contact data": "Kontaktdaten",
       "email": "Email-Adresse:",
+      "email_info": "Es wird die Email-Adresse von deiner Anmeldung vorgeschlagen, aber du solltest - sofern anders - die Adresse eintragen auf der du regelmäßig Emails abrufst.",
       "email_missing": "Bitte trage deine Email-Adresse ein!",
       "email_format": "Format: [deine Adresse]@[deine Domäne]",
       "email-confirmation-code": "Email Bestätigungscode:",
@@ -254,7 +256,7 @@ const RegistrationForm = () => {
     }
     setFormValue({
       ...formValue,
-      birthdate: date
+      birthdate: toLocalDateString(date)
     })
   };
   
@@ -263,11 +265,6 @@ const RegistrationForm = () => {
       ...formValue,
       sex
     })
-  };
-  
-  const bdv = () => { 
-    console.log(`bdv: '${formValue?.birthdate}'`);
-    return formValue?.birthdate?.toISOString()
   };
   
   const selectIsAlreadyMember = checked => {
@@ -380,11 +377,10 @@ const RegistrationForm = () => {
         <FormField
             name="birthdate"
             label={ t('birthdate') }
-            validate={ ( value ) => !(value instanceof Date) || isNaN(value.getTime()) ? t('birthdate_validation') : undefined }
             disabled={ submitting }>
           <DateInput
               format={ t('birthdate_format') }
-              value={ bdv() }
+              value={ parseLocalDate(formValue?.birthdate)?.toISOString() }
               onChange={ ({ value }) => setBirthdate(value as string) }
               calendarProps={ {
                   fill: size === 'small',
@@ -433,6 +429,7 @@ const RegistrationForm = () => {
         <ViolationsAwareFormField
             name="email"
             label='email'
+            info={ t('email_info') }
             t={ t }
             violations={ violations }
             disabled={ submitting } />

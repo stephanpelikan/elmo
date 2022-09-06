@@ -1,5 +1,6 @@
 package at.elmo.gui.api;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -237,7 +238,8 @@ public class GuiApiController implements GuiApi {
                 memberApplicationForm.getTitle(),
                 memberApplicationForm.getFirstName(),
                 memberApplicationForm.getLastName(),
-                memberApplicationForm.getBirthdate(),
+                memberApplicationForm.getBirthdate() == null ? null
+                        : LocalDate.parse(memberApplicationForm.getBirthdate()),
                 mapper.toDomain(memberApplicationForm.getSex()),
                 memberApplicationForm.getZip(),
                 memberApplicationForm.getCity(),

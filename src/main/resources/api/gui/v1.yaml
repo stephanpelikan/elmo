@@ -297,7 +297,6 @@ components:
           type: string
         birthdate:
           type: string
-          format: date
         sex:
           $ref: '#/components/schemas/Sex'
         zip:

@@ -4,6 +4,8 @@ import i18n from '../i18n';
 import { useAppContext } from "../AppContext";
 import { GuiApi, MemberApplicationForm, UserStatus } from '../client/gui';
 import { useEffect, useState } from 'react';
+import { parseLocalDate } from '../utils/timeUtils';
+import { Emoji } from 'grommet-icons';
 
 i18n.addResources('en', 'login/registration/submitted', {
       "loading": "Loading...",
@@ -128,12 +130,21 @@ const RegistrationSubmitted = () => {
             pad={ { horizontal: 'medium' } }>
           <Heading
               size='small'
-              level='2'>{ t(`title_${state.currentUser.status}`) }</Heading>
+              level='2'>
+            <Box
+                direction='row'>
+              <Emoji
+                  color='brand'
+                  size='large'
+                  style={ { marginRight: '0.5rem' } } />
+              <Box justify='center'>{ t(`title_${state.currentUser.status}`) }</Box>
+            </Box>
+          </Heading>
           <Markdown options={ { forceBlock: true } }>{ t(`text_${state.currentUser.status}`, {
               memberApplicationForm,
               title: memberApplicationForm?.title ? memberApplicationForm.title : '',
               salutation: t(`salutation_${memberApplicationForm.sex}`),
-              birthdate: memberApplicationForm.birthdate?.toLocaleDateString(),
+              birthdate: parseLocalDate(memberApplicationForm.birthdate)?.toLocaleDateString(),
               applicationComment: Boolean(memberApplicationForm.applicationComment) ? memberApplicationForm.applicationComment : t('no_comments'),
               notificationChannel: memberApplicationForm.preferNotificationsPerSms ? t('label_notification_sms') : t('label_notification_email') }
           )}</Markdown>

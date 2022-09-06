@@ -196,7 +196,7 @@ public class AdministrationApiController implements AdministrationApi {
                 application.getTitle(),
                 application.getFirstName(),
                 application.getLastName(),
-                application.getBirthdate(),
+                application.getBirthdate() == null ? null : LocalDate.parse(application.getBirthdate()),
                 mapper.toDomain(application.getSex()),
                 application.getZip(),
                 application.getCity(),

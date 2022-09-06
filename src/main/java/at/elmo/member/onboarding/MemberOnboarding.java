@@ -581,7 +581,7 @@ public class MemberOnboarding {
                 "onboarding/confirmation-of-application-duplicate",
                 application.getEmail(),
                 application,
-                NamedObject.from(member).as("member"));
+                NamedObject.from(member.get()).as("member"));
 
     }
 
