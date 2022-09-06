@@ -1,14 +1,5 @@
-import { Configuration as GuiConfiguration, GuiApi } from './gui';
-import { Configuration as AdminstrationConfiguration, FetchAPI, AdministrationApi } from './administration';
+import { FetchAPI } from './gui';
 import { Dispatch } from '../AppContext';
-
-const getGuiApi = (dispatch: Dispatch): GuiApi => {
-  const config = new GuiConfiguration({
-    basePath: '/api/v1',
-    fetchApi: buildFetchApi(dispatch),
-  });
-  return new GuiApi(config);
-};
 
 const buildFetchApi = (dispatch: Dispatch): FetchAPI => {
   
@@ -53,13 +44,4 @@ const buildFetchApi = (dispatch: Dispatch): FetchAPI => {
 
 };
 
-const getAdministrationApi = (dispatch: Dispatch): AdministrationApi => {
-  const config = new AdminstrationConfiguration({
-    basePath: '/api/v1',
-    fetchApi: buildFetchApi(dispatch),
-  });
-  
-  return new AdministrationApi(config);
-};
-
-export { getGuiApi, getAdministrationApi };
+export default buildFetchApi;

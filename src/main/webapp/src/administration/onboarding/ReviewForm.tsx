@@ -12,6 +12,7 @@ import { CalendarHeader } from '../../components/CalendarHeader';
 import { ViolationsAwareFormField } from "../../components/ViolationsAwareFormField";
 import useDebounce from '../../components/Debounce';
 import { Copy } from "grommet-icons";
+import { useAdministrationApi } from '../AdminAppContext';
 
 i18n.addResources('en', 'administration/onboarding/review', {
       "member-id": "Member ID:",
@@ -213,8 +214,10 @@ const theme: ThemeType = deepMerge(appTheme, {
 
 const ReviewForm = () => {
   
-  const { administrationApi, toast } = useAppContext();
+  const { toast } = useAppContext();
   
+  const administrationApi = useAdministrationApi();
+
   const navigate = useNavigate();
     
   const params = useParams();
@@ -338,7 +341,7 @@ const ReviewForm = () => {
                 .members
                 .map(m => ({
                   value: m.memberId,
-                  label: <Box><Text margin='small'>{m.memberId}: {m.lastName}, {m.firstname}</Text></Box>
+                  label: <Box><Text margin='small'>{m.memberId}: {m.lastName}, {m.firstName}</Text></Box>
                 })));
         }
       });

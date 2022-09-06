@@ -1,8 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { User, Oauth2Client, UserStatus, GuiApi, AppInformation } from './client/gui';
-import { getGuiApi } from './client';
-import { getAdministrationApi } from './client';
-import { AdministrationApi } from 'client/administration';
+import getGuiApi from './client/guiClient';
 import { StatusType } from 'grommet';
 
 type Action =
@@ -34,7 +32,6 @@ type State = {
 const AppContext = React.createContext<{
   state: State;
   dispatch: Dispatch;
-  administrationApi: AdministrationApi;
   guiApi: GuiApi;
   toast: (toast: Toast) => void;
   fetchOauth2Clients: () => void;
@@ -126,7 +123,7 @@ const AppContextProvider = ({ children }: AppContextProviderProps) => {
     toast: undefined,
     intern: false,
   });
-  const administrationApi = useMemo(() => getAdministrationApi(dispatch), [ dispatch ]);
+
   const guiApi = useMemo(() => getGuiApi(dispatch), [ dispatch ]);
   
   const fetchOauth2Clients = useCallback(() => fetchOauth2ClientsFromGuiApi(state, dispatch, guiApi),
@@ -146,7 +143,6 @@ const AppContextProvider = ({ children }: AppContextProviderProps) => {
 	const value = {
     state,
     dispatch,
-    administrationApi,
     guiApi,
     toast: (t: Toast) => dispatch({ type: 'toast', toast: t }),
     fetchOauth2Clients,

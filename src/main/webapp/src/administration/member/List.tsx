@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../AppContext';
 import { AdministrationApi, Member } from '../../client/administration';
+import { useAdministrationApi } from '../AdminAppContext';
 import { CircleButton } from '../../components/CircleButton';
 import i18n from '../../i18n';
 
@@ -80,7 +81,9 @@ const loadData = async (
 
 const ListOfMembers = () => {
   
-  const { administrationApi, toast } = useAppContext();
+  const { toast } = useAppContext();
+  
+  const administrationApi = useAdministrationApi();
   
   const [ members, setMembers ] = useState(undefined);
   const [ numberOfMembers, setNumberOfMembers ] = useState(0);

@@ -3,7 +3,7 @@ import { FormEdit } from 'grommet-icons';
 import { useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { useAppContext } from '../../AppContext';
+import { useAdministrationApi } from '../AdminAppContext';
 import { AdministrationApi, MemberApplication, MemberApplicationStatus } from '../../client/administration';
 import i18n from '../../i18n';
 
@@ -60,7 +60,7 @@ const loadData = async (
 };
 
 const ListOfOnboardings = () => {
-  const { administrationApi } = useAppContext();
+  const administrationApi = useAdministrationApi();
   
   const [ memberApplications, setMemberApplications ] = useState(undefined);
   
@@ -81,7 +81,6 @@ const ListOfOnboardings = () => {
     if (takeOver) {
       await administrationApi.takeoverMemberOnboardingApplication({
           applicationId: application.id,
-          xxx: new Date('2022-06-05T00:00:00'),
           takeoverMemberOnboardingApplicationRequest: {
             taskId: application.taskId,
           }

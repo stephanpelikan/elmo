@@ -6,9 +6,12 @@ import { Card } from './Card';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAppContext } from '../AppContext';
+import { useAdministrationApi } from './AdminAppContext';
 
 const TaskCards = () => {
-  const { administrationApi, setAppHeaderTitle } = useAppContext();
+  const { setAppHeaderTitle } = useAppContext();
+  
+  const administrationApi = useAdministrationApi();
   
   const { t } = useTranslation('administration');
   
