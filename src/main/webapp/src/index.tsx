@@ -4,6 +4,9 @@ import App from './app/App';
 import { FlutterSupport } from './app/FlutterSupport';
 import reportWebVitals from './reportWebVitals';
 import { AppContextProvider } from './AppContext';
+import "@fontsource/roboto/300.css";
+import "@fontsource/roboto/400.css";
+import "@fontsource/roboto/500.css";
 
 ReactDOM.render(
   <React.StrictMode>

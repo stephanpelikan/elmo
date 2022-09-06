@@ -50,7 +50,7 @@ const Login = () => {
   
   const { state, fetchOauth2Clients } = useAppContext();
 
-  const [ cookies, setCookie, removeCookie ] = useCookies([]);
+  const [ cookies, setCookie ] = useCookies([]);
   const [ showHint, setShowHint ] = useState(!cookies[CookieConfirmationName]);
   
   const confirmCookies = () => {
