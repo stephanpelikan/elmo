@@ -10,11 +10,15 @@ const Ready = () => {
   
   useEffect(() => {
       if (state.currentUser !== undefined) {
-        nativeCommunicator.postMessage(JSON.stringify([
-          {
-            "type": "Ready"
-          }
-        ]));
+        if (nativeCommunicator) {
+          nativeCommunicator.postMessage(JSON.stringify([
+              {
+                "type": "Ready"
+              }
+            ]));
+        } else {
+          console.log('Ready');
+        }
       }
     },
     [state?.currentUser]);

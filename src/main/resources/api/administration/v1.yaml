@@ -141,6 +141,26 @@ paths:
       responses:
         200:
           description: Successfully uploaded
+  /administration/member/{memberId}:
+    get:
+      tags:
+        - administration
+      summary: details about the requested member
+      operationId: getMemberById
+      parameters:
+        - in: path
+          name: memberId
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        200:
+          description: The member's details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Member'
   /administration/member:
     get:
       tags:
@@ -170,6 +190,10 @@ paths:
           schema:
             type: integer
             format: int32
+        - in: query
+          name: query
+          schema:
+            type: string
       responses:
         200:
           description: All members

@@ -210,17 +210,17 @@ public class GuiApiController implements GuiApi {
         }
         if (!StringUtils.hasText(memberApplicationForm.getEmailConfirmationCode())) {
             violations.put("emailConfirmationCode", "missing");
-            throw new ElmoValidationException(violations); // going ahead would case DB failure
+            throw new ElmoValidationException(violations); // going ahead would cause DB failure
         } else if (memberApplicationForm.getEmailConfirmationCode().length() > 4) {
             violations.put("emailConfirmationCode", "format");
-            throw new ElmoValidationException(violations); // going ahead would case DB failure
+            throw new ElmoValidationException(violations); // going ahead would cause DB failure
         }
         if (!StringUtils.hasText(memberApplicationForm.getPhoneConfirmationCode())) {
             violations.put("phoneConfirmationCode", "missing");
-            throw new ElmoValidationException(violations); // going ahead would case DB failure
+            throw new ElmoValidationException(violations); // going ahead would cause DB failure
         } else if (memberApplicationForm.getPhoneConfirmationCode().length() > 4) {
             violations.put("phoneConfirmationCode", "format");
-            throw new ElmoValidationException(violations); // going ahead would case DB failure
+            throw new ElmoValidationException(violations); // going ahead would cause DB failure
         }
 
         final var referNotificationsPerSms =

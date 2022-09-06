@@ -1,20 +1,22 @@
-import { Box, Button, FormField, ResponsiveContext, Heading, Text, TextArea, Form, ThemeContext , ThemeType, DateInput, Select, CheckBox } from "grommet";
+import { Box, Button, FormField, ResponsiveContext, Heading, Text, TextArea, Form, ThemeContext , ThemeType, DateInput, Select, CheckBox, TextInput, Collapsible } from "grommet";
 import { deepMerge } from 'grommet/utils';
 import { useContext, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAppContext } from "../../AppContext";
-import { AdministrationApi, MemberApplication, MemberApplicationUpdate, Role, Sex } from "../../client/administration";
+import { AdministrationApi, Member, MemberApplication, MemberApplicationUpdate, Role, Sex } from "../../client/administration";
 import { theme as appTheme } from '../../app/App';
 import i18n from '../../i18n';
 import { css } from "styled-components";
 import { CalendarHeader } from '../../components/CalendarHeader';
 import { ViolationsAwareFormField } from "../../components/ViolationsAwareFormField";
+import useDebounce from '../../components/Debounce';
+import { Copy } from "grommet-icons";
 
 i18n.addResources('en', 'administration/onboarding/review', {
       "member-id": "Member ID:",
       "member-id_placeholder": "If already a member, then enter the known ID",
-      "member-id_info": "For new members a new number will be assigned automatically. If an existing member registers again, then enter the exists member id. The other form data will not be accepted and the member will be informed by email.",
+      "member-id_info": "For new members a new ID will be assigned automatically. If an existing member registers again, then enter his/her member ID. Only phone number and email address will stored because they are confirmed by sending codes. The rest of the masterdata are kept as is.",
       "member-id_validation": "1-5 digits",
       "person-title": "Title:",
       "first-name": "First name:",
@@ -50,11 +52,13 @@ i18n.addResources('en', 'administration/onboarding/review', {
       "save": "Save",
       "save_title": "Save member data",
       "save_success": "Successfully saved",
+      "clipboard_title": "Clipboard",
+      "clipboard_message": "The text was copied to the clipboard",
     });
 i18n.addResources('de', 'administration/onboarding/review', {
       "member-id": "Mitgliedsnummer:",
       "member-id_placeholder": "Für bestehende Mitglieder ausfüllen",
-      "member-id_info": "Neuen Mitgliedern wird automatisch eine Nummer vergeben. Bei wiederholter Anmeldung eines bereits bestehenden Mitglieds hier die vorhandene Mitgliedsnummer eintragen. Die anderen Formulardaten werden nicht übernommen und das Mitglied per Mail darüber informiert.",
+      "member-id_info": "Neuen Mitgliedern wird automatisch eine Nummer vergeben. Bei wiederholter Anmeldung eines bereits bestehenden Mitglieds bitte hier die vorhandene Mitgliedsnummer eintragen: Die bestehenden Stammdaten werden angezeigt und die der Anmeldung können übernommen werden.",
       "member-id_validation": "1-5 stellige Nummer",
       "person-title": "Titel:",
       "first-name": "Vorname:",
@@ -77,7 +81,11 @@ i18n.addResources('de', 'administration/onboarding/review', {
       "city": "Stadt:",
       "email": "Email-Adresse:",
       "email_validation": "Korrekte Email-Addresse benötigt",
+      "email_missing": "Bitte trage eine Email-Adresse ein!",
+      "email_format": "Format: [Adresse]@[Domäne]",
       "phone-number": "Telefon:",
+      "phone-number_missing": "Bitte trage eine Telefonnummer ein!",
+      "phone-number_format": "Falsches Format: +[Land][Vorwahl ohne Null][Nummer]!",
       "prefer-notifications-per-sms": "Hinweise per SMS statt Email?",
       "activate-member": "Freischalten",
       "inquiry": "Rückfrage",
@@ -90,6 +98,8 @@ i18n.addResources('de', 'administration/onboarding/review', {
       "save": "Speichern",
       "save_title": "Mitgliedsdaten speichern",
       "save_success": "Erfolgreich gespeichert",
+      "clipboard_title": "Zwischenablage",
+      "clipboard_message": "Der Text wurde in die Zwischenablage kopiert",
     });
     
 interface FormState {
@@ -302,12 +312,66 @@ const ReviewForm = () => {
             status: 'normal'
           }))
       .catch(error => error.then(violations => setViolations(violations)));
-  }
+  };
+  
+  const [ memberIdState, setMemberIdState ] = useState(undefined);
+  const [ memberSuggestions, setMemberSuggestions ] = useState([]);
+  const [ member, setMember ] = useState<Member>(undefined);
+  
+  const debounceOnChangeMemberId = useDebounce();
+  const onChangeMemberId = event => {
+    debounceOnChangeMemberId(() => async () => {
+        setMemberIdState(undefined);
+        if (formValue.memberId) {
+          setMember(undefined);
+          setFormValue({
+              ...formValue,
+              memberId: undefined
+            });
+        }
+        if (!Boolean(event.target.value)) {
+          setMemberSuggestions([]);
+        } else {
+          const result = await administrationApi.getMembers({ pageNumber: 0, pageSize: 10, query: event.target.value });
+          setMemberSuggestions(
+              result
+                .members
+                .map(m => ({
+                  value: m.memberId,
+                  label: <Box><Text margin='small'>{m.memberId}: {m.lastName}, {m.firstname}</Text></Box>
+                })));
+        }
+      });
+  };
+
+  const onMemberSuggestionSelect = async event => {
+    const memberId = event.suggestion.value;
+    setMemberIdState(memberId);
+    setFormValue({
+        ...formValue,
+        memberId
+      });
+    const result = await administrationApi.getMemberById({ memberId });
+    setMember(result);
+  };
   
   const size = useContext(ResponsiveContext);
   const bdv = () => { 
     console.log(`bdv: '${formValue?.birthdate}'`);
     return formValue?.birthdate?.toISOString()
+  };
+  
+  const copyToClipbard = (data: string) => {
+    if (!Boolean(data)) {
+      return;
+    }
+    navigator.clipboard.writeText(data);
+    toast({
+      namespace: 'administration/onboarding/review',
+      title: t('clipboard_title'),
+      message: t('clipboard_message'),
+      status: 'normal'
+    });
   };
     
   return (
@@ -341,34 +405,61 @@ const ReviewForm = () => {
               wordBreak="keep-all"
               >{ Boolean(formValue?.applicationComment) ? formValue?.applicationComment : t('application-comment_placeholder') }</Text>
         </FormField>
+        {/* Member ID */}
+        <ViolationsAwareFormField
+            label='member-id'
+            t={ t }
+            violations={ violations }
+            disabled={ loading }
+            info={ member
+                ? <Box
+                      background={ { color: 'brand', opacity: "weak" } }>
+                    <Text
+                        margin='xsmall'
+                        color='dark-3'
+                        truncate>
+                      { member.firstName } { member.lastName },&nbsp;{ member.street } { member.streetNumber },<br/>
+                      { member.phoneNumber } <Copy onClick={ () => copyToClipbard(member.phoneNumber) } size="16rem" cursor='pointer' />,<br/>
+                      { member.email } <Copy onClick={ () => copyToClipbard(member.email) } size="16rem" cursor='pointer' />
+                    </Text>
+                  </Box>
+                : t('member-id_info') }>
+          <TextInput
+              value={ memberIdState }
+              onChange={ onChangeMemberId }
+              onSuggestionSelect={ onMemberSuggestionSelect }
+              suggestions={ memberSuggestions }
+              placeholder={<Text>{ t('member-id_placeholder') }</Text>}
+            />
+        </ViolationsAwareFormField>
         {/* title */}
         <ViolationsAwareFormField
             name="title"
             label='person-title'
             t={ t }
             violations={ violations }
-            disabled={ loading } />
+            disabled={ loading || !!member } />
         {/* first name */}
         <ViolationsAwareFormField
             name="firstName"
             label='first-name'
             t={ t }
             violations={ violations }
-            disabled={ loading } />
+            disabled={ loading || !!member } />
         {/* last name */}
         <ViolationsAwareFormField
             name="lastName"
             label='last-name'
             t={ t }
             violations={ violations }
-            disabled={ loading } />
+            disabled={ loading || !!member } />
         {/* sex */}
         <ViolationsAwareFormField
             name="sex"
             label='sex'
             t={ t }
             violations={ violations }
-            disabled={ loading }
+            disabled={ loading || !!member }
             htmlFor="sexSelect">
           <Select
               id="sexSelect"
@@ -382,11 +473,12 @@ const ReviewForm = () => {
         <FormField
             name="birthdate"
             label={ t('birthdate') }
-            validate={ ( value ) => !(value instanceof Date) || isNaN(value.getTime()) ? t('birthdate_validation') : undefined }
-            disabled={ loading }>
+            validate={ ( value ) => !member && (!(value instanceof Date) || isNaN(value.getTime())) ? t('birthdate_validation') : undefined }
+            disabled={ loading || !!member }>
           <DateInput
               format={ t('birthdate_format') }
               value={ bdv() }
+              disabled={ loading || !!member }
               onChange={ ({ value }) => setBirthdate(value as string) }
               calendarProps={ {
                   fill: size === 'small',
@@ -400,28 +492,28 @@ const ReviewForm = () => {
             label='street'
             t={ t }
             violations={ violations }
-            disabled={ loading } />
+            disabled={ loading || !!member } />
         {/* street number */}
         <ViolationsAwareFormField
             name="streetNumber"
             label='street-number'
             t={ t }
             violations={ violations }
-            disabled={ loading } />
+            disabled={ loading || !!member } />
         {/* zip */}
         <ViolationsAwareFormField
             name="zip"
             label='zip'
             t={ t }
             violations={ violations }
-            disabled={ loading } />
+            disabled={ loading || !!member } />
         {/* city */}
         <ViolationsAwareFormField
             name="city"
             label='city'
             t={ t }
             violations={ violations }
-            disabled={ loading } />
+            disabled={ loading || !!member } />
         {/* phone */}
         <ViolationsAwareFormField
             name="phoneNumber"
@@ -446,31 +538,24 @@ const ReviewForm = () => {
               disabled={ loading }
             />
         </FormField>
-        {/* Member ID */}
-        <ViolationsAwareFormField
-            name="memberId"
-            label='member-id'
-            t={ t }
-            violations={ violations }
-            disabled={ loading }
-            placeholder={<Text>{ t('member-id_placeholder') }</Text>}
-            info={ t('member-id_info') } />
         {/* initial role */}
-        <ViolationsAwareFormField
-            name="initialRole"
-            label='initial-role'
-            t={ t }
-            violations={ violations }
-            disabled={ loading }
-            htmlFor="initialRoleSelect">
-          <Select
-              id="initialRoleSelect"
-              options={[ Role.Passanger, Role.Driver, Role.Manager, Role.Admin ]}
-              value={ formValue?.initialRole }
-              labelKey={ t }
-              onChange={({ value }) => setInitialRole(value)}
-            />
-        </ViolationsAwareFormField>
+        <Collapsible open={ !member }>
+          <ViolationsAwareFormField
+              name="initialRole"
+              label='initial-role'
+              t={ t }
+              violations={ violations }
+              disabled={ loading || !!member }
+              htmlFor="initialRoleSelect">
+            <Select
+                id="initialRoleSelect"
+                options={[ Role.Passanger, Role.Driver, Role.Manager, Role.Admin ]}
+                value={ formValue?.initialRole }
+                labelKey={ t }
+                onChange={({ value }) => setInitialRole(value)}
+              />
+          </ViolationsAwareFormField>
+        </Collapsible>
         {/* comment */}
         <FormField
             name="comment"

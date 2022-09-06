@@ -178,6 +178,29 @@ public class MemberOnboarding {
                 violations.put("phoneConfirmationCode", "mismatch");
             }
 
+            if (emailConfirmationCode != null) {
+                application.setGivenEmailConfirmationCode(emailConfirmationCode);
+            }
+            if (phoneConfirmationCode != null) {
+                application.setGivenPhoneConfirmationCode(phoneConfirmationCode);
+            }
+
+        } else {
+            
+            // reset confirmation codes if email was changed by others than the applicant
+            if ((email == null)
+                    || !email.equals(application.getEmail())) {
+                application.setGeneratedEmailConfirmationCode(null);
+                application.setGivenEmailConfirmationCode(null);
+            }
+
+            // reset confirmation codes if phoneNumber was changed by others than the applicant
+            if ((phoneNumber == null)
+                    || !phoneNumber.equals(application.getPhoneNumber())) {
+                application.setGeneratedPhoneConfirmationCode(null);
+                application.setGivenPhoneConfirmationCode(null);
+            }
+            
         }
 
         application.setMemberId(memberId);
@@ -191,13 +214,7 @@ public class MemberOnboarding {
         application.setStreet(street);
         application.setStreetNumber(streetNumber);
         application.setEmail(email);
-        if (emailConfirmationCode != null) {
-            application.setGivenEmailConfirmationCode(emailConfirmationCode);
-        }
         application.setPhoneNumber(phoneNumber);
-        if (phoneConfirmationCode != null) {
-            application.setGivenPhoneConfirmationCode(phoneConfirmationCode);
-        }
         application.setPreferNotificationsPerSms(preferNotificationsPerSms);
         application.setComment(comment);
         application.setApplicationComment(applicationComment);
@@ -209,13 +226,6 @@ public class MemberOnboarding {
             return application;
         }
 
-        // configured administrator will become active immediately
-        if (application.getEmail().equals(properties.getAdminIdentificationEmailAddress())) {
-            throw new UnsupportedOperationException();
-            // application.setStatus(Status.ACTIVE);
-            // return null; // no onboarding configured administrator
-        }
-        
         if (action == MemberApplicationUpdate.REQUEST) {
 
             if (application.getMemberId() != null) {
@@ -260,7 +270,11 @@ public class MemberOnboarding {
             
         } else if (action == MemberApplicationUpdate.ACCEPTED) {
             
-            completeUserValidationFormAsAccepted(application, taskId);
+            if (application.getMemberId() != null) {
+                completeUserValidationFormAsDuplicate(application, taskId);
+            } else {
+                completeUserValidationFormAsAccepted(application, taskId);
+            }
             
         } else  if (action == MemberApplicationUpdate.SAVE) {
 
@@ -568,8 +582,6 @@ public class MemberOnboarding {
                 application.getEmail(),
                 application,
                 NamedObject.from(member).as("member"));
-
-        throw new Exception();
 
     }
 

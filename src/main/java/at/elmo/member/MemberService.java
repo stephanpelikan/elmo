@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
@@ -94,9 +95,9 @@ public class MemberService {
     }
 
     public Optional<Member> getMember(
-            final String memberId) {
+            final Integer memberId) {
         
-        return members.findById(memberId);
+        return members.findByMemberId(memberId);
         
     }
 
@@ -109,10 +110,26 @@ public class MemberService {
 
     public Page<Member> getMembers(
             final int page,
-            final int amount) {
+            final int amount,
+            final String query) {
         
-        return members.findAll(
-                PageRequest.of(page, amount, Direction.ASC, "lastName"));
+        final var pageable =
+                PageRequest.of(page, amount, Direction.ASC, "lastName", "firstName", "memberId");
+        
+        if (query == null) {
+            return members.findAll(pageable);
+        } else {
+            try {
+                final var memberId = Integer.parseInt(query);
+                final var member = members.findByMemberId(memberId);
+                if (member.isEmpty()) {
+                    return Page.empty(pageable);
+                }
+                return new PageImpl<>(List.of(member.get()), pageable, 1);
+            } catch (NumberFormatException e) {
+                return members.findByQuery(query, pageable);
+            }
+        }
         
     }
 

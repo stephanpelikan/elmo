@@ -138,30 +138,33 @@ public class AdministrationApiController implements AdministrationApi {
 
         if (updateMemberOnboarding.getAction() == MemberApplicationUpdate.ACCEPTED) {
 
-            if (!StringUtils.hasText(application.getFirstName())) {
-                violations.put("firstName", "missing");
+            if (application.getMemberId() == null) {
+                if (!StringUtils.hasText(application.getFirstName())) {
+                    violations.put("firstName", "missing");
+                }
+                if (!StringUtils.hasText(application.getLastName())) {
+                    violations.put("lastName", "missing");
+                }
+                if (application.getBirthdate() == null) {
+                    violations.put("birthdate", "missing");
+                }
+                if (application.getSex() == null) {
+                    violations.put("sex", "missing");
+                }
+                if (!StringUtils.hasText(application.getZip())) {
+                    violations.put("zip", "missing");
+                }
+                if (!StringUtils.hasText(application.getCity())) {
+                    violations.put("city", "missing");
+                }
+                if (!StringUtils.hasText(application.getStreet())) {
+                    violations.put("street", "missing");
+                }
+                if (!StringUtils.hasText(application.getStreetNumber())) {
+                    violations.put("streetNumber", "missing");
+                }
             }
-            if (!StringUtils.hasText(application.getLastName())) {
-                violations.put("lastName", "missing");
-            }
-            if (application.getBirthdate() == null) {
-                violations.put("birthdate", "missing");
-            }
-            if (application.getSex() == null) {
-                violations.put("sex", "missing");
-            }
-            if (!StringUtils.hasText(application.getZip())) {
-                violations.put("zip", "missing");
-            }
-            if (!StringUtils.hasText(application.getCity())) {
-                violations.put("city", "missing");
-            }
-            if (!StringUtils.hasText(application.getStreet())) {
-                violations.put("street", "missing");
-            }
-            if (!StringUtils.hasText(application.getStreetNumber())) {
-                violations.put("streetNumber", "missing");
-            }
+
             if (!StringUtils.hasText(application.getEmail())) {
                 violations.put("email", "missing");
             } else if (!emailService.isValidEmailAddressFormat(application.getEmail())) {
@@ -217,9 +220,10 @@ public class AdministrationApiController implements AdministrationApi {
     @Override
     public ResponseEntity<Members> getMembers(
             final @Valid Integer pageNumber,
-            final @Valid Integer pageSize) {
+            final @Valid Integer pageSize,
+            final @Valid String query) {
 
-        final var members = memberService.getMembers(pageNumber, pageSize);
+        final var members = memberService.getMembers(pageNumber, pageSize, query);
 
         final var result = new Members();
         result.setMembers(
@@ -229,6 +233,20 @@ public class AdministrationApiController implements AdministrationApi {
 
         return ResponseEntity.ok(result);
 
+    }
+    
+    @Override
+    public ResponseEntity<at.elmo.administration.api.v1.Member> getMemberById(
+            final Integer memberId) {
+        
+        final var member = memberService.getMember(memberId);
+        if (member.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        final var result = mapper.toApi(member.get());
+        return ResponseEntity.ok(result);
+        
     }
     
     @Override
@@ -446,7 +464,7 @@ public class AdministrationApiController implements AdministrationApi {
     
                 int pageNo = 0;
                 Page<Member> page;
-                while ((page = memberService.getMembers(pageNo, 10)).getNumberOfElements() != 0) {
+                while ((page = memberService.getMembers(pageNo, 10, null)).getNumberOfElements() != 0) {
 
                     for (final var member : page.getContent()) {
                         

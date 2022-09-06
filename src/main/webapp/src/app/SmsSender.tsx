@@ -27,15 +27,19 @@ const SmsSender = () => {
     
     result.textMessages?.forEach(
         message => {
-          nativeCommunicator.postMessage(JSON.stringify([
-            {
-              "type": "SMS",
-              "phoneNumber": message.recipient,
-              "content": message.content,
+            if (nativeCommunicator) {
+              nativeCommunicator.postMessage(JSON.stringify([
+                  {
+                    "type": "SMS",
+                    "phoneNumber": message.recipient,
+                    "content": message.content,
+                  }
+                ]));
+            } else {
+              console.log('SMS', message.content);
             }
-          ]));
-        });
-     
+          });
+   
   }, [guiApi]);
 
   useEffect(() => {
@@ -51,7 +55,7 @@ const SmsSender = () => {
       startOnInit: true,
       event: {
         name: "SMS",
-        listener: ({ data }) => { console.log(data); sendSms(data.senderNumber) },
+        listener: ({ data }) => { sendSms(data.senderNumber) },
       },
     },
     [smsSource, sendSms]);
