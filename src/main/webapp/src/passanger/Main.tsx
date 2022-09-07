@@ -19,7 +19,7 @@ const Main = () => {
               direction='row'>
             { state.currentUser.sex === Sex.Female
                 ? <UserFemale color="accent-3" size='medium' />
-                : <User color="accent-1" size='medium' /> }
+                : <User color="accent-3" size='medium' /> }
             <Box justify='center'>Meine Fahrten:</Box>
           </Box>
         </Heading1>

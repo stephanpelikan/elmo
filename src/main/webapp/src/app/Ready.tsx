@@ -9,7 +9,8 @@ const Ready = () => {
   const { state } = useAppContext();
   
   useEffect(() => {
-      if (state.currentUser !== undefined) {
+      if ((state.currentUser !== undefined)
+          && (state.currentUser !== null)) {
         if (nativeCommunicator) {
           nativeCommunicator.postMessage(JSON.stringify([
               {
