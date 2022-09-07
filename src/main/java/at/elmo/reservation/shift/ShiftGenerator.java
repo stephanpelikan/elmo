@@ -25,7 +25,7 @@ public class ShiftGenerator {
     private ElmoProperties elmoProperties;
 
     @Autowired
-    private ShiftRepository shiftRepository;
+    private ShiftService shiftService;
 
     @Autowired
     private ShiftLifecycle shiftLifecycle;
@@ -33,7 +33,7 @@ public class ShiftGenerator {
     @Autowired
     private ConfigValueRepository configValues;
 
-    //Generated Shifts for one Day in three Months
+
     @EventListener(ApplicationReadyEvent.class)
     @Scheduled(cron = "0 0 * * * *")
     public void generateShifts() throws Exception {
