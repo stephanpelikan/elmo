@@ -150,6 +150,21 @@ paths:
                 format: binary
         404:
           description: The member-id is unknown
+  /gui/member/avatar:
+    post:
+      tags:
+        - gui
+      summary: upload avatar for given member id
+      operationId: uploadAvatar
+      requestBody:
+        content:
+          image/png:
+            schema:
+              type: string
+              format: binary
+      responses:
+        200:
+          description: The avatar as PNG-stream was saved
   /gui/member/request-phone-code:
     get:
       tags:
@@ -271,6 +286,11 @@ components:
           type: string
         firstName:
           type: string
+        sex:
+          $ref: '#/components/schemas/Sex'
+        avatar:
+          type: integer
+          format: int64
         roles:
           type: array
           items:

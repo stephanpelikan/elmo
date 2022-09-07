@@ -54,7 +54,12 @@ const Login = () => {
   const [ showHint, setShowHint ] = useState(!cookies[CookieConfirmationName]);
   
   const confirmCookies = () => {
-    setCookie(CookieConfirmationName, new Date().toISOString());
+    setCookie(
+        CookieConfirmationName,
+        new Date().toISOString(), {
+          expires: new Date(2050, 0, 1)
+        }
+      );
     setShowHint(false);
   };
     

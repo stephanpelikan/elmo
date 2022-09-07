@@ -1,5 +1,6 @@
 package at.elmo.member;
 
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StreamUtils;
 
 import at.elmo.config.ElmoProperties;
 import at.elmo.member.Member.Status;
@@ -33,6 +35,9 @@ public class MemberService {
 
     @Autowired
     private MemberRepository members;
+    
+    @Autowired
+    private MemberAvatarRepository memberAvatars;
 
     @Autowired
     private EmailService emailService;
@@ -170,6 +175,52 @@ public class MemberService {
                 application.getId(),
                 phoneNumber,
                 application);
+        
+    }
+    
+    public void saveAvatar(
+            final int memberId,
+            final InputStream png) throws Exception {
+        
+        final var avatar = memberAvatars.findByOwner_MemberId(memberId);
+
+        final var owner = members.findByMemberId(memberId);
+        if (owner.isEmpty()) {
+            throw new RuntimeException(
+                    "Cannot save new avatar PNG for member '"
+                    + memberId
+                    + "' which is unknown!");
+        }
+
+        if (avatar.isPresent()) {
+            
+            avatar.get().setPng(
+                    StreamUtils.copyToByteArray(png));
+            owner.get().setTimestampOfAvatar(System.currentTimeMillis());
+            return;
+            
+        }
+
+        final var newAvatar = new MemberAvatar();
+        newAvatar.setId(owner.get().getId());
+        newAvatar.setPng(
+                StreamUtils.copyToByteArray(png));
+        newAvatar.setOwner(owner.get());
+        owner.get().setTimestampOfAvatar(System.currentTimeMillis());
+
+        memberAvatars.saveAndFlush(newAvatar);
+        
+    }
+    
+    public Optional<byte[]> getAvatar(
+            final int memberId) {
+        
+        final var avatar = memberAvatars.findByOwner_MemberId(memberId);
+        if (avatar.isEmpty()) {
+            return Optional.empty();
+        }
+        
+        return Optional.of(avatar.get().getPng());
         
     }
     

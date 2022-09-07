@@ -17,6 +17,7 @@ import at.elmo.member.login.RoleMembership;
 @Mapper
 public abstract class AdministrationMapper {
 
+    @Mapping(target = "avatar", source = "timestampOfAvatar")
     public abstract Member toApi(at.elmo.member.Member member);
 
     public abstract List<Member> toMemberApi(List<at.elmo.member.Member> members);
@@ -43,6 +44,7 @@ public abstract class AdministrationMapper {
     @Mapping(target = "givenPhoneConfirmationCode", ignore = true)
     @Mapping(target = "generatedEmailConfirmationCode", ignore = true)
     @Mapping(target = "generatedPhoneConfirmationCode", ignore = true)
+    @Mapping(target = "timestampOfAvatar", ignore = true)
     public abstract at.elmo.member.Member toDomain(Member member);
 
     @Mapping(target = "taskId", source = "userTaskId")

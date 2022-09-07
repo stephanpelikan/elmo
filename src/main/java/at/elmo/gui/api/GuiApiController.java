@@ -1,5 +1,6 @@
 package at.elmo.gui.api;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -14,6 +15,9 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.ResolvableType;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
@@ -97,7 +101,50 @@ public class GuiApiController implements GuiApi {
             return ResponseEntity.notFound().build();
 
         }
+        
+    }
+    
+    @Override
+    public ResponseEntity<Resource> avatarOfMember(
+            final Integer memberId) {
+        
+        if (memberId == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        
+        final var avatar = memberService.getAvatar(memberId);
+        if (avatar.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        return ResponseEntity
+                .ok()
+                .cacheControl(CacheControl.maxAge(Duration.ofDays(365 * 10)))
+                .body(new ByteArrayResource(avatar.get()));
+
+    }
+    
+    @Override
+    public ResponseEntity<Void> uploadAvatar(
+            final Resource body) {
+        
+        try {
             
+            final var png = body.getInputStream();
+            if (png == null) {
+                return ResponseEntity.badRequest().build();
+            }
+            
+            memberService.saveAvatar(
+                    userContext.getLoggedInMember().getMemberId(),
+                    png);
+
+            return ResponseEntity.ok().build();
+        
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+        
     }
 
     @Override
