@@ -57,7 +57,8 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 		final RequestMatcher[] unprotectedGuiApi = new RequestMatcher[] {
                 new AntPathRequestMatcher("/api/v*/gui/app-info"),
                 new AntPathRequestMatcher("/api/v*/gui/current-user"),
-                new AntPathRequestMatcher("/api/v*/drivers/text-messages"),
+                new AntPathRequestMatcher("/api/v*/drivers/sms"),
+                new AntPathRequestMatcher("/api/v*/gui/drivers/text-messages"),
                 new AntPathRequestMatcher("/api/v*/gui/oauth2-clients"),
 		};
 
@@ -131,5 +132,5 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         return new TransactionalJdbcOAuth2AuthorizedClientService(jdbcTemplate, repo);
         
     }
-    
+   
 }
