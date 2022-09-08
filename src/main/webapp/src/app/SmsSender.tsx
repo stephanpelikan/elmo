@@ -35,9 +35,8 @@ const SmsSender = () => {
                     "content": message.content,
                   }
                 ]));
-            } else {
-              console.log('SMS', message.content);
             }
+            console.log(`Sent SMS to Flutter for ${ message.recipient }`);
           });
    
   }, [guiApi]);

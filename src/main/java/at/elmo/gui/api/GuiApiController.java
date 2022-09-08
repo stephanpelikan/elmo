@@ -390,7 +390,7 @@ public class GuiApiController implements GuiApi {
                         .data(event, MediaType.APPLICATION_JSON)
                         .name("SMS")
                         .reconnectTime(30000));
-        
+
     }
 
     @Override
@@ -404,6 +404,8 @@ public class GuiApiController implements GuiApi {
         result.setTextMessages(
                 mapper.toTextMessageApi(messages));
         
+        result.getTextMessages().forEach(msg -> logger.info("Sent SMS to {}", msg.getRecipient()));
+
         return ResponseEntity.ok(result);
         
     }
