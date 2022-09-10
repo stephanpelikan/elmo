@@ -11,6 +11,8 @@ public class ConfigValue {
 
     public static final String LAST_MEMBER_ID = "last_member_id";
     
+    public static final String JWT_SECRET = "jwt_secret";
+
     @Id
     @Column(name = "NAME")
     private String name;

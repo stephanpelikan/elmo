@@ -14,11 +14,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.util.Pair;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import at.elmo.config.ElmoProperties;
+import at.elmo.config.web.JwtSecurityFilter;
 import at.elmo.member.Member;
 import at.elmo.member.MemberBase;
 import at.elmo.member.MemberBase.Sex;
@@ -454,6 +456,15 @@ public class MemberOnboarding {
                     application.getMemberId());
             if (member.isPresent()) {
                 Security.updateRolesForLoggedInUser(member.get());
+
+                // update JWT token
+                final var finalOauth2User = (ElmoOAuth2User) SecurityContextHolder
+                        .getContext()
+                        .getAuthentication()
+                        .getPrincipal();
+                final String jwtToken = JwtSecurityFilter.generateToken(finalOauth2User);
+                JwtSecurityFilter.setToken(jwtToken);
+                
             }
             
         }

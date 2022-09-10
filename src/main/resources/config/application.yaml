@@ -39,6 +39,8 @@ spring:
   resources:
     # see de.mhb.commons.spa.SpaNoHandlerFoundExceptionHandler
     add-mappings: false
+  session:
+    store-type: none
   liquibase:
     change-log: classpath:liquibase/master.yml
   datasource:
