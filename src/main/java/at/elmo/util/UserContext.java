@@ -24,7 +24,10 @@ public class UserContext {
 
     public Member getLoggedInMember() {
 
-        final var authentication = SecurityContextHolder.getContext().getAuthentication();
+        final var authentication = SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+        
         if (authentication == null) {
             throw new ElmoForbiddenException("No security context");
         }
@@ -52,7 +55,10 @@ public class UserContext {
 
     public MemberApplication getLoggedInMemberApplication() {
 
-        final var authentication = SecurityContextHolder.getContext().getAuthentication();
+        final var authentication = SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+        
         if (authentication == null) {
             throw new ElmoForbiddenException("No security context");
         }

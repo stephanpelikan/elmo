@@ -18,9 +18,11 @@ import org.springframework.core.ResolvableType;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
@@ -42,11 +44,15 @@ import at.elmo.gui.api.v1.TextMessages;
 import at.elmo.gui.api.v1.User;
 import at.elmo.member.MemberService;
 import at.elmo.member.MemberService.MemberApplicationUpdate;
+import at.elmo.member.login.ElmoJwtToken;
+import at.elmo.member.login.ElmoOAuth2User;
 import at.elmo.member.onboarding.MemberOnboarding;
 import at.elmo.util.UserContext;
 import at.elmo.util.email.EmailService;
 import at.elmo.util.exceptions.ElmoException;
 import at.elmo.util.exceptions.ElmoValidationException;
+import at.elmo.util.refreshtoken.RefreshToken;
+import at.elmo.util.refreshtoken.RefreshTokenService;
 import at.elmo.util.sms.SmsEvent;
 import at.elmo.util.sms.SmsService;
 
@@ -63,6 +69,9 @@ public class GuiApiController implements GuiApi {
     @Autowired
     private UserContext userContext;
 
+    @Autowired
+    private RefreshTokenService refreshTokenService;
+    
     @Autowired
     private ElmoProperties properties;
 
@@ -84,23 +93,58 @@ public class GuiApiController implements GuiApi {
     private Map<String, SseEmitter> smsEmitters = new HashMap<>();
 
     @Override
-    public ResponseEntity<User> currentUser() {
+    public ResponseEntity<User> currentUser(
+            final String xRefreshToken) {
 
         try {
             
             final var member = userContext.getLoggedInMember();
             if (member != null) {
-                return ResponseEntity.ok(mapper.toApi(member));
+                return buildCurrentUserResponse(xRefreshToken, mapper.toApi(member));
             }
     
             final var application = userContext.getLoggedInMemberApplication();
-            return ResponseEntity.ok(mapper.toApi(application));
+            return buildCurrentUserResponse(xRefreshToken, mapper.toApi(application));
+
 
         } catch (ElmoException e) {
 
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         }
+        
+    }
+    
+    private ResponseEntity<User> buildCurrentUserResponse(
+            final String xRefreshToken,
+            final User user) {
+
+        final var response = ResponseEntity
+                .ok();
+
+        final var authentication = SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+        if ((authentication instanceof ElmoJwtToken)
+                // if current-user was requested including a refresh token
+                // then the new token was already set by JwtSecurityFilter
+                && (xRefreshToken == null)) {
+            
+            final var token = (ElmoJwtToken) authentication;
+            final var issuedBefore = System.currentTimeMillis() - token.getIssuedAt().getTime();
+            if (issuedBefore < 10000) { // token issues within 10 seconds
+                
+                final var refreshToken = refreshTokenService
+                        .buildRefreshToken(
+                                token.getOAuthId(),
+                                ((ElmoOAuth2User) token.getPrincipal()).getProvider());
+                response.header(RefreshToken.HEADER_NAME, refreshToken);
+                
+            }
+            
+        }
+        
+        return response.body(user);
         
     }
     

@@ -37,6 +37,7 @@ public class Security {
                     .setAuthentication(
                             new ElmoJwtToken(
                                     token.getJwt(),
+                                    token.getIssuedAt(),
                                     user.getProvider(),
                                     user.getOAuth2Id(),
                                     user.getElmoId(),

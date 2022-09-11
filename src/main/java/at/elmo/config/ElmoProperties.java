@@ -1,5 +1,7 @@
 package at.elmo.config;
 
+import java.time.Duration;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.lang.NonNull;
@@ -72,6 +74,10 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties, AsyncPro
     private CorsConfiguration cors = new CorsConfiguration();
 
     private WebsocketProperties websockets;
+
+    private Duration accessTokenLifetime = Duration.ofMinutes(1);
+
+    private Duration refreshTokenLifetime = Duration.ofDays(14);
 
     private SmsProperties sms;
 
@@ -255,6 +261,22 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties, AsyncPro
 
     public void setDefaultPhoneCountry(String defaultPhoneCountry) {
         this.defaultPhoneCountry = defaultPhoneCountry;
+    }
+
+    public Duration getAccessTokenLifetime() {
+        return accessTokenLifetime;
+    }
+
+    public void setAccessTokenLifetime(Duration accessTokenLifetime) {
+        this.accessTokenLifetime = accessTokenLifetime;
+    }
+
+    public Duration getRefreshTokenLifetime() {
+        return refreshTokenLifetime;
+    }
+
+    public void setRefreshTokenLifetime(Duration refreshTokenLifetime) {
+        this.refreshTokenLifetime = refreshTokenLifetime;
     }
 
 }

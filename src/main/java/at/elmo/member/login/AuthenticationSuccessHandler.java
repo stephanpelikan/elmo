@@ -62,12 +62,11 @@ public class AuthenticationSuccessHandler
         }
 
         // user might be updated due to onboarding...
-        final var finalOauth2User = (ElmoOAuth2User) SecurityContextHolder
+        final var user = (ElmoOAuth2User) SecurityContextHolder
                 .getContext()
                 .getAuthentication()
                 .getPrincipal();
-        final String jwtToken = JwtSecurityFilter.generateToken(finalOauth2User);
-        JwtSecurityFilter.setToken(response, jwtToken);
+        JwtSecurityFilter.setToken(response, user);
 
         super.onAuthenticationSuccess(request, response, authentication);
 

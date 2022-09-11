@@ -458,12 +458,11 @@ public class MemberOnboarding {
                 Security.updateRolesForLoggedInUser(member.get());
 
                 // update JWT token
-                final var finalOauth2User = (ElmoOAuth2User) SecurityContextHolder
+                final var user = (ElmoOAuth2User) SecurityContextHolder
                         .getContext()
                         .getAuthentication()
                         .getPrincipal();
-                final String jwtToken = JwtSecurityFilter.generateToken(finalOauth2User);
-                JwtSecurityFilter.setToken(jwtToken);
+                JwtSecurityFilter.setToken(user);
                 
             }
             

@@ -124,4 +124,21 @@
       <column name="PNG" type="blob" />
     </createTable>
   </changeSet>
+  <changeSet id="introduce-refresh-tokens"
+      author="stephanpelikan">
+    <createTable tableName="ELMO_REFRESH_TOKEN">
+      <column name="TOKEN" type="varchar(40)">
+        <constraints primaryKey="true" />
+      </column>
+      <column name="ID" type="varchar(255)">
+        <constraints nullable="false" />
+      </column>
+      <column name="PROVIDER" type="varchar(40)">
+        <constraints nullable="false" />
+      </column>
+      <column name="CREATED_AT" type="timestamp">
+        <constraints nullable="false" />
+      </column>
+    </createTable>
+  </changeSet>
 </databaseChangeLog>

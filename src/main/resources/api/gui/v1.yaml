@@ -44,6 +44,11 @@ paths:
         - gui
       summary: load current user from security context
       operationId: currentUser
+      parameters:
+        - in: header
+          name: "X-Refresh-Token"
+          schema:
+            type: string
       responses:
         200:
           description: The user logged in

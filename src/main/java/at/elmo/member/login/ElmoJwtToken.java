@@ -1,6 +1,7 @@
 package at.elmo.member.login;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.Map;
 
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -14,8 +15,11 @@ public class ElmoJwtToken extends AbstractAuthenticationToken {
 
     private final String jwt;
     
+    private final Date issuedAt;
+
     public ElmoJwtToken(
             final String jwt,
+            final Date issuedAt,
             final ElmoOAuth2Provider provider,
             final String oauth2Id,
             final String elmoId,
@@ -31,6 +35,7 @@ public class ElmoJwtToken extends AbstractAuthenticationToken {
                 authorities,
                 Map.of("name", elmoId != null ? elmoId : memberApplicationId));
         this.jwt = jwt;
+        this.issuedAt = issuedAt;
         setAuthenticated(true);
         
     }
@@ -44,6 +49,12 @@ public class ElmoJwtToken extends AbstractAuthenticationToken {
     public String getJwt() {
 
         return jwt;
+
+    }
+
+    public Date getIssuedAt() {
+
+        return issuedAt;
 
     }
 

@@ -17,7 +17,7 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.session.jdbc.config.annotation.web.http.EnableJdbcHttpSession;
@@ -100,8 +100,8 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     				.and()
     			.logout()
     				.permitAll()
-    				.deleteCookies(JwtSecurityFilter.COOKIE_AUTH)
-    				.logoutSuccessUrl(properties.getGatewayUrl())
+    				.clearAuthentication(false)
+    				.logoutSuccessHandler(logoutSuccessHandler())
     				.and()
                 .oauth2Login()
                     .loginPage(properties.getGatewayUrl() + "/login")
@@ -114,10 +114,16 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                         .and()
                     .successHandler(authenticationSuccessHandler())
                     .and()
-                .addFilterBefore(jwtSecurityFilter(), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtSecurityFilter(), LogoutFilter.class);
 
 	}
 
+	@Bean
+	public LogoutSuccessHandler logoutSuccessHandler() {
+
+	    return new LogoutSuccessHandler();
+	}
+	
     @Bean
     public JwtSecurityFilter jwtSecurityFilter() {
 
