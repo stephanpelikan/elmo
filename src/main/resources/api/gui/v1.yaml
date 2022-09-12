@@ -29,6 +29,11 @@ paths:
         - gui
       summary: a list of all available oauth2-clients
       operationId: oauth2Clients
+      parameters:
+        - in: header
+          name: "User-Agent"
+          schema:
+            type: string
       responses:
         200:
           description: the oauth2-clients
@@ -58,6 +63,21 @@ paths:
                 $ref: '#/components/schemas/User'
         404:
           description: No user logged in
+    post:
+      tags:
+        - gui
+      summary: submit the token from native App login
+      operationId: nativeAppLogin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NativeLogin'
+      responses:
+        200:
+          description: The user logged in
+        400:
+          description: User not logged in
   /gui/drivers/text-messages:
     post:
       tags:
@@ -267,6 +287,15 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TextMessage'
+    NativeLogin:
+      type: object
+      properties:
+        clientId:
+          type: string
+        oauth2Id:
+          type: string
+        accessToken:
+          type: string
     Oauth2Client:
       type: object
       properties:

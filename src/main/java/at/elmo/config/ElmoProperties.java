@@ -75,7 +75,7 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties, AsyncPro
 
     private WebsocketProperties websockets;
 
-    private Duration accessTokenLifetime = Duration.ofMinutes(1);
+    private Duration accessTokenLifetime = Duration.ofHours(1);
 
     private Duration refreshTokenLifetime = Duration.ofDays(14);
 

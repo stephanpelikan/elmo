@@ -205,9 +205,24 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
         }
         
     }
-
+    
     private ElmoJwtToken buildAuthentication(
             final RefreshToken refreshToken,
+            final Member member,
+            final MemberApplication memberApplication) {
+        
+        
+        return buildAuthentication(
+                refreshToken.getProvider(),
+                refreshToken.getOauth2Id(),
+                member,
+                memberApplication);
+        
+    }
+    
+    public static ElmoJwtToken buildAuthentication(
+            final ElmoOAuth2Provider provider,
+            final String oauth2Id,
             final Member member,
             final MemberApplication memberApplication) {
 
@@ -220,8 +235,8 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
                         .collect(Collectors.toList());
         
         final var jwt = generateToken(
-                refreshToken.getProvider(),
-                refreshToken.getOauth2Id(),
+                provider,
+                oauth2Id,
                 member != null ? member.getId() : null,
                 memberApplication != null ? memberApplication.getId() : null,
                 roles);
@@ -234,8 +249,8 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
         return new ElmoJwtToken(
                 jwt,
                 new Date(),
-                refreshToken.getProvider(),
-                refreshToken.getOauth2Id(),
+                provider,
+                oauth2Id,
                 member != null ? member.getId() : null,
                 memberApplication != null ? memberApplication.getId() : null,
                 authorities);
