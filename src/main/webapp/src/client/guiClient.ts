@@ -12,7 +12,7 @@ const RefreshAwareMiddleware: Middleware = {
       
       const headers: Headers = new Headers(context.init.headers);
       const storedRefreshToken = window.localStorage.getItem(REFRESH_TOKEN_HEADER);
-      console.log(storedRefreshToken, !!storedRefreshToken);
+
       if (!Boolean(headers.get(REFRESH_TOKEN_HEADER))
           && storedRefreshToken) {
 

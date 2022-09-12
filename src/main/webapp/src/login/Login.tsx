@@ -7,6 +7,7 @@ import { LinkedBox } from './LinkedBox';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import { useCookies } from "react-cookie";
+import { Oauth2Client } from "../client/gui";
 
 i18n.addResources('en', 'login', {
       "climate-friendly": "The climate-friendly transport service",
@@ -55,7 +56,7 @@ const loginCommunicator = typeof webkit !== 'undefined' ? webkit.messageHandlers
 const Login = () => {
   const { t } = useTranslation('login');
   
-  const { state, fetchOauth2Clients, toast, guiApi, fetchCurrentUser } = useAppContext();
+  const { state, toast, guiApi, fetchCurrentUser } = useAppContext();
 
   const [ cookies, setCookie ] = useCookies([]);
   const [ showHint, setShowHint ] = useState(!cookies[CookieConfirmationName]);
@@ -103,10 +104,16 @@ const Login = () => {
         }
       ]));
   };
+  
+  const [ oauth2Clients, setOauth2Clients ] = useState<Array<Oauth2Client>>(undefined);
     
   useEffect(() => {
-    fetchOauth2Clients();
-  }, [ fetchOauth2Clients ]);
+    const fetchClients = async () => {
+      const clients = await guiApi.oauth2Clients();
+      setOauth2Clients(clients);
+    };
+    fetchClients();
+  }, [ guiApi, setOauth2Clients ]);
   
   return (
     <Grid>
@@ -137,8 +144,8 @@ const Login = () => {
         </Collapsible>
       </Box>
       {
-        state.oauth2Clients === null ? '' : Object.keys(icons).map(clientId => {
-          const oauth2Client = state.oauth2Clients.find(client => client.id === clientId);
+        oauth2Clients === undefined ? '' : Object.keys(icons).map(clientId => {
+          const oauth2Client = oauth2Clients.find(client => client.id === clientId);
           if (oauth2Client === undefined) return '';
           const Icon = icons[clientId];
           return (
