@@ -383,6 +383,9 @@ components:
         memberId:
           type: integer
           format: int32
+        avatar:
+          type: integer
+          format: int64
         title:
           type: string
         firstName:

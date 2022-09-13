@@ -1,6 +1,6 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import styled from 'styled-components'
-import { Box, Text } from 'grommet'
+import { Box, ResponsiveContext, Text } from 'grommet'
 import { BackgroundType } from 'grommet/utils'
 
 type BadgeSize = 
@@ -31,7 +31,7 @@ const badgeSize = (size: string) => {
 const textOffset = (size: string) => {
   switch (size) {
   case 'xsmall': return '0.02rem';
-  case 'small': return '0.03rem';
+  case 'small': return '0.035rem';
   case 'medium': return '0.05rem';
   case 'large': return '0.08rem';
   case 'xlarge': return '0.12rem';
@@ -43,15 +43,33 @@ const CountText = styled(Text)<any>`
   font-size: ${props => badgeSize(props.textSize)};
   line-height: ${props => badgeSize(props.size)};
   font-weight: 700;
-  width: ${props => badgeSize(props.size)};
+  width: 5rem;
+  left: calc(-2.5rem + ${props => badgeSize(props.size)} / 2 - ${props => textOffset(props.size)} / 2);
   text-align: center;
   top: ${props => textOffset(props.size)};
-  position: relative;
+  position: absolute;
 `
 
-const Badge = ({ count, background, size = 'medium', textSize = 'medium', ...props }: BadgeProps) => (
-  <Box align='center' pad='small' justify='center' round={badgeSize(size)} background={background} {...props}>
-    <CountText size={size} textSize={textSize}>{count}</CountText>
-  </Box>);
+const Badge = ({ count, size = 'medium', textSize = 'medium', ...props }: BadgeProps) => {
+
+  const rc = useContext(ResponsiveContext);
+
+  return (
+    <Box
+        align='center'
+        justify='center'
+        pad={ rc === 'small' ? 'small' : 'xsmall' }
+        round={badgeSize(size)}
+        {...props}>
+      <Box
+          width={badgeSize(size)}
+          height={badgeSize(size)}
+          style={ { position: 'relative' } }>
+        <CountText
+            size={size}
+            textSize={textSize}>{count}</CountText>
+      </Box>
+    </Box>);
+};
 
 export { Badge }

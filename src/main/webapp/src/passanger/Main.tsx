@@ -1,66 +1,67 @@
-import { Accordion, AccordionPanel, Box, Heading, Page, PageContent, ResponsiveContext, Text } from "grommet";
-import { Add } from "grommet-icons";
-import { useContext } from "react";
+import { Accordion, AccordionPanel, Box, Heading, Text } from "grommet";
+import { Add, Group, User, UserFemale } from "grommet-icons";
 import { CircleButton } from '../components/CircleButton';
+import { useAppContext } from '../AppContext';
+import { Sex } from "../client/gui";
+import { MainLayout, Heading1, Content } from '../components/MainLayout';
+import { MemberIdAvatar } from '../components/MemberIdAvatar';
 
 const Main = () => {
-  const size = useContext(ResponsiveContext);
+
+  const { state } = useAppContext();
   
   return (
     <>
-      <Page
-          kind='wide'>
-        <PageContent
-            pad='none'>
-          <Heading
-              level='4'
-              color='accent-3'
-              margin={ {
-                  top: size === 'small' ? 'medium' : 'small',
-                  bottom: 'small',
-                  horizontal: size === 'small' ? '0.5rem' : undefined
-                } }>
-            Meine Fahrten:
-          </Heading>
+      <MainLayout>
+        <Heading1>
           <Box
-              background='light-2'
-              pad={ { horizontal: '0.5rem', bottom: size === 'small' ? 'medium' : 'small' } }>
-            <Heading
-                level='4'
-                margin={ { vertical: '0.5rem' } }>
-              Keine Fahrten geplant!
-            </Heading>
-            <Text>
-              Verwende den blauen "Plus"-Knopf rechts unten, um eine Fahrt zu planen.
-            </Text>
+              gap="xsmall"
+              direction='row'>
+            { state.currentUser.sex === Sex.Female
+                ? <UserFemale color="accent-3" size='medium' />
+                : <User color="accent-3" size='medium' /> }
+            <Box justify='center'>Meine Fahrten:</Box>
           </Box>
+        </Heading1>
+        <Content
+            background='light-2'>
           <Heading
               level='4'
-              color='accent-3'
-              margin={ {
-                  top: size === 'small' ? 'medium' : 'small',
-                  bottom: 'small',
-                  horizontal: size === 'small' ? '0.5rem' : undefined
-                } }>
-            Meine Freunde:
+              margin={ { vertical: '0.5rem' } }>
+            Aktuell keine Fahrten geplant!
           </Heading>
-          <Accordion
-              background='light-2'>
-            <AccordionPanel
-                label='Fahrt 1'>
-              <Box background="light-2">
-                <Text>One</Text>
-              </Box>
-            </AccordionPanel>
-            <AccordionPanel
-                label="Retourfahrt">
-              <Box background="light-2">
-                <Text>Two</Text>
-              </Box>
-            </AccordionPanel>
-          </Accordion>
-        </PageContent>
-      </Page>
+          <Text>
+            Verwende den blauen "Plus"-Knopf rechts unten, um eine Fahrt zu planen.
+          </Text>
+        </Content>
+        <Heading1>
+          <Box
+              gap="xsmall"
+              direction='row'>
+            <Group color="accent-3" size='medium' />
+            <Box justify='center'>Meine Freunde:</Box>
+          </Box>
+        </Heading1>
+        <Box pad="small" direction="row" gap="medium">
+          <MemberIdAvatar memberId={46} sex={Sex.Female} />
+          <MemberIdAvatar memberId={48} sex={Sex.Male} />
+        </Box>
+        <Accordion
+            background='light-2'>
+          <AccordionPanel
+              label='Fahrt 1'>
+            <Box background="light-2">
+              <Text>One</Text>
+            </Box>
+          </AccordionPanel>
+          <AccordionPanel
+              label="Retourfahrt">
+            <Box background="light-2">
+              <Text>Two</Text>
+            </Box>
+          </AccordionPanel>
+        </Accordion>
+      </MainLayout>
       <CircleButton
           style={ { position: 'absolute', right: '0', bottom: '1px' } }
           color='accent-3'

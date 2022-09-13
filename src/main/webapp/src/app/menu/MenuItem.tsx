@@ -2,16 +2,19 @@ import React, { PropsWithChildren } from 'react';
 import { AnchorExtendedProps, Box, BoxProps } from 'grommet';
 import { Role } from '../../client/gui';
 import { useAppContext } from '../../AppContext';
+import { BackgroundType } from 'grommet/utils';
 
 interface MenuItemProps extends PropsWithChildren<BoxProps> {
   href?: string;
   roles?: Array<Role>;
+  background?: BackgroundType;
 };
 
 const MenuItem = ({
   children,
   href,
-  roles,
+  background = 'light-4',
+  roles = [],
   ...props
 }: MenuItemProps) => {
   const { state } = useAppContext();
@@ -21,12 +24,11 @@ const MenuItem = ({
         || (state.currentUser === undefined)) {
       return false;
     }
-    const result = roles === undefined
+    const result = roles === null
         ? true
+        : roles.length === 0
+        ? (state.currentUser.roles.length > 0)
         : roles.reduce((result, role) => result || state.currentUser.roles.includes(role), false);
-    if (!result) {
-      console.error(`Try to fetch route protected by ${roles ? roles : 'any role'} but user has ${state.currentUser.roles.length === 0 ? 'none' : state.currentUser.roles}!`);
-    }
     return result;
   };
 
@@ -41,7 +43,7 @@ const MenuItem = ({
       round
       hoverIndicator='brand'
       direction='row'
-      background='light-4'
+      background={ background }
       pad={{ top: 'small', bottom: 'small', left: 'medium' }}
       gap='small'
       margin={{ top: 'medium' }}

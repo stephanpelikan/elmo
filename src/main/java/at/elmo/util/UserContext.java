@@ -24,20 +24,27 @@ public class UserContext {
 
     public Member getLoggedInMember() {
 
-        final var authentication = SecurityContextHolder.getContext().getAuthentication();
+        final var authentication = SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+        
         if (authentication == null) {
             throw new ElmoForbiddenException("No security context");
         }
         if (!authentication.isAuthenticated()) {
             throw new ElmoForbiddenException("User anonymous");
         }
+
         if (!(authentication.getPrincipal() instanceof ElmoOAuth2User)) {
             throw new ElmoForbiddenException("User logged in not of incstance '" + ElmoOAuth2User.class + "'");
         }
 
         final var oauth2User = (ElmoOAuth2User) authentication.getPrincipal();
+        if (oauth2User.getElmoId() == null) {
+            return null;
+        }
 
-        final var result = members.findByOauth2Ids_Id(oauth2User.getOAuth2Id());
+        final var result = members.findById(oauth2User.getElmoId());
         if (result.isEmpty()) {
             return null;
         }
@@ -48,7 +55,10 @@ public class UserContext {
 
     public MemberApplication getLoggedInMemberApplication() {
 
-        final var authentication = SecurityContextHolder.getContext().getAuthentication();
+        final var authentication = SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+        
         if (authentication == null) {
             throw new ElmoForbiddenException("No security context");
         }
@@ -61,7 +71,7 @@ public class UserContext {
 
         final var oauth2User = (ElmoOAuth2User) authentication.getPrincipal();
 
-        final var result = memberApplications.findByOauth2Id_Id(oauth2User.getOAuth2Id());
+        final var result = memberApplications.findById(oauth2User.getMemberApplicationId());
         if (result.isEmpty()) {
             throw new ElmoException(
                     "There is no member-application-record for user logged '" + oauth2User.getOAuth2Id() + "'");

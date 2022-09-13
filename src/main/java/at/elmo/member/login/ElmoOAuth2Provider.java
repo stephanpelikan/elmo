@@ -31,5 +31,9 @@ public enum ElmoOAuth2Provider {
         return null;
         
     }
-            
+
+    public String getRegistrationId() {
+        return registrationId;
+    }
+
 }

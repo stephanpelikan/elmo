@@ -9,7 +9,7 @@ interface SmsEvent {
 const phoneNumber = '+431234567890';
 
 // @ts-ignore
-const nativeCommunicator = typeof webkit !== 'undefined' ? webkit.messageHandlers.native : window.native;
+const smsCommunicator = typeof webkit !== 'undefined' ? webkit.messageHandlers.native : window.native;
 
 const SmsSender = () => {
 
@@ -27,17 +27,16 @@ const SmsSender = () => {
     
     result.textMessages?.forEach(
         message => {
-            if (nativeCommunicator) {
-              nativeCommunicator.postMessage(JSON.stringify([
+            if (smsCommunicator) {
+              smsCommunicator.postMessage(JSON.stringify([
                   {
                     "type": "SMS",
                     "phoneNumber": message.recipient,
                     "content": message.content,
                   }
                 ]));
-            } else {
-              console.log('SMS', message.content);
             }
+            console.log(`Sent SMS to Flutter for ${ message.recipient }`);
           });
    
   }, [guiApi]);

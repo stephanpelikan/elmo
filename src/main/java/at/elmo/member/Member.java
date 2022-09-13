@@ -33,6 +33,9 @@ public class Member extends MemberBase {
     @Column(name = "STATUS")
     private Status status;
 
+    @Column(name = "AVATAR")
+    private Long timestampOfAvatar;
+
     @OneToMany(mappedBy = "member", fetch = FetchType.EAGER, cascade = { CascadeType.MERGE, CascadeType.PERSIST,
             CascadeType.DETACH })
     private List<RoleMembership> roles = new LinkedList<>();
@@ -59,6 +62,14 @@ public class Member extends MemberBase {
     
     public void setRoles(List<RoleMembership> roles) {
         this.roles = roles;
+    }
+
+    public Long getTimestampOfAvatar() {
+        return timestampOfAvatar;
+    }
+
+    public void setTimestampOfAvatar(Long timestampOfAvatar) {
+        this.timestampOfAvatar = timestampOfAvatar;
     }
 
     public void addRoles(

@@ -14,7 +14,10 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.session.jdbc.config.annotation.web.http.EnableJdbcHttpSession;
@@ -58,6 +61,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 new AntPathRequestMatcher("/api/v*/gui/app-info"),
                 new AntPathRequestMatcher("/api/v*/gui/current-user"),
                 new AntPathRequestMatcher("/api/v*/drivers/sms"),
+                new AntPathRequestMatcher("/api/v*/gui/drivers/text-messages"),
                 new AntPathRequestMatcher("/api/v*/gui/oauth2-clients"),
 		};
 
@@ -85,7 +89,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     		        .frameOptions().disable()
     		        .and()
                 .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.NEVER)
+                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
     		        .and()
     			.authorizeRequests()
     	            .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
@@ -96,17 +100,36 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     				.and()
     			.logout()
     				.permitAll()
-    				.logoutSuccessUrl(properties.getGatewayUrl())
+    				.clearAuthentication(false)
+    				.logoutSuccessHandler(logoutSuccessHandler())
     				.and()
                 .oauth2Login()
                     .loginPage(properties.getGatewayUrl() + "/login")
+                    .authorizationEndpoint()
+                        .authorizationRequestRepository(authorizationRequestRepository())
+                        .and()
                     .authorizedClientService(oAuth2AuthorizedClientService())
                     .userInfoEndpoint()
                         .userService(oauth2UserService())
                         .and()
-                    .successHandler(authenticationSuccessHandler());
+                    .successHandler(authenticationSuccessHandler())
+                    .and()
+                .addFilterBefore(jwtSecurityFilter(), LogoutFilter.class);
 
 	}
+
+	@Bean
+	public LogoutSuccessHandler logoutSuccessHandler() {
+
+	    return new LogoutSuccessHandler();
+	}
+	
+    @Bean
+    public JwtSecurityFilter jwtSecurityFilter() {
+
+        return new JwtSecurityFilter();
+
+    }
 
     @Bean
     public AuthenticationSuccessHandler authenticationSuccessHandler() {
@@ -131,5 +154,16 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         return new TransactionalJdbcOAuth2AuthorizedClientService(jdbcTemplate, repo);
         
     }
-    
+
+    /**
+     * Used instead of HttpSession based implementation to avoid creating
+     * HttpSession for every request.
+     */
+    @Bean
+    public AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository() {
+
+        return new HttpCookieAuthorizationRequestRepository();
+
+    }
+   
 }

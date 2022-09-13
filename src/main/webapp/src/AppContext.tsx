@@ -1,11 +1,10 @@
 import React, { useCallback, useMemo } from 'react';
-import { User, Oauth2Client, UserStatus, GuiApi, AppInformation } from './client/gui';
+import { User, UserStatus, GuiApi, AppInformation } from './client/gui';
 import getGuiApi from './client/guiClient';
 import { StatusType } from 'grommet';
 
 type Action =
-    | { type: 'updateOauth2Clients', oauth2Clients: Array<Oauth2Client> }
-    | { type: 'updateAppInformation', appInformation: AppInformation }
+    | { type: 'updateAppInformation', appInformation: AppInformation | null }
     | { type: 'updateCurrentUser', user: User | null }
     | { type: 'memberApplicationFormSubmitted' }
     | { type: 'memberApplicationFormRevoked' }
@@ -20,7 +19,6 @@ export type Toast = {
   status?: StatusType;
 };
 type State = {
-  oauth2Clients: Array<Oauth2Client> | null;
   appInformation: AppInformation | null;
   currentUser: User | null | undefined;
   showMenu: boolean;
@@ -34,7 +32,6 @@ const AppContext = React.createContext<{
   dispatch: Dispatch;
   guiApi: GuiApi;
   toast: (toast: Toast) => void;
-  fetchOauth2Clients: () => void;
   fetchAppInformation: () => void;
   fetchCurrentUser: (resolve: (value: User | null) => void, reject: (error: any) => void, forceUpdate?: boolean) => void;
   showMenu: (visibility: boolean) => void;
@@ -68,12 +65,6 @@ const appContextReducer: React.Reducer<State, Action> = (state, action) => {
         ...state.currentUser,
         status: UserStatus.ApplicationSubmitted,
       }
-    };
-    break;
-  case 'updateOauth2Clients':
-    newState = {
-      ...state,
-      oauth2Clients: action.oauth2Clients,
     };
     break;
   case 'updateAppInformation':
@@ -116,7 +107,6 @@ type AppContextProviderProps = {
 const AppContextProvider = ({ children }: AppContextProviderProps) => {
 	const [state, dispatch] = React.useReducer(appContextReducer, {
     currentUser: undefined,
-    oauth2Clients: null,
     appInformation: null,
     showMenu: false,
     title: 'app',
@@ -126,12 +116,10 @@ const AppContextProvider = ({ children }: AppContextProviderProps) => {
 
   const guiApi = useMemo(() => getGuiApi(dispatch), [ dispatch ]);
   
-  const fetchOauth2Clients = useCallback(() => fetchOauth2ClientsFromGuiApi(state, dispatch, guiApi),
-      [ guiApi, state ]);
-  const fetchAppInformation = useCallback(() => fetchAppInformationFromGuiApi(state, dispatch, guiApi),
-      [ guiApi, state ]);
+  const fetchAppInformation = useCallback(() => fetchAppInformationFromGuiApi(state.appInformation, dispatch, guiApi),
+      [ guiApi, state.appInformation ]);
   const fetchCurrentUser = useCallback((resolve: (value: User | null) => void, reject: (error: any) => void, forceUpdate?: boolean) => fetchCurrentUserFromGui(state, dispatch, guiApi, resolve, reject, forceUpdate),
-      [ guiApi, state ]);
+      [ guiApi, state.currentUser ]);
   const showMenu = useCallback((visibility: boolean) => setShowMenu(dispatch, visibility),
       [ dispatch ]);
   const setAppHeaderTitle = useCallback((title: string, intern?: boolean) => updateTitle(dispatch, title, intern),
@@ -145,7 +133,6 @@ const AppContextProvider = ({ children }: AppContextProviderProps) => {
     dispatch,
     guiApi,
     toast: (t: Toast) => dispatch({ type: 'toast', toast: t }),
-    fetchOauth2Clients,
     fetchAppInformation,
     fetchCurrentUser,
     showMenu,
@@ -159,25 +146,9 @@ const AppContextProvider = ({ children }: AppContextProviderProps) => {
    </AppContext.Provider>);
 };
 
-const fetchOauth2ClientsFromGuiApi = async (appContextState: State, dispatch: Dispatch, guiApi: GuiApi) => {
-  if (appContextState.oauth2Clients != null) {
-    return new Promise((resolve, reject) => {
-        resolve(appContextState.oauth2Clients as Oauth2Client[]);
-    });
-  }
-  try {
-    const oauth2Clients = await guiApi.oauth2Clients();
-    dispatch({ type: 'updateOauth2Clients', oauth2Clients });
-  } catch (error) {
-    console.error(error);
-  }
-}
-
-const fetchAppInformationFromGuiApi = async (appContextState: State, dispatch: Dispatch, guiApi: GuiApi) => {
-  if (appContextState.appInformation != null) {
-    return new Promise((resolve, reject) => {
-        resolve(appContextState.appInformation as AppInformation);
-    });
+const fetchAppInformationFromGuiApi = async (appInformation: AppInformation | null, dispatch: Dispatch, guiApi: GuiApi) => {
+  if (appInformation !== null) {
+    return;
   }
   try {
     const appInformation = await guiApi.appInformation();

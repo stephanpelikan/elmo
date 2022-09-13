@@ -7,6 +7,7 @@ import { useAppContext } from '../../AppContext';
 import { AdministrationApi, Member } from '../../client/administration';
 import { useAdministrationApi } from '../AdminAppContext';
 import { CircleButton } from '../../components/CircleButton';
+import { MemberIdAvatar } from '../../components/MemberIdAvatar';
 import i18n from '../../i18n';
 
 i18n.addResources('en', 'administration/member', {
@@ -166,7 +167,12 @@ const ListOfMembers = () => {
 
   const columns: ColumnConfig<Member>[] = size !== 'small'
       ? [
-          { property: 'memberId', header: t(size === 'small' ? 'member-id.short' : 'member-id.long') },
+          { property: 'memberId', header: t(size === 'small' ? 'member-id.short' : 'member-id.long'),
+            render: member => (
+              <Box direction='row'>
+                <MemberIdAvatar memberId={ member.memberId } sex={ member.sex } avatar={ member.avatar } />
+              </Box>)
+          },
           { property: 'lastName', header: t('last-name')},
           { property: 'firstName', header: t('first-name')},
           { property: 'status', header: t('status'),
@@ -177,7 +183,12 @@ const ListOfMembers = () => {
           },
         ]
       : [
-          { property: 'memberId', header: t(size === 'small' ? 'member-id.short' : 'member-id.long') },
+          { property: 'memberId', header: t(size === 'small' ? 'member-id.short' : 'member-id.long'),
+            render: member => (
+              <Box direction='row'>
+                <MemberIdAvatar memberId={ member.memberId } sex={ member.sex } avatar={ member.avatar } />
+              </Box>)
+          },
           { property: 'lastName', header: t('last-name')},
           { property: 'status', header: t('action'), align: 'center',
             render: member => <Text>{ t(`status_${member.status}`) }</Text>

@@ -7,6 +7,7 @@ import { LinkedBox } from './LinkedBox';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import { useCookies } from "react-cookie";
+import { Oauth2Client } from "../client/gui";
 
 i18n.addResources('en', 'login', {
       "climate-friendly": "The climate-friendly transport service",
@@ -20,7 +21,9 @@ i18n.addResources('en', 'login', {
       "login to become a member": "Go ahead and use one of the provided social logins. "
                                   + "After logging in you will be guided through the process of registration.",
       "visit the homepage": "For details information about the association visit our homepage:",
-      "login with": "Login with"
+      "login with": "Login with",
+      "native_login_error": "Login error",
+      "native_login_error_message": "Login could not be completed (Error: ${error ? error : 'unknown'})!",
     });
 i18n.addResources('de', 'login', {
       "climate-friendly": "Der klimafreundliche Fahrtendienst",
@@ -35,7 +38,9 @@ i18n.addResources('de', 'login', {
       "login to become a member": "Melde dich dafür mit einem der oben verfügbaren Anmeldemöglichkeiten an. "
                                   + "Nach der Anmeldung wirst du durch den Registrierungsprozess geführt.",
       "visit the homepage": "Besuche für nähere Informationen zu unserem Verein unsere Vereinshomepage:",
-      "login with": "Anmelden mit"
+      "login with": "Anmelden mit",
+      "native_login_error": "Anmeldefehler",
+      "native_login_error_message": "Die Anmeldung konnte nicht durchgeführt werden (Fehler: ${error ? error : 'unbekannt'})!",
     });
 
 const icons = {
@@ -45,22 +50,70 @@ const icons = {
 
 const CookieConfirmationName = 'elmo-cookie';
 
+// @ts-ignore
+const loginCommunicator = typeof webkit !== 'undefined' ? webkit.messageHandlers.native : window.native;
+
 const Login = () => {
   const { t } = useTranslation('login');
   
-  const { state, fetchOauth2Clients } = useAppContext();
+  const { state, toast, guiApi, fetchCurrentUser } = useAppContext();
 
   const [ cookies, setCookie ] = useCookies([]);
   const [ showHint, setShowHint ] = useState(!cookies[CookieConfirmationName]);
   
   const confirmCookies = () => {
-    setCookie(CookieConfirmationName, new Date().toISOString());
+    setCookie(
+        CookieConfirmationName,
+        new Date().toISOString(), {
+          expires: new Date(2050, 0, 1)
+        }
+      );
     setShowHint(false);
   };
+  
+  const doNativeLogin = clientId => {
+    if (!loginCommunicator) {
+      console.warn("No native message channel available for native Login");
+      return;
+    }
+    window['nativeLoginResult'] = async (oauth2Id: string, accessToken: string, error?: string) => {
+      if (!Boolean(accessToken) || error) {
+        toast({
+            namespace: 'login',
+            title: t('native_login_error'),
+            message: t('native_login_error_message', { error }),
+            status: 'critical'
+          });
+      } else {
+        await guiApi.nativeAppLogin({
+            nativeLogin: {
+              clientId,
+              oauth2Id,
+              accessToken
+            }
+          });
+        await new Promise((resolve, reject) => {
+            fetchCurrentUser(resolve, reject, true);
+          });
+      }
+      window['nativeLoginResult'] = undefined;
+    };
+    loginCommunicator.postMessage(JSON.stringify([
+        {
+          "type": "Login",
+        }
+      ]));
+  };
+  
+  const [ oauth2Clients, setOauth2Clients ] = useState<Array<Oauth2Client>>(undefined);
     
   useEffect(() => {
-    fetchOauth2Clients();
-  }, [ fetchOauth2Clients ]);
+    const fetchClients = async () => {
+      const clients = await guiApi.oauth2Clients();
+      setOauth2Clients(clients);
+    };
+    fetchClients();
+  }, [ guiApi, setOauth2Clients ]);
   
   return (
     <Grid>
@@ -91,13 +144,14 @@ const Login = () => {
         </Collapsible>
       </Box>
       {
-        state.oauth2Clients === null ? '' : Object.keys(icons).map(clientId => {
-          const oauth2Client = state.oauth2Clients.find(client => client.id === clientId);
+        oauth2Clients === undefined ? '' : Object.keys(icons).map(clientId => {
+          const oauth2Client = oauth2Clients.find(client => client.id === clientId);
           if (oauth2Client === undefined) return '';
           const Icon = icons[clientId];
           return (
             <LinkedBox
-                href={ oauth2Client.url }
+                href={ oauth2Client.url === 'native' ? undefined : oauth2Client.url }
+                onClick={ oauth2Client.url === 'native' ? () => doNativeLogin(oauth2Client.id) : undefined }
                 key={ oauth2Client.id }
                 height={{ max: 'xsmall' }}
                 width={{ max: 'medium' }}

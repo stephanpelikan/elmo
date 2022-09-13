@@ -7,10 +7,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 
 import at.elmo.config.ElmoProperties;
+import at.elmo.config.web.JwtSecurityFilter;
 import at.elmo.member.onboarding.MemberOnboarding;
 
 public class AuthenticationSuccessHandler
@@ -50,15 +52,22 @@ public class AuthenticationSuccessHandler
         final var oauth2User = (ElmoOAuth2User) authentication.getPrincipal();
 
         if (oauth2User.isNewUser()) {
-
+            
             try {
                 memberOnboarding.doOnboarding(oauth2User);
             } catch (Exception e) {
                 throw new ServletException("Could not register oauth2 user", e);
             }
-
+            
         }
-        
+
+        // user might be updated due to onboarding...
+        final var user = (ElmoOAuth2User) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
+        JwtSecurityFilter.setToken(response, user);
+
         super.onAuthenticationSuccess(request, response, authentication);
 
     }
