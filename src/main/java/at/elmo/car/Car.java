@@ -1,26 +1,13 @@
 package at.elmo.car;
 
-import at.elmo.member.MemberBase;
-import at.elmo.member.Role;
-import at.elmo.member.login.OAuth2Identifier;
-import at.elmo.member.login.RoleMembership;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
-import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import java.time.OffsetDateTime;
-import java.util.LinkedList;
-import java.util.List;
-
 
 @Entity
 @Table(name = "ELMO_CAR")

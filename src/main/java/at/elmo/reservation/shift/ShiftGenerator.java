@@ -17,15 +17,11 @@ import java.util.UUID;
 @Component
 public class ShiftGenerator {
 
-
     @Autowired
     private Logger logger;
 
     @Autowired
     private ElmoProperties elmoProperties;
-
-    @Autowired
-    private ShiftService shiftService;
 
     @Autowired
     private ShiftLifecycle shiftLifecycle;
@@ -46,6 +42,7 @@ public class ShiftGenerator {
         if(generateUntil.isBefore(lastCreatedShiftDate)){
             return;
         }
+        logger.info("Creating shifts from {} to {}", lastCreatedShiftDate, generateUntil);
         for ( ; lastCreatedShiftDate.isBefore(generateUntil); lastCreatedShiftDate = lastCreatedShiftDate.plusDays(1)) {
             for (ElmoProperties.Shift configuredShift : elmoProperties.getShifts()) {
                 Shift shift = new Shift();

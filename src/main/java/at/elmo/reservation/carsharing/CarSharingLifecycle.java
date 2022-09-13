@@ -1,6 +1,5 @@
 package at.elmo.reservation.carsharing;
 
-import at.elmo.reservation.shift.Shift;
 import at.phactum.bp.blueprint.process.ProcessService;
 import at.phactum.bp.blueprint.service.WorkflowService;
 import org.springframework.beans.factory.annotation.Autowired;
