@@ -3,8 +3,8 @@ import { FormEdit } from 'grommet-icons';
 import { useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { useAppContext } from '../../AppContext';
-import { AdministrationApi, MemberApplication } from '../../client/administration';
+import { useAdministrationApi } from '../AdminAppContext';
+import { AdministrationApi, MemberApplication, MemberApplicationStatus } from '../../client/administration';
 import i18n from '../../i18n';
 
 i18n.addResources('en', 'administration/onboarding', {
@@ -14,6 +14,12 @@ i18n.addResources('en', 'administration/onboarding', {
       "status_ACCEPTED": "Accepted",
       "status_REJECTED": "Rejected",
       "status_DUPLICATE": "Duplicate",
+      "date_of_application": "From",
+      "email": "Email",
+      "last-name": "Firstname",
+      "first-name": "Lastname",
+      "member-id": "Member-ID",
+      "action": "Action",
     });
 i18n.addResources('de', 'administration/onboarding', {
       "edit": "Bearbeiten",
@@ -22,6 +28,12 @@ i18n.addResources('de', 'administration/onboarding', {
       "status_ACCEPTED": "Aktiviert",
       "status_REJECTED": "Abgewiesen",
       "status_DUPLICATE": "Duplikat",
+      "date_of_application": "Von",
+      "email": "Email",
+      "last-name": "Zuname",
+      "first-name": "Vorname",
+      "member-id": "Mitgliedsnummer",
+      "action": "Aktion",
     });
     
 const itemsBatchSize = 20;
@@ -48,7 +60,7 @@ const loadData = async (
 };
 
 const ListOfOnboardings = () => {
-  const { administrationApi } = useAppContext();
+  const administrationApi = useAdministrationApi();
   
   const [ memberApplications, setMemberApplications ] = useState(undefined);
   
@@ -69,7 +81,6 @@ const ListOfOnboardings = () => {
     if (takeOver) {
       await administrationApi.takeoverMemberOnboardingApplication({
           applicationId: application.id,
-          xxx: new Date('2022-06-05T00:00:00'),
           takeoverMemberOnboardingApplicationRequest: {
             taskId: application.taskId,
           }
@@ -82,22 +93,25 @@ const ListOfOnboardings = () => {
 
   const columns: ColumnConfig<MemberApplication>[] = size !== 'small'
       ? [
-          { property: 'createdAt', header: 'Von', primary: false,
+          { property: 'createdAt', header: t('date_of_application'), primary: false,
             render: application =>
               application.createdAt && application.createdAt.toLocaleDateString(),
           },
-          { property: 'email', header: 'Email',
+          { property: 'email', header: t('email'),
             render: application => <Text truncate>{ application.email }</Text>
           },
-          { property: 'lastName', header: 'Zuname'},
-          { property: 'firstName', header: 'Vorname'},
-          { property: 'status', header: 'Aktion', align: 'center',
+          { property: 'lastName', header: t('last-name')},
+          { property: 'firstName', header: t('first-name')},
+          { property: 'memberId', header: t('member-id'),
+            render: application => <Text>{ application.memberId }</Text>
+          },
+          { property: 'status', header: t('action'), align: 'center',
             render: application => {
               switch (application.status) {
-                case 'NEW':
-                case 'DATA_INVALID':
-                case 'APPLICATION_SUBMITTED':
-                  const applicationSubmitted = application.status === 'APPLICATION_SUBMITTED';
+                case MemberApplicationStatus.New:
+                case MemberApplicationStatus.DataInvalid:
+                case MemberApplicationStatus.ApplicationSubmitted:
+                  const applicationSubmitted = application.status === MemberApplicationStatus.ApplicationSubmitted;
                   return <Button
                         onClick={() => onEdit(application, !applicationSubmitted)}
                         secondary={applicationSubmitted}
@@ -112,37 +126,46 @@ const ListOfOnboardings = () => {
           },
         ]
       : [
-          { property: 'createdAt', header: 'Von', size: '5rem',
+          { property: 'createdAt', header: t('date_of_application'), size: '5rem',
             render: application =>
               application.createdAt && application.createdAt.toLocaleDateString(),
           },
-          { property: 'email', header: 'Email',
+          { property: 'email', header: t('email'),
             render: application => <Text truncate>{ application.email }</Text>
           },
-          { property: 'status', header: 'Aktion', align: 'center', size: '3.5rem',
+          { property: 'status', header: t('action'), align: 'center', size: '5rem',
             render: application => {
               switch (application.status) {
-                case 'NEW':
-                case 'DATA_INVALID':
-                case 'APPLICATION_SUBMITTED':
-                  const applicationSubmitted = application.status === 'APPLICATION_SUBMITTED';
+                case MemberApplicationStatus.New:
+                case MemberApplicationStatus.DataInvalid:
+                case MemberApplicationStatus.ApplicationSubmitted:
+                  const applicationSubmitted = application.status === MemberApplicationStatus.ApplicationSubmitted;
                   return <Button
                         onClick={() => onEdit(application, !applicationSubmitted)}
                         secondary={applicationSubmitted}
                         hoverIndicator
                         icon={<FormEdit />}
                         size='small' />;
+                case MemberApplicationStatus.Accepted:
+                  return <Text>{ t(`status_${application.status}`) }&nbsp;({ application.memberId })</Text>;
                 default:
-                  return <div>{ t(`status_${application.status}`) }</div>;
+                  return <Text>{ t(`status_${application.status}`) }</Text>;
               }
             }
           },
         ];
   
   return (
-    <Box width='100%' overflow="vertical">
+    <Box
+        fill='horizontal'
+        overflow={ { vertical: 'auto' }}>
       <DataTable
+          pin
+          fill
           size='100%'
+          background={ {
+            body: ['white', 'light-2']
+          } }
           placeholder={ memberApplications === undefined ? t('loading') : undefined }
           columns={columns}
           step={itemsBatchSize}

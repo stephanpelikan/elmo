@@ -60,7 +60,14 @@ public class Member extends MemberBase {
     public void setRoles(List<RoleMembership> roles) {
         this.roles = roles;
     }
-    
+
+    public void addRoles(
+            final List<Role> roles) {
+        
+        roles.forEach(role -> addRole(role));
+        
+    }
+
     public void addRole(
             final Role role) {
         

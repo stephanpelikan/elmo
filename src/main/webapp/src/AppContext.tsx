@@ -1,8 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { User, Oauth2Client, UserStatus, GuiApi, AppInformation } from './client/gui';
-import { getGuiApi } from './client';
-import { getAdministrationApi } from './client';
-import { AdministrationApi } from 'client/administration';
+import getGuiApi from './client/guiClient';
+import { StatusType } from 'grommet';
 
 type Action =
     | { type: 'updateOauth2Clients', oauth2Clients: Array<Oauth2Client> }
@@ -18,6 +17,7 @@ export type Toast = {
   namespace: string;
   title: string | undefined;
   message: string;
+  status?: StatusType;
 };
 type State = {
   oauth2Clients: Array<Oauth2Client> | null;
@@ -32,12 +32,11 @@ type State = {
 const AppContext = React.createContext<{
   state: State;
   dispatch: Dispatch;
-  administrationApi: AdministrationApi;
   guiApi: GuiApi;
   toast: (toast: Toast) => void;
   fetchOauth2Clients: () => void;
   fetchAppInformation: () => void;
-  fetchCurrentUser: (resolve: (value: User | null) => void, reject: (error: any) => void) => void;
+  fetchCurrentUser: (resolve: (value: User | null) => void, reject: (error: any) => void, forceUpdate?: boolean) => void;
   showMenu: (visibility: boolean) => void;
   setAppHeaderTitle: (title: string, intern?: boolean) => void;
   memberApplicationFormSubmitted: () => void;
@@ -124,14 +123,14 @@ const AppContextProvider = ({ children }: AppContextProviderProps) => {
     toast: undefined,
     intern: false,
   });
-  const administrationApi = useMemo(() => getAdministrationApi(dispatch), [ dispatch ]);
+
   const guiApi = useMemo(() => getGuiApi(dispatch), [ dispatch ]);
   
   const fetchOauth2Clients = useCallback(() => fetchOauth2ClientsFromGuiApi(state, dispatch, guiApi),
       [ guiApi, state ]);
   const fetchAppInformation = useCallback(() => fetchAppInformationFromGuiApi(state, dispatch, guiApi),
       [ guiApi, state ]);
-  const fetchCurrentUser = useCallback((resolve: (value: User | null) => void, reject: (error: any) => void) => fetchCurrentUserFromGui(state, dispatch, guiApi, resolve, reject),
+  const fetchCurrentUser = useCallback((resolve: (value: User | null) => void, reject: (error: any) => void, forceUpdate?: boolean) => fetchCurrentUserFromGui(state, dispatch, guiApi, resolve, reject, forceUpdate),
       [ guiApi, state ]);
   const showMenu = useCallback((visibility: boolean) => setShowMenu(dispatch, visibility),
       [ dispatch ]);
@@ -144,7 +143,6 @@ const AppContextProvider = ({ children }: AppContextProviderProps) => {
 	const value = {
     state,
     dispatch,
-    administrationApi,
     guiApi,
     toast: (t: Toast) => dispatch({ type: 'toast', toast: t }),
     fetchOauth2Clients,
@@ -189,8 +187,13 @@ const fetchAppInformationFromGuiApi = async (appContextState: State, dispatch: D
   }
 }
 
-const fetchCurrentUserFromGui = async (appContextState: State, dispatch: Dispatch, guiApi: GuiApi, resolve: (value: User | null) => void, reject: (error: any) => void) => {
-  if (appContextState.currentUser != null) {
+const fetchCurrentUserFromGui = async (appContextState: State,
+    dispatch: Dispatch,
+    guiApi: GuiApi,
+    resolve: (value: User | null) => void,
+    reject: (error: any) => void,
+    forceUpdate?: boolean) => {
+  if (!forceUpdate && appContextState.currentUser != null) {
     resolve(appContextState.currentUser);
     return;
   }

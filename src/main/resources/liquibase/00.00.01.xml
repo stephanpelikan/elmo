@@ -53,6 +53,7 @@
 			<column name="EMAIL" type="varchar(2048)" />
       <column name="GIVEN_EMAIL_CODE" type="varchar(4)" />
       <column name="GENERATED_EMAIL_CODE" type="varchar(4)" />
+      <column name="TITLE" type="varchar(255)" />
 			<column name="FIRST_NAME" type="varchar(255)" />
 			<column name="LAST_NAME" type="varchar(255)" />
 			<column name="BIRTHDATE" type="date" />
@@ -65,6 +66,8 @@
       <column name="GIVEN_PHONE_CODE" type="varchar(4)" />
       <column name="GENERATED_PHONE_CODE" type="varchar(4)" />
 			<column name="NOTIFY_PER_SMS" type="boolean" />
+      <column name="IBAN" type="varchar(34)" />
+      <column name="PAYMENT" type="varchar(14)" />
 			<column name="COMMENT" type="clob" />
 		</createTable>
     <createTable tableName="ELMO_MEMBER_ROLE">
@@ -90,6 +93,11 @@
         <constraints nullable="false" />
       </column>
       <column name="UPDATED_AT" type="timestamp" />
+      <column name="SENDER_NUMBER" type="varchar(30)" />
+      <column name="SENDER_NAME" type="varchar(255)" />
+      <column name="RECIPIENT_NUMBER" type="varchar(30)" />
+      <column name="RECIPIENT_NAME" type="varchar(255)" />
+      <column name="CONTENT" type="clob" />
     </createTable>
   </changeSet>
   <changeSet id="introduce-config-value"

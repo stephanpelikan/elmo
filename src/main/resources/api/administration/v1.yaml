@@ -141,6 +141,94 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Shift'
+  /administration/member/download:
+    get:
+      tags:
+        - administration
+      summary: Download members in Excel format
+      operationId: generateMembersExcelFile
+      responses:
+        200:
+          description: The Excel file
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+    post:
+      tags:
+        - administration
+      summary: Upload members in Excel format
+      operationId: uploadMembersExcelFile
+      requestBody:
+        content:
+          application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+            schema:
+              type: string
+              format: binary
+      responses:
+        200:
+          description: Successfully uploaded
+  /administration/member/{memberId}:
+    get:
+      tags:
+        - administration
+      summary: details about the requested member
+      operationId: getMemberById
+      parameters:
+        - in: path
+          name: memberId
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        200:
+          description: The member's details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Member'
+  /administration/member:
+    get:
+      tags:
+        - administration
+      summary: number of all active members
+      operationId: getCountOfActiveMembers
+      responses:
+        200:
+          description: Count of all active members
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CountOfActiveMembers'
+    post:
+      tags:
+        - administration
+      summary: all members
+      operationId: getMembers
+      parameters:
+        - in: query
+          name: pageNumber
+          schema:
+            type: integer
+            format: int32
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+            format: int32
+        - in: query
+          name: query
+          schema:
+            type: string
+      responses:
+        200:
+          description: All members
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Members'
 components:
   schemas:
     Sex:
@@ -149,6 +237,12 @@ components:
         - MALE
         - FEMALE
         - OTHER
+    Payment:
+      type: string
+      enum:
+        - MONTHLY
+        - ANNUALLY
+        - NONE
     Role:
       type: string
       enum:
@@ -198,7 +292,13 @@ components:
       properties:
         count:
           type: integer
-          format: int32 
+          format: int32
+    CountOfActiveMembers:
+      type: object
+      properties:
+        count:
+          type: integer
+          format: int32
     MemberOnboardingApplications:
       type: object
       properties:
@@ -208,6 +308,15 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/MemberApplication'
+    Members:
+      type: object
+      properties:
+        page:
+          $ref: '#/components/schemas/Page'
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/Member'
     UpdateMemberOnboarding:
       type: object
       properties:
@@ -226,8 +335,6 @@ components:
           type: string
         status:
           $ref: '#/components/schemas/MemberApplicationStatus'
-        member:
-          $ref: '#/components/schemas/Member'
         memberId:
           type: int
         createdAt:
@@ -236,6 +343,8 @@ components:
         updatedAt:
           type: string
           format: date-time
+        title:
+          type: string
         firstName:
           type: string
         lastName:
@@ -244,7 +353,6 @@ components:
           type: string
         birthdate:
           type: string
-          format: date
         sex:
           $ref: '#/components/schemas/Sex'
         zip:
@@ -275,6 +383,8 @@ components:
         memberId:
           type: integer
           format: int32
+        title:
+          type: string
         firstName:
           type: string
         lastName:
@@ -283,7 +393,6 @@ components:
           type: string
         birthdate:
           type: string
-          format: date
         sex:
           $ref: '#/components/schemas/Sex'
         zip:
@@ -298,6 +407,10 @@ components:
           type: string
         preferNotificationsPerSms:
           type: boolean
+        payment:
+          $ref: '#/components/schemas/Payment'
+        iban:
+          type: string
         comment:
           type: string
         roles:

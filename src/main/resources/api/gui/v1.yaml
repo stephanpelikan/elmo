@@ -53,6 +53,28 @@ paths:
                 $ref: '#/components/schemas/User'
         404:
           description: No user logged in
+  /gui/drivers/text-messages:
+    post:
+      tags:
+        - gui
+      summary: Request text messages to be sent by mobile phone
+      operationId: requestTextMessages
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TextMessageRequest'
+      responses:
+        200:
+          description: The messages to be sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TextMessages'
+        400:
+          description: email address is wrong format
+        404:
+          description: The member-id is unknown
   /gui/member/application/take-over:
     put:
       tags:
@@ -206,6 +228,25 @@ components:
           type: string
         version:
           type: string
+    TextMessageRequest:
+      type: object
+      properties:
+        sender:
+          type: string
+    TextMessage:
+      type: object
+      properties:
+        recipient:
+          type: string
+        content:
+          type: string
+    TextMessages:
+      type: object
+      properties:
+        textMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/TextMessage'
     Oauth2Client:
       type: object
       properties:
@@ -239,7 +280,12 @@ components:
       properties:
         applicationId:
           type: string
+        memberId:
+          type: integer
+          format: int32
         taskId:
+          type: string
+        title:
           type: string
         firstName:
           type: string
@@ -251,7 +297,6 @@ components:
           type: string
         birthdate:
           type: string
-          format: date
         sex:
           $ref: '#/components/schemas/Sex'
         zip:

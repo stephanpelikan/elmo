@@ -1,7 +1,9 @@
 package at.elmo.util.sms;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -9,6 +11,8 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
@@ -39,6 +43,12 @@ public class SmsService {
 
     @Autowired
     private SmsRepository smses;
+    
+    @Autowired
+    private TaskScheduler scheduler;
+    
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
 
     public boolean isValidPhoneNumberFormat(
             final String phoneNumber) {
@@ -67,6 +77,14 @@ public class SmsService {
 
     }
 
+    public List<Sms> getMessagesToSend(final String senderNumber) {
+
+        final var messages = smses.findBySenderNumber(senderNumber);
+        smses.deleteAll(messages);
+        return messages;
+
+    }
+
     @Transactional
     public void sendSms(
             final String templatePath,
@@ -89,9 +107,13 @@ public class SmsService {
             sms.setSenderName(fromName);
             sms.setSenderNumber(fromNumber);
             sms.setStatus(Status.READY);
-            // smses.save(sms);
-
-            logger.info("Sent SMS to {}", targetToNumber);
+            smses.save(sms);
+            
+            // send notification delayed, to guarantee that transaction is committed
+            scheduler.schedule(
+                    () -> applicationEventPublisher.publishEvent(
+                            new SmsEvent(this, fromNumber)),
+                    Instant.now().plusSeconds(1));
 
         } else {
 

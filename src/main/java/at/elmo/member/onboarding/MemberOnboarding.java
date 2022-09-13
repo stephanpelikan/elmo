@@ -11,6 +11,8 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +38,7 @@ import at.elmo.util.exceptions.ElmoForbiddenException;
 import at.elmo.util.exceptions.ElmoValidationException;
 import at.elmo.util.pdf.fillin.PdfFillIn;
 import at.elmo.util.pdf.fillin.processors.FreemarkerCsvProcessor;
+import at.elmo.util.spring.Security;
 import at.phactum.bp.blueprint.process.ProcessService;
 import at.phactum.bp.blueprint.service.TaskEvent;
 import at.phactum.bp.blueprint.service.TaskEvent.Event;
@@ -94,6 +97,7 @@ public class MemberOnboarding {
 
             admin.setOauth2Ids(List.of(newOAuth2Id));
             admin.setId(UUID.randomUUID().toString());
+            admin.setMemberId(properties.getAdminMemberId());
             admin.setEmail(oauth2User.getEmail());
             admin.setStatus(at.elmo.member.Member.Status.ACTIVE);
             admin.setLastName(oauth2User.getName());
@@ -102,6 +106,8 @@ public class MemberOnboarding {
             admin.addRole(Role.ADMIN);
 
             members.saveAndFlush(admin);
+
+            Security.updateRolesForLoggedInUser(admin);
             return; // no onboarding configured administrator
 
         }
@@ -129,6 +135,7 @@ public class MemberOnboarding {
             final MemberApplicationUpdate action,
             final Map<String, String> violations,
             final Integer memberId,
+            final String title,
             final String firstName,
             final String lastName,
             final LocalDate birthdate,
@@ -171,10 +178,34 @@ public class MemberOnboarding {
                 violations.put("phoneConfirmationCode", "mismatch");
             }
 
+            if (emailConfirmationCode != null) {
+                application.setGivenEmailConfirmationCode(emailConfirmationCode);
+            }
+            if (phoneConfirmationCode != null) {
+                application.setGivenPhoneConfirmationCode(phoneConfirmationCode);
+            }
+
+        } else {
+            
+            // reset confirmation codes if email was changed by others than the applicant
+            if ((email == null)
+                    || !email.equals(application.getEmail())) {
+                application.setGeneratedEmailConfirmationCode(null);
+                application.setGivenEmailConfirmationCode(null);
+            }
+
+            // reset confirmation codes if phoneNumber was changed by others than the applicant
+            if ((phoneNumber == null)
+                    || !phoneNumber.equals(application.getPhoneNumber())) {
+                application.setGeneratedPhoneConfirmationCode(null);
+                application.setGivenPhoneConfirmationCode(null);
+            }
+            
         }
 
         application.setMemberId(memberId);
         application.setSex(sex);
+        application.setTitle(title);
         application.setFirstName(firstName);
         application.setLastName(lastName);
         application.setBirthdate(birthdate);
@@ -183,13 +214,7 @@ public class MemberOnboarding {
         application.setStreet(street);
         application.setStreetNumber(streetNumber);
         application.setEmail(email);
-        if (emailConfirmationCode != null) {
-            application.setGivenEmailConfirmationCode(emailConfirmationCode);
-        }
         application.setPhoneNumber(phoneNumber);
-        if (phoneConfirmationCode != null) {
-            application.setGivenPhoneConfirmationCode(phoneConfirmationCode);
-        }
         application.setPreferNotificationsPerSms(preferNotificationsPerSms);
         application.setComment(comment);
         application.setApplicationComment(applicationComment);
@@ -201,14 +226,37 @@ public class MemberOnboarding {
             return application;
         }
 
-        // configured administrator will become active immediately
-        if (application.getEmail().equals(properties.getAdminIdentificationEmailAddress())) {
-            throw new UnsupportedOperationException();
-            // application.setStatus(Status.ACTIVE);
-            // return null; // no onboarding configured administrator
-        }
-        
         if (action == MemberApplicationUpdate.REQUEST) {
+
+            if (application.getMemberId() != null) {
+
+                final var member = members.findByMemberId(application.getMemberId());
+                if (member.isEmpty()) {
+                    violations.put("memberId", "wrong");
+                    return application;
+                }
+                if (!application.getFirstName().trim()
+                        .equals(member.get().getFirstName())) {
+                    violations.put("memberId", "wrong");
+                    return application;
+                }
+                if (!application.getLastName().trim()
+                        .equals(member.get().getLastName())) {
+                    violations.put("memberId", "wrong");
+                    return application;
+                }
+                if (!application.getBirthdate()
+                        .equals(member.get().getBirthdate())) {
+                    violations.put("memberId", "wrong");
+                    return application;
+                }
+                if (!application.getPhoneNumber().trim()
+                        .equals(member.get().getPhoneNumber())) {
+                    violations.put("memberId", "wrong");
+                    return application;
+                }
+                
+            }
 
             completeUserRegistrationForm(application, taskId);
 
@@ -222,7 +270,11 @@ public class MemberOnboarding {
             
         } else if (action == MemberApplicationUpdate.ACCEPTED) {
             
-            completeUserValidationFormAsAccepted(application, taskId);
+            if (application.getMemberId() != null) {
+                completeUserValidationFormAsDuplicate(application, taskId);
+            } else {
+                completeUserValidationFormAsAccepted(application, taskId);
+            }
             
         } else  if (action == MemberApplicationUpdate.SAVE) {
 
@@ -382,9 +434,29 @@ public class MemberOnboarding {
             final MemberApplication application,
             final String taskId) {
         
-        application.setStatus(Status.APPLICATION_SUBMITTED);
+        if (application.getMemberId() != null) {
+            application.setStatus(Status.DUPLICATE);
+        } else {
+            application.setStatus(Status.APPLICATION_SUBMITTED);
+        }
         
         processService.completeUserTask(application, taskId);
+        
+        // for already registered members, the current login of the user
+        // can be enriched to reflect the roles already applied to the member
+        //
+        // Hint: to make this work in BPMN of onboarding the service task
+        //       which matches to application to the existing member has to
+        //       be executed in the same transaction as this method
+        if (application.getMemberId() != null) {
+            
+            final var member = members.findByMemberId(
+                    application.getMemberId());
+            if (member.isPresent()) {
+                Security.updateRolesForLoggedInUser(member.get());
+            }
+            
+        }
         
     }
 
@@ -400,20 +472,30 @@ public class MemberOnboarding {
         application.setStatus(Status.APPLICATION_SUBMITTED);
 
     }
+    
+    private int getNewMemberId() {
+        
+        final var lastMemberId = configValues
+                .findById(ConfigValue.LAST_MEMBER_ID)
+                .orElse(new ConfigValue(ConfigValue.LAST_MEMBER_ID,
+                        Integer.toString(properties.getInitialNewMemberId() - 1)));
+
+        final var newMemberId = Integer.parseInt(lastMemberId.getValue()) + 1;
+
+        lastMemberId.setValue(Integer.toString(newMemberId));
+        configValues.save(lastMemberId);
+
+        return newMemberId;
+
+    }
 
     @WorkflowTask
     public void createMember(
             final MemberApplication application) {
 
-        final var lastMemberId = configValues
-                .findById(ConfigValue.LAST_MEMBER_ID)
-                .orElse(new ConfigValue(ConfigValue.LAST_MEMBER_ID, "0"));
-
-        final var newMemberId = Integer.parseInt(lastMemberId.getValue()) + 1;
+        final var newMemberId = getNewMemberId();
+        
         application.setMemberId(newMemberId);
-
-        lastMemberId.setValue(Integer.toString(newMemberId));
-        configValues.save(lastMemberId);
 
         final var member = new Member();
         member.setId(UUID.randomUUID().toString());
@@ -426,6 +508,7 @@ public class MemberOnboarding {
         member.setCity(application.getCity());
         member.setComment(application.getComment());
         member.setEmail(application.getEmail());
+        member.setTitle(application.getTitle());
         member.setFirstName(application.getFirstName());
         member.setLastName(application.getLastName());
         member.setPhoneNumber(application.getPhoneNumber());
@@ -443,12 +526,62 @@ public class MemberOnboarding {
     }
 
     @WorkflowTask
-    public void registerAdditionalSocialLogin() {
+    public void registerAdditionalSocialLogin(
+            final MemberApplication application) {
 
+        final var member = members.findByMemberId(
+                application.getMemberId());
+        if (member.isEmpty()) {
+            throw new RuntimeException(
+                    "Member '"
+                    + application.getMemberId()
+                    + "' unknown!");
+        }
+        
+        member.get().setEmail(
+                application.getEmail());
+        member.get().setGeneratedEmailConfirmationCode(
+                application.getGeneratedEmailConfirmationCode());
+        member.get().setGivenEmailConfirmationCode(
+                application.getGivenEmailConfirmationCode());
+        member.get().setPhoneNumber(
+                application.getPhoneNumber());
+        member.get().setGeneratedPhoneConfirmationCode(
+                application.getGeneratedPhoneConfirmationCode());
+        member.get().setGivenPhoneConfirmationCode(
+                application.getGivenPhoneConfirmationCode());
+        member.get().setPreferNotificationsPerSms(
+                application.isPreferNotificationsPerSms());
+        
+        application.getOauth2Id().setOwner(member.get());
+        if (member.get().getOauth2Ids() == null) {
+            member.get().setOauth2Ids(
+                    List.of(application.getOauth2Id()));
+        } else {
+            member.get().getOauth2Ids()
+                    .add(application.getOauth2Id());
+        }
+        
     }
 
     @WorkflowTask
-    public void sendConfirmationOfApplicationAsADuplicate() {
+    public void sendConfirmationOfApplicationAsADuplicate(
+        final MemberApplication application) throws Exception {
+
+        final var member = members.findByMemberId(
+                application.getMemberId());
+        if (member.isEmpty()) {
+            throw new RuntimeException(
+                    "Member '"
+                    + application.getMemberId()
+                    + "' unknown!");
+        }
+        
+        emailService.sendEmail(
+                "onboarding/confirmation-of-application-duplicate",
+                application.getEmail(),
+                application,
+                NamedObject.from(member.get()).as("member"));
 
     }
 
@@ -559,6 +692,29 @@ public class MemberOnboarding {
                 application.getEmail(),
                 application);
 
+    }
+    
+    public Optional<MemberApplication> getMemberApplication(
+            final String applicationId) {
+
+        return memberApplications.findById(applicationId);
+        
+    }
+
+    public Page<MemberApplication> getMemberApplications(
+            final int page,
+            final int amount) {
+        
+        return memberApplications.findAll(
+                Pageable.ofSize(amount).withPage(page));
+        
+    }
+
+    public int getCountOfInprogressMemberApplications() {
+        
+        return (int) memberApplications.countByStatus(
+                at.elmo.member.onboarding.MemberApplication.Status.APPLICATION_SUBMITTED);
+        
     }
     
 }

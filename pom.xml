@@ -151,6 +151,13 @@
 				<groupId>io.swagger.codegen.v3</groupId>
 				<artifactId>swagger-codegen-maven-plugin</artifactId>
 				<version>3.0.31</version>
+				<dependencies>
+					<dependency>
+						<groupId>com.github.jknack</groupId>
+						<artifactId>handlebars</artifactId>
+						<version>4.3.0</version>
+					</dependency>
+				</dependencies>
 				<executions>
 					<execution>
 						<id>generate-client-openrouteservice-api</id>
@@ -324,6 +331,11 @@
 				</exclusion>
 			</exclusions>
 			<version>0.5.10</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+			<version>5.2.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.squareup.okhttp</groupId>

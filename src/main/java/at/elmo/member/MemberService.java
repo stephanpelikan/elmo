@@ -1,17 +1,24 @@
 package at.elmo.member;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import at.elmo.config.ElmoProperties;
+import at.elmo.member.Member.Status;
+import at.elmo.member.MemberBase.Payment;
+import at.elmo.member.MemberBase.Sex;
 import at.elmo.member.onboarding.MemberApplication;
-import at.elmo.member.onboarding.MemberApplicationRepository;
 import at.elmo.util.email.EmailService;
 import at.elmo.util.sms.SmsService;
 
@@ -28,9 +35,6 @@ public class MemberService {
     private MemberRepository members;
 
     @Autowired
-    private MemberApplicationRepository memberApplications;
-
-    @Autowired
     private EmailService emailService;
     
     @Autowired
@@ -42,11 +46,58 @@ public class MemberService {
         return members.findByOauth2Ids_Id(oauth2Id);
         
     }
+    
+    public void createMember(
+            final int memberId,
+            final List<Role> roles,
+            final Sex sex,
+            final String title,
+            final String lastName,
+            final String firstName,
+            final LocalDate birthdate,
+            final String street,
+            final String streetNumber,
+            final String zip,
+            final String city,
+            final String email,
+            final String phoneNumber,
+            final String comment,
+            final String iban,
+            final Payment payment) {
+        
+        if (members.findByMemberId(memberId).isPresent()) {
+            return;
+        }
+
+        final var member = new Member();
+        member.setId(UUID.randomUUID().toString());
+        member.setStatus(Status.ACTIVE);
+        member.setMemberId(memberId);
+        member.addRoles(roles);
+
+        member.setBirthdate(birthdate);
+        member.setCity(city);
+        member.setComment(comment);
+        member.setEmail(email);
+        member.setFirstName(firstName);
+        member.setIban(iban);
+        member.setLastName(lastName);
+        member.setPayment(payment);
+        member.setPhoneNumber(phoneNumber);
+        member.setSex(sex);
+        member.setStreet(street);
+        member.setStreetNumber(streetNumber);
+        member.setTitle(title);
+        member.setZip(zip);
+        
+        members.saveAndFlush(member);
+
+    }
 
     public Optional<Member> getMember(
-            final String memberId) {
+            final Integer memberId) {
         
-        return members.findById(memberId);
+        return members.findByMemberId(memberId);
         
     }
 
@@ -56,27 +107,36 @@ public class MemberService {
         REJECT,
         INQUIRY, REQUEST
     };
-    
-    public Optional<MemberApplication> getMemberApplication(
-            final String applicationId) {
 
-        return memberApplications.findById(applicationId);
-        
-    }
-
-    public Page<MemberApplication> getMemberApplications(
+    public Page<Member> getMembers(
             final int page,
-            final int amount) {
+            final int amount,
+            final String query) {
         
-        return memberApplications.findAll(
-                Pageable.ofSize(amount).withPage(page));
+        final var pageable =
+                PageRequest.of(page, amount, Direction.ASC, "lastName", "firstName", "memberId");
+        
+        if (query == null) {
+            return members.findAll(pageable);
+        } else {
+            try {
+                final var memberId = Integer.parseInt(query);
+                final var member = members.findByMemberId(memberId);
+                if (member.isEmpty()) {
+                    return Page.empty(pageable);
+                }
+                return new PageImpl<>(List.of(member.get()), pageable, 1);
+            } catch (NumberFormatException e) {
+                return members.findByQuery(query, pageable);
+            }
+        }
         
     }
-    
-    public int getCountOfInprogressMemberApplications() {
+
+    public int getCountOfActiveMembers() {
         
-        return (int) memberApplications.countByStatus(
-                at.elmo.member.onboarding.MemberApplication.Status.APPLICATION_SUBMITTED);
+        return (int) members.countByStatus(
+                at.elmo.member.Member.Status.ACTIVE);
         
     }
     

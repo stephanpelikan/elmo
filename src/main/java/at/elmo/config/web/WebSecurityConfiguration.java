@@ -57,6 +57,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 		final RequestMatcher[] unprotectedGuiApi = new RequestMatcher[] {
                 new AntPathRequestMatcher("/api/v*/gui/app-info"),
                 new AntPathRequestMatcher("/api/v*/gui/current-user"),
+                new AntPathRequestMatcher("/api/v*/drivers/sms"),
                 new AntPathRequestMatcher("/api/v*/gui/oauth2-clients"),
 		};
 

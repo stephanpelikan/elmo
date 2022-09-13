@@ -3,7 +3,7 @@
 <head>
 <meta name="viewport" content="width=device-width" />
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title>Deine Elmo-Anmeldung ist nun freigeschaltet!</title>
+<title>Your Elmo registration has been accepted!</title>
 <style type="text/css">
 img {
 max-width: 100%;
@@ -78,43 +78,34 @@ background-color: #f6f6f6;
               <table width="100%" cellpadding="0" cellspacing="0" style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
                 <tr style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
                   <td class="content-block" style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; vertical-align: top; margin: 0; padding: 0 0 20px;" valign="top">
-                    <i>Hallo ${memberApplication.firstName!""}!</i>
+                    <i>Hello ${member.firstName!""}!</i>
                   </td>
                 </tr>
                 <tr style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
                   <td class="content-block" style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; vertical-align: top; margin: 0; padding: 0 0 20px;" valign="top">
-                    Du hast dich beim klimafreundlichen Fahrtendienst &quot;<i>${elmo.title}</i>&quot; registriert. Danke dafür!
+                    You have registered with the climate-friendly &quot;<i>${elmo.title}</i>&quot; travel service. Thanks for that!
                   </td>
                 </tr>
                 <tr style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
                   <td class="content-block" style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; vertical-align: top; margin: 0; padding: 0 0 20px;" valign="top">
-                    <b>Deine Elmo-Anmeldung ist nun freigeschaltet!</b>
-                    Du kannst den Dienst jetzt nutzen.
-                    Rufe dafür <a href="${elmo.gatewayUrl?no_esc}">${elmo.gatewayUrl}</a> in deinem Browser
-                    auf und melde dich erneut an.
+                    <b>Your Elmo registration has been accepted!</b>
+                    You may now use the service.
+                    Please go to <a href="${elmo.gatewayUrl?no_esc}">${elmo.gatewayUrl}</a> in your browser and log in again.
                   </td>
                 </tr>
                 <tr style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
                   <td class="content-block" style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; vertical-align: top; margin: 0; padding: 0 0 20px;" valign="top">
-                    Solltest du Buchungen telefonisch unter ${elmo.phoneNumber} abwickeln, dann halte bitte deine Mitgliedsnummer bereit!
+                    If you make bookings by phone at ${elmo.phoneNumber}, please have your membership number ready!
                   </td>
                 </tr>
                 <tr style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
                   <td class="content-block" style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; vertical-align: top; margin: 0; padding: 0 0 20px;" valign="top">
-                    <div class="btn-primary" style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; color: #FFF; text-decoration: none; line-height: 2em; font-weight: bold; text-align: center; cursor: pointer; display: inline-block; border-radius: 5px; text-transform: capitalize; background-color: #348eda; margin: 0; border-color: #348eda; border-style: solid; border-width: 10px 20px;">Mitgliedsnummer: ${memberApplication.memberId!"-"}</div>
+                    <div class="btn-primary" style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; color: #FFF; text-decoration: none; line-height: 2em; font-weight: bold; text-align: center; cursor: pointer; display: inline-block; border-radius: 5px; text-transform: capitalize; background-color: #348eda; margin: 0; border-color: #348eda; border-style: solid; border-width: 10px 20px;">Membership number: ${memberApplication.memberId!"-"}</div>
                   </td>
                 </tr>
                 <tr style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
                   <td class="content-block" style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; vertical-align: top; margin: 0; padding: 0 0 20px;" valign="top">
-                    Anbei findest du ein Anmeldeformular (inkl. SEPA-Mandat) als Anhang. Bitte drucke es aus und
-                    schicke es unterschrieben innerhalb von 2 Wochen per Mail an ${elmo.generalEmailAddress}.
-                    Das erste Monat deiner Mitgliedschaft ist gratis, danach buchen wir den Betrag entsprechend
-                    des im Anmeldeformular gewählten Tarifs von deinem Konto ab.
-                  </td>
-                </tr>
-                <tr style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
-                  <td class="content-block" style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; vertical-align: top; margin: 0; padding: 0 0 20px;" valign="top">
-                    Dein <i>${elmo.title}</i>
+                    Yours <i>${elmo.title}</i>
                   </td>
                 </tr>
               </table>
@@ -125,7 +116,7 @@ background-color: #f6f6f6;
           <table width="100%" style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
             <tr style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
               <td class="aligncenter content-block" style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 12px; vertical-align: top; color: #999; text-align: center; margin: 0; padding: 0 0 20px;" align="center" valign="top">
-                Nähere Informationen unter <a href="${elmo.homepage?no_esc}" style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 12px; color: #999; text-decoration: underline; margin: 0;">${elmo.homepage}</a>.
+                For details go to <a href="${elmo.homepage?no_esc}" style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 12px; color: #999; text-decoration: underline; margin: 0;">${elmo.homepage}</a>.
               </td>
             </tr>
           </table>

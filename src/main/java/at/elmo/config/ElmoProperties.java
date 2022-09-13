@@ -8,13 +8,15 @@ import org.springframework.web.cors.CorsConfiguration;
 import at.elmo.config.websockets.WebsocketProperties;
 import at.elmo.util.email.EmailProperties;
 import at.elmo.util.sms.SmsProperties;
+import at.phactum.bp.blueprint.async.AsyncProperties;
+import at.phactum.bp.blueprint.async.AsyncPropertiesAware;
 import at.phactum.bp.blueprint.modules.ModuleSpecificProperties;
 import at.phactum.bp.blueprint.modules.WorkflowModuleIdAwareProperties;
 
 import java.util.List;
 
 @ConfigurationProperties(prefix = "elmo", ignoreUnknownFields = false)
-public class ElmoProperties implements WorkflowModuleIdAwareProperties {
+public class ElmoProperties implements WorkflowModuleIdAwareProperties, AsyncPropertiesAware {
 
     private static final String WORKFLOW_MODULE_ID = "Elmo";
 
@@ -24,6 +26,8 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties {
         return new ModuleSpecificProperties(ElmoProperties.class, WORKFLOW_MODULE_ID);
 
     }
+
+    private AsyncProperties async = new AsyncProperties();
 
     public static class Shift {
         private String start;
@@ -67,6 +71,12 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties {
     private String adminIdentificationEmailAddress;
 
     @NonNull
+    private int adminMemberId;
+
+    @NonNull
+    private int initialNewMemberId;
+
+    @NonNull
     private String passangerAgreementPdfDirectory;
 
     @NonNull
@@ -74,6 +84,9 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties {
 
     @NonNull
     private String defaultLocale;
+
+    @NonNull
+    private String defaultPhoneCountry;
 
     private CorsConfiguration cors = new CorsConfiguration();
 
@@ -88,6 +101,15 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties {
 
     @NonNull
     private String transportServicePhoneNumber;
+
+    @Override
+    public AsyncProperties getAsync() {
+        return async;
+    }
+
+    public void setAsync(AsyncProperties async) {
+        this.async = async;
+    }
 
     public WebsocketProperties getWebsockets() {
         return websockets;
@@ -239,4 +261,28 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties {
     public Integer getDaysForInitialShiftCreation() {return DaysForInitialShiftCreation;}
 
     public void setDaysForInitialShiftCreation(Integer daysForInitialShiftCreation) {DaysForInitialShiftCreation = daysForInitialShiftCreation;}
+    public int getAdminMemberId() {
+        return adminMemberId;
+    }
+
+    public void setAdminMemberId(int adminMemberId) {
+        this.adminMemberId = adminMemberId;
+    }
+
+    public int getInitialNewMemberId() {
+        return initialNewMemberId;
+    }
+
+    public void setInitialNewMemberId(int initialNewMemberId) {
+        this.initialNewMemberId = initialNewMemberId;
+    }
+
+    public String getDefaultPhoneCountry() {
+        return defaultPhoneCountry;
+    }
+
+    public void setDefaultPhoneCountry(String defaultPhoneCountry) {
+        this.defaultPhoneCountry = defaultPhoneCountry;
+    }
+
 }

@@ -2,6 +2,8 @@ elmo:
   version: 0.0.1-SNAPSHOT
   sms:
     supported: true
+  initial-new-member-id: 1
+  admin-member-id: 1
   cors:
     allowedHeaders:
     - '*'
@@ -65,7 +67,7 @@ spring:
       data-source-properties:
       defaultRowPrefetch: 100
   freemarker:
-    template-loader-path: classpath:templates/
+    template-loader-path: classpath:templates
 camunda:
   bpm:
     default-number-of-retries: 1
@@ -100,3 +102,75 @@ logging:
     org.springframework.web.socket.config.WebSocketMessageBrokerStats: ERROR
     org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: ERROR
     org.springframework.web.servlet.NoHandlerFoundException: FATAL
+
+translations:
+  general:
+    en:
+      passangerAgreement: Agreement-Passanger
+      driverAgreement: Agreement-Driver
+      dateFormat: MM/dd/yyyy
+      salutation:
+        MALE: "Mr."
+        FEMALE: "Mrs."
+        OTHER: ""
+      payment:
+        MONTHLY: "monthly"
+        ANNUALLY: "annually"
+        NONE: ""
+      roleShortcuts:
+        PASSANGER: P
+        DRIVER: D
+        MANAGER: M
+        ADMIN: A
+    de:
+      passangerAgreement: Anmeldeformular-Passagier
+      driverAgreement: Anmeldeformular-Fahrer
+      dateFormat: dd.MM.yyyy
+      salutation:
+        MALE: "Herr"
+        FEMALE: "Frau"
+        OTHER: ""
+      payment:
+        MONTHLY: "Monatlich"
+        ANNUALLY: "Jährlich"
+        NONE: ""
+      roleShortcuts:
+        PASSANGER: P
+        DRIVER: F
+        MANAGER: M
+        ADMIN: V
+  downloadMembers:
+    en:
+      members: Members
+      memberId: Member ID
+      type: Type
+      salutation: Salutation
+      title: Title
+      lastName: Lastname
+      firstName: Firstname
+      birthdate: Birthdate
+      street: Street
+      zip: ZIP
+      city: City
+      email: eMail
+      phoneNumber: Phone
+      comment: Comment
+      iban: IBAN
+      payment: Payment
+    de:
+      members: Mitglieder
+      memberId: Mitgliedsnummer
+      type: Typ
+      salutation: Anrede
+      title: Titel
+      lastName: Nachname
+      firstName: Vorname
+      birthdate: Geburtstag
+      street: Straße
+      zip: PLZ
+      city: Ort
+      email: eMail
+      phoneNumber: Telefon
+      comment: Kommenatar
+      iban: IBAN
+      payment: Zahlung

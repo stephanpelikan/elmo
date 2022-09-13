@@ -1,22 +1,31 @@
 package at.elmo.gui.api;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.ResolvableType;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import at.elmo.config.ElmoProperties;
 import at.elmo.gui.api.v1.AppInformation;
@@ -24,6 +33,8 @@ import at.elmo.gui.api.v1.GuiApi;
 import at.elmo.gui.api.v1.MemberApplicationForm;
 import at.elmo.gui.api.v1.Oauth2Client;
 import at.elmo.gui.api.v1.TakeoverMemberApplicationFormRequest;
+import at.elmo.gui.api.v1.TextMessageRequest;
+import at.elmo.gui.api.v1.TextMessages;
 import at.elmo.gui.api.v1.User;
 import at.elmo.member.MemberService;
 import at.elmo.member.MemberService.MemberApplicationUpdate;
@@ -32,6 +43,7 @@ import at.elmo.util.UserContext;
 import at.elmo.util.email.EmailService;
 import at.elmo.util.exceptions.ElmoException;
 import at.elmo.util.exceptions.ElmoValidationException;
+import at.elmo.util.sms.SmsEvent;
 import at.elmo.util.sms.SmsService;
 
 @RestController
@@ -64,6 +76,8 @@ public class GuiApiController implements GuiApi {
     
     @Autowired
     private SmsService smsService;
+    
+    private Map<String, SseEmitter> smsEmitters = new HashMap<>();
 
     @Override
     public ResponseEntity<User> currentUser() {
@@ -159,9 +173,6 @@ public class GuiApiController implements GuiApi {
             final MemberApplicationForm memberApplicationForm) {
 
         final var violations = new HashMap<String, String>();
-//        if (memberApplicationForm.getMemberId() == null) {
-//            violations.put("memberId", "missing");
-//        }
         if (!StringUtils.hasText(memberApplicationForm.getFirstName())) {
             violations.put("firstName", "missing");
         }
@@ -171,20 +182,22 @@ public class GuiApiController implements GuiApi {
         if (memberApplicationForm.getBirthdate() == null) {
             violations.put("birthdate", "missing");
         }
-        if (memberApplicationForm.getSex() == null) {
-            violations.put("sex", "missing");
-        }
-        if (!StringUtils.hasText(memberApplicationForm.getZip())) {
-            violations.put("zip", "missing");
-        }
-        if (!StringUtils.hasText(memberApplicationForm.getCity())) {
-            violations.put("city", "missing");
-        }
-        if (!StringUtils.hasText(memberApplicationForm.getStreet())) {
-            violations.put("street", "missing");
-        }
-        if (!StringUtils.hasText(memberApplicationForm.getStreetNumber())) {
-            violations.put("streetNumber", "missing");
+        if (memberApplicationForm.getMemberId() == null) {
+            if (memberApplicationForm.getSex() == null) {
+                violations.put("sex", "missing");
+            }
+            if (!StringUtils.hasText(memberApplicationForm.getZip())) {
+                violations.put("zip", "missing");
+            }
+            if (!StringUtils.hasText(memberApplicationForm.getCity())) {
+                violations.put("city", "missing");
+            }
+            if (!StringUtils.hasText(memberApplicationForm.getStreet())) {
+                violations.put("street", "missing");
+            }
+            if (!StringUtils.hasText(memberApplicationForm.getStreetNumber())) {
+                violations.put("streetNumber", "missing");
+            }
         }
         if (!StringUtils.hasText(memberApplicationForm.getEmail())) {
             violations.put("email", "missing");
@@ -198,17 +211,17 @@ public class GuiApiController implements GuiApi {
         }
         if (!StringUtils.hasText(memberApplicationForm.getEmailConfirmationCode())) {
             violations.put("emailConfirmationCode", "missing");
-            throw new ElmoValidationException(violations); // going ahead would case DB failure
+            throw new ElmoValidationException(violations); // going ahead would cause DB failure
         } else if (memberApplicationForm.getEmailConfirmationCode().length() > 4) {
             violations.put("emailConfirmationCode", "format");
-            throw new ElmoValidationException(violations); // going ahead would case DB failure
+            throw new ElmoValidationException(violations); // going ahead would cause DB failure
         }
         if (!StringUtils.hasText(memberApplicationForm.getPhoneConfirmationCode())) {
             violations.put("phoneConfirmationCode", "missing");
-            throw new ElmoValidationException(violations); // going ahead would case DB failure
+            throw new ElmoValidationException(violations); // going ahead would cause DB failure
         } else if (memberApplicationForm.getPhoneConfirmationCode().length() > 4) {
             violations.put("phoneConfirmationCode", "format");
-            throw new ElmoValidationException(violations); // going ahead would case DB failure
+            throw new ElmoValidationException(violations); // going ahead would cause DB failure
         }
 
         final var referNotificationsPerSms =
@@ -221,10 +234,12 @@ public class GuiApiController implements GuiApi {
                 memberApplicationForm.getTaskId(),
                 MemberApplicationUpdate.REQUEST,
                 violations,
-                null,
+                memberApplicationForm.getMemberId(),
+                memberApplicationForm.getTitle(),
                 memberApplicationForm.getFirstName(),
                 memberApplicationForm.getLastName(),
-                memberApplicationForm.getBirthdate(),
+                memberApplicationForm.getBirthdate() == null ? null
+                        : LocalDate.parse(memberApplicationForm.getBirthdate()),
                 mapper.toDomain(memberApplicationForm.getSex()),
                 memberApplicationForm.getZip(),
                 memberApplicationForm.getCity(),
@@ -288,7 +303,7 @@ public class GuiApiController implements GuiApi {
             
         } catch (Exception e) {
             
-            logger.error("Could not send email-confirmation code for member-application '{}'", application.getId(), e);
+            logger.error("Could not send phone-confirmation code for member-application '{}'", application.getId(), e);
             return ResponseEntity.internalServerError().build();
             
         }
@@ -297,4 +312,53 @@ public class GuiApiController implements GuiApi {
         
     }
     
+    @RequestMapping(
+            method = RequestMethod.GET,
+            value = "/drivers/sms"
+        )
+    public SseEmitter smsSubscription(
+            @NotNull @RequestParam(value = "phoneNo", required = true) String phoneNo) {
+        
+        final var smsEmitter = new SseEmitter(-1l);
+        smsEmitters.put(phoneNo, smsEmitter);
+
+        return smsEmitter;
+        
+    }
+    
+    @EventListener
+    @Async
+    protected void sendSms(
+            final SmsEvent event) throws Exception {
+
+        final var smsEmitter = smsEmitters.get(event.getSenderNumber());
+        if (smsEmitter == null) {
+            return;
+        }
+
+        smsEmitter.send(
+                SseEmitter
+                        .event()
+                        .id(UUID.randomUUID().toString())
+                        .data(event, MediaType.APPLICATION_JSON)
+                        .name("SMS")
+                        .reconnectTime(30000));
+        
+    }
+
+    @Override
+    public ResponseEntity<TextMessages> requestTextMessages(
+            final @Valid TextMessageRequest textMessageRequest) {
+        
+        final var messages = smsService.getMessagesToSend(
+                textMessageRequest.getSender());
+        
+        final var result = new TextMessages();
+        result.setTextMessages(
+                mapper.toTextMessageApi(messages));
+        
+        return ResponseEntity.ok(result);
+        
+    }
+
 }
