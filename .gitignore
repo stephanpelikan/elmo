@@ -5,4 +5,5 @@
 .classpath
 target
 application.yaml
+*.iml
 _application.yaml

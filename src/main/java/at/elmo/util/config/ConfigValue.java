@@ -10,6 +10,7 @@ import javax.persistence.Table;
 public class ConfigValue {
 
     public static final String LAST_MEMBER_ID = "last_member_id";
+    public static final String LAST_SHIFT_GENERATION_DATE = "last-shift-generation-date";
     
     public static final String JWT_SECRET = "jwt_secret";
 

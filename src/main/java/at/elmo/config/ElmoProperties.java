@@ -15,6 +15,8 @@ import at.phactum.bp.blueprint.async.AsyncPropertiesAware;
 import at.phactum.bp.blueprint.modules.ModuleSpecificProperties;
 import at.phactum.bp.blueprint.modules.WorkflowModuleIdAwareProperties;
 
+import java.util.List;
+
 @ConfigurationProperties(prefix = "elmo", ignoreUnknownFields = false)
 public class ElmoProperties implements WorkflowModuleIdAwareProperties, AsyncPropertiesAware {
 
@@ -29,8 +31,25 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties, AsyncPro
 
     private AsyncProperties async = new AsyncProperties();
 
+    public static class Shift {
+        private String start;
+        private String end;
+        private List<Integer> days;
+
+        public String getStart() {return start;}
+        public void setStart(String start) {this.start = start;}
+        public String getEnd() {return end;}
+        public void setEnd(String end) {this.end = end;}
+        public List<Integer> getDays() {return days;}
+        public void setDays(List<Integer> days) {this.days = days;}
+    }
+
+    private List<Shift> shifts;
+
     @NonNull
     private String version;
+
+    private Integer DaysForInitialShiftCreation;
 
     @NonNull
     private String titleShort;
@@ -239,6 +258,15 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties, AsyncPro
         this.driverAgreementPdfDirectory = driverAgreementPdfDirectory;
     }
 
+    public List<Shift> getShifts() {return shifts;}
+
+    public void setShifts(List<Shift> shifts) {this.shifts = shifts;}
+
+
+
+    public Integer getDaysForInitialShiftCreation() {return DaysForInitialShiftCreation;}
+
+    public void setDaysForInitialShiftCreation(Integer daysForInitialShiftCreation) {DaysForInitialShiftCreation = daysForInitialShiftCreation;}
     public int getAdminMemberId() {
         return adminMemberId;
     }

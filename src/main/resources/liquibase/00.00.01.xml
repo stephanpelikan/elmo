@@ -112,6 +112,37 @@
       </column>
     </createTable>
   </changeSet>
+  <changeSet id="introduce-car"
+             author="draganasunaric">
+    <comment>Create table for car</comment>
+    <createTable tableName="ELMO_CAR">
+      <column name="ID" type="varchar(40)">
+        <constraints primaryKey="true" />
+      </column>
+      <column name="CREATED_AT" type="timestamp">
+        <constraints nullable="false" />
+      </column>
+      <column name="UPDATED_AT" type="timestamp" />
+    </createTable>
+  </changeSet>
+  <changeSet id="introduce-reservation"
+             author="draganasunaric">
+    <comment>Create table for reservations</comment>
+    <createTable tableName="ELMO_RESERVATION">
+      <column name="ID" type="varchar(40)">
+        <constraints primaryKey="true" />
+      </column>
+      <column name="TYPE" type="varchar(2)" />
+      <column name="CREATED_AT" type="timestamp">
+        <constraints nullable="false" />
+      </column>
+      <column name="UPDATED_AT" type="timestamp" />
+      <column name="STARTS_AT" type="timestamp" />
+      <column name="ENDS_AT" type="timestamp" />
+      <column name="CAR" type="varchar(40)" />
+      <column name="MEMBER" type="varchar(40)" />
+    </createTable>
+  </changeSet>
   <changeSet id="introduce-avatars"
       author="stephanpelikan">
     <addColumn tableName="ELMO_MEMBER">

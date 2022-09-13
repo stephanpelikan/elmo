@@ -1,16 +1,20 @@
 package at.elmo.administration.api;
 
+import java.time.LocalDate;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
+import at.elmo.reservation.shift.ShiftService;
+import org.slf4j.Logger;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.FillPatternType;
@@ -56,7 +60,7 @@ public class AdministrationApiController implements AdministrationApi {
 
     @Autowired
     private Logger logger;
-    
+
     @Autowired
     private MemberService memberService;
     
@@ -71,9 +75,12 @@ public class AdministrationApiController implements AdministrationApi {
 
     @Autowired
     private SmsService smsService;
-    
+
     @Autowired
     private TranslationProperties translations;
+
+    @Autowired
+    private ShiftService shiftService;
 
     @Autowired
     private ElmoProperties properties;
@@ -234,30 +241,30 @@ public class AdministrationApiController implements AdministrationApi {
         return ResponseEntity.ok(result);
 
     }
-    
+
     @Override
     public ResponseEntity<at.elmo.administration.api.v1.Member> getMemberById(
             final Integer memberId) {
-        
+
         final var member = memberService.getMember(memberId);
         if (member.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-        
+
         final var result = mapper.toApi(member.get());
         return ResponseEntity.ok(result);
-        
+
     }
-    
+
     @Override
     public ResponseEntity<Void> uploadMembersExcelFile(
             final Resource body) {
-        
+
         final var translation = translations.getDownloadMembers().get("de");
         final var gTranslation = translations.getGeneral().get("de");
-        
+
         try (final var wb = new XSSFWorkbook(body.getInputStream())) {
-            
+
             final var sheet = wb.getSheetAt(0);
             if (sheet.getRow(0) == null) {
                 throw new ElmoValidationException(Map.of("file", "wrong"));
@@ -270,7 +277,7 @@ public class AdministrationApiController implements AdministrationApi {
             }
 
             for (final var row : sheet) {
-                
+
                 final int memberId;
                 try {
                     memberId = (int) Math.floor(row.getCell(0).getNumericCellValue());
@@ -279,11 +286,11 @@ public class AdministrationApiController implements AdministrationApi {
                             row.getRowNum());
                     continue;
                 }
-                
+
                 try {
                     logger.info("About to import member {} from uploaded Excel",
                             memberId);
-                    
+
                     final var typeValue = row.getCell(1).getStringCellValue();
                     final var roles = gTranslation
                             .getRoleShortcuts()
@@ -349,7 +356,7 @@ public class AdministrationApiController implements AdministrationApi {
                             .findFirst()
                             .map(Entry::getKey)
                             .orElse(Payment.MONTHLY);
-                    
+
                     memberService.createMember(
                             memberId,
                             roles,
@@ -367,19 +374,19 @@ public class AdministrationApiController implements AdministrationApi {
                             comment,
                             iban,
                             payment);
-                    
+
                 } catch (Exception e) {
-                    
+
                     logger.info("Could not import member {} from uploaded Excel",
                             memberId,
                             e);
 
                 }
-                
+
             }
-            
+
             return ResponseEntity.ok().build();
-            
+
         } catch (ElmoValidationException e) {
             throw e;
         } catch (RuntimeException e) {
@@ -387,21 +394,21 @@ public class AdministrationApiController implements AdministrationApi {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        
+
     }
-    
+
     @Override
     public ResponseEntity<Resource> generateMembersExcelFile() {
-        
+
         final var translation = translations.getDownloadMembers().get("de");
         final var gTranslation = translations.getGeneral().get("de");
-        
+
         final File tempFile;
         try  {
-            
+
             tempFile = File.createTempFile("members", "download");
             FileCleanupInterceptor.setDownloadFile(tempFile);
-            
+
             try (final var wb = new XSSFWorkbook()) {
 
                 final var headerStyle = wb.createCellStyle();
@@ -420,7 +427,7 @@ public class AdministrationApiController implements AdministrationApi {
                         wb.getCreationHelper()
                                 .createDataFormat()
                                 .getFormat(gTranslation.getDateFormat()));
-                
+
                 final var sheet = wb.createSheet(translation.getMembers());
                 sheet.setColumnWidth(0, 4200);
                 sheet.setColumnWidth(1, 1800);
@@ -440,7 +447,7 @@ public class AdministrationApiController implements AdministrationApi {
                 sheet.createFreezePane(0, 1);
 
                 int rowNo = 0;
-    
+
                 // header
                 final var headerRow = sheet.createRow(rowNo);
                 headerRow.createCell(0).setCellValue(translation.getMemberId());
@@ -461,13 +468,13 @@ public class AdministrationApiController implements AdministrationApi {
                 for (short i = headerRow.getFirstCellNum(); i < headerRow.getLastCellNum(); ++i) {
                     headerRow.getCell(i).setCellStyle(headerStyle);
                 }
-    
+
                 int pageNo = 0;
                 Page<Member> page;
                 while ((page = memberService.getMembers(pageNo, 10, null)).getNumberOfElements() != 0) {
 
                     for (final var member : page.getContent()) {
-                        
+
                         ++rowNo;
                         final var dataRow = sheet.createRow(rowNo);
                         dataRow.createCell(0).setCellValue(member.getMemberId());
@@ -495,26 +502,26 @@ public class AdministrationApiController implements AdministrationApi {
                         dataRow.createCell(13).setCellValue(member.getIban());
                         dataRow.createCell(14).setCellValue(
                                 gTranslation.getPayment().get(member.getPayment()));
-                        
+
                     }
-                    
+
                     ++pageNo;
 
                 }
-                
+
                 try (final var fileOut = new FileOutputStream(tempFile)) {
                     wb.write(fileOut);
                 }
-                
+
             }
-            
+
             return ResponseEntity
                     .ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION,
                             "attachment; filename=" + translation.getMembers() + ".xlsx")
                     .contentType(new MediaType("application", "vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                     .body(new FileSystemResource(tempFile));
-            
+
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
@@ -536,5 +543,16 @@ public class AdministrationApiController implements AdministrationApi {
                 mapper.toApi(application.get()));
     
     }
-    
+
+    @Override
+    public ResponseEntity<List<at.elmo.administration.api.v1.Shift>> loadShifts(LocalDate startDate, LocalDate endDate) {
+
+        try{
+            return ResponseEntity.ok(mapper.toApiShifts(shiftService.getShifts()));
+        }catch(Exception e){
+            logger.error("Could not get shifts", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
 }
