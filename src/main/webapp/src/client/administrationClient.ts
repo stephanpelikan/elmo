@@ -1,26 +1,40 @@
-import { Configuration as AdminstrationConfiguration, AdministrationApi, CarsApi } from './administration';
+import { Configuration as AdminstrationConfiguration, OnboardingApi, CarApi, MemberApi } from './administration';
 import { Dispatch } from '../AppContext';
 import buildFetchApi from './fetchApi';
 import { RefreshAwareMiddleware } from './guiClient';
 
-const getAdministrationApi = (dispatch: Dispatch, token?: string): AdministrationApi => {
+const getCarAdministrationApi = (dispatch: Dispatch): CarApi => {
   const config = new AdminstrationConfiguration({
     basePath: '/api/v1',
     fetchApi: buildFetchApi(dispatch),
     middleware: [ RefreshAwareMiddleware ],
   });
   
-  return new AdministrationApi(config);
+  return new CarApi(config);
 };
 
-const getCarAdministrationApi = (dispatch: Dispatch): CarsApi => {
+const getOnboardingAdministrationApi = (dispatch: Dispatch): OnboardingApi => {
   const config = new AdminstrationConfiguration({
     basePath: '/api/v1',
     fetchApi: buildFetchApi(dispatch),
     middleware: [ RefreshAwareMiddleware ],
   });
   
-  return new CarsApi(config);
+  return new OnboardingApi(config);
 };
 
-export { getAdministrationApi, getCarAdministrationApi };
+const getMemberAdministrationApi = (dispatch: Dispatch): MemberApi => {
+  const config = new AdminstrationConfiguration({
+    basePath: '/api/v1',
+    fetchApi: buildFetchApi(dispatch),
+    middleware: [ RefreshAwareMiddleware ],
+  });
+  
+  return new MemberApi(config);
+};
+
+export {
+    getCarAdministrationApi,
+    getOnboardingAdministrationApi,
+    getMemberAdministrationApi,
+  };

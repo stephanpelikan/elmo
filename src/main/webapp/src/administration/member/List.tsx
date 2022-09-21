@@ -4,8 +4,8 @@ import { ChangeEvent, useContext, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../AppContext';
-import { AdministrationApi, Member } from '../../client/administration';
-import { useAdministrationApi } from '../AdminAppContext';
+import { MemberApi, Member } from '../../client/administration';
+import { useMemberApi } from '../AdminAppContext';
 import { CircleButton } from '../../components/CircleButton';
 import { MemberIdAvatar } from '../../components/MemberIdAvatar';
 import i18n from '../../i18n';
@@ -58,13 +58,13 @@ i18n.addResources('de', 'administration/member', {
 const itemsBatchSize = 30;
 
 const loadData = async (
-    administrationApi: AdministrationApi,
+    memberApi: MemberApi,
     setNumberOfMembers: (number: number) => void,
     setMembers: (applications: Array<Member>) => void,
     members: Array<Member>
   ) => {
 
-    const result = await administrationApi
+    const result = await memberApi
         .getMembers({
             pageNumber: members === undefined
                 ? 0
@@ -84,16 +84,16 @@ const ListOfMembers = () => {
   
   const { toast } = useAppContext();
   
-  const administrationApi = useAdministrationApi();
+  const memberApi = useMemberApi();
   
   const [ members, setMembers ] = useState(undefined);
   const [ numberOfMembers, setNumberOfMembers ] = useState(0);
   
   useEffect(() => {
     if (members === undefined) {
-      loadData(administrationApi, setNumberOfMembers, setMembers, members);
+      loadData(memberApi, setNumberOfMembers, setMembers, members);
     }
-  }, [ administrationApi, setMembers, setNumberOfMembers, members ]);
+  }, [ memberApi, setMembers, setNumberOfMembers, members ]);
 
   const { t } = useTranslation('administration/member');
   
@@ -117,7 +117,7 @@ const ListOfMembers = () => {
     
     try {
       
-      await administrationApi.uploadMembersExcelFile({ body: event.target.files[0] });
+      await memberApi.uploadMembersExcelFile({ body: event.target.files[0] });
   
       toast({
           namespace: 'administration/member',
@@ -144,7 +144,7 @@ const ListOfMembers = () => {
   
   const onDownloadExcel = async () => {
     
-    const excel = await administrationApi.generateMembersExcelFileRaw();
+    const excel = await memberApi.generateMembersExcelFileRaw();
     const disposition = excel.raw.headers.get('content-disposition');
     const anchor = window.document.createElement('a');
     anchor.href = window.URL.createObjectURL(await excel.value());
@@ -245,7 +245,7 @@ const ListOfMembers = () => {
                 placeholder={ members === undefined ? t('loading') : undefined }
                 columns={columns}
                 step={itemsBatchSize}
-                onMore={() => loadData(administrationApi, setNumberOfMembers, setMembers, members)}
+                onMore={() => loadData(memberApi, setNumberOfMembers, setMembers, members)}
                 data={members} />
           </Box>
         </Box>

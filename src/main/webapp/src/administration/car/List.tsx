@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCarAdministrationApi } from '../AdminAppContext';
 import { CircleButton } from '../../components/CircleButton';
 import i18n from '../../i18n';
-import { Car, CarsApi } from '../../client/administration';
+import { Car, CarApi } from '../../client/administration';
 
 i18n.addResources('en', 'administration/car', {
       "edit": "edit",
@@ -35,7 +35,7 @@ i18n.addResources('de', 'administration/car', {
 const itemsBatchSize = 30;
 
 const loadData = async (
-    carAdministrationApi: CarsApi,
+    carAdministrationApi: CarApi,
     setNumberOfCars: (number: number) => void,
     setCars: (applications: Array<Car>) => void,
     cars: Array<Car>

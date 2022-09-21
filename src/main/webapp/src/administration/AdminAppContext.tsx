@@ -1,26 +1,34 @@
 import { useMemo } from 'react';
 import { useAppContext } from '../AppContext';
-import{ getAdministrationApi, getCarAdministrationApi } from '../client/administrationClient';
-import { AdministrationApi, CarsApi } from '../client/administration';
+import{ getMemberAdministrationApi, getCarAdministrationApi, getOnboardingAdministrationApi } from '../client/administrationClient';
+import { MemberApi, CarApi, OnboardingApi } from '../client/administration';
 
-const useAdministrationApi = (): AdministrationApi => {
+const useMemberApi = (): MemberApi => {
 
   const { dispatch } = useAppContext();
-  
-  const administrationApi = useMemo(() => getAdministrationApi(dispatch), [ dispatch ]);
-
-  return administrationApi;
+  const api = useMemo(() => getMemberAdministrationApi(dispatch), [ dispatch ]);
+  return api;
   
 };
 
-const useCarAdministrationApi = (): CarsApi => {
+const useCarAdministrationApi = (): CarApi => {
 
   const { dispatch } = useAppContext();
-  
-  const carsApi = useMemo(() => getCarAdministrationApi(dispatch), [ dispatch ]);
-
-  return carsApi;
+  const api = useMemo(() => getCarAdministrationApi(dispatch), [ dispatch ]);
+  return api;
   
 };
 
-export { useAdministrationApi, useCarAdministrationApi };
+const useOnboardingAdministrationApi = (): OnboardingApi => {
+
+  const { dispatch } = useAppContext();
+  const api = useMemo(() => getOnboardingAdministrationApi(dispatch), [ dispatch ]);
+  return api;
+  
+};
+
+export {
+    useMemberApi,
+    useCarAdministrationApi,
+    useOnboardingAdministrationApi
+  };

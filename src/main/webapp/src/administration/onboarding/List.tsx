@@ -3,8 +3,8 @@ import { FormEdit } from 'grommet-icons';
 import { useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { useAdministrationApi } from '../AdminAppContext';
-import { AdministrationApi, MemberApplication, MemberApplicationStatus } from '../../client/administration';
+import { useOnboardingAdministrationApi } from '../AdminAppContext';
+import { MemberApplication, MemberApplicationStatus, OnboardingApi } from '../../client/administration';
 import i18n from '../../i18n';
 
 i18n.addResources('en', 'administration/onboarding', {
@@ -39,12 +39,12 @@ i18n.addResources('de', 'administration/onboarding', {
 const itemsBatchSize = 20;
 
 const loadData = async (
-    administrationApi: AdministrationApi,
+    onboardingApi: OnboardingApi,
     setMemberApplications: (applications: Array<MemberApplication>) => void,
     memberApplications: Array<MemberApplication>
   ) => {
 
-    const result = await administrationApi
+    const result = await onboardingApi
         .getMemberOnboardingApplications({
             pageNumber: memberApplications === undefined
                 ? 0
@@ -60,15 +60,15 @@ const loadData = async (
 };
 
 const ListOfOnboardings = () => {
-  const administrationApi = useAdministrationApi();
+  const onboardingApi = useOnboardingAdministrationApi();
   
   const [ memberApplications, setMemberApplications ] = useState(undefined);
   
   useEffect(() => {
     if (memberApplications === undefined) {
-      loadData(administrationApi, setMemberApplications, memberApplications);
+      loadData(onboardingApi, setMemberApplications, memberApplications);
     }
-  }, [ administrationApi, setMemberApplications, memberApplications ]);
+  }, [ onboardingApi, setMemberApplications, memberApplications ]);
 
   const { t } = useTranslation('administration/onboarding');
   
@@ -79,7 +79,7 @@ const ListOfOnboardings = () => {
   const onEdit = async (application: MemberApplication, takeOver: boolean) => {
     
     if (takeOver) {
-      await administrationApi.takeoverMemberOnboardingApplication({
+      await onboardingApi.takeoverMemberOnboardingApplication({
           applicationId: application.id,
           takeoverMemberOnboardingApplicationRequest: {
             taskId: application.taskId,
@@ -169,7 +169,7 @@ const ListOfOnboardings = () => {
           placeholder={ memberApplications === undefined ? t('loading') : undefined }
           columns={columns}
           step={itemsBatchSize}
-          onMore={() => loadData(administrationApi, setMemberApplications, memberApplications)}
+          onMore={() => loadData(onboardingApi, setMemberApplications, memberApplications)}
           data={memberApplications} />
     </Box>
     );

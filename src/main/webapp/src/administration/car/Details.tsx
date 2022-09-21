@@ -6,7 +6,7 @@ import QRCode from "react-qr-code";
 import { useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
 import { useAppContext } from "../../AppContext";
-import { Car, CarsApi } from "../../client/administration";
+import { Car, CarApi } from "../../client/administration";
 import i18n from '../../i18n';
 import { useCarAdministrationApi } from "../AdminAppContext";
 
@@ -104,7 +104,7 @@ const SmsTestButton = styled(Button)`
   }
 `;
 
-const loadData = async (carApi: CarsApi, carId: string, setCar: (car: Car) => void) => {
+const loadData = async (carApi: CarApi, carId: string, setCar: (car: Car) => void) => {
     const car = await carApi.getCar({ carId });
     setCar(car);
   };

@@ -1,8 +1,8 @@
 package at.elmo.car;
 
 import at.elmo.administration.api.v1.Car;
+import at.elmo.administration.api.v1.CarApi;
 import at.elmo.administration.api.v1.Cars;
-import at.elmo.administration.api.v1.CarsApi;
 import at.elmo.administration.api.v1.CountOfCars;
 import at.elmo.administration.api.v1.TestTextMessage;
 import at.elmo.member.login.ElmoOAuth2Provider;
@@ -23,7 +23,7 @@ import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/api/v1")
-public class CarAdministrationApiController implements CarsApi {
+public class AdministrationApiController implements CarApi {
 
     @Autowired
     private Logger logger;
@@ -35,7 +35,7 @@ public class CarAdministrationApiController implements CarsApi {
     private RefreshTokenService refreshTokenService;
 
     @Autowired
-    private CarAdministrationMapper mapper;
+    private AdministrationApiMapper mapper;
 
     @Autowired
     private SmsService smsService;
@@ -43,9 +43,9 @@ public class CarAdministrationApiController implements CarsApi {
     @Override
     public ResponseEntity<Void> deleteCar(
             final String carId) {
-        
+
         final var deleted = carService.deleteCar(carId);
-        
+
         if (deleted) {
             return ResponseEntity.ok().build();
         } else {
@@ -53,7 +53,7 @@ public class CarAdministrationApiController implements CarsApi {
         }
 
     }
-    
+
     @Override
     public ResponseEntity<String> saveCar(
             final String carId,
@@ -82,7 +82,7 @@ public class CarAdministrationApiController implements CarsApi {
         }
 
         if ("-".equals(carId)) {
-            
+
             final var newCar = carService.createCar(
                     car.getCarSharing(),
                     car.getPassangerService(),
@@ -90,9 +90,9 @@ public class CarAdministrationApiController implements CarsApi {
                     car.getShortcut(),
                     car.getPhoneNumber());
             return ResponseEntity.ok(newCar.getId());
-            
+
         } else {
-            
+
             carService.setCar(
                     carId,
                     car.getCarSharing(),
@@ -100,7 +100,7 @@ public class CarAdministrationApiController implements CarsApi {
                     car.getName(),
                     car.getPhoneNumber());
             return ResponseEntity.ok(carId);
-            
+
         }
 
     }

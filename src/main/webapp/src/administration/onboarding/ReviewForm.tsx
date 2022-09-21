@@ -4,7 +4,7 @@ import { useContext, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAppContext } from "../../AppContext";
-import { AdministrationApi, Member, MemberApplication, MemberApplicationUpdate, Role, Sex } from "../../client/administration";
+import { Member, MemberApplication, MemberApplicationUpdate, OnboardingApi, Role, Sex } from "../../client/administration";
 import { theme as appTheme } from '../../app/App';
 import i18n from '../../i18n';
 import { css } from "styled-components";
@@ -12,7 +12,7 @@ import { CalendarHeader } from '../../components/CalendarHeader';
 import { ViolationsAwareFormField } from "../../components/ViolationsAwareFormField";
 import useDebounce from '../../components/Debounce';
 import { Copy } from "grommet-icons";
-import { useAdministrationApi } from '../AdminAppContext';
+import { useOnboardingAdministrationApi, useMemberApi } from '../AdminAppContext';
 import { parseLocalDate, toLocalDateString } from '../../utils/timeUtils';
 
 i18n.addResources('en', 'administration/onboarding/review', {
@@ -152,12 +152,12 @@ const setFormValueByApplication = (
 };
 
 const loadData = async (
-    administrationApi: AdministrationApi,
+    onboardingApi: OnboardingApi,
     setFormValue: (formValue: FormState) => void,
     applicationId: string
   ) => {
 
-  const application = await administrationApi.getMemberOnboardingApplication({
+  const application = await onboardingApi.getMemberOnboardingApplication({
     applicationId
   });
   setFormValueByApplication(application, setFormValue);
@@ -165,14 +165,14 @@ const loadData = async (
 };
 
 const updateData = async (
-    administrationApi: AdministrationApi,
+    onboardingApi: OnboardingApi,
     formValue: FormState,
     setFormValue: (formValue: FormState) => void,
     applicationId: string,
     action: MemberApplicationUpdate,
   ): Promise<boolean> => {
   try {
-    const application = await administrationApi.updateMemberOnboardingApplication({
+    const application = await onboardingApi.updateMemberOnboardingApplication({
       applicationId,
       updateMemberOnboarding: {
         action,
@@ -217,7 +217,8 @@ const ReviewForm = () => {
   
   const { toast } = useAppContext();
   
-  const administrationApi = useAdministrationApi();
+  const onboardingApi = useOnboardingAdministrationApi();
+  const memberApi = useMemberApi();
 
   const navigate = useNavigate();
     
@@ -229,9 +230,9 @@ const ReviewForm = () => {
   const loading = formValue === undefined;
   useEffect(() => {
       if (formValue === undefined) { 
-        loadData(administrationApi, setFormValue, params.applicationId);
+        loadData(onboardingApi, setFormValue, params.applicationId);
       };
-    }, [ formValue, administrationApi, setFormValue, params ]);
+    }, [ formValue, onboardingApi, setFormValue, params ]);
 
   const { t } = useTranslation('administration/onboarding/review');
   
@@ -270,7 +271,7 @@ const ReviewForm = () => {
   
   const reject = () => {
     updateData(
-        administrationApi,
+        onboardingApi,
         formValue,
         setFormValue,
         params.applicationId,
@@ -281,7 +282,7 @@ const ReviewForm = () => {
 
   const inquiry = () => {
     updateData(
-        administrationApi,
+        onboardingApi,
         formValue,
         setFormValue,
         params.applicationId,
@@ -292,7 +293,7 @@ const ReviewForm = () => {
 
   const accept = () => {
     updateData(
-        administrationApi,
+        onboardingApi,
         formValue,
         setFormValue,
         params.applicationId,
@@ -303,7 +304,7 @@ const ReviewForm = () => {
   
   const save = () => {
     updateData(
-        administrationApi,
+        onboardingApi,
         formValue,
         setFormValue,
         params.applicationId,
@@ -336,7 +337,7 @@ const ReviewForm = () => {
         if (!Boolean(event.target.value)) {
           setMemberSuggestions([]);
         } else {
-          const result = await administrationApi.getMembers({ pageNumber: 0, pageSize: 10, query: event.target.value });
+          const result = await memberApi.getMembers({ pageNumber: 0, pageSize: 10, query: event.target.value });
           setMemberSuggestions(
               result
                 .members
@@ -355,7 +356,7 @@ const ReviewForm = () => {
         ...formValue,
         memberId
       });
-    const result = await administrationApi.getMemberById({ memberId });
+    const result = await memberApi.getMemberById({ memberId });
     setMember(result);
   };
   

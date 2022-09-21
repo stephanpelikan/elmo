@@ -13,7 +13,7 @@ paths:
   /administration/member-onboarding/{applicationId}/take-over:
     put:
       tags:
-        - administration
+        - onboarding
       summary: as a member of management board take-over application from member
       operationId: takeoverMemberOnboardingApplication
       parameters:
@@ -38,7 +38,7 @@ paths:
   /administration/member-onboarding/{applicationId}:
     get:
       tags:
-        - administration
+        - onboarding
       summary: get a member onboarding application
       operationId: getMemberOnboardingApplication
       parameters:
@@ -56,7 +56,7 @@ paths:
                 $ref: '#/components/schemas/MemberApplication' 
     put:
       tags:
-        - administration
+        - onboarding
       summary: update a member onboarding application
       operationId: updateMemberOnboardingApplication
       parameters:
@@ -80,7 +80,7 @@ paths:
   /administration/member-onboarding:
     get:
       tags:
-        - administration
+        - onboarding
       summary: number of all member onboardings of status IN_PROGRESS
       operationId: getCountOfInprogressMemberOnboardings
       responses:
@@ -92,7 +92,7 @@ paths:
                 $ref: '#/components/schemas/CountOfInprogressMemberOnboardings'
     post:
       tags:
-        - administration
+        - onboarding
       summary: all member onboarding applications
       operationId: getMemberOnboardingApplications
       parameters:
@@ -116,9 +116,9 @@ paths:
   /administration/reservations/shifts:
     get:
       tags:
-        - administration
-      summary: load all shifts
-      operationId: loadShifts
+        - shift
+      summary: get all shifts
+      operationId: getShifts
       parameters:
         - in: query
           name: startDate
@@ -144,7 +144,7 @@ paths:
   /administration/member/download:
     get:
       tags:
-        - administration
+        - member
       summary: Download members in Excel format
       operationId: generateMembersExcelFile
       responses:
@@ -157,7 +157,7 @@ paths:
                 format: binary
     post:
       tags:
-        - administration
+        - member
       summary: Upload members in Excel format
       operationId: uploadMembersExcelFile
       requestBody:
@@ -172,7 +172,7 @@ paths:
   /administration/member/{memberId}:
     get:
       tags:
-        - administration
+        - member
       summary: details about the requested member
       operationId: getMemberById
       parameters:
@@ -192,7 +192,7 @@ paths:
   /administration/car/{carId}/send-test-sms:
     post:
       tags:
-        - cars
+        - car
       summary: send a text message via car's tablet Elmo-app to the tablet itself
       operationId: sendTestSms
       parameters:
@@ -212,7 +212,7 @@ paths:
   /administration/car/{carId}/activation-code:
     post:
       tags:
-        - cars
+        - car
       summary: car activation app code
       operationId: activateCarApp
       parameters:
@@ -230,7 +230,7 @@ paths:
                 type: string
     delete:
       tags:
-        - cars
+        - car
       summary: car deactivation app
       operationId: deactivateCarApp
       parameters:
@@ -245,7 +245,7 @@ paths:
   /administration/car/{carId}:
     get:
       tags:
-        - cars
+        - car
       summary: car details
       operationId: getCar
       parameters:
@@ -263,7 +263,7 @@ paths:
                 $ref: '#/components/schemas/Car'
     post:
       tags:
-        - cars
+        - car
       summary: save car details
       operationId: saveCar
       parameters:
@@ -288,7 +288,7 @@ paths:
           description: Validation failed
     delete:
       tags:
-        - cars
+        - car
       summary: delete car
       operationId: deleteCar
       parameters:
@@ -305,7 +305,7 @@ paths:
   /administration/car:
     get:
       tags:
-        - cars
+        - car
       summary: number of all cars
       operationId: getCountOfCars
       responses:
@@ -317,7 +317,7 @@ paths:
                 $ref: '#/components/schemas/CountOfCars'
     post:
       tags:
-        - cars
+        - car
       summary: all cars
       operationId: getCars
       parameters:
@@ -341,7 +341,7 @@ paths:
   /administration/member:
     get:
       tags:
-        - administration
+        - member
       summary: number of all active members
       operationId: getCountOfActiveMembers
       responses:
@@ -353,7 +353,7 @@ paths:
                 $ref: '#/components/schemas/CountOfActiveMembers'
     post:
       tags:
-        - administration
+        - member
       summary: all members
       operationId: getMembers
       parameters:

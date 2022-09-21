@@ -6,12 +6,13 @@ import { Card } from './Card';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAppContext } from '../AppContext';
-import { useAdministrationApi } from './AdminAppContext';
+import { useMemberApi, useOnboardingAdministrationApi } from './AdminAppContext';
 
 const TaskCards = () => {
   const { setAppHeaderTitle } = useAppContext();
   
-  const administrationApi = useAdministrationApi();
+  const memberApi = useMemberApi();
+  const onboardingApi = useOnboardingAdministrationApi();
   
   const { t } = useTranslation('administration');
   
@@ -21,14 +22,14 @@ const TaskCards = () => {
   const [ countOfActiveMembers, setCountOfActiveMembers ] = useState(-1);
   
   const loadCountOfInprogressMemberOnboardings = useCallback(async () => {
-    const { count } = await administrationApi.getCountOfInprogressMemberOnboardings();
+    const { count } = await onboardingApi.getCountOfInprogressMemberOnboardings();
     setCountOfInprogressMemberOnboardings(count);
-  }, [ administrationApi ]);
+  }, [ onboardingApi ]);
 
   const loadCountOfActiveMembers = useCallback(async () => {
-    const { count } = await administrationApi.getCountOfActiveMembers();
+    const { count } = await memberApi.getCountOfActiveMembers();
     setCountOfActiveMembers(count);
-  }, [ administrationApi ]);
+  }, [ memberApi ]);
   
   useEffect(() => {
     if (countOfInprogressMemberOnboardings === -1) {
