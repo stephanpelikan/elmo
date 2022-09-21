@@ -172,4 +172,18 @@
       </column>
     </createTable>
   </changeSet>
+  <changeSet id="extend-car"
+             author="stephanpelikan">
+    <comment>Extend table for car</comment>
+    <addColumn tableName="ELMO_CAR">
+      <column name="NAME" type="varchar(255)" />
+      <column name="SHORTCUT" type="varchar(20)">
+        <constraints unique="true" />
+      </column>
+      <column name="PHONE_NUMBER" type="varchar(30)" />
+      <column name="PASSANGER_SERVICE" type="boolean" />
+      <column name="CAR_SHARING" type="boolean" />
+      <column name="APP_ACTIVE" type="boolean" />
+    </addColumn>
+  </changeSet>
 </databaseChangeLog>

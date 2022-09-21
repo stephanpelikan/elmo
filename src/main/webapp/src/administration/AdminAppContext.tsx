@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useAppContext } from '../AppContext';
-import getAdministrationApi from '../client/administrationClient';
-import { AdministrationApi } from '../client/administration';
+import{ getAdministrationApi, getCarAdministrationApi } from '../client/administrationClient';
+import { AdministrationApi, CarsApi } from '../client/administration';
 
 const useAdministrationApi = (): AdministrationApi => {
 
@@ -13,4 +13,14 @@ const useAdministrationApi = (): AdministrationApi => {
   
 };
 
-export { useAdministrationApi };
+const useCarAdministrationApi = (): CarsApi => {
+
+  const { dispatch } = useAppContext();
+  
+  const carsApi = useMemo(() => getCarAdministrationApi(dispatch), [ dispatch ]);
+
+  return carsApi;
+  
+};
+
+export { useAdministrationApi, useCarAdministrationApi };

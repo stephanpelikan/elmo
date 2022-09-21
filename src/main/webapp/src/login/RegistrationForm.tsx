@@ -442,20 +442,19 @@ const RegistrationForm = () => {
             disabled={ submitting }>
           <Box
               direction="row"
-              gap="medium"
-            >
-          <TextInput
-              id="emailConfirmationCode"
-              value={ formValue?.emailConfirmationCode }
-              onChange={ code => setFormValue({ ...formValue, emailConfirmationCode: code.target.value }) }
-              focusIndicator={false}
-              plain />
-          <CodeButton
-              secondary
-              fill={false}
-              disabled={ submitting }
-              onClick={ value => requestEmailCode() }
-              label={ t('request-email-confirmation-code') } />
+              gap="medium">
+            <TextInput
+                id="emailConfirmationCode"
+                value={ formValue?.emailConfirmationCode }
+                onChange={ code => setFormValue({ ...formValue, emailConfirmationCode: code.target.value }) }
+                focusIndicator={false}
+                plain />
+            <CodeButton
+                secondary
+                fill={false}
+                disabled={ submitting }
+                onClick={ value => requestEmailCode() }
+                label={ t('request-email-confirmation-code') } />
           </Box>
         </ViolationsAwareFormField>
         {/* phone */}
@@ -475,20 +474,19 @@ const RegistrationForm = () => {
             disabled={ submitting }>
           <Box
               direction="row"
-              gap="medium"
-            >
-          <TextInput
-              id="phoneConfirmationCode"
-              value={ formValue?.phoneConfirmationCode }
-              onChange={ code => setFormValue({ ...formValue, phoneConfirmationCode: code.target.value }) }
-              focusIndicator={false}
-              plain />
-          <CodeButton
-              secondary
-              fill={false}
-              disabled={ submitting }
-              onClick={ value => requestSmsCode() }
-              label={ t('request-phone-confirmation-code') } />
+              gap="medium">
+            <TextInput
+                id="phoneConfirmationCode"
+                value={ formValue?.phoneConfirmationCode }
+                onChange={ code => setFormValue({ ...formValue, phoneConfirmationCode: code.target.value }) }
+                focusIndicator={false}
+                plain />
+            <CodeButton
+                secondary
+                fill={false}
+                disabled={ submitting }
+                onClick={ value => requestSmsCode() }
+                label={ t('request-phone-confirmation-code') } />
           </Box>
         </ViolationsAwareFormField>
         {/* prefer notifications per sms */}

@@ -6,12 +6,13 @@ import java.util.List;
 public enum Role {
     PASSANGER,
     DRIVER,
+    CAR, // used for authentication of Android Tablet car app
     MANAGER,
     ADMIN;
 
     public static List<Role> orderedByConstraint(
             final Role minimalConstraint) {
-        
+
         final var result = new LinkedList<Role>();
         boolean found = false;
         for (final var role : Role.values()) {
@@ -23,7 +24,7 @@ public enum Role {
             }
         }
         return result;
-        
+
     }
 
 }

@@ -1,21 +1,20 @@
 package at.elmo.administration.api;
 
-import java.util.List;
-
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-
 import at.elmo.administration.api.v1.Member;
 import at.elmo.administration.api.v1.MemberApplication;
 import at.elmo.administration.api.v1.MemberApplicationUpdate;
 import at.elmo.administration.api.v1.MemberStatus;
-import at.elmo.administration.api.v1.Page;
 import at.elmo.administration.api.v1.Role;
 import at.elmo.administration.api.v1.Sex;
 import at.elmo.member.login.RoleMembership;
+import at.elmo.util.MapperBase;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+
+import java.util.List;
 
 @Mapper
-public abstract class AdministrationMapper {
+public abstract class AdministrationMapper extends MapperBase {
 
     @Mapping(target = "avatar", source = "timestampOfAvatar")
     public abstract Member toApi(at.elmo.member.Member member);
@@ -33,7 +32,7 @@ public abstract class AdministrationMapper {
     public abstract at.elmo.member.Member.Status toDomain(MemberStatus status);
 
     public abstract at.elmo.member.Member.Sex toDomain(Sex sex);
-    
+
     public abstract at.elmo.member.MemberService.MemberApplicationUpdate toDomain(MemberApplicationUpdate action);
 
     @Mapping(target = "roles", ignore = true)
@@ -53,23 +52,10 @@ public abstract class AdministrationMapper {
     public abstract List<MemberApplication> toApplicationApi(
             List<at.elmo.member.onboarding.MemberApplication> applications);
 
-    public Page toApi(org.springframework.data.domain.Page<?> page) {
-
-        final var result = new Page();
-        result.setNumber(page.getNumber());
-        result.setSize(page.getSize());
-        result.setTotalElements(page.getTotalElements());
-        result.setTotalPages(page.getTotalPages());
-        return result;
-
-    }
-
-
     @Mapping(target = "driverId", source = "driver.id")
     @Mapping(target = "carId", source = "car.id")
     public abstract at.elmo.administration.api.v1.Shift toApi(at.elmo.reservation.shift.Shift shift);
+
     public abstract List<at.elmo.administration.api.v1.Shift> toApiShifts(List<at.elmo.reservation.shift.Shift> shifts);
-
-
 
 }

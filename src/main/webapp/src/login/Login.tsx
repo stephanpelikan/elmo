@@ -23,7 +23,8 @@ i18n.addResources('en', 'login', {
       "visit the homepage": "For details information about the association visit our homepage:",
       "login with": "Login with",
       "native_login_error": "Login error",
-      "native_login_error_message": "Login could not be completed (Error: ${error ? error : 'unknown'})!",
+      "native_login_error_message": "Login could not be completed (Error: {{error}})!",
+      "native_login_unknown-error": "Unknown",
     });
 i18n.addResources('de', 'login', {
       "climate-friendly": "Der klimafreundliche Fahrtendienst",
@@ -40,7 +41,8 @@ i18n.addResources('de', 'login', {
       "visit the homepage": "Besuche für nähere Informationen zu unserem Verein unsere Vereinshomepage:",
       "login with": "Anmelden mit",
       "native_login_error": "Anmeldefehler",
-      "native_login_error_message": "Die Anmeldung konnte nicht durchgeführt werden (Fehler: ${error ? error : 'unbekannt'})!",
+      "native_login_error_message": "Die Anmeldung konnte nicht durchgeführt werden (Fehler: {{error}})!",
+      "native_login_unknown-error": "Unbekannt",
     });
 
 const icons = {
@@ -71,33 +73,34 @@ const Login = () => {
     setShowHint(false);
   };
   
-  const doNativeLogin = clientId => {
+  const doNativeLogin = (clientId: string) => {
     if (!loginCommunicator) {
       console.warn("No native message channel available for native Login");
       return;
     }
     window['nativeLoginResult'] = async (oauth2Id: string, accessToken: string, error?: string) => {
-      if (!Boolean(accessToken) || error) {
-        toast({
-            namespace: 'login',
-            title: t('native_login_error'),
-            message: t('native_login_error_message', { error }),
-            status: 'critical'
-          });
-      } else {
-        await guiApi.nativeAppLogin({
-            nativeLogin: {
-              clientId,
-              oauth2Id,
-              accessToken
-            }
-          });
-        await new Promise((resolve, reject) => {
-            fetchCurrentUser(resolve, reject, true);
-          });
-      }
-      window['nativeLoginResult'] = undefined;
-    };
+        if (!Boolean(accessToken) || error) {
+          let text = error ? error : t('native_login_unknown-error');
+          toast({
+              namespace: 'login',
+              title: t('native_login_error'),
+              message: t('native_login_error_message', { error: text }),
+              status: 'critical'
+            });
+        } else {
+          await guiApi.nativeAppLogin({
+              nativeLogin: {
+                clientId,
+                oauth2Id,
+                accessToken
+              }
+            });
+          await new Promise((resolve, reject) => {
+              fetchCurrentUser(resolve, reject, true);
+            });
+        }
+        window['nativeLoginResult'] = undefined;
+      };
     loginCommunicator.postMessage(JSON.stringify([
         {
           "type": "Login",

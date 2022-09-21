@@ -1,19 +1,16 @@
 package at.elmo.gui.api;
 
-import java.util.List;
-
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-
 import at.elmo.gui.api.v1.MemberApplicationForm;
 import at.elmo.gui.api.v1.Role;
 import at.elmo.gui.api.v1.Sex;
-import at.elmo.gui.api.v1.TextMessage;
 import at.elmo.gui.api.v1.User;
 import at.elmo.gui.api.v1.UserStatus;
 import at.elmo.member.login.RoleMembership;
 import at.elmo.member.onboarding.MemberApplication;
-import at.elmo.util.sms.Sms;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+
+import java.util.List;
 
 @Mapper
 public abstract class GuiMapper {
@@ -29,11 +26,6 @@ public abstract class GuiMapper {
     @Mapping(target = "status", expression = "java(toUserStatus(application))")
     @Mapping(target = "avatar", ignore = true)
     public abstract User toApi(MemberApplication application);
-
-    @Mapping(target = "recipient", source = "recipientNumber")
-    public abstract TextMessage toApi(Sms sms);
-
-    public abstract List<TextMessage> toTextMessageApi(List<Sms> sms);
 
     protected List<Role> toRoles(at.elmo.member.Member member) {
 

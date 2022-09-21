@@ -1,12 +1,6 @@
 package at.elmo.config;
 
-import java.time.Duration;
-
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.lang.NonNull;
-import org.springframework.web.cors.CorsConfiguration;
-
+import at.elmo.car.CarProperties;
 import at.elmo.config.websockets.WebsocketProperties;
 import at.elmo.util.email.EmailProperties;
 import at.elmo.util.sms.SmsProperties;
@@ -14,7 +8,12 @@ import at.phactum.bp.blueprint.async.AsyncProperties;
 import at.phactum.bp.blueprint.async.AsyncPropertiesAware;
 import at.phactum.bp.blueprint.modules.ModuleSpecificProperties;
 import at.phactum.bp.blueprint.modules.WorkflowModuleIdAwareProperties;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.lang.NonNull;
+import org.springframework.web.cors.CorsConfiguration;
 
+import java.time.Duration;
 import java.util.List;
 
 @ConfigurationProperties(prefix = "elmo", ignoreUnknownFields = false)
@@ -102,11 +101,10 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties, AsyncPro
 
     private EmailProperties email;
 
-    @NonNull
-    private String transportServiceCarName;
+    private CarProperties cars;
 
     @NonNull
-    private String transportServicePhoneNumber;
+    private String passanagerServicePhoneNumber;
 
     @Override
     public AsyncProperties getAsync() {
@@ -194,20 +192,12 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties, AsyncPro
         this.adminIdentificationEmailAddress = adminIdentificationEmailAddress;
     }
 
-    public String getTransportServiceCarName() {
-        return transportServiceCarName;
+    public String getPassanagerServicePhoneNumber() {
+        return passanagerServicePhoneNumber;
     }
 
-    public void setTransportServiceCarName(String transportServiceCarName) {
-        this.transportServiceCarName = transportServiceCarName;
-    }
-
-    public String getTransportServicePhoneNumber() {
-        return transportServicePhoneNumber;
-    }
-
-    public void setTransportServicePhoneNumber(String transportServicePhoneNumber) {
-        this.transportServicePhoneNumber = transportServicePhoneNumber;
+    public void setPassanagerServicePhoneNumber(String passanagerServicePhoneNumber) {
+        this.passanagerServicePhoneNumber = passanagerServicePhoneNumber;
     }
 
     public String getVersion() {
@@ -305,6 +295,14 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties, AsyncPro
 
     public void setRefreshTokenLifetime(Duration refreshTokenLifetime) {
         this.refreshTokenLifetime = refreshTokenLifetime;
+    }
+
+    public CarProperties getCars() {
+        return cars;
+    }
+
+    public void setCars(CarProperties cars) {
+        this.cars = cars;
     }
 
 }

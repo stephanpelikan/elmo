@@ -51,6 +51,6 @@ const getGuiApi = (dispatch: Dispatch): GuiApi => {
   return new GuiApi(config);
 };
 
-export { RefreshAwareMiddleware};
+export { RefreshAwareMiddleware, REFRESH_TOKEN_HEADER };
 
 export default getGuiApi;

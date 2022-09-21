@@ -1,13 +1,17 @@
 package at.elmo.config.web;
 
-import javax.annotation.Resource;
-
+import at.elmo.config.ElmoProperties;
+import at.elmo.member.MemberService;
+import at.elmo.member.Role;
+import at.elmo.member.login.OAuth2UserService;
+import at.elmo.member.onboarding.MemberOnboarding;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -22,53 +26,49 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.session.jdbc.config.annotation.web.http.EnableJdbcHttpSession;
 
-import at.elmo.config.ElmoProperties;
-import at.elmo.member.MemberService;
-import at.elmo.member.Role;
-import at.elmo.member.login.OAuth2UserService;
-import at.elmo.member.onboarding.MemberOnboarding;
+import javax.annotation.Resource;
 
 @Configuration
 @EnableWebSecurity
+@EnableGlobalMethodSecurity(jsr250Enabled = true)
 @EnableJdbcHttpSession
 public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
-    
+
     @Value("${camunda.bpm.admin-user.id}")
     private String adminUserId;
 
     @Value("${camunda.bpm.admin-user.password}")
     private String adminUserPassword;
-    
+
     @Autowired
     private ElmoProperties properties;
 
     @Autowired
     private MemberService memberService;
-    
+
     @Autowired
     private MemberOnboarding memberOnboarding;
-    
+
     @Resource
     private ClientRegistrationRepository repo;
 
     @Resource
     private JdbcTemplate jdbcTemplate;
-    
+
 	@Override
     protected void configure(final HttpSecurity http) throws Exception {
 
 		final RequestMatcher[] unprotectedGuiApi = new RequestMatcher[] {
                 new AntPathRequestMatcher("/api/v*/gui/app-info"),
                 new AntPathRequestMatcher("/api/v*/gui/current-user"),
-                new AntPathRequestMatcher("/api/v*/drivers/sms"),
-                new AntPathRequestMatcher("/api/v*/gui/drivers/text-messages"),
+                new AntPathRequestMatcher("/api/v*/app/text-messages-notification/*"),
                 new AntPathRequestMatcher("/api/v*/gui/oauth2-clients"),
 		};
 
 		final RequestMatcher[] administrationApi = new RequestMatcher[] {
 		        new AntPathRequestMatcher("/api/v*/administration/**")
 		};
-		
+
         final RequestMatcher[] guiApi = new RequestMatcher[] {
                 new AntPathRequestMatcher("/api/v*/**"),
                 new AntPathRequestMatcher("/logout"),
@@ -123,7 +123,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
 	    return new LogoutSuccessHandler();
 	}
-	
+
     @Bean
     public JwtSecurityFilter jwtSecurityFilter() {
 
@@ -150,9 +150,9 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Bean
     public OAuth2AuthorizedClientService oAuth2AuthorizedClientService() {
-        
+
         return new TransactionalJdbcOAuth2AuthorizedClientService(jdbcTemplate, repo);
-        
+
     }
 
     /**
@@ -165,5 +165,5 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         return new HttpCookieAuthorizationRequestRepository();
 
     }
-   
+
 }

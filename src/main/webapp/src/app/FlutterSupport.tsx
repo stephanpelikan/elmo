@@ -1,42 +1,62 @@
-import { SmsSender } from './SmsSender';
 import { Ready } from './Ready';
-import { EventSourceProvider } from 'react-sse-hooks';
-import ReconnectingEventSource from "reconnecting-eventsource";
+import { lazy, useEffect, useState } from 'react';
 
-class PreconfiguredReconnectingEventSource extends ReconnectingEventSource {
-  constructor(url: string | URL, eventSourceInitDict?: EventSourceInit) {
-    super(url, {
-      ...eventSourceInitDict,
-      max_retry_time: 30000
-    });
-  }
-};
+const FLUTTER_REFRESH_TOKEN = "Flutter-Refresh-Token";
+const FLUTTER_AUTH_TOKEN = "Flutter-Auth-Token";
+
+const CarAppSupport = lazy(() => import('./car-app/CarAppSupport'));
 
 // @ts-ignore
 const consoleCommunicator = typeof webkit !== 'undefined' ? webkit.messageHandlers.consoleToFlutter : window.consoleToFlutter;
+const flutterSupported = !!consoleCommunicator;
 
 const FlutterSupport = () => {
 
-  if (!consoleCommunicator) {
-    return (<></>);
-  }
-
   window.console = new FlutterConsole();
-  
   console.log("Welcome Flutter");
+
+  const [ isCarApp, setIsCarApp ] = useState(!!window.localStorage.getItem(FLUTTER_REFRESH_TOKEN));
   
+  useEffect(() => {
+    
+      const storedToken = window.localStorage.getItem(FLUTTER_REFRESH_TOKEN);
+      const carAppIsActive = Boolean(storedToken);
+      if (!carAppIsActive) {
+        // @ts-ignore 
+        window[activateAppCallback] = async (token?: string) => {
+            if (token) {
+              window.localStorage.setItem(FLUTTER_REFRESH_TOKEN, token);
+              setIsCarApp(true);
+            } else {
+              window.localStorage.removeItem(FLUTTER_REFRESH_TOKEN);
+              setIsCarApp(false);
+            }
+            // @ts-ignore 
+            window[activateAppCallback] = undefined;
+          };
+      }
+      
+      // @ts-ignore 
+      return () => window[activateAppCallback] = undefined;
+      
+    }, [ setIsCarApp ]);
+
   return (
-    <>{/*
-// @ts-ignore */}
-      <EventSourceProvider eventSource={PreconfiguredReconnectingEventSource}>
-        <SmsSender />
-      </EventSourceProvider>
+    <>
+      { isCarApp ? <CarAppSupport /> : <></> }
       <Ready />
     </>);
  
 }
 
-export { FlutterSupport };
+export { FlutterSupport, FLUTTER_AUTH_TOKEN, FLUTTER_REFRESH_TOKEN, flutterSupported };
+
+interface Counts {
+  [key: string]: number;
+}
+interface Dates {
+  [key: string]: Date | undefined;
+}
 
 class FlutterConsole implements Console {
 
@@ -53,6 +73,7 @@ class FlutterConsole implements Console {
     Console: console.ConsoleConstructor;
 
     constructor() {
+      this.Console = FlutterConsole;
       this.count = this.count.bind(this);
       this.countReset = this.countReset.bind(this);
       this.debug = this.debug.bind(this);
@@ -81,7 +102,7 @@ class FlutterConsole implements Console {
       
     }
     
-    counts: number[] = [];
+    counts: Counts = {};
     
     count(label?: string): void {
       let c: number;
@@ -152,7 +173,7 @@ class FlutterConsole implements Console {
       throw new Error('console.table not supported');
     }
     
-    timers: Date[] = [];
+    timers: Dates = {};
     
     time(label?: string): void {
       let l: string;

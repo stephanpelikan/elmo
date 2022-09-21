@@ -6,4 +6,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ShiftRepository extends JpaRepository<Shift, String> {
 
+    int countByCar_Id(String carId);
+
 }

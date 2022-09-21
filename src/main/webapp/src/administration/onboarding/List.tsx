@@ -93,19 +93,19 @@ const ListOfOnboardings = () => {
 
   const columns: ColumnConfig<MemberApplication>[] = size !== 'small'
       ? [
-          { property: 'createdAt', header: t('date_of_application'), primary: false,
+          { property: 'createdAt', header: t('date_of_application'), primary: false, size: '4rem',
             render: application =>
               application.createdAt && application.createdAt.toLocaleDateString(),
           },
-          { property: 'email', header: t('email'),
+          { property: 'email', header: t('email'), size: 'small',
             render: application => <Text truncate>{ application.email }</Text>
           },
-          { property: 'lastName', header: t('last-name')},
-          { property: 'firstName', header: t('first-name')},
-          { property: 'memberId', header: t('member-id'),
+          { property: 'lastName', header: t('last-name'), size: 'xsmall'},
+          { property: 'firstName', header: t('first-name'), size: 'xsmall'},
+          { property: 'memberId', header: <Text truncate>{ t('member-id') }</Text>, size: 'xxsmall',
             render: application => <Text>{ application.memberId }</Text>
           },
-          { property: 'status', header: t('action'), align: 'center',
+          { property: 'status', header: t('action'), align: 'center', size: '8rem',
             render: application => {
               switch (application.status) {
                 case MemberApplicationStatus.New:

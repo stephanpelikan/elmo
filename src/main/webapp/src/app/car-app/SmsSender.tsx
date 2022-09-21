@@ -1,30 +1,29 @@
 import { useCallback, useEffect } from "react";
 import { useEventSource, useEventSourceListener } from "react-sse-hooks";
-import { useAppContext } from '../AppContext';
+import { useAppApi } from './CarAppContext';
+
+interface SmsSenderProps {
+  token: string;
+}
 
 interface SmsEvent {
   senderNumber: string;
 }
 
-const phoneNumber = '+431234567890';
-
 // @ts-ignore
 const smsCommunicator = typeof webkit !== 'undefined' ? webkit.messageHandlers.native : window.native;
 
-const SmsSender = () => {
+const SmsSender = ({ token }: SmsSenderProps) => {
 
-  const { guiApi } = useAppContext();
+  const appApi = useAppApi();
 
   const smsSource = useEventSource({
-    source: '/api/v1/drivers/sms?phoneNo=' + encodeURIComponent(phoneNumber),
+    source: '/api/v1/app/text-messages-notification/' + encodeURIComponent(token),
   });
 
-  const sendSms = useCallback(async (senderNumber: string) => {
+  const sendSms = useCallback(async () => {
 
-    const result = await guiApi.requestTextMessages({
-        textMessageRequest: { sender: senderNumber }
-      });
-    
+    const result = await appApi.requestTextMessages();
     result.textMessages?.forEach(
         message => {
             if (smsCommunicator) {
@@ -39,11 +38,11 @@ const SmsSender = () => {
             console.log(`Sent SMS to Flutter for ${ message.recipient }`);
           });
    
-  }, [guiApi]);
+  }, [appApi]);
 
   useEffect(() => {
     
-    const timer = setInterval(() => sendSms(phoneNumber), 60000);
+    const timer = setInterval(() => sendSms(), 60000);
     return () => clearInterval(timer);
     
   }, [sendSms]);
@@ -54,7 +53,7 @@ const SmsSender = () => {
       startOnInit: true,
       event: {
         name: "SMS",
-        listener: ({ data }) => { sendSms(data.senderNumber) },
+        listener: ({ data }) => { sendSms() },
       },
     },
     [smsSource, sendSms]);

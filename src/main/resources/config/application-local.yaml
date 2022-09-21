@@ -10,6 +10,20 @@ elmo:
   default-locale: de
   sms:
     supported: false
+  passanagerServicePhoneNumber: "+431234567890"
+  cars:
+    predefined:
+      - name: Elmo 1
+        shortcut: ELMO1
+        car-sharing: true
+      - name: Elmo 2
+        shortcut: ELMO2
+        car-sharing: true
+      - name: Elmo 3
+        shortcut: ELMO3
+        car-sharing: true
+        passanger-service: true
+        phone-number: "+431234567890"
   cors:
     allowed-origins: "*"
 spring:

@@ -170,8 +170,8 @@ public class MemberService {
 
         smsService.sendSms(
                 "member/phone-number-confirmation",
-                properties.getTransportServiceCarName(),
-                properties.getTransportServicePhoneNumber(),
+                null,
+                properties.getPassanagerServicePhoneNumber(),
                 application.getId(),
                 phoneNumber,
                 application);

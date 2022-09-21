@@ -1,15 +1,14 @@
 package at.elmo.util.refreshtoken;
 
-import java.time.OffsetDateTime;
+import at.elmo.member.login.ElmoOAuth2Provider;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
-
-import org.hibernate.annotations.CreationTimestamp;
-
-import at.elmo.member.login.ElmoOAuth2Provider;
 
 @Entity
 @Table(name = "ELMO_REFRESH_TOKEN")
@@ -23,7 +22,7 @@ public class RefreshToken {
 
     @CreationTimestamp
     @Column(name = "CREATED_AT", nullable = false, updatable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private OffsetDateTime createdAt;
+    private LocalDateTime createdAt;
 
     @Column(name = "ID")
     private String oauth2Id;
@@ -39,11 +38,11 @@ public class RefreshToken {
         this.token = token;
     }
 
-    public OffsetDateTime getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(OffsetDateTime createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 

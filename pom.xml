@@ -85,8 +85,9 @@
 								<sourceFolder>openapi</sourceFolder>
 								<interfaceOnly>true</interfaceOnly>
 								<useSpringController>true</useSpringController>
-								<dateLibrary>java8</dateLibrary>
+								<dateLibrary>java8-localdatetime</dateLibrary>
 								<useBeanValidation>true</useBeanValidation>
+                <useTags>true</useTags>
 							</configOptions>
 							<addCompileSourceRoot>true</addCompileSourceRoot>
 						</configuration>
@@ -108,12 +109,37 @@
 								<sourceFolder>openapi</sourceFolder>
 								<interfaceOnly>true</interfaceOnly>
 								<useSpringController>true</useSpringController>
-								<dateLibrary>java8</dateLibrary>
+								<dateLibrary>java8-localdatetime</dateLibrary>
 								<useBeanValidation>true</useBeanValidation>
+                <useTags>true</useTags>
 							</configOptions>
 							<addCompileSourceRoot>true</addCompileSourceRoot>
 						</configuration>
 					</execution>
+          <execution>
+            <id>generate-app-api</id>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <configuration>
+              <inputSpec>${project.basedir}/src/main/resources/api/app/v1.yaml</inputSpec>
+              <output>${project.build.directory}/generated-sources</output>
+              <generatorName>spring</generatorName>
+              <apiPackage>at.elmo.app.api.v1</apiPackage>
+              <modelPackage>at.elmo.app.api.v1</modelPackage>
+              <generateSupportingFiles>true</generateSupportingFiles>
+              <supportingFilesToGenerate>ApiUtil.java</supportingFilesToGenerate>
+              <configOptions>
+                <sourceFolder>openapi</sourceFolder>
+                <interfaceOnly>true</interfaceOnly>
+                <useSpringController>true</useSpringController>
+                <dateLibrary>java8-localdatetime</dateLibrary>
+                <useBeanValidation>true</useBeanValidation>
+                <useTags>true</useTags>
+              </configOptions>
+              <addCompileSourceRoot>true</addCompileSourceRoot>
+            </configuration>
+          </execution>
 					<execution>
 						<id>generate-client-gui-api</id>
 						<goals>
@@ -146,6 +172,22 @@
 							</configOptions>
 						</configuration>
 					</execution>
+          <execution>
+            <id>generate-client-app-api</id>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <configuration>
+              <inputSpec>${project.basedir}/src/main/resources/api/app/v1.yaml</inputSpec>
+              <output>${project.basedir}/src/main/webapp/src/client/app</output>
+              <generatorName>typescript-fetch</generatorName>
+              <configOptions>
+                <typescriptThreePlus>true</typescriptThreePlus>
+                <withInterfaces>true</withInterfaces>
+                <supportsES6>false</supportsES6>
+              </configOptions>
+            </configuration>
+          </execution>
 				</executions>
 			</plugin>
 			<plugin>

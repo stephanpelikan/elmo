@@ -7,12 +7,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "ELMO_CONFIG")
-public class ConfigValue {
-
-    public static final String LAST_MEMBER_ID = "last_member_id";
-    public static final String LAST_SHIFT_GENERATION_DATE = "last-shift-generation-date";
-    
-    public static final String JWT_SECRET = "jwt_secret";
+class ConfigValue {
 
     @Id
     @Column(name = "NAME")
@@ -20,11 +15,11 @@ public class ConfigValue {
 
     @Column(name = "VALUE")
     private String value;
-    
+
     public ConfigValue() {
         // used by Hibernate
     }
-    
+
     public ConfigValue(
             final String name,
             final String value) {

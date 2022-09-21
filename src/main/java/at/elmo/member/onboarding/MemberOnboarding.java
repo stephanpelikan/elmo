@@ -1,24 +1,5 @@
 package at.elmo.member.onboarding;
 
-import java.io.File;
-import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-
-import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.util.Pair;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
-
 import at.elmo.config.ElmoProperties;
 import at.elmo.config.web.JwtSecurityFilter;
 import at.elmo.member.Member;
@@ -31,8 +12,7 @@ import at.elmo.member.login.ElmoOAuth2User;
 import at.elmo.member.login.OAuth2Identifier;
 import at.elmo.member.onboarding.MemberApplication.Status;
 import at.elmo.util.UserContext;
-import at.elmo.util.config.ConfigValue;
-import at.elmo.util.config.ConfigValueRepository;
+import at.elmo.util.config.ConfigService;
 import at.elmo.util.email.EmailService;
 import at.elmo.util.email.NamedObject;
 import at.elmo.util.exceptions.ElmoException;
@@ -47,15 +27,33 @@ import at.phactum.bp.blueprint.service.TaskEvent.Event;
 import at.phactum.bp.blueprint.service.TaskId;
 import at.phactum.bp.blueprint.service.WorkflowService;
 import at.phactum.bp.blueprint.service.WorkflowTask;
+import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.util.Pair;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+import java.io.File;
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @WorkflowService(workflowAggregateClass = MemberApplication.class)
 @Transactional
 public class MemberOnboarding {
-    
+
     @Autowired
     private Logger logger;
-    
+
     @Autowired
     private UserContext userContext;
 
@@ -67,15 +65,15 @@ public class MemberOnboarding {
 
     @Autowired
     private EmailService emailService;
-    
+
     @Autowired
     private MemberApplicationRepository memberApplications;
-    
+
     @Autowired
     private MemberRepository members;
-    
+
     @Autowired
-    private ConfigValueRepository configValues;
+    private ConfigService configs;
 
     public void doOnboarding(final ElmoOAuth2User oauth2User) throws Exception {
 
@@ -188,7 +186,7 @@ public class MemberOnboarding {
             }
 
         } else {
-            
+
             // reset confirmation codes if email was changed by others than the applicant
             if ((email == null)
                     || !email.equals(application.getEmail())) {
@@ -202,7 +200,7 @@ public class MemberOnboarding {
                 application.setGeneratedPhoneConfirmationCode(null);
                 application.setGivenPhoneConfirmationCode(null);
             }
-            
+
         }
 
         application.setMemberId(memberId);
@@ -223,7 +221,7 @@ public class MemberOnboarding {
         if (initialRole != null) {
             application.setInitialRole(initialRole);
         }
-        
+
         if (!violations.isEmpty()) {
             return application;
         }
@@ -257,27 +255,27 @@ public class MemberOnboarding {
                     violations.put("memberId", "wrong");
                     return application;
                 }
-                
+
             }
 
             completeUserRegistrationForm(application, taskId);
 
         } else if (action == MemberApplicationUpdate.INQUIRY) {
-            
+
             completeUserValidationFormForInvalidData(application, taskId);
-            
+
         } else if (action == MemberApplicationUpdate.REJECT) {
-            
+
             completeUserValidationFormAsRejected(application, taskId);
-            
+
         } else if (action == MemberApplicationUpdate.ACCEPTED) {
-            
+
             if (application.getMemberId() != null) {
                 completeUserValidationFormAsDuplicate(application, taskId);
             } else {
                 completeUserValidationFormAsAccepted(application, taskId);
             }
-            
+
         } else  if (action == MemberApplicationUpdate.SAVE) {
 
             return memberApplications.saveAndFlush(application);
@@ -285,16 +283,16 @@ public class MemberOnboarding {
         }
 
         return application;
-        
+
     }
-    
+
     public Optional<MemberApplication> getMemberApplicationByOAuth2User(
             final String oauth2Id) {
-        
+
         return memberApplications.findByOauth2Id_Id(oauth2Id);
-        
+
     }
-    
+
     public void takeoverMemberApplicationByApplicant(final String applicationId, final String taskId) {
 
         final var application = memberApplications.getById(applicationId);
@@ -310,11 +308,11 @@ public class MemberOnboarding {
             final String taskId) {
 
         final var application = memberApplications.getById(applicationId);
-        
+
         application.setStatus(Status.APPLICATION_SUBMITTED);
 
         takeOver(application, taskId);
-        
+
     }
 
     public void takeOver(
@@ -344,7 +342,7 @@ public class MemberOnboarding {
         }
 
     }
-    
+
     @WorkflowTask
     public void setMemberStatusToDataInvalid(
             final MemberApplication application) throws Exception {
@@ -352,98 +350,98 @@ public class MemberOnboarding {
         application.setStatus(Status.DATA_INVALID);
 
     }
-    
+
     @WorkflowTask
     public void notifyApplicant(
             final MemberApplication application) throws Exception {
-        
+
         emailService.sendEmail(
                 "onboarding/remind-applicant-about-missing-information",
                 application.getEmail(),
                 application);
-        
+
     }
-    
+
     @WorkflowTask(taskDefinition = "userRegistrationForm")
     public void userRegistrationForm(
             final MemberApplication application,
             final @TaskId String taskId,
             final @TaskEvent Event event) {
-        
+
         if (event == Event.CREATED) {
             application.setUserTaskId(taskId);
         } else {
             application.setUserTaskId(null);
         }
-        
+
     }
-    
+
     @WorkflowTask(taskDefinition = "userValidationForm")
     public void userValidationForm(
             final MemberApplication application,
             final @TaskId String taskId,
             final @TaskEvent Event event) {
-        
+
         if (event == Event.CREATED) {
             application.setUserTaskId(taskId);
         } else {
             application.setUserTaskId(null);
         }
-        
+
     }
-    
+
     public void completeUserValidationFormForInvalidData(
             final MemberApplication application,
             final String taskId) {
-        
+
         application.setStatus(Status.DATA_INVALID);
-        
+
         processService.completeUserTask(application, taskId);
-        
+
     }
 
     public void completeUserValidationFormAsDuplicate(
             final MemberApplication application,
             final String taskId) {
-        
+
         application.setStatus(Status.DUPLICATE);
-        
+
         processService.completeUserTask(application, taskId);
-        
+
     }
 
     public void completeUserValidationFormAsRejected(
             final MemberApplication application,
             final String taskId) {
-        
+
         application.setStatus(Status.REJECTED);
-        
+
         processService.completeUserTask(application, taskId);
-        
+
     }
 
     public void completeUserValidationFormAsAccepted(
             final MemberApplication application,
             final String taskId) {
-        
+
         application.setStatus(Status.ACCEPTED);
-        
+
         processService.completeUserTask(application, taskId);
-        
+
     }
 
     public void completeUserRegistrationForm(
             final MemberApplication application,
             final String taskId) {
-        
+
         if (application.getMemberId() != null) {
             application.setStatus(Status.DUPLICATE);
         } else {
             application.setStatus(Status.APPLICATION_SUBMITTED);
         }
-        
+
         processService.completeUserTask(application, taskId);
-        
+
         // for already registered members, the current login of the user
         // can be enriched to reflect the roles already applied to the member
         //
@@ -451,7 +449,7 @@ public class MemberOnboarding {
         //       which matches to application to the existing member has to
         //       be executed in the same transaction as this method
         if (application.getMemberId() != null) {
-            
+
             final var member = members.findByMemberId(
                     application.getMemberId());
             if (member.isPresent()) {
@@ -463,11 +461,11 @@ public class MemberOnboarding {
                         .getAuthentication()
                         .getPrincipal();
                 JwtSecurityFilter.setToken(user);
-                
+
             }
-            
+
         }
-        
+
     }
 
     @WorkflowTask
@@ -482,18 +480,12 @@ public class MemberOnboarding {
         application.setStatus(Status.APPLICATION_SUBMITTED);
 
     }
-    
+
     private int getNewMemberId() {
-        
-        final var lastMemberId = configValues
-                .findById(ConfigValue.LAST_MEMBER_ID)
-                .orElse(new ConfigValue(ConfigValue.LAST_MEMBER_ID,
-                        Integer.toString(properties.getInitialNewMemberId() - 1)));
 
-        final var newMemberId = Integer.parseInt(lastMemberId.getValue()) + 1;
-
-        lastMemberId.setValue(Integer.toString(newMemberId));
-        configValues.save(lastMemberId);
+        final var lastMemberId = configs.getLastMemberId();
+        final var newMemberId = lastMemberId + 1;
+        configs.setLastMemberId(newMemberId);
 
         return newMemberId;
 
@@ -504,7 +496,7 @@ public class MemberOnboarding {
             final MemberApplication application) {
 
         final var newMemberId = getNewMemberId();
-        
+
         application.setMemberId(newMemberId);
 
         final var member = new Member();
@@ -547,7 +539,7 @@ public class MemberOnboarding {
                     + application.getMemberId()
                     + "' unknown!");
         }
-        
+
         member.get().setEmail(
                 application.getEmail());
         member.get().setGeneratedEmailConfirmationCode(
@@ -562,7 +554,7 @@ public class MemberOnboarding {
                 application.getGivenPhoneConfirmationCode());
         member.get().setPreferNotificationsPerSms(
                 application.isPreferNotificationsPerSms());
-        
+
         application.getOauth2Id().setOwner(member.get());
         if (member.get().getOauth2Ids() == null) {
             member.get().setOauth2Ids(
@@ -571,7 +563,7 @@ public class MemberOnboarding {
             member.get().getOauth2Ids()
                     .add(application.getOauth2Id());
         }
-        
+
     }
 
     @WorkflowTask
@@ -586,7 +578,7 @@ public class MemberOnboarding {
                     + application.getMemberId()
                     + "' unknown!");
         }
-        
+
         emailService.sendEmail(
                 "onboarding/confirmation-of-application-duplicate",
                 application.getEmail(),
@@ -614,7 +606,7 @@ public class MemberOnboarding {
                         logger.warn("Could not inform driver about new member by email!", e);
                     }
                 });
-        
+
     }
 
     @WorkflowTask
@@ -637,21 +629,21 @@ public class MemberOnboarding {
         } else {
             agreement = null;
         }
-        
+
         try {
-            
+
             emailService.sendEmail(
                     "onboarding/confirmation-of-application",
                     application.getEmail(),
                     application,
                     agreement);
-            
+
         } finally {
 
             if (agreement != null) {
                 ((File) agreement.getObject()).delete();
             }
-            
+
         }
 
     }
@@ -664,7 +656,7 @@ public class MemberOnboarding {
         final var configuration = new File(dir, "config.csv");
         final var result = File.createTempFile("elmo", role + "-agreement_" + application.getMemberId());
         final var template = new File(dir, "template.pdf");
-        
+
         final var data = new HashMap<String, Object>();
         Arrays
                 .stream(MemberBase.class.getDeclaredFields())
@@ -703,28 +695,28 @@ public class MemberOnboarding {
                 application);
 
     }
-    
+
     public Optional<MemberApplication> getMemberApplication(
             final String applicationId) {
 
         return memberApplications.findById(applicationId);
-        
+
     }
 
     public Page<MemberApplication> getMemberApplications(
             final int page,
             final int amount) {
-        
+
         return memberApplications.findAll(
                 Pageable.ofSize(amount).withPage(page));
-        
+
     }
 
     public int getCountOfInprogressMemberApplications() {
-        
+
         return (int) memberApplications.countByStatus(
                 at.elmo.member.onboarding.MemberApplication.Status.APPLICATION_SUBMITTED);
-        
+
     }
-    
+
 }

@@ -1,8 +1,9 @@
 package at.elmo.reservation.shift;
 
+import at.elmo.car.Car;
+import at.elmo.car.CarService;
 import at.elmo.config.ElmoProperties;
-import at.elmo.util.config.ConfigValue;
-import at.elmo.util.config.ConfigValueRepository;
+import at.elmo.util.config.ConfigService;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -12,7 +13,6 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.UUID;
 
 @Component
 public class ShiftGenerator {
@@ -24,39 +24,61 @@ public class ShiftGenerator {
     private ElmoProperties elmoProperties;
 
     @Autowired
-    private ShiftLifecycle shiftLifecycle;
+    private ConfigService configs;
 
     @Autowired
-    private ConfigValueRepository configValues;
+    private CarService carService;
 
+    @Autowired
+    private ShiftService shiftService;
 
     @EventListener(ApplicationReadyEvent.class)
-    @Scheduled(cron = "0 0 * * * *")
-    public void generateShifts() throws Exception {
-        final var lastCreatedShift = configValues
-            .findById(ConfigValue.LAST_SHIFT_GENERATION_DATE)
-            .orElse(new ConfigValue(ConfigValue.LAST_SHIFT_GENERATION_DATE, LocalDate.now().toString()));
+    @Scheduled(cron = "0 0 2 * * *")
+    public void generateShifts() {
 
-        var lastCreatedShiftDate = LocalDate.parse(lastCreatedShift.getValue());
-        final var generateUntil = LocalDate.now().plusDays(elmoProperties.getDaysForInitialShiftCreation());
+        carService.buildPredefinedCars();
+
+        carService
+                .getPassangerServiceCars()
+                .stream()
+                .forEach(this::generateShiftsForCar);
+
+    }
+
+    private void generateShiftsForCar(
+            final Car car) {
+
+        var lastCreatedShiftDate = configs.getLastShiftGenerationDate(car.getId());
+        final var generateUntil = LocalDate.now().plusDays(
+                elmoProperties.getDaysForInitialShiftCreation());
         if(generateUntil.isBefore(lastCreatedShiftDate)){
             return;
         }
-        logger.info("Creating shifts from {} to {}", lastCreatedShiftDate, generateUntil);
-        for ( ; lastCreatedShiftDate.isBefore(generateUntil); lastCreatedShiftDate = lastCreatedShiftDate.plusDays(1)) {
-            for (ElmoProperties.Shift configuredShift : elmoProperties.getShifts()) {
-                Shift shift = new Shift();
-                if (!configuredShift.getDays().contains(lastCreatedShiftDate.getDayOfWeek().getValue())) {
-                    continue;
+
+        logger.info("Creating shifts for car '{}' from {} to {}",
+                car.getShortcut(),
+                lastCreatedShiftDate,
+                generateUntil);
+        try {
+            for ( ; lastCreatedShiftDate.isBefore(generateUntil)
+                    ; lastCreatedShiftDate = lastCreatedShiftDate.plusDays(1)) {
+                for (ElmoProperties.Shift configuredShift : elmoProperties.getShifts()) {
+                    if (!configuredShift.getDays().contains(lastCreatedShiftDate.getDayOfWeek().getValue())) {
+                        continue;
+                    }
+                    shiftService.createShift(
+                            car,
+                            lastCreatedShiftDate.atTime(LocalTime.parse(configuredShift.getStart())),
+                            lastCreatedShiftDate.atTime(LocalTime.parse(configuredShift.getEnd())));
                 }
-                shift.setStartsAt(lastCreatedShiftDate.atTime(LocalTime.parse(configuredShift.getStart())));
-                shift.setEndsAt(lastCreatedShiftDate.atTime(LocalTime.parse(configuredShift.getEnd())));
-                shift.setId(UUID.randomUUID().toString());
-                shiftLifecycle.createShift(shift);
             }
+            configs.setLastShiftGenerationDate(
+                    car.getId(),
+                    lastCreatedShiftDate);
+        } catch (Exception e) {
+            logger.error("Could not create shift!", e);
         }
-        lastCreatedShift.setValue(lastCreatedShiftDate.toString());
-        configValues.save(lastCreatedShift);
+
     }
 
 }

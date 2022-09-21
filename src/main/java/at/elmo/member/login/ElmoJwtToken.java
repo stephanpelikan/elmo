@@ -39,6 +39,18 @@ public class ElmoJwtToken extends AbstractAuthenticationToken {
         setAuthenticated(true);
         
     }
+    
+    public ElmoJwtToken(
+            final String jwt,
+            final ElmoOAuth2User user,
+            final Date issuedAt) {
+        
+        super(user.getAuthorities());
+        this.jwt = jwt;
+        this.user = user;
+        this.issuedAt = issuedAt;
+        
+    }
 
     public String getOAuthId() {
 

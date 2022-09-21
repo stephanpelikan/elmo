@@ -189,6 +189,155 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Member'
+  /administration/car/{carId}/send-test-sms:
+    post:
+      tags:
+        - cars
+      summary: send a text message via car's tablet Elmo-app to the tablet itself
+      operationId: sendTestSms
+      parameters:
+        - in: path
+          name: carId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestTextMessage'
+      responses:
+        200:
+          description: SMS sent
+  /administration/car/{carId}/activation-code:
+    post:
+      tags:
+        - cars
+      summary: car activation app code
+      operationId: activateCarApp
+      parameters:
+        - in: path
+          name: carId
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Car activation code
+          content:
+            text/plain:
+              schema:
+                type: string
+    delete:
+      tags:
+        - cars
+      summary: car deactivation app
+      operationId: deactivateCarApp
+      parameters:
+        - in: path
+          name: carId
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Car activation code
+  /administration/car/{carId}:
+    get:
+      tags:
+        - cars
+      summary: car details
+      operationId: getCar
+      parameters:
+        - in: path
+          name: carId
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Car details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Car'
+    post:
+      tags:
+        - cars
+      summary: save car details
+      operationId: saveCar
+      parameters:
+        - in: path
+          name: carId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Car'
+      responses:
+        200:
+          description: Successfully saved
+          content:
+            text/plain:
+              schema:
+                type: string
+        400:
+          description: Validation failed
+    delete:
+      tags:
+        - cars
+      summary: delete car
+      operationId: deleteCar
+      parameters:
+        - in: path
+          name: carId
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Car deleted
+        400:
+          description: Car already in use
+  /administration/car:
+    get:
+      tags:
+        - cars
+      summary: number of all cars
+      operationId: getCountOfCars
+      responses:
+        200:
+          description: Count of all cars
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CountOfCars'
+    post:
+      tags:
+        - cars
+      summary: all cars
+      operationId: getCars
+      parameters:
+        - in: query
+          name: pageNumber
+          schema:
+            type: integer
+            format: int32
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+            format: int32
+      responses:
+        200:
+          description: All cars
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cars'
   /administration/member:
     get:
       tags:
@@ -248,6 +397,7 @@ components:
       enum:
         - PASSANGER
         - DRIVER
+        - CAR
         - MANAGER
         - ADMIN
     MemberStatus:
@@ -293,12 +443,6 @@ components:
         count:
           type: integer
           format: int32
-    CountOfActiveMembers:
-      type: object
-      properties:
-        count:
-          type: integer
-          format: int32
     MemberOnboardingApplications:
       type: object
       properties:
@@ -308,6 +452,12 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/MemberApplication'
+    CountOfActiveMembers:
+      type: object
+      properties:
+        count:
+          type: integer
+          format: int32
     Members:
       type: object
       properties:
@@ -317,6 +467,52 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Member'
+    TestTextMessage:
+      type: object
+      properties:
+        phoneNumber:
+          type: string
+    CountOfCars:
+      type: object
+      properties:
+        count:
+          type: integer
+          format: int32
+    Cars:
+      type: object
+      properties:
+        page:
+          $ref: '#/components/schemas/Page'
+        cars:
+          type: array
+          items:
+            $ref: '#/components/schemas/Car'
+    Car:
+      type: object
+      properties:
+        id:
+          type: string
+        shortcut:
+          type: string
+        name:
+          type: string
+        phoneNumber:
+          type: string
+        appActive:
+          type: boolean
+        lastAppActivity:
+          type: string
+          format: date-time
+        passangerService:
+          type: boolean
+        carSharing:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
     UpdateMemberOnboarding:
       type: object
       properties:

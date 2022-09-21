@@ -1,7 +1,8 @@
 package at.elmo.config;
 
-import java.io.IOException;
-
+import at.elmo.util.email.EmailProperties;
+import freemarker.cache.TemplateLookupStrategy;
+import freemarker.template.TemplateException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,9 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.ui.freemarker.FreeMarkerConfigurationFactoryBean;
 
-import at.elmo.util.email.EmailProperties;
-import freemarker.cache.TemplateLookupStrategy;
-import freemarker.template.TemplateException;
+import java.io.IOException;
 
 @Configuration
 public class FreemarkerConfiguration {
@@ -23,13 +22,13 @@ public class FreemarkerConfiguration {
 
     @Autowired
     private ElmoProperties properties;
-    
+
     @Autowired
     private EmailProperties emailProperties;
 
     @Value("${spring.freemarker.template-loader-path}")
     private String templateLoaderPath;
-    
+
     @Bean
     @Qualifier(EMAIL_TEMPLATES)
     public FreeMarkerConfigurationFactoryBean freemarkerEmailConfig(
@@ -39,12 +38,12 @@ public class FreemarkerConfiguration {
 
             @Override
             protected freemarker.template.Configuration newConfiguration() throws IOException, TemplateException {
-                
+
                 return new freemarker.template.Configuration(
                         freemarker.template.Configuration.VERSION_2_3_31);
-                
+
             }
-            
+
             @Override
             protected void postProcessConfiguration(
                     final freemarker.template.Configuration config) throws IOException, TemplateException {
@@ -58,18 +57,18 @@ public class FreemarkerConfiguration {
                 elmoInformation.setGatewayUrl(properties.getGatewayUrl());
                 elmoInformation.setHomepage(properties.getHomepageUrl());
                 elmoInformation.setEmailSender(emailProperties.getSender());
-                elmoInformation.setPhoneNumber(properties.getTransportServicePhoneNumber());
+                elmoInformation.setPhoneNumber(properties.getPassanagerServicePhoneNumber());
                 elmoInformation.setGeneralEmailAddress(properties.getGeneralEmailAddress());
                 config.setSharedVariable("elmo", elmoInformation);
 
             }
 
         };
-        
+
         result.setTemplateLoaderPath(templateLoaderPath + "/email");
-        
+
         return result;
-        
+
     }
 
     public static class ElmoEmailInformation {
@@ -136,7 +135,7 @@ public class FreemarkerConfiguration {
 
     }
 
-    
+
     @Bean
     @Qualifier(SMS_TEMPLATES)
     public FreeMarkerConfigurationFactoryBean freemarkerSmsConfig(
@@ -146,12 +145,12 @@ public class FreemarkerConfiguration {
 
             @Override
             protected freemarker.template.Configuration newConfiguration() throws IOException, TemplateException {
-                
+
                 return new freemarker.template.Configuration(
                         freemarker.template.Configuration.VERSION_2_3_31);
-                
+
             }
-            
+
             @Override
             protected void postProcessConfiguration(
                     final freemarker.template.Configuration config) throws IOException, TemplateException {
@@ -169,11 +168,11 @@ public class FreemarkerConfiguration {
             }
 
         };
-        
+
         result.setTemplateLoaderPath(templateLoaderPath + "/sms");
-        
+
         return result;
-        
+
     }
 
     public static class ElmoSmsInformation {
@@ -209,5 +208,5 @@ public class FreemarkerConfiguration {
         }
 
     }
-    
+
 }

@@ -1,18 +1,24 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './app/App';
-import { FlutterSupport } from './app/FlutterSupport';
+import { FlutterSupport, flutterSupported } from './app/FlutterSupport';
 import reportWebVitals from './reportWebVitals';
 import { AppContextProvider } from './AppContext';
-import "@fontsource/roboto/300.css";
-import "@fontsource/roboto/400.css";
-import "@fontsource/roboto/500.css";
+import "@fontsource/roboto/latin-300.css";
+import "@fontsource/roboto/files/roboto-latin-300-normal.woff2";
+import "@fontsource/roboto/files/roboto-latin-300-normal.woff";
+import "@fontsource/roboto/latin-400.css";
+import "@fontsource/roboto/files/roboto-latin-400-normal.woff2";
+import "@fontsource/roboto/files/roboto-latin-400-normal.woff";
+import "@fontsource/roboto/latin-500.css";
+import "@fontsource/roboto/files/roboto-latin-500-normal.woff2";
+import "@fontsource/roboto/files/roboto-latin-500-normal.woff";
 
 ReactDOM.render(
   <React.StrictMode>
     <AppContextProvider>
       <App />
-      <FlutterSupport />
+      { flutterSupported ? <FlutterSupport /> : <></> }
     </AppContextProvider>
   </React.StrictMode>,
   document.getElementById('root')

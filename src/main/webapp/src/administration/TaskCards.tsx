@@ -51,7 +51,7 @@ const TaskCards = () => {
   return (
     <Box justify="center" pad="medium" direction="row" wrap>
       <Card
-          title='Anmeldungen'
+          title={ t('card-onboarding') }
           icon={DocumentUser}
           onClick={ () => navigate('.' + t('url-onboardings')) }>
         {
@@ -65,7 +65,7 @@ const TaskCards = () => {
         }
       </Card>
       <Card
-          title='Mitglieder'
+          title={ t('card-members') }
           icon={Group}
           onClick={ () => navigate('.' + t('url-members')) }>
         {
@@ -79,8 +79,9 @@ const TaskCards = () => {
         }
       </Card>
       <Card
-          title='Fahrer'
-          icon={Car} />
+          title={ t('card-cars') }
+          icon={Car}
+          onClick={ () => navigate('.' + t('url-cars')) } />
     </Box>);
 }
 

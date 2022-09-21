@@ -3,7 +3,7 @@ package at.elmo;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.ComponentScan;
-
+import at.elmo.car.CarProperties;
 import at.elmo.config.ElmoProperties;
 import at.elmo.config.TranslationProperties;
 import at.elmo.util.email.EmailProperties;
@@ -16,7 +16,8 @@ import at.phactum.bp.blueprint.modules.ModuleAndWorkerAwareSpringApplication;
         ElmoProperties.class,
         TranslationProperties.class,
         EmailProperties.class,
-        SmsProperties.class
+        SmsProperties.class,
+        CarProperties.class
     })
 public class ElmoApplication {
 

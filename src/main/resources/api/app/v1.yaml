@@ -1,0 +1,60 @@
+openapi: 3.0.0
+info:
+  description: APP API
+  version: '1.0'
+  title: app
+servers:
+  - url: /api/v1.0
+
+security:
+  - JWT: []
+
+paths:
+  /app/text-messages:
+    get:
+      tags:
+        - app
+      summary: Request a auth token for establishing a SSE channel
+      operationId: requestSeeAuthToken
+      responses:
+        200:
+          description: The auth token
+          content:
+            text/plain:
+              schema:
+                type: string
+    post:
+      tags:
+        - app
+      summary: Request text messages to be sent by mobile phone
+      operationId: requestTextMessages
+      responses:
+        200:
+          description: The messages to be sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TextMessages'
+        400:
+          description: email address is wrong format
+        404:
+          description: The member-id is unknown
+components:
+  schemas:
+    ValidationErrors:
+      type: object
+      additionalProperties: {}
+    TextMessage:
+      type: object
+      properties:
+        recipient:
+          type: string
+        content:
+          type: string
+    TextMessages:
+      type: object
+      properties:
+        textMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/TextMessage'

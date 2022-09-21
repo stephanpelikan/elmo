@@ -1,28 +1,28 @@
-import { useAppContext } from '../AppContext';
 import { useEffect } from 'react';
+import { FLUTTER_REFRESH_TOKEN } from './FlutterSupport';
 
 // @ts-ignore
 const nativeCommunicator = typeof webkit !== 'undefined' ? webkit.messageHandlers.native : window.native;
 
 const Ready = () => {
   
-  const { state } = useAppContext();
-  
   useEffect(() => {
-      if ((state.currentUser !== undefined)
-          && (state.currentUser !== null)) {
-        if (nativeCommunicator) {
-          nativeCommunicator.postMessage(JSON.stringify([
-              {
-                "type": "Ready"
-              }
-            ]));
-        } else {
-          console.log('Ready');
-        }
+    
+      const storedToken = window.localStorage.getItem(FLUTTER_REFRESH_TOKEN);
+      const carAppIsActive = Boolean(storedToken);
+      
+      if (nativeCommunicator) {
+        nativeCommunicator.postMessage(JSON.stringify([
+            {
+              "type": "Ready",
+              "carAppActive": carAppIsActive
+            }
+          ]));
+      } else {
+        console.log(`Ready; Car-App-Active: ${carAppIsActive ? 'Yes' : 'No'}`);
       }
-    },
-    [state?.currentUser]);
+      
+    }, []);
   
   return (<></>);
   

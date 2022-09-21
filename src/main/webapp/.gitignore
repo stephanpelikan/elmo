@@ -5,6 +5,7 @@
 /.pnp
 .pnp.js
 /src/client/gui
+/src/client/app
 /src/client/administration
 
 # testing
