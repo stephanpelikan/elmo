@@ -9,7 +9,7 @@ import { useAppContext, useMemberGuiApi } from '../AppContext';
 
 i18n.addResources('en', 'passanger/profile', {
     "avatar_title": "Avatar",
-    "avatar_upload_toobig": "The file is too big!",
+    "avatar_upload_toobig": "The file is too big! Pleaes use a picture having a file size of less than 120kB.",
     "avatar_hint": "Click here...",
     "avatar_change": "Change",
     "avatar_save": "Save",
@@ -17,7 +17,7 @@ i18n.addResources('en', 'passanger/profile', {
   });
 i18n.addResources('de', 'passanger/profile', {
     "avatar_title": "Avatar",
-    "avatar_upload_toobig": "Das Bild ist zu groß!",
+    "avatar_upload_toobig": "Das Bild ist zu groß! Bitte verwende ein Bild mit einer maximalen Dateigröße von 120kB.",
     "avatar_hint": "Klicke hier...",
     "avatar_change": "Ändern",
     "avatar_save": "Speichern",
@@ -36,7 +36,7 @@ const Profile = () => {
   const [ avatarEditMode, setAvatarEditMode ] = useState(false);
   
   const onBeforeAvatarLoad = (elem) => {
-    if(elem.target.files[0].size > 120000){
+    if(elem.target.files[0].size > 120 * 1024){
       elem.target.value = "";
       toast({
         namespace: 'passanger/profile',

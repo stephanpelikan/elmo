@@ -133,7 +133,7 @@ const ListOfOnboardings = () => {
           { property: 'email', header: t('email'),
             render: application => <Text truncate>{ application.email }</Text>
           },
-          { property: 'status', header: t('action'), align: 'center', size: '5rem',
+          { property: 'status', header: t('action'), align: 'center', size: '6rem',
             render: application => {
               switch (application.status) {
                 case MemberApplicationStatus.New:
