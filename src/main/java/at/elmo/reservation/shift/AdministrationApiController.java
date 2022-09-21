@@ -12,7 +12,7 @@ import java.util.List;
 
 import javax.validation.Valid;
 
-@RestController
+@RestController("shiftAdministrationApiController")
 @RequestMapping("/api/v1")
 public class AdministrationApiController implements ShiftApi {
 

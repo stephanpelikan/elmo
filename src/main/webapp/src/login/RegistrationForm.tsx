@@ -1,9 +1,9 @@
 import { Anchor, Box, Button, CheckBox, Collapsible, DateInput, Form, FormField, Heading, Paragraph, ResponsiveContext, Select, Text, TextArea, TextInput } from "grommet";
 import { useContext, useEffect, useState } from "react";
-import { useAppContext } from '../AppContext';
+import { useAppContext, useMemberGuiApi, useOnboardingGuiApi } from '../AppContext';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
-import { GuiApi, MemberApplicationForm, Sex } from '../client/gui';
+import { MemberApplicationForm, OnboardingApi, Sex } from '../client/gui';
 import { CalendarHeader } from "../components/CalendarHeader";
 import { ViolationsAwareFormField } from "../components/ViolationsAwareFormField";
 import styled from "styled-components";
@@ -127,7 +127,7 @@ i18n.addResources('de', 'registration-form', {
     });
 
 const loadData = async (
-    guiApi: GuiApi,
+    onboardingApi: OnboardingApi,
     setMemberApplicationForm: (applicationForm: MemberApplicationForm) => void,
     setIsAlreadyMember: (alreadyMember: boolean) => void,
     setSubmitting: (submitting: boolean) => void,
@@ -135,7 +135,7 @@ const loadData = async (
 
   try {
     setSubmitting(true);
-    const application = await guiApi.loadMemberApplicationForm();
+    const application = await onboardingApi.loadMemberApplicationForm();
     setMemberApplicationForm(application);
     setIsAlreadyMember(!!application.memberId);
   } finally {
@@ -147,8 +147,11 @@ const loadData = async (
 const RegistrationForm = () => {
   const { t } = useTranslation('registration-form');
   
-  const { guiApi, memberApplicationFormSubmitted, toast,
+  const { memberApplicationFormSubmitted, toast,
       setAppHeaderTitle, state, fetchCurrentUser } = useAppContext();
+  
+  const onboardingApi = useOnboardingGuiApi();
+  const memberApi = useMemberGuiApi();
   
   const [ formValue, setFormValue ] = useState<MemberApplicationForm>(undefined);
   const [ isAlreadyMember, setIsAlreadyMember ] = useState(false);
@@ -162,14 +165,14 @@ const RegistrationForm = () => {
   
   useEffect(() => {
       if (formValue === undefined) { 
-        loadData(guiApi, setFormValue, setIsAlreadyMember, setSubmitting);
+        loadData(onboardingApi, setFormValue, setIsAlreadyMember, setSubmitting);
       };
-    }, [ formValue, guiApi, setFormValue ]);
+    }, [ formValue, onboardingApi, setFormValue ]);
 
   const submitForm = async () => {
     try {
       setSubmitting(true);
-      await guiApi.submitMemberApplicationForm({ memberApplicationForm: formValue });
+      await onboardingApi.submitMemberApplicationForm({ memberApplicationForm: formValue });
       if (isAlreadyMember) {
         new Promise((resolve, reject) => {
             fetchCurrentUser(resolve, reject, true);
@@ -197,7 +200,7 @@ const RegistrationForm = () => {
       return;
     }
     try {
-      await guiApi
+      await memberApi
           .requestPhoneCode({ phoneNo: formValue.phoneNumber })
           .then(() =>
             toast({
@@ -222,7 +225,7 @@ const RegistrationForm = () => {
       return;
     }
     try {
-      await guiApi
+      await memberApi
           .requestEmailCode({ emailAddress: formValue.email })
           .then(() =>
             toast({

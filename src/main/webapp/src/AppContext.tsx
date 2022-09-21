@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
-import { User, UserStatus, GuiApi, AppInformation } from './client/gui';
-import getGuiApi from './client/guiClient';
+import { User, UserStatus, GuiApi, AppInformation, OnboardingApi, MemberApi } from './client/gui';
+import { getGuiApi, getMemberGuiApi, getOnboardingGuiApi } from './client/guiClient';
 import { StatusType } from 'grommet';
 
 type Action =
@@ -30,7 +30,6 @@ type State = {
 const AppContext = React.createContext<{
   state: State;
   dispatch: Dispatch;
-  guiApi: GuiApi;
   toast: (toast: Toast) => void;
   fetchAppInformation: () => void;
   fetchCurrentUser: (resolve: (value: User | null) => void, reject: (error: any) => void, forceUpdate?: boolean) => void;
@@ -104,6 +103,22 @@ type AppContextProviderProps = {
 	children?: React.ReactNode;
 };
 
+const useOnboardingGuiApi = (): OnboardingApi => {
+
+  const { dispatch } = useAppContext();
+  const api = useMemo(() => getOnboardingGuiApi(dispatch), [ dispatch ]);
+  return api;
+  
+};
+
+const useMemberGuiApi = (): MemberApi => {
+
+  const { dispatch } = useAppContext();
+  const api = useMemo(() => getMemberGuiApi(dispatch), [ dispatch ]);
+  return api;
+  
+};
+
 const AppContextProvider = ({ children }: AppContextProviderProps) => {
 	const [state, dispatch] = React.useReducer(appContextReducer, {
     currentUser: undefined,
@@ -118,7 +133,7 @@ const AppContextProvider = ({ children }: AppContextProviderProps) => {
   
   const fetchAppInformation = useCallback(() => fetchAppInformationFromGuiApi(state.appInformation, dispatch, guiApi),
       [ guiApi, state.appInformation ]);
-  const fetchCurrentUser = useCallback((resolve: (value: User | null) => void, reject: (error: any) => void, forceUpdate?: boolean) => fetchCurrentUserFromGui(state, dispatch, guiApi, resolve, reject, forceUpdate),
+  const fetchCurrentUser = useCallback((resolve: (value: User | null) => void, reject: (error: any) => void, forceUpdate?: boolean) => fetchCurrentUserFromGui(state.currentUser, dispatch, guiApi, resolve, reject, forceUpdate),
       [ guiApi, state.currentUser ]);
   const showMenu = useCallback((visibility: boolean) => setShowMenu(dispatch, visibility),
       [ dispatch ]);
@@ -158,14 +173,14 @@ const fetchAppInformationFromGuiApi = async (appInformation: AppInformation | nu
   }
 }
 
-const fetchCurrentUserFromGui = async (appContextState: State,
+const fetchCurrentUserFromGui = async (currentUser: User | null | undefined,
     dispatch: Dispatch,
     guiApi: GuiApi,
     resolve: (value: User | null) => void,
     reject: (error: any) => void,
     forceUpdate?: boolean) => {
-  if (!forceUpdate && appContextState.currentUser != null) {
-    resolve(appContextState.currentUser);
+  if (!forceUpdate && currentUser != null) {
+    resolve(currentUser);
     return;
   }
   try {
@@ -242,4 +257,6 @@ export {
   AppContextProvider,
   useAppContext,
   supportSuspense,
+  useOnboardingGuiApi,
+  useMemberGuiApi,
 }

@@ -81,7 +81,7 @@ paths:
   /gui/member/application/take-over:
     put:
       tags:
-        - gui
+        - onboarding
       summary: take-over the member application form
       operationId: takeoverMemberApplicationForm
       requestBody:
@@ -98,7 +98,7 @@ paths:
   /gui/member/application:
     get:
       tags:
-        - gui
+        - onboarding
       summary: load the member application form
       operationId: loadMemberApplicationForm
       responses:
@@ -110,7 +110,7 @@ paths:
                 $ref: '#/components/schemas/MemberApplicationForm'
     post:
       tags:
-        - gui
+        - onboarding
       summary: submit the member application form
       operationId: submitMemberApplicationForm
       requestBody:
@@ -134,7 +134,7 @@ paths:
   /gui/member/{memberId}/avatar:
     get:
       tags:
-        - gui
+        - member
       summary: load avatar for given member id
       operationId: avatarOfMember
       parameters:
@@ -156,7 +156,7 @@ paths:
   /gui/member/avatar:
     post:
       tags:
-        - gui
+        - member
       summary: upload avatar for given member id
       operationId: uploadAvatar
       requestBody:
@@ -171,7 +171,7 @@ paths:
   /gui/member/request-phone-code:
     get:
       tags:
-        - gui
+        - member
       summary: Request a code sent to phone via SMS
       operationId: requestPhoneCode
       parameters:
@@ -190,7 +190,7 @@ paths:
   /gui/member/request-email-code:
     get:
       tags:
-        - gui
+        - member
       summary: Request a code sent via email
       operationId: requestEmailCode
       parameters:

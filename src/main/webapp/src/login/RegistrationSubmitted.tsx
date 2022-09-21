@@ -1,8 +1,8 @@
 import { Box, Button, Grid, Heading, Markdown, Paragraph } from 'grommet';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
-import { useAppContext } from "../AppContext";
-import { GuiApi, MemberApplicationForm, UserStatus } from '../client/gui';
+import { useAppContext, useOnboardingGuiApi } from "../AppContext";
+import { MemberApplicationForm, OnboardingApi, UserStatus } from '../client/gui';
 import { useEffect, useState } from 'react';
 import { parseLocalDate } from '../utils/timeUtils';
 import { Emoji } from 'grommet-icons';
@@ -70,30 +70,32 @@ Bermerkungen:
     });
 
 const loadData = async (
-    guiApi: GuiApi,
+    onboardingApi: OnboardingApi,
     setMemberApplicationForm: (applicationForm: MemberApplicationForm) => void
   ) => {
 
-  const application = await guiApi.loadMemberApplicationForm();
+  const application = await onboardingApi.loadMemberApplicationForm();
   
   setMemberApplicationForm(application);
   
 };
 
 const RegistrationSubmitted = () => {
-  const { guiApi, state, memberApplicationFormRevoked } = useAppContext();
+  const { state, memberApplicationFormRevoked } = useAppContext();
 
+  const onboardingApi = useOnboardingGuiApi();
+  
   const [ memberApplicationForm, setMemberApplicationForm ] = useState<MemberApplicationForm>(undefined);
 
   const loading = memberApplicationForm === undefined;
   useEffect(() => {
       if (memberApplicationForm === undefined) { 
-        loadData(guiApi, setMemberApplicationForm);
+        loadData(onboardingApi, setMemberApplicationForm);
       };
-    }, [ memberApplicationForm, guiApi, setMemberApplicationForm ]);
+    }, [ memberApplicationForm, onboardingApi, setMemberApplicationForm ]);
     
   const takeOver = async () => {
-    await guiApi.takeoverMemberApplicationForm({
+    await onboardingApi.takeoverMemberApplicationForm({
         takeoverMemberApplicationFormRequest: {
           taskId: memberApplicationForm.taskId
         }

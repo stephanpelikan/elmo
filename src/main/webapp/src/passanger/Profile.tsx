@@ -5,7 +5,7 @@ import i18n from '../i18n';
 import AvatarUpload from 'react-avatar-edit';
 import { Avatar, Box, Button, Collapsible } from 'grommet';
 import { useState } from 'react';
-import { useAppContext } from '../AppContext';
+import { useAppContext, useMemberGuiApi } from '../AppContext';
 
 i18n.addResources('en', 'passanger/profile', {
     "avatar_title": "Avatar",
@@ -27,7 +27,11 @@ i18n.addResources('de', 'passanger/profile', {
 const Profile = () => {
   
   const { t } = useTranslation('passanger/profile');
-  const { state, toast, guiApi, fetchCurrentUser } = useAppContext();
+  
+  const { state, toast, fetchCurrentUser } = useAppContext();
+  
+  const memberApi = useMemberGuiApi();
+  
   const [ uploadedAvatar, setUploadedAvatar ] = useState(null);
   const [ avatarEditMode, setAvatarEditMode ] = useState(false);
   
@@ -58,7 +62,7 @@ const Profile = () => {
       const fetchBasedConverter = await fetch(uploadedAvatar);
       const uploadedAvatarBlob = await fetchBasedConverter.blob();
       // upload Blob
-      await guiApi.uploadAvatar({ body: uploadedAvatarBlob });
+      await memberApi.uploadAvatar({ body: uploadedAvatarBlob });
       // Refresh current-user to make changes visible
       await new Promise((resolve, reject) => {
           fetchCurrentUser(resolve, reject, true);

@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
-@RestController
+@RestController("memberAdministrationApiController")
 @RequestMapping("/api/v1")
 public class AdministrationApiController implements MemberApi {
 

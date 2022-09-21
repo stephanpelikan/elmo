@@ -21,7 +21,7 @@ import java.util.HashMap;
 
 import javax.validation.Valid;
 
-@RestController
+@RestController("carAdministrationApiController")
 @RequestMapping("/api/v1")
 public class AdministrationApiController implements CarApi {
 

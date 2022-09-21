@@ -7,7 +7,7 @@ import org.mapstruct.Mapping;
 
 import java.util.List;
 
-@Mapper
+@Mapper(implementationName = "OnboardingAdministrationApiMapperImpl")
 public abstract class AdministrationApiMapper extends AdministrationApiMapperBase {
 
     public abstract MemberApplicationUpdate toDomain(at.elmo.administration.api.v1.MemberApplicationUpdate action);

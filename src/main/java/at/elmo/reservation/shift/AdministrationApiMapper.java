@@ -5,7 +5,7 @@ import org.mapstruct.Mapping;
 
 import java.util.List;
 
-@Mapper
+@Mapper(implementationName = "ShiftAdministrationApiMapperImpl")
 public abstract class AdministrationApiMapper {
 
     @Mapping(target = "driverId", source = "driver.id")

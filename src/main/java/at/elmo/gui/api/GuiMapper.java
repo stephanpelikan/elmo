@@ -1,6 +1,5 @@
 package at.elmo.gui.api;
 
-import at.elmo.gui.api.v1.MemberApplicationForm;
 import at.elmo.gui.api.v1.Role;
 import at.elmo.gui.api.v1.Sex;
 import at.elmo.gui.api.v1.User;
@@ -76,12 +75,6 @@ public abstract class GuiMapper {
     }
 
     protected abstract List<Role> toApi(List<RoleMembership> roleMembership);
-
-    @Mapping(target = "applicationId", source = "id")
-    @Mapping(target = "taskId", source = "userTaskId")
-    @Mapping(target = "emailConfirmationCode", source = "givenEmailConfirmationCode")
-    @Mapping(target = "phoneConfirmationCode", source = "givenPhoneConfirmationCode")
-    public abstract MemberApplicationForm toApplicationFormApi(MemberApplication application);
 
     public abstract at.elmo.member.Member.Sex toDomain(Sex sex);
 

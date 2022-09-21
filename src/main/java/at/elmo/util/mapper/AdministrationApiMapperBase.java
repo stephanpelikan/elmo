@@ -1,4 +1,4 @@
-package at.elmo.util;
+package at.elmo.util.mapper;
 
 import at.elmo.administration.api.v1.Page;
 

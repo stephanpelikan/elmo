@@ -1,12 +1,12 @@
 package at.elmo.car;
 
-import at.elmo.util.AdministrationApiMapperBase;
+import at.elmo.util.mapper.AdministrationApiMapperBase;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import java.util.List;
 
-@Mapper
+@Mapper(implementationName = "CarAdministrationApiMapperImpl")
 public abstract class AdministrationApiMapper extends AdministrationApiMapperBase {
 
     @Mapping(target = "lastAppActivity", ignore = true)

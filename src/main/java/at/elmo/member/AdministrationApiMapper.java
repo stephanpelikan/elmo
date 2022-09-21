@@ -8,7 +8,7 @@ import org.mapstruct.Mapping;
 
 import java.util.List;
 
-@Mapper
+@Mapper(implementationName = "MemberAdministrationApiMapperImpl")
 public abstract class AdministrationApiMapper extends AdministrationApiMapperBase {
 
     @Mapping(target = "avatar", source = "timestampOfAvatar")

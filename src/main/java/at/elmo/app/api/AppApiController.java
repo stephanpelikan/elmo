@@ -28,7 +28,7 @@ import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
 
-@RestController
+@RestController("appApiController")
 @RequestMapping("/api/v1")
 public class AppApiController implements AppApi {
 
