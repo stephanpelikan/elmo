@@ -23,7 +23,7 @@ const FlutterSupport = () => {
       const carAppIsActive = Boolean(storedToken);
       if (!carAppIsActive) {
         // @ts-ignore 
-        window[activateAppCallback] = async (token?: string) => {
+        window['activateAppCallback'] = async (token?: string) => {
             if (token) {
               window.localStorage.setItem(FLUTTER_REFRESH_TOKEN, token);
               setIsCarApp(true);
@@ -32,12 +32,12 @@ const FlutterSupport = () => {
               setIsCarApp(false);
             }
             // @ts-ignore 
-            window[activateAppCallback] = undefined;
+            window['activateAppCallback'] = undefined;
           };
       }
       
       // @ts-ignore 
-      return () => window[activateAppCallback] = undefined;
+      return () => window['activateAppCallback'] = undefined;
       
     }, [ setIsCarApp ]);
 
