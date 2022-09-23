@@ -14,10 +14,10 @@ public class ShiftLifecycle {
     @Autowired
     private ProcessService<Shift> processService;
 
-    public void createShift(
+    public Shift createShift(
             final Shift shift) throws Exception {
 
-        processService.startWorkflow(shift);
+        return processService.startWorkflow(shift);
 
     }
 }
