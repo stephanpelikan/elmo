@@ -70,6 +70,12 @@
       <column name="PAYMENT" type="varchar(14)" />
 			<column name="COMMENT" type="clob" />
 		</createTable>
+		<createIndex tableName="ELMO_MEMBER" indexName="MEMBER_ID">
+      <column name="MEMBER_ID" />
+		</createIndex>
+    <createIndex tableName="ELMO_MEMBER" indexName="STATUS">
+      <column name="STATUS" />
+    </createIndex>
     <createTable tableName="ELMO_MEMBER_ROLE">
       <column name="MEMBER" type="varchar(40)">
         <constraints primaryKey="true" />
@@ -142,6 +148,10 @@
       <column name="CAR" type="varchar(40)" />
       <column name="MEMBER" type="varchar(40)" />
     </createTable>
+    <createIndex tableName="ELMO_RESERVATION" indexName="TIME_RANGE">
+      <column name="UPDATED_AT" />
+      <column name="STARTS_AT" />
+    </createIndex>
   </changeSet>
   <changeSet id="introduce-avatars"
       author="stephanpelikan">

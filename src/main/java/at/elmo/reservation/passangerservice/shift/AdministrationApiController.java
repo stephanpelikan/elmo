@@ -1,4 +1,4 @@
-package at.elmo.reservation.shift;
+package at.elmo.reservation.passangerservice.shift;
 
 import at.elmo.administration.api.v1.Shift;
 import at.elmo.administration.api.v1.ShiftApi;

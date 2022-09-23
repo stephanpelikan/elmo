@@ -18,7 +18,7 @@ public class ConfigService {
 
     @Autowired
     private ConfigValueRepository configValues;
-    
+
     @Autowired
     private ElmoProperties properties;
 
@@ -51,43 +51,43 @@ public class ConfigService {
         final var lastCreatedShift = configValues
                 .findById(lastShiftDateConfig);
         if (lastCreatedShift.isEmpty()) {
-            return LocalDate.now();
+            return LocalDate.now().minusDays(1);
         }
 
         return LocalDate.parse(lastCreatedShift.get().getValue());
 
     }
-    
+
     public void setLastShiftGenerationDate(
             final String carId,
             final LocalDate date) {
-        
+
         final var lastShiftDateConfig = LAST_SHIFT_GENERATION_DATE + carId;
         final var lastCreatedShift = new ConfigValue(
                 lastShiftDateConfig,
                 date.toString());
         configValues.saveAndFlush(lastCreatedShift);
-        
+
     }
-    
+
     public int getLastMemberId() {
-        
+
         return configValues
                 .findById(LAST_MEMBER_ID)
                 .map(ConfigValue::getValue)
                 .map(Integer::parseInt)
                 .orElse(properties.getInitialNewMemberId() - 1);
-        
+
     }
-    
+
     public void setLastMemberId(
             final int memberId) {
-        
+
         configValues.saveAndFlush(
                 new ConfigValue(
                         LAST_MEMBER_ID,
                         Integer.toString(memberId)));
-        
+
     }
 
 }

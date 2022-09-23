@@ -1,4 +1,4 @@
-package at.elmo.reservation.shift;
+package at.elmo.reservation.passangerservice.shift;
 
 import at.phactum.bp.blueprint.process.ProcessService;
 import at.phactum.bp.blueprint.service.WorkflowService;
@@ -15,7 +15,9 @@ public class ShiftLifecycle {
     private ProcessService<Shift> processService;
 
     public void createShift(
-        final Shift shift) throws Exception {
+            final Shift shift) throws Exception {
+
         processService.startWorkflow(shift);
+
     }
 }

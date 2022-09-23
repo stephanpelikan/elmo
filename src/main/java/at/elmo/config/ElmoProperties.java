@@ -2,6 +2,7 @@ package at.elmo.config;
 
 import at.elmo.car.CarProperties;
 import at.elmo.config.websockets.WebsocketProperties;
+import at.elmo.reservation.passangerservice.PassangerServiceProperties;
 import at.elmo.util.email.EmailProperties;
 import at.elmo.util.sms.SmsProperties;
 import at.phactum.bp.blueprint.async.AsyncProperties;
@@ -14,7 +15,6 @@ import org.springframework.lang.NonNull;
 import org.springframework.web.cors.CorsConfiguration;
 
 import java.time.Duration;
-import java.util.List;
 
 @ConfigurationProperties(prefix = "elmo", ignoreUnknownFields = false)
 public class ElmoProperties implements WorkflowModuleIdAwareProperties, AsyncPropertiesAware {
@@ -30,25 +30,8 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties, AsyncPro
 
     private AsyncProperties async = new AsyncProperties();
 
-    public static class Shift {
-        private String start;
-        private String end;
-        private List<Integer> days;
-
-        public String getStart() {return start;}
-        public void setStart(String start) {this.start = start;}
-        public String getEnd() {return end;}
-        public void setEnd(String end) {this.end = end;}
-        public List<Integer> getDays() {return days;}
-        public void setDays(List<Integer> days) {this.days = days;}
-    }
-
-    private List<Shift> shifts;
-
     @NonNull
     private String version;
-
-    private Integer DaysForInitialShiftCreation;
 
     @NonNull
     private String titleShort;
@@ -102,6 +85,8 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties, AsyncPro
     private EmailProperties email;
 
     private CarProperties cars;
+
+    private PassangerServiceProperties passangerService;
 
     @NonNull
     private String passanagerServicePhoneNumber;
@@ -248,15 +233,6 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties, AsyncPro
         this.driverAgreementPdfDirectory = driverAgreementPdfDirectory;
     }
 
-    public List<Shift> getShifts() {return shifts;}
-
-    public void setShifts(List<Shift> shifts) {this.shifts = shifts;}
-
-
-
-    public Integer getDaysForInitialShiftCreation() {return DaysForInitialShiftCreation;}
-
-    public void setDaysForInitialShiftCreation(Integer daysForInitialShiftCreation) {DaysForInitialShiftCreation = daysForInitialShiftCreation;}
     public int getAdminMemberId() {
         return adminMemberId;
     }
@@ -303,6 +279,14 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties, AsyncPro
 
     public void setCars(CarProperties cars) {
         this.cars = cars;
+    }
+
+    public PassangerServiceProperties getPassangerService() {
+        return passangerService;
+    }
+
+    public void setPassangerService(PassangerServiceProperties passangerService) {
+        this.passangerService = passangerService;
     }
 
 }

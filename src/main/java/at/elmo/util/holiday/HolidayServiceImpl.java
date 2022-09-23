@@ -1,17 +1,17 @@
 package at.elmo.util.holiday;
 
+import de.jollyday.HolidayCalendar;
+import de.jollyday.HolidayManager;
+import de.jollyday.HolidayType;
+import de.jollyday.ManagerParameter;
+import de.jollyday.ManagerParameters;
+
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.Calendar;
 import java.util.Date;
-
-import de.jollyday.HolidayCalendar;
-import de.jollyday.HolidayManager;
-import de.jollyday.HolidayType;
-import de.jollyday.ManagerParameter;
-import de.jollyday.ManagerParameters;
 
 /**
  * Service which provides convenience methods for business day calculations.
@@ -71,18 +71,21 @@ class HolidayServiceImpl implements HolidayService {
     	
     }
     
+    @Override
     public boolean isHoliday( final Calendar date ) {
 
         return isHoliday( null, date );
 
     }
 
+    @Override
     public boolean isHoliday( final LocalDate date ) {
 
         return isHoliday( null, date );
 
     }
 
+    @Override
     public boolean isHoliday( final LocalDateTime date ) {
 
         return isHoliday( null, date.toLocalDate() );
@@ -152,7 +155,6 @@ class HolidayServiceImpl implements HolidayService {
         final HolidayManager holidayManager = getHolidayManager( country );
 
         return holidayManager.isHoliday( date, HolidayType.OFFICIAL_HOLIDAY, calendarArgs )
-                || ( date.get( Calendar.DAY_OF_WEEK ) == Calendar.SATURDAY )
                 || ( date.get( Calendar.DAY_OF_WEEK ) == Calendar.SUNDAY )
                 || ( date.get( Calendar.DAY_OF_MONTH) == 24 && date.get( Calendar.MONTH ) == 11) // Christmas
                 || ( date.get( Calendar.DAY_OF_MONTH) == 31 && date.get( Calendar.MONTH ) == 11);// Silvester

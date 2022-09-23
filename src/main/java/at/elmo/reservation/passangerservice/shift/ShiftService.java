@@ -1,13 +1,15 @@
-package at.elmo.reservation.shift;
+package at.elmo.reservation.passangerservice.shift;
 
 import at.elmo.car.Car;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -32,9 +34,25 @@ public class ShiftService {
 
     public void createShift(
             final Car car,
-            final LocalDateTime startsAt,
-            final LocalDateTime endsAt) throws Exception {
+            final LocalDate day,
+            final ShiftProperties properties) throws Exception {
 
+        final var startsAt = day.atTime(LocalTime.parse(properties.getStart()));
+        final var endsAt = day.atTime(LocalTime.parse(properties.getEnd()));
+        
+        final var overlapping = shifts.findOverlappingShiftsIds(startsAt, endsAt);
+        if (!overlapping.isEmpty()) {
+            
+            throw new Exception(
+                    "Cannot create shift at "
+                    + startsAt
+                    + " -> "
+                    + endsAt
+                    + " due to existing overlapping shifts: "
+                    + overlapping.stream().collect(Collectors.joining(", ")));
+            
+        }
+        
         final var shift = new Shift();
         shift.setId(UUID.randomUUID().toString());
         shift.setCar(car);

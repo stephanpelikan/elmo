@@ -1,7 +1,7 @@
 package at.elmo.car;
 
 import at.elmo.member.login.ElmoOAuth2Provider;
-import at.elmo.reservation.shift.ShiftService;
+import at.elmo.reservation.passangerservice.shift.ShiftService;
 import at.elmo.util.refreshtoken.RefreshTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
