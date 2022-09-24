@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
-import { User, UserStatus, GuiApi, AppInformation, OnboardingApi, MemberApi } from './client/gui';
-import { getGuiApi, getMemberGuiApi, getOnboardingGuiApi } from './client/guiClient';
+import { User, UserStatus, LoginApi, AppInformation, OnboardingApi, MemberApi, Oauth2Client } from './client/gui';
+import { getLoginGuiApi, getMemberGuiApi, getOnboardingGuiApi } from './client/guiClient';
 import { StatusType } from 'grommet';
 
 type Action =
@@ -32,6 +32,10 @@ const AppContext = React.createContext<{
   dispatch: Dispatch;
   toast: (toast: Toast) => void;
   fetchAppInformation: () => void;
+  fetchOauth2Clients: () => Promise<Array<Oauth2Client>>;
+  nativeAppLogin: (
+      clientId?: string, oauth2Id?: string, accessToken?: string
+    ) => Promise<void>;
   fetchCurrentUser: (resolve: (value: User | null) => void, reject: (error: any) => void, forceUpdate?: boolean) => void;
   showMenu: (visibility: boolean) => void;
   setAppHeaderTitle: (title: string, intern?: boolean) => void;
@@ -129,12 +133,14 @@ const AppContextProvider = ({ children }: AppContextProviderProps) => {
     intern: false,
   });
 
-  const guiApi = useMemo(() => getGuiApi(dispatch), [ dispatch ]);
+  const loginApi = useMemo(() => getLoginGuiApi(dispatch), [ dispatch ]);
   
-  const fetchAppInformation = useCallback(() => fetchAppInformationFromGuiApi(state.appInformation, dispatch, guiApi),
-      [ guiApi, state.appInformation ]);
-  const fetchCurrentUser = useCallback((resolve: (value: User | null) => void, reject: (error: any) => void, forceUpdate?: boolean) => fetchCurrentUserFromGui(state.currentUser, dispatch, guiApi, resolve, reject, forceUpdate),
-      [ guiApi, state.currentUser ]);
+  const fetchOauth2Clients = useCallback(() => loginApi.oauth2Clients(), [ loginApi ]);
+  const nativeAppLogin = useCallback((clientId?: string, oauth2Id?: string, accessToken?: string) => loginApi.nativeAppLogin({ nativeLogin: { clientId, oauth2Id, accessToken }}), [ loginApi ]);
+  const fetchAppInformation = useCallback(() => fetchAppInformationFromloginApi(state.appInformation, dispatch, loginApi),
+      [ loginApi, state.appInformation ]);
+  const fetchCurrentUser = useCallback((resolve: (value: User | null) => void, reject: (error: any) => void, forceUpdate?: boolean) => fetchCurrentUserFromGui(state.currentUser, dispatch, loginApi, resolve, reject, forceUpdate),
+      [ loginApi, state.currentUser ]);
   const showMenu = useCallback((visibility: boolean) => setShowMenu(dispatch, visibility),
       [ dispatch ]);
   const setAppHeaderTitle = useCallback((title: string, intern?: boolean) => updateTitle(dispatch, title, intern),
@@ -146,8 +152,10 @@ const AppContextProvider = ({ children }: AppContextProviderProps) => {
 	const value = {
     state,
     dispatch,
-    guiApi,
+    loginApi,
     toast: (t: Toast) => dispatch({ type: 'toast', toast: t }),
+    fetchOauth2Clients,
+    nativeAppLogin,
     fetchAppInformation,
     fetchCurrentUser,
     showMenu,
@@ -161,12 +169,12 @@ const AppContextProvider = ({ children }: AppContextProviderProps) => {
    </AppContext.Provider>);
 };
 
-const fetchAppInformationFromGuiApi = async (appInformation: AppInformation | null, dispatch: Dispatch, guiApi: GuiApi) => {
+const fetchAppInformationFromloginApi = async (appInformation: AppInformation | null, dispatch: Dispatch, loginApi: LoginApi) => {
   if (appInformation !== null) {
     return;
   }
   try {
-    const appInformation = await guiApi.appInformation();
+    const appInformation = await loginApi.appInformation();
     dispatch({ type: 'updateAppInformation', appInformation });
   } catch (error) {
     console.error(error);
@@ -175,7 +183,7 @@ const fetchAppInformationFromGuiApi = async (appInformation: AppInformation | nu
 
 const fetchCurrentUserFromGui = async (currentUser: User | null | undefined,
     dispatch: Dispatch,
-    guiApi: GuiApi,
+    loginApi: LoginApi,
     resolve: (value: User | null) => void,
     reject: (error: any) => void,
     forceUpdate?: boolean) => {
@@ -184,7 +192,7 @@ const fetchCurrentUserFromGui = async (currentUser: User | null | undefined,
     return;
   }
   try {
-    const user = await guiApi.currentUser();
+    const user = await loginApi.currentUser();
     dispatch({ type: 'updateCurrentUser', user });
     resolve(user);
   } catch (error: any) {

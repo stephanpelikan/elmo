@@ -58,7 +58,7 @@ const loginCommunicator = typeof webkit !== 'undefined' ? webkit.messageHandlers
 const Login = () => {
   const { t } = useTranslation('login');
   
-  const { state, toast, guiApi, fetchCurrentUser } = useAppContext();
+  const { state, toast, fetchCurrentUser, fetchOauth2Clients, nativeAppLogin } = useAppContext();
 
   const [ cookies, setCookie ] = useCookies([]);
   const [ showHint, setShowHint ] = useState(!cookies[CookieConfirmationName]);
@@ -88,13 +88,10 @@ const Login = () => {
               status: 'critical'
             });
         } else {
-          await guiApi.nativeAppLogin({
-              nativeLogin: {
-                clientId,
-                oauth2Id,
-                accessToken
-              }
-            });
+          await nativeAppLogin(
+              clientId,
+              oauth2Id,
+              accessToken);
           await new Promise((resolve, reject) => {
               fetchCurrentUser(resolve, reject, true);
             });
@@ -112,11 +109,11 @@ const Login = () => {
     
   useEffect(() => {
     const fetchClients = async () => {
-      const clients = await guiApi.oauth2Clients();
+      const clients = await fetchOauth2Clients();
       setOauth2Clients(clients);
     };
     fetchClients();
-  }, [ guiApi, setOauth2Clients ]);
+  }, [ fetchOauth2Clients, setOauth2Clients ]);
   
   return (
     <Grid>

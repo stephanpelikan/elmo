@@ -13,7 +13,7 @@ paths:
   /gui/app-info:
     get:
       tags:
-        - gui
+        - login
       summary: information about the current app
       operationId: appInformation
       responses:
@@ -26,7 +26,7 @@ paths:
   /gui/oauth2-clients:
     get:
       tags:
-        - gui
+        - login
       summary: a list of all available oauth2-clients
       operationId: oauth2Clients
       parameters:
@@ -46,7 +46,7 @@ paths:
   /gui/current-user:
     get:
       tags:
-        - gui
+        - login
       summary: load current user from security context
       operationId: currentUser
       parameters:
@@ -65,7 +65,7 @@ paths:
           description: No user logged in
     post:
       tags:
-        - gui
+        - login
       summary: submit the token from native App login
       operationId: nativeAppLogin
       requestBody:

@@ -1,15 +1,12 @@
-package at.elmo.gui.api;
+package at.elmo.member.login;
 
 import at.elmo.config.ElmoProperties;
 import at.elmo.config.web.JwtSecurityFilter;
 import at.elmo.gui.api.v1.AppInformation;
-import at.elmo.gui.api.v1.GuiApi;
+import at.elmo.gui.api.v1.LoginApi;
 import at.elmo.gui.api.v1.NativeLogin;
 import at.elmo.gui.api.v1.Oauth2Client;
 import at.elmo.gui.api.v1.User;
-import at.elmo.member.login.ElmoJwtToken;
-import at.elmo.member.login.ElmoOAuth2User;
-import at.elmo.member.login.OAuth2UserService;
 import at.elmo.member.onboarding.MemberOnboarding;
 import at.elmo.util.UserContext;
 import at.elmo.util.exceptions.ElmoException;
@@ -37,9 +34,9 @@ import java.util.List;
 
 import javax.validation.Valid;
 
-@RestController("guiApiControllers")
+@RestController("loginGuiApiController")
 @RequestMapping("/api/v1")
-public class GuiApiController implements GuiApi {
+public class GuiApiController implements LoginApi {
 
     private static final String FLUTTER_USER_AGENT_PREFIX = "native-";
 

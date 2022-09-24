@@ -1,4 +1,4 @@
-import { Configuration as GuiConfiguration, GuiApi, MemberApi, Middleware, OnboardingApi, ResponseContext } from './gui';
+import { Configuration as GuiConfiguration, LoginApi, MemberApi, Middleware, OnboardingApi, ResponseContext } from './gui';
 import { Dispatch } from '../AppContext';
 import buildFetchApi from './fetchApi';
 
@@ -42,13 +42,13 @@ const RefreshAwareMiddleware: Middleware = {
   
 };
 
-const getGuiApi = (dispatch: Dispatch): GuiApi => {
+const getLoginGuiApi = (dispatch: Dispatch): LoginApi => {
   const config = new GuiConfiguration({
     basePath: '/api/v1',
     fetchApi: buildFetchApi(dispatch),
     middleware: [ RefreshAwareMiddleware ],
   });
-  return new GuiApi(config);
+  return new LoginApi(config);
 };
 
 const getOnboardingGuiApi = (dispatch: Dispatch): OnboardingApi => {
@@ -72,7 +72,7 @@ const getMemberGuiApi = (dispatch: Dispatch): MemberApi => {
 export { RefreshAwareMiddleware, REFRESH_TOKEN_HEADER };
 
 export {
-    getGuiApi,
+    getLoginGuiApi,
     getOnboardingGuiApi,
     getMemberGuiApi,
   };

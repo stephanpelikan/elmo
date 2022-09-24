@@ -1,10 +1,9 @@
-package at.elmo.gui.api;
+package at.elmo.member.login;
 
 import at.elmo.gui.api.v1.Role;
 import at.elmo.gui.api.v1.Sex;
 import at.elmo.gui.api.v1.User;
 import at.elmo.gui.api.v1.UserStatus;
-import at.elmo.member.login.RoleMembership;
 import at.elmo.member.onboarding.MemberApplication;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
