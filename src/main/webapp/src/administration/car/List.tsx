@@ -1,12 +1,13 @@
-import { Box, Button, ColumnConfig, DataTable, Grid, ResponsiveContext, Text } from 'grommet';
+import { Box, Button, ColumnConfig, DataTable, Grid, Text } from 'grommet';
 import { Add, Car as CarIcon, FormEdit, PhoneVertical, ShareOption } from 'grommet-icons';
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useCarAdministrationApi } from '../AdminAppContext';
 import { CircleButton } from '../../components/CircleButton';
 import i18n from '../../i18n';
 import { Car, CarApi } from '../../client/administration';
+import useResponsiveScreen from '../../utils/responsiveUtils';
 
 i18n.addResources('en', 'administration/car', {
       "edit": "edit",
@@ -59,7 +60,10 @@ const loadData = async (
 
 const ListOfCars = () => {
   
+  const { isPhone } = useResponsiveScreen();
   const carAdministrationApi = useCarAdministrationApi();
+  const { t } = useTranslation('administration/car');
+  const navigate = useNavigate();
   
   const [ cars, setCars ] = useState(undefined);
   const [ numberOfCars, setNumberOfCars ] = useState(0);
@@ -69,12 +73,6 @@ const ListOfCars = () => {
       loadData(carAdministrationApi, setNumberOfCars, setCars, cars);
     }
   }, [ carAdministrationApi, setCars, setNumberOfCars, cars ]);
-
-  const { t } = useTranslation('administration/car');
-  
-  const navigate = useNavigate();
-  
-  const size = useContext(ResponsiveContext);
   
   const onEdit = async (car: Car) => {
     navigate('./' + car.id);
@@ -84,7 +82,7 @@ const ListOfCars = () => {
     navigate('./-');
   }
 
-  const columns: ColumnConfig<Car>[] = size === 'small'
+  const columns: ColumnConfig<Car>[] = isPhone
         ? [
           { property: 'shortcut', header: t('shortcut'), size: '4rem' },
           { property: 'name', header: t('name') },
@@ -131,7 +129,7 @@ const ListOfCars = () => {
             justify='between'
             direction='row'
             background={ { color: 'accent-2', opacity: 'strong' } }
-            pad={ size === 'small' ? 'medium' : 'small' }>
+            pad={ isPhone ? 'medium' : 'small' }>
           <Box
               justify='center'
               align="center">

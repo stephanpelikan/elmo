@@ -1,15 +1,15 @@
-import { Box, Button, Header, Heading, Image, ResponsiveContext } from "grommet";
+import { Box, Button, Header, Heading, Image } from "grommet";
 import { Menu as MenuIcon } from 'grommet-icons';
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useAppContext } from '../../AppContext';
+import useResponsiveScreen from '../../utils/responsiveUtils';
 
 const AppHeader = () => {
   
+  const { isPhone } = useResponsiveScreen();
   const { state, showMenu } = useAppContext();
-
   const { t } = useTranslation(state.title);
-  
   const navigate = useNavigate();
 
   const toogleMenu = () => showMenu(!state.showMenu);
@@ -35,10 +35,8 @@ const AppHeader = () => {
               src='/assets/logo192.png'
               fit='contain' />
         </Box>
-        <ResponsiveContext.Consumer>
         {
-          size => (
-            size === 'small' ? (
+          isPhone ? (
               <Heading
                   margin='small'
                   level='2'>{t('title.short')}</Heading>
@@ -47,9 +45,7 @@ const AppHeader = () => {
                   margin='small'
                   level='3'>{t('title.long')}</Heading>
             )
-          )
         }
-        </ResponsiveContext.Consumer>
       </Box>
       <Box>
         <Button

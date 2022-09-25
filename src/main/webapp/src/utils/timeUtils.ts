@@ -19,6 +19,17 @@ const parseLocalDate = (localDate: string): Date | undefined => {
   
 }
 
+const parseLocalDateToIsoString = (localDate: string): string | undefined => {
+  
+  if (!Boolean(localDate)) {
+    return undefined;
+  }
+
+  // @ts-ignore  
+  return new Date(localDate).toISOString();
+  
+}
+
 const toLocalDateString = (date: Date): string | undefined => {
   
   if (!Boolean(date)) {
@@ -33,4 +44,4 @@ const toLocalDateString = (date: Date): string | undefined => {
   
 }
 
-export { parseLocalDate, toLocalDateString };
+export { parseLocalDate, toLocalDateString, parseLocalDateToIsoString };

@@ -1,5 +1,5 @@
-import { Box, Button, CheckBox, Grid, Heading, Layer, Paragraph, ResponsiveContext, Text, TextInput } from "grommet";
-import { useContext, useEffect, useState } from "react";
+import { Box, Button, CheckBox, Grid, Heading, Layer, Paragraph, Text, TextInput } from "grommet";
+import { useEffect, useState } from "react";
 import { ViolationsAwareFormField } from "../../components/ViolationsAwareFormField";
 import { useTranslation } from "react-i18next";
 import QRCode from "react-qr-code";
@@ -9,6 +9,7 @@ import { useAppContext } from "../../AppContext";
 import { Car, CarApi } from "../../client/administration";
 import i18n from '../../i18n';
 import { useCarAdministrationApi } from "../AdminAppContext";
+import useResponsiveScreen from '../../utils/responsiveUtils';
 
 i18n.addResources('en', 'administration/car-details', {
       "loading": "loading...",
@@ -99,6 +100,7 @@ const SmsTestButton = styled(Button)`
     height: 1px;
     background: white;
     position: absolute;
+    opacity: 1;
     bottom: calc(${(props) => props.theme.button.secondary.border.width} * -1 - 1px);
     left: -5%;
   }
@@ -111,21 +113,19 @@ const loadData = async (carApi: CarApi, carId: string, setCar: (car: Car) => voi
 
 const Details = () => {
   
+  const { isPhone } = useResponsiveScreen();
   const { toast } = useAppContext();
-  
   const carApi = useCarAdministrationApi();
-
   const { t } = useTranslation('administration/car-details');
-
   const navigate = useNavigate();
+  const params = useParams();
+  const isNewCar = params.carId === '-';
 
   const [ dirty, setDirty ] = useState<boolean>(false);
   const [ violations, setViolations ] = useState<any>({});
   const [ car, setCar ] = useState<Car>(undefined);
 
   const loading = car === undefined;
-  
-  const params = useParams();
 
   const [ activationCode, setActivationCode ] = useState<string>(undefined);
   
@@ -146,8 +146,6 @@ const Details = () => {
     setCar(updatedCar);
     
   };
-  
-  const isNewCar = params.carId === '-';
   
   const dismissQrCode = () => {
     
@@ -262,8 +260,6 @@ const Details = () => {
     setDirty(true);
   };
 
-  const size = useContext(ResponsiveContext);
-  
   if (loading) {
     return (
         <Box
@@ -371,7 +367,7 @@ const Details = () => {
         { car.appActive
             ? <>
                 <Text>{ t('last-app-activity') }
-                    { size === 'small' ? <br/> : ' ' }
+                    { isPhone ? <br/> : ' ' }
                     { car.lastAppActivity.toLocaleDateString() }&nbsp;
                     { car.lastAppActivity.toLocaleTimeString() }</Text>
                 <Button

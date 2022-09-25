@@ -1,5 +1,5 @@
-import { Anchor, Box, Button, CheckBox, Collapsible, DateInput, Form, FormField, Heading, Paragraph, ResponsiveContext, Select, Text, TextArea, TextInput } from "grommet";
-import { useContext, useEffect, useState } from "react";
+import { Anchor, Box, Button, CheckBox, Collapsible, DateInput, Form, FormField, Heading, Paragraph, Select, Text, TextArea, TextInput } from "grommet";
+import { useEffect, useState } from "react";
 import { useAppContext, useMemberGuiApi, useOnboardingGuiApi } from '../AppContext';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
@@ -8,6 +8,7 @@ import { CalendarHeader } from "../components/CalendarHeader";
 import { ViolationsAwareFormField } from "../components/ViolationsAwareFormField";
 import styled from "styled-components";
 import { parseLocalDate, toLocalDateString } from '../utils/timeUtils';
+import useResponsiveScreen from '../utils/responsiveUtils';
 
 const CodeButton = styled(Button)`
   position: relative;
@@ -145,13 +146,14 @@ const loadData = async (
 };
 
 const RegistrationForm = () => {
+  
+  const { isPhone } = useResponsiveScreen();
   const { t } = useTranslation('registration-form');
+  const onboardingApi = useOnboardingGuiApi();
+  const memberApi = useMemberGuiApi();
   
   const { memberApplicationFormSubmitted, toast,
       setAppHeaderTitle, state, fetchCurrentUser } = useAppContext();
-  
-  const onboardingApi = useOnboardingGuiApi();
-  const memberApi = useMemberGuiApi();
   
   const [ formValue, setFormValue ] = useState<MemberApplicationForm>(undefined);
   const [ isAlreadyMember, setIsAlreadyMember ] = useState(false);
@@ -279,8 +281,6 @@ const RegistrationForm = () => {
     
   };
   
-  const size = useContext(ResponsiveContext);
-  
   return (
     <Box
         pad='small'>
@@ -386,7 +386,7 @@ const RegistrationForm = () => {
               value={ parseLocalDate(formValue?.birthdate)?.toISOString() }
               onChange={ ({ value }) => setBirthdate(value as string) }
               calendarProps={ {
-                  fill: size === 'small',
+                  fill: isPhone,
                   animate: false,
                   header: props => CalendarHeader({ ...props, setDate: setBirthdate })
                 } } />
@@ -514,7 +514,7 @@ const RegistrationForm = () => {
               disabled={ submitting }
               htmlFor="applicationComment">
             <Box
-                height={ size === 'small' ? '9rem': undefined}>
+                height={ isPhone ? '9rem': undefined }>
               <TextArea
                   name="applicationComment"
                   fill

@@ -1,5 +1,6 @@
-import { Box, BoxTypes, Heading, Page, PageContent, ResponsiveContext } from "grommet";
-import { PropsWithChildren, useContext } from "react";
+import { Box, BoxTypes, Heading, Page, PageContent } from "grommet";
+import { PropsWithChildren } from "react";
+import useResponsiveScreen from '../utils/responsiveUtils';
 
 const MainLayout = ({ children }: PropsWithChildren<{}>) => (
   <Page
@@ -12,16 +13,16 @@ const MainLayout = ({ children }: PropsWithChildren<{}>) => (
   
 const Heading1 = ({ children }: PropsWithChildren<{}>) => {
   
-  const size = useContext(ResponsiveContext);
+  const { isPhone } = useResponsiveScreen();
   
   return (
     <Heading
         level='4'
         color='accent-3'
         margin={ {
-            top: size === 'small' ? 'medium' : 'small',
+            top: isPhone ? 'medium' : 'small',
             bottom: 'small',
-            horizontal: size === 'small' ? '0.5rem' : undefined
+            horizontal: isPhone ? '0.5rem' : undefined
           } }>{
             children
           }</Heading>
@@ -31,12 +32,12 @@ const Heading1 = ({ children }: PropsWithChildren<{}>) => {
 
 const Content = ({ children, ...props }: PropsWithChildren<BoxTypes>) => {
 
-  const size = useContext(ResponsiveContext);
+  const { isPhone } = useResponsiveScreen();
 
   return (
       <Box
           { ...props }
-          pad={ { horizontal: '0.5rem', bottom: size === 'small' ? 'medium' : 'small' } }>{
+          pad={ { horizontal: '0.5rem', bottom: isPhone ? 'medium' : 'small' } }>{
             children
           }</Box>
     );

@@ -1,6 +1,6 @@
-import { Box, Button, FormField, ResponsiveContext, Heading, Text, TextArea, Form, ThemeContext , ThemeType, DateInput, Select, CheckBox, TextInput, Collapsible } from "grommet";
+import { Box, Button, FormField, Heading, Text, TextArea, Form, ThemeContext , ThemeType, DateInput, Select, CheckBox, TextInput, Collapsible } from "grommet";
 import { deepMerge } from 'grommet/utils';
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAppContext } from "../../AppContext";
@@ -14,6 +14,7 @@ import useDebounce from '../../components/Debounce';
 import { Copy } from "grommet-icons";
 import { useOnboardingAdministrationApi, useMemberApi } from '../AdminAppContext';
 import { parseLocalDate, toLocalDateString } from '../../utils/timeUtils';
+import useResponsiveScreen from '../../utils/responsiveUtils';
 
 i18n.addResources('en', 'administration/onboarding/review', {
       "member-id": "Member ID:",
@@ -215,14 +216,14 @@ const theme: ThemeType = deepMerge(appTheme, {
 
 const ReviewForm = () => {
   
+  const { isPhone } = useResponsiveScreen();
   const { toast } = useAppContext();
-  
   const onboardingApi = useOnboardingAdministrationApi();
   const memberApi = useMemberApi();
-
   const navigate = useNavigate();
-    
   const params = useParams();
+  const { t } = useTranslation('administration/onboarding/review');
+  const debounceOnChangeMemberId = useDebounce();
   
   const [ formValue, setFormValue ] = useState<FormState>(undefined);
   const [ violations, setViolations ] = useState({});
@@ -232,10 +233,8 @@ const ReviewForm = () => {
       if (formValue === undefined) { 
         loadData(onboardingApi, setFormValue, params.applicationId);
       };
-    }, [ formValue, onboardingApi, setFormValue, params ]);
+    }, [ formValue, onboardingApi, setFormValue, params.applicationId ]);
 
-  const { t } = useTranslation('administration/onboarding/review');
-  
   const setBirthdate = (dateInput: string|Date) => {
     let date: Date;
     if (dateInput === undefined) {
@@ -276,7 +275,7 @@ const ReviewForm = () => {
         setFormValue,
         params.applicationId,
         MemberApplicationUpdate.Reject)
-      .then(() => navigate('../'))
+      .then(() => navigate('../', { replace: true }))
       .catch(error => error.then(violations => setViolations(violations)));
   };
 
@@ -287,7 +286,7 @@ const ReviewForm = () => {
         setFormValue,
         params.applicationId,
         MemberApplicationUpdate.Inquiry)
-      .then(() => navigate('../'))
+      .then(() => navigate('../', { replace: true }))
       .catch(error => error.then(violations => setViolations(violations)));
   };
 
@@ -298,7 +297,7 @@ const ReviewForm = () => {
         setFormValue,
         params.applicationId,
         MemberApplicationUpdate.Accepted)
-      .then(() => navigate('../'))
+      .then(() => navigate('../', { replace: true }))
       .catch(error => error.then(violations => setViolations(violations)));
   };
   
@@ -323,7 +322,6 @@ const ReviewForm = () => {
   const [ memberSuggestions, setMemberSuggestions ] = useState([]);
   const [ member, setMember ] = useState<Member>(undefined);
   
-  const debounceOnChangeMemberId = useDebounce();
   const onChangeMemberId = event => {
     debounceOnChangeMemberId(() => async () => {
         setMemberIdState(undefined);
@@ -359,8 +357,6 @@ const ReviewForm = () => {
     const result = await memberApi.getMemberById({ memberId });
     setMember(result);
   };
-  
-  const size = useContext(ResponsiveContext);
   
   const copyToClipbard = (data: string) => {
     if (!Boolean(data)) {
@@ -482,7 +478,7 @@ const ReviewForm = () => {
               disabled={ loading || !!member }
               onChange={ ({ value }) => setBirthdate(value as string) }
               calendarProps={ {
-                  fill: size === 'small',
+                  fill: isPhone,
                   animate: false,
                   header: props => CalendarHeader({ ...props, setDate: setBirthdate })
                 } } />

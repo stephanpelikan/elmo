@@ -1,6 +1,6 @@
-import { Box, Button, ColumnConfig, DataTable, Grid, ResponsiveContext, Text } from 'grommet';
-import { Add, Download, Upload } from 'grommet-icons';
-import { ChangeEvent, useContext, useEffect, useRef, useState } from 'react';
+import { Box, Button, ColumnConfig, DataTable, Grid, Text } from 'grommet';
+import { Add, Download, FormEdit, Upload } from 'grommet-icons';
+import { ChangeEvent, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../AppContext';
@@ -9,6 +9,7 @@ import { useMemberApi } from '../AdminAppContext';
 import { CircleButton } from '../../components/CircleButton';
 import { MemberIdAvatar } from '../../components/MemberIdAvatar';
 import i18n from '../../i18n';
+import useResponsiveScreen from '../../utils/responsiveUtils';
 
 i18n.addResources('en', 'administration/member', {
       "edit": "edit",
@@ -82,9 +83,11 @@ const loadData = async (
 
 const ListOfMembers = () => {
   
+  const { isPhone, isNotPhone } = useResponsiveScreen();
   const { toast } = useAppContext();
-  
   const memberApi = useMemberApi();
+  const { t } = useTranslation('administration/member');
+  const navigate = useNavigate();
   
   const [ members, setMembers ] = useState(undefined);
   const [ numberOfMembers, setNumberOfMembers ] = useState(0);
@@ -94,12 +97,6 @@ const ListOfMembers = () => {
       loadData(memberApi, setNumberOfMembers, setMembers, members);
     }
   }, [ memberApi, setMembers, setNumberOfMembers, members ]);
-
-  const { t } = useTranslation('administration/member');
-  
-  const navigate = useNavigate();
-  
-  const size = useContext(ResponsiveContext);
   
   const uploadRef = useRef(null);
   
@@ -159,15 +156,13 @@ const ListOfMembers = () => {
     
   };
   
-  const onEdit = async (member: Member) => {
-    
+  const edit = (member: Member) => {
     navigate('./' + member.memberId);
-    
   };
 
-  const columns: ColumnConfig<Member>[] = size !== 'small'
+  const columns: ColumnConfig<Member>[] = isNotPhone
       ? [
-          { property: 'memberId', header: t(size === 'small' ? 'member-id.short' : 'member-id.long'),
+          { property: 'memberId', header: t('member-id.long'),
             render: member => (
               <Box direction='row'>
                 <MemberIdAvatar memberId={ member.memberId } sex={ member.sex } avatar={ member.avatar } />
@@ -178,12 +173,14 @@ const ListOfMembers = () => {
           { property: 'status', header: t('status'),
             render: member => <Text>{ t(`status_${member.status}`) }</Text>
           },
-          { property: 'none', header: t('action'), align: 'center',
-            render: member => <Text>{ t(`status_${member.status}`) }</Text>
+          { property: 'status', header: t('action'), align: 'center',
+            render: member => (<>
+                <Text>{ t(`status_${member.status}`) }</Text>
+                <Button label={ t('edit') } onClick={ () => edit(member) } /></>)
           },
         ]
       : [
-          { property: 'memberId', header: t(size === 'small' ? 'member-id.short' : 'member-id.long'),
+          { property: 'memberId', header: t('member-id.short'),
             render: member => (
               <Box direction='row'>
                 <MemberIdAvatar memberId={ member.memberId } sex={ member.sex } avatar={ member.avatar } />
@@ -191,7 +188,9 @@ const ListOfMembers = () => {
           },
           { property: 'lastName', header: t('last-name')},
           { property: 'status', header: t('action'), align: 'center',
-            render: member => <Text>{ t(`status_${member.status}`) }</Text>
+            render: member => (<>
+                <Text>{ t(`status_${member.status}`) }</Text>
+                <Button icon={<FormEdit />} onClick={ () => edit(member) } /></>)
           },
         ];
   
@@ -205,7 +204,7 @@ const ListOfMembers = () => {
             justify='between'
             direction='row'
             background={ { color: 'accent-2', opacity: 'strong' } }
-            pad={ size === 'small' ? 'medium' : 'small' }>
+            pad={ isPhone ? 'medium' : 'small' }>
           <Box
               justify='center'
               align="center">
@@ -222,12 +221,12 @@ const ListOfMembers = () => {
             <Button
                 plain
                 onClick={ onUploadExcel }
-                label={ size !== 'small' ? 'Excel hochladen' : undefined}
+                label={ isNotPhone ? t('upload') : undefined}
                 icon={ <Upload /> } />
             <Button
                 plain
                 onClick={ onDownloadExcel }
-                label={ size !== 'small' ? 'Excel herunterladen' : undefined}
+                label={ isNotPhone ? t('download') : undefined}
                 icon={ <Download /> } />
           </Box>
         </Box>

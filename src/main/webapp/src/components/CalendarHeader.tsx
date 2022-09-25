@@ -1,11 +1,18 @@
-import { Box, Button, CalendarHeaderProps, Heading, RangeInput, ResponsiveContext } from "grommet";
+import { Box, Button, CalendarHeaderProps, Heading, RangeInput } from "grommet";
 import { useContext } from "react";
 import { ThemeContext } from "styled-components";
+import useResponsiveScreen from "../utils/responsiveUtils";
 
 const headingPadMap = {
-  small: 'xsmall',
-  medium: 'small',
-  large: 'medium',
+  phone: 'xsmall',
+  tablet: 'small',
+  computer: 'medium',
+};
+
+const headingSizeMap = {
+  phone: 'small',
+  tablet: 'medium',
+  computer: 'large',
 };
 
 interface ExtendedCalendarHeaderProps extends CalendarHeaderProps {
@@ -21,7 +28,8 @@ const CalendarHeader = ({
   previousInBound,
   nextInBound
 }: ExtendedCalendarHeaderProps) => {
-  const size = useContext(ResponsiveContext);
+  
+  const { isPhone, currentScreen } = useResponsiveScreen();
   const theme = useContext(ThemeContext);
   
   const PreviousIcon = theme.calendar.icons.small.previous;
@@ -42,14 +50,14 @@ const CalendarHeader = ({
   return (
     <>
       <Box direction="row" justify="between" align="center" gap="small">
-        <Box flex pad={{ horizontal: headingPadMap[size] || 'small' }}>
+        <Box flex pad={{ horizontal: headingPadMap[currentScreen] || 'small' }}>
           <Heading
             level={
-              size === 'small'
+              isPhone
                 ? ((theme.calendar.heading && theme.calendar.heading.level) || 4)
                 : ((theme.calendar.heading && theme.calendar.heading.level) || 4) - 1
             }
-            size={size}
+            size={ headingSizeMap[currentScreen] }
             margin="none"
           >
             {date.toLocaleDateString(locale, {
