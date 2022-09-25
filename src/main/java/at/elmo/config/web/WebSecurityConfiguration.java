@@ -22,6 +22,7 @@ import org.springframework.security.oauth2.client.web.AuthorizationRequestReposi
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
+import org.springframework.security.web.authentication.ui.DefaultLoginPageGeneratingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.session.jdbc.config.annotation.web.http.EnableJdbcHttpSession;
@@ -104,7 +105,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     				.logoutSuccessHandler(logoutSuccessHandler())
     				.and()
                 .oauth2Login()
-                    .loginPage(properties.getGatewayUrl() + "/login")
+                    .loginPage(properties.getGatewayUrl() + DefaultLoginPageGeneratingFilter.DEFAULT_LOGIN_PAGE_URL)
                     .authorizationEndpoint()
                         .authorizationRequestRepository(authorizationRequestRepository())
                         .and()

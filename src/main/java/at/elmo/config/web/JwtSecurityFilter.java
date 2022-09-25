@@ -17,15 +17,24 @@ import at.elmo.util.refreshtoken.RefreshTokenService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.io.Encoders;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
+import org.springframework.security.web.access.WebInvocationPrivilegeEvaluator;
+import org.springframework.security.web.authentication.ui.DefaultLoginPageGeneratingFilter;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -66,6 +75,9 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
 
     private static final String JWT_CAR_ROLE = "ROLE_" + Role.CAR.name();
 
+    private static final Authentication ANONYMOUS = new AnonymousAuthenticationToken(
+            "anonymous", "anonymousUser", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
+
     @Autowired
     private ElmoProperties properties;
 
@@ -83,6 +95,9 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
 
     @Autowired
     private ConfigService configs;
+
+    @Autowired
+    private WebInvocationPrivilegeEvaluator privilegeEvaluator;
 
     private static SecretKey key;
 
@@ -141,10 +156,10 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
                     final var carId = jwtBody.get(JWT_ELMO_ID, String.class);
                     final var car = cars.findById(carId);
                     if (car.isEmpty()) {
-                        throw new Exception("Unknown car id '" + carId + "'");
+                        throw new IllegalArgumentException("Unknown car id '" + carId + "'");
                     }
                     if (!car.get().isAppActive()) {
-                        response.sendError(HttpStatus.UNAUTHORIZED.value());
+                        sendUnauthorizedIfProtected(request, response, filterChain);
                         return;
                     }
                     auth = buildAuthentication(jwt, jwtBody, roles, car.get());
@@ -177,7 +192,7 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
 
             final var refreshToken = request.getHeader(RefreshToken.HEADER_NAME);
             if (!StringUtils.hasText(refreshToken)) {
-                response.sendError(HttpStatus.UNAUTHORIZED.value());
+                sendUnauthorizedIfProtected(request, response, filterChain);
                 return;
             }
 
@@ -185,7 +200,7 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
                     .consumeRefreshToken(
                             refreshToken);
             if (newRefreshToken == null) {
-                response.sendError(HttpStatus.UNAUTHORIZED.value());
+                sendUnauthorizedIfProtected(request, response, filterChain);
                 return;
             }
 
@@ -196,7 +211,7 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
             final var car = cars.findById(id);
             if (car.isPresent()) {
                 if (!car.get().isAppActive()) {
-                    response.sendError(HttpStatus.UNAUTHORIZED.value());
+                    sendUnauthorizedIfProtected(request, response, filterChain);
                     return;
                 }
                 auth = buildAuthentication(newRefreshToken, car.get());
@@ -221,7 +236,7 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
 
             filterChain.doFilter(request, response);
 
-        } catch (Exception e) {
+        } catch (UnsupportedJwtException | MalformedJwtException | SignatureException e) {
 
             logger.warn("JWT-error", e);
             response.sendError(HttpStatus.UNAUTHORIZED.value());
@@ -233,6 +248,33 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
 
             currentResponse.remove();
 
+        }
+
+    }
+
+    private void sendUnauthorizedIfProtected(
+            final HttpServletRequest request,
+            final HttpServletResponse response,
+            final FilterChain filterChain)
+            throws ServletException, IOException {
+
+        final var isLoginPage = request.getRequestURI().startsWith(
+                DefaultLoginPageGeneratingFilter.DEFAULT_LOGIN_PAGE_URL);
+        final var isLogoutUrl = request.getRequestURI().equals("/logout");
+        final var isOauth2Url = request.getRequestURI().startsWith(
+                OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI);
+
+        if (isLoginPage
+                || isLogoutUrl
+                || isOauth2Url
+                || privilegeEvaluator.isAllowed(
+                        request.getContextPath(),
+                        request.getRequestURI(),
+                        request.getMethod(),
+                        ANONYMOUS)) {
+            filterChain.doFilter(request, response);
+        } else {
+            response.sendError(HttpStatus.UNAUTHORIZED.value());
         }
 
     }
