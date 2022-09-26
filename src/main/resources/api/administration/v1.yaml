@@ -189,6 +189,45 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Member'
+    delete:
+      tags:
+        - member
+      summary: delete a member
+      operationId: deleteMember
+      parameters:
+        - in: path
+          name: memberId
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        200:
+          description: The member's was successfully deleted
+    post:
+      tags:
+        - member
+      summary: save member
+      operationId: saveMember
+      parameters:
+        - in: path
+          name: memberId
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Member'
+      responses:
+        200:
+          description: The current member's details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Member'
   /administration/car/{carId}/send-test-sms:
     post:
       tags:
@@ -590,6 +629,8 @@ components:
           type: string
         email:
           type: string
+        emailConfirmed:
+          type: boolean
         birthdate:
           type: string
         sex:
@@ -604,6 +645,8 @@ components:
           type: string
         phoneNumber:
           type: string
+        phoneConfirmed:
+          type: boolean
         preferNotificationsPerSms:
           type: boolean
         payment:

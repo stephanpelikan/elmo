@@ -6,13 +6,13 @@ import at.elmo.member.Member;
 import at.elmo.member.MemberBase;
 import at.elmo.member.MemberBase.Sex;
 import at.elmo.member.MemberRepository;
+import at.elmo.member.MemberService;
 import at.elmo.member.MemberService.MemberApplicationUpdate;
 import at.elmo.member.Role;
 import at.elmo.member.login.ElmoOAuth2User;
 import at.elmo.member.login.OAuth2Identifier;
 import at.elmo.member.onboarding.MemberApplication.Status;
 import at.elmo.util.UserContext;
-import at.elmo.util.config.ConfigService;
 import at.elmo.util.email.EmailService;
 import at.elmo.util.email.NamedObject;
 import at.elmo.util.exceptions.ElmoException;
@@ -73,7 +73,7 @@ public class MemberOnboarding {
     private MemberRepository members;
 
     @Autowired
-    private ConfigService configs;
+    private MemberService memberService;
 
     public void doOnboarding(final ElmoOAuth2User oauth2User) throws Exception {
 
@@ -165,7 +165,7 @@ public class MemberOnboarding {
                 violations.put("emailConfirmationCode", "enter");
             } else if (!application.getGeneratedEmailConfirmationCode().equals(emailConfirmationCode)) {
                 violations.put("emailConfirmationCode", "mismatch");
-            } else if (!application.getEmail().equals(email)) {
+            } else if (!application.getEmailForConfirmationCode().equals(email)) {
                 violations.put("emailConfirmationCode", "mismatch");
             }
             if (application.getGeneratedPhoneConfirmationCode() == null) {
@@ -174,15 +174,15 @@ public class MemberOnboarding {
                 violations.put("phoneConfirmationCode", "enter");
             } else if (!application.getGeneratedPhoneConfirmationCode().equals(phoneConfirmationCode)) {
                 violations.put("phoneConfirmationCode", "mismatch");
-            } else if (!application.getPhoneNumber().equals(phoneNumber)) {
+            } else if (!application.getPhoneForConfirmationCode().equals(phoneNumber)) {
                 violations.put("phoneConfirmationCode", "mismatch");
             }
 
             if (emailConfirmationCode != null) {
-                application.setGivenEmailConfirmationCode(emailConfirmationCode);
+                application.setEmailConfirmed(true);
             }
             if (phoneConfirmationCode != null) {
-                application.setGivenPhoneConfirmationCode(phoneConfirmationCode);
+                application.setPhoneConfirmed(true);
             }
 
         } else {
@@ -191,14 +191,14 @@ public class MemberOnboarding {
             if ((email == null)
                     || !email.equals(application.getEmail())) {
                 application.setGeneratedEmailConfirmationCode(null);
-                application.setGivenEmailConfirmationCode(null);
+                application.setEmailConfirmed(false);
             }
 
             // reset confirmation codes if phoneNumber was changed by others than the applicant
             if ((phoneNumber == null)
                     || !phoneNumber.equals(application.getPhoneNumber())) {
                 application.setGeneratedPhoneConfirmationCode(null);
-                application.setGivenPhoneConfirmationCode(null);
+                application.setPhoneConfirmed(false);
             }
 
         }
@@ -469,7 +469,10 @@ public class MemberOnboarding {
     }
 
     @WorkflowTask
-    public void deleteUserDueToAbortOfOnboarding() {
+    public void deleteUserDueToAbortOfOnboarding(
+            final MemberApplication application) {
+
+        memberApplications.delete(application);
 
     }
 
@@ -481,21 +484,11 @@ public class MemberOnboarding {
 
     }
 
-    private int getNewMemberId() {
-
-        final var lastMemberId = configs.getLastMemberId();
-        final var newMemberId = lastMemberId + 1;
-        configs.setLastMemberId(newMemberId);
-
-        return newMemberId;
-
-    }
-
     @WorkflowTask
     public void createMember(
             final MemberApplication application) {
 
-        final var newMemberId = getNewMemberId();
+        final var newMemberId = memberService.getNewMemberId();
 
         application.setMemberId(newMemberId);
 
@@ -510,10 +503,12 @@ public class MemberOnboarding {
         member.setCity(application.getCity());
         member.setComment(application.getComment());
         member.setEmail(application.getEmail());
+        member.setEmailConfirmed(application.isEmailConfirmed());
         member.setTitle(application.getTitle());
         member.setFirstName(application.getFirstName());
         member.setLastName(application.getLastName());
         member.setPhoneNumber(application.getPhoneNumber());
+        member.setPhoneConfirmed(application.isPhoneConfirmed());
         member.setPreferNotificationsPerSms(application.isPreferNotificationsPerSms());
         member.setSex(application.getSex());
         member.setStreet(application.getStreet());
@@ -542,16 +537,12 @@ public class MemberOnboarding {
 
         member.get().setEmail(
                 application.getEmail());
-        member.get().setGeneratedEmailConfirmationCode(
-                application.getGeneratedEmailConfirmationCode());
-        member.get().setGivenEmailConfirmationCode(
-                application.getGivenEmailConfirmationCode());
+        member.get().setEmailConfirmed(
+                application.isEmailConfirmed());
         member.get().setPhoneNumber(
                 application.getPhoneNumber());
-        member.get().setGeneratedPhoneConfirmationCode(
-                application.getGeneratedPhoneConfirmationCode());
-        member.get().setGivenPhoneConfirmationCode(
-                application.getGivenPhoneConfirmationCode());
+        member.get().setPhoneConfirmed(
+                application.isPhoneConfirmed());
         member.get().setPreferNotificationsPerSms(
                 application.isPreferNotificationsPerSms());
 

@@ -7,7 +7,9 @@ import at.elmo.config.ElmoProperties;
 import at.elmo.config.TranslationProperties;
 import at.elmo.member.MemberBase.Payment;
 import at.elmo.member.MemberBase.Sex;
+import at.elmo.util.email.EmailService;
 import at.elmo.util.exceptions.ElmoValidationException;
+import at.elmo.util.sms.SmsService;
 import at.elmo.util.spring.FileCleanupInterceptor;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.CellType;
@@ -31,6 +33,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
@@ -55,6 +58,12 @@ public class AdministrationApiController implements MemberApi {
 
     @Autowired
     private ElmoProperties properties;
+
+    @Autowired
+    private EmailService emailService;
+
+    @Autowired
+    private SmsService smsService;
 
     @Override
     public ResponseEntity<CountOfActiveMembers> getCountOfActiveMembers() {
@@ -94,6 +103,78 @@ public class AdministrationApiController implements MemberApi {
 
         final var result = mapper.toApi(member.get());
         return ResponseEntity.ok(result);
+
+    }
+
+    @Override
+    public ResponseEntity<at.elmo.administration.api.v1.Member> saveMember(
+            final Integer memberId,
+            final at.elmo.administration.api.v1.@Valid Member member) {
+
+        final var violations = new HashMap<String, String>();
+        if (!StringUtils.hasText(member.getFirstName())) {
+            violations.put("firstName", "missing");
+        }
+        if (!StringUtils.hasText(member.getLastName())) {
+            violations.put("lastName", "missing");
+        }
+        if (member.getBirthdate() == null) {
+            violations.put("birthdate", "missing");
+        }
+        if (member.getSex() == null) {
+            violations.put("sex", "missing");
+        }
+        if (!StringUtils.hasText(member.getZip())) {
+            violations.put("zip", "missing");
+        }
+        if (!StringUtils.hasText(member.getCity())) {
+            violations.put("city", "missing");
+        }
+        if (!StringUtils.hasText(member.getStreet())) {
+            violations.put("street", "missing");
+        }
+        if (!StringUtils.hasText(member.getStreetNumber())) {
+            violations.put("streetNumber", "missing");
+        }
+        if (StringUtils.hasText(member.getEmail()) &&
+                !emailService.isValidEmailAddressFormat(member.getEmail())) {
+            violations.put("email", "format");
+        }
+        if (!StringUtils.hasText(member.getPhoneNumber())) {
+            violations.put("phoneNumber", "missing");
+        } else if (!smsService.isValidPhoneNumberFormat(member.getPhoneNumber())) {
+            violations.put("phoneNumber", "format");
+        }
+        if (!violations.isEmpty()) {
+            throw new ElmoValidationException(violations);
+        }
+
+        final var toBeSaved = mapper.toDomain(member);
+        final var newRoles = mapper.toDomain(member.getRoles());
+
+        final var savedId = memberService.saveMember(
+                memberId == -1 ? null : memberId,
+                false,
+                toBeSaved,
+                newRoles);
+        if (savedId == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        return getMemberById(savedId);
+
+    }
+
+    @Override
+    public ResponseEntity<Void> deleteMember(
+            final Integer memberId) {
+
+        final var deleted = memberService.deleteMember(memberId);
+        if (!deleted) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.ok().build();
 
     }
 

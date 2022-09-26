@@ -1,8 +1,11 @@
 package at.elmo.member;
 
+import at.elmo.gui.api.v1.CodeBasedChange;
+import at.elmo.gui.api.v1.Member;
 import at.elmo.gui.api.v1.MemberApi;
 import at.elmo.util.UserContext;
 import at.elmo.util.email.EmailService;
+import at.elmo.util.exceptions.ElmoForbiddenException;
 import at.elmo.util.exceptions.ElmoValidationException;
 import at.elmo.util.sms.SmsService;
 import org.slf4j.Logger;
@@ -11,13 +14,12 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Duration;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import java.util.HashMap;
 
 @RestController("memberGuiApi")
 @RequestMapping("/api/v1")
@@ -28,6 +30,9 @@ public class GuiApiController implements MemberApi {
 
     @Autowired
     private UserContext userContext;
+
+    @Autowired
+    private GuiApiMapper mapper;
 
     @Autowired
     private MemberService memberService;
@@ -60,7 +65,10 @@ public class GuiApiController implements MemberApi {
 
     @Override
     public ResponseEntity<Void> uploadAvatar(
+            final Integer memberId,
             final Resource body) {
+
+        checkAccessOfMemberDetails(memberId);
 
         try {
 
@@ -83,9 +91,17 @@ public class GuiApiController implements MemberApi {
 
     @Override
     public ResponseEntity<Void> requestEmailCode(
-            final @NotNull @Valid String emailAddress) {
+            final String body) {
 
-        final var application = userContext.getLoggedInMemberApplication();
+        if (body == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        final var emailAddress = body.replaceAll("\"", "");
+
+        MemberBase member = userContext.getLoggedInMember();
+        if (member == null) {
+            member = userContext.getLoggedInMemberApplication();
+        }
 
         if (!emailService.isValidEmailAddressFormat(emailAddress)) {
             throw new ElmoValidationException("email", "format");
@@ -93,11 +109,11 @@ public class GuiApiController implements MemberApi {
 
         try {
 
-            memberService.requestEmailCode(application, emailAddress);
+            memberService.requestEmailCode(member, emailAddress);
 
         } catch (Exception e) {
 
-            logger.error("Could not send email-confirmation code for member-application '{}'", application.getId(), e);
+            logger.error("Could not send email-confirmation code for member '{}'", member.getId(), e);
             return ResponseEntity.internalServerError().build();
 
         }
@@ -107,10 +123,61 @@ public class GuiApiController implements MemberApi {
     }
 
     @Override
-    public ResponseEntity<Void> requestPhoneCode(
-            final @NotNull @Valid String phoneNumber) {
+    public ResponseEntity<Void> changeEmail(
+            final CodeBasedChange codeBasedChange) {
 
-        final var application = userContext.getLoggedInMemberApplication();
+        if (codeBasedChange == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        final var member = userContext.getLoggedInMember();
+        if (member == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        final var emailConfirmationCode = codeBasedChange.getCode();
+        final var email = codeBasedChange.getValue();
+
+        if (!emailService.isValidEmailAddressFormat(email)) {
+            throw new ElmoValidationException("email", "format");
+        }
+
+        final var violations = new HashMap<String, String>();
+        if (member.getGeneratedEmailConfirmationCode() == null) {
+            violations.put("emailConfirmationCode", "missing");
+        } else if (!StringUtils.hasText(emailConfirmationCode)) {
+            violations.put("emailConfirmationCode", "enter");
+        } else if (!member.getGeneratedEmailConfirmationCode().equals(emailConfirmationCode)) {
+            violations.put("emailConfirmationCode", "mismatch");
+        } else if (!member.getEmailForConfirmationCode().equals(email)) {
+            violations.put("emailConfirmationCode", "mismatch");
+        }
+        if (!violations.isEmpty()) {
+            throw new ElmoValidationException(violations);
+        }
+
+        memberService.saveEmail(
+                member,
+                email,
+                emailConfirmationCode);
+
+        return ResponseEntity.ok().build();
+
+    }
+
+    @Override
+    public ResponseEntity<Void> requestPhoneCode(
+            final String body) {
+
+        if (body == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        final var phoneNumber = body.replaceAll("\"", "");
+
+        MemberBase member = userContext.getLoggedInMember();
+        if (member == null) {
+            member = userContext.getLoggedInMemberApplication();
+        }
+
 
         if (!smsService.isValidPhoneNumberFormat(phoneNumber)) {
             throw new ElmoValidationException("phoneNumber", "format");
@@ -118,16 +185,105 @@ public class GuiApiController implements MemberApi {
 
         try {
 
-            memberService.requestPhoneCode(application, phoneNumber);
+            memberService.requestPhoneCode(member, phoneNumber);
 
         } catch (Exception e) {
 
-            logger.error("Could not send phone-confirmation code for member-application '{}'", application.getId(), e);
+            logger.error("Could not send phone-confirmation code for member '{}'", member.getId(), e);
             return ResponseEntity.internalServerError().build();
 
         }
 
         return ResponseEntity.ok().build();
+
+    }
+
+    @Override
+    public ResponseEntity<Void> changePhoneNumber(
+            final CodeBasedChange codeBasedChange) {
+
+        if (codeBasedChange == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        final var member = userContext.getLoggedInMember();
+        if (member == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        final var phoneConfirmationCode = codeBasedChange.getCode();
+        final var phoneNumber = codeBasedChange.getValue();
+
+        if (!smsService.isValidPhoneNumberFormat(phoneNumber)) {
+            throw new ElmoValidationException("phoneNumber", "format");
+        }
+
+        final var violations = new HashMap<String, String>();
+        if (member.getGeneratedPhoneConfirmationCode() == null) {
+            violations.put("phoneConfirmationCode", "missing");
+        } else if (!StringUtils.hasText(phoneConfirmationCode)) {
+            violations.put("phoneConfirmationCode", "enter");
+        } else if (!member.getGeneratedPhoneConfirmationCode().equals(phoneConfirmationCode)) {
+            violations.put("phoneConfirmationCode", "mismatch");
+        } else if (!member.getPhoneForConfirmationCode().equals(phoneNumber)) {
+            violations.put("phoneConfirmationCode", "mismatch");
+        }
+        if (!violations.isEmpty()) {
+            throw new ElmoValidationException(violations);
+        }
+
+        memberService.savePhoneNumber(
+                member,
+                phoneNumber,
+                phoneConfirmationCode);
+
+        return ResponseEntity.ok().build();
+
+    }
+
+    @Override
+    public ResponseEntity<Member> getMemberDetails(
+            final Integer memberId) {
+
+        checkAccessOfMemberDetails(memberId);
+
+        final var member = memberService.getMember(memberId);
+        if (member.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        final var result = mapper.toApi(member.get());
+
+        return ResponseEntity.ok(result);
+
+    }
+
+    @Override
+    public ResponseEntity<Void> setPreferedWayForNotifications(
+            final Integer memberId,
+            final String body) {
+
+        if (!StringUtils.hasText(body)) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        checkAccessOfMemberDetails(memberId);
+
+        final var mode = body.replaceAll("\"", "");
+
+        memberService.savePreferedWayForNotifications(
+                memberId,
+                "SMS".equals(mode));
+
+        return ResponseEntity.ok().build();
+
+    }
+
+    private void checkAccessOfMemberDetails(final Integer memberId) {
+
+        // TODO: Test for relations of requested member to the current user
+        if (!userContext.getLoggedInMember().getMemberId().equals(memberId)) {
+            throw new ElmoForbiddenException();
+        }
 
     }
 

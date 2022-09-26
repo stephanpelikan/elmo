@@ -129,6 +129,7 @@ public class GuiApiController implements LoginApi {
         result.setHomepageServiceConditionsUrl(properties.getHomepageServiceConditionsUrl());
         result.setTitleShort(properties.getTitleShort());
         result.setTitleLong(properties.getTitleLong());
+        result.setContactEmailAddress(properties.getGeneralEmailAddress());
 
         return ResponseEntity.ok(result);
 

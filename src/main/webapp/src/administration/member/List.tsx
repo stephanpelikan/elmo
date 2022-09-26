@@ -100,6 +100,10 @@ const ListOfMembers = () => {
   
   const uploadRef = useRef(null);
   
+  const newMember = () => {
+    navigate('./-');
+  }
+
   const onUploadExcel = () => {
     
     uploadRef.current.click();
@@ -253,7 +257,7 @@ const ListOfMembers = () => {
           style={ { position: 'absolute', right: '0', bottom: '1px' } }
           color='brand'
           icon={<Add color='white' />}
-          onClick={() => {}} />
+          onClick={ newMember } />
     </>);
 }
 

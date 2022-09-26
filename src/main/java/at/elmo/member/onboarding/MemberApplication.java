@@ -1,5 +1,9 @@
 package at.elmo.member.onboarding;
 
+import at.elmo.member.MemberBase;
+import at.elmo.member.Role;
+import at.elmo.member.login.OAuth2Identifier;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
@@ -8,10 +12,6 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.OneToOne;
-
-import at.elmo.member.MemberBase;
-import at.elmo.member.Role;
-import at.elmo.member.login.OAuth2Identifier;
 
 @Entity
 @DiscriminatorValue("A")
@@ -26,8 +26,7 @@ public class MemberApplication extends MemberBase {
         DUPLICATE
     };
 
-    @OneToOne(mappedBy = "owner", fetch = FetchType.LAZY, cascade = { CascadeType.MERGE, CascadeType.PERSIST,
-            CascadeType.DETACH })
+    @OneToOne(mappedBy = "owner", fetch = FetchType.LAZY, cascade = { CascadeType.ALL }, orphanRemoval = true)
     private OAuth2Identifier oauth2Id;
 
     @Enumerated(EnumType.STRING)

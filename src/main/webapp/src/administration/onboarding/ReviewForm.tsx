@@ -35,7 +35,6 @@ i18n.addResources('en', 'administration/onboarding/review', {
       "ADMIN": "Administrator",
       "birthdate": "Birthdate:",
       "birthdate_format": "yyyy/mm/dd",
-      "birthdate_validation": "Wrong format, use yyyy/mm/dd",
       "street": "Street:",
       "street-number": "Street number:",
       "zip": "ZIP:",
@@ -47,7 +46,8 @@ i18n.addResources('en', 'administration/onboarding/review', {
       "activate-member": "Activate",
       "reject-member": "Reject",
       "inquiry": "Inquiry",
-      "comment": "Comment on reject/inquiry",
+      "comment": "Comment:",
+      "comment_placeholder": "Comment on reject/inquiry",
       "application-comment": "Remarks on application:",
       "application-comment_placeholder": "None",
       "loading": "Loading...",
@@ -77,7 +77,6 @@ i18n.addResources('de', 'administration/onboarding/review', {
       "ADMIN": "AdministratorIn",
       "birthdate": "Geburtstag:",
       "birthdate_format": "dd.mm.yyyy",
-      "birthdate_validation": "Falsches Format, bitte DD.MM.JJJJ verwenden",
       "street": "Straße:",
       "street-number": "Hausnummer:",
       "zip": "PLZ:",
@@ -93,7 +92,8 @@ i18n.addResources('de', 'administration/onboarding/review', {
       "activate-member": "Freischalten",
       "inquiry": "Rückfrage",
       "reject-member": "Ablehnen",
-      "comment": "Kommentar für Rückfragen/Abweisen",
+      "comment": "Kommentar:",
+      "comment_placeholder": "Kommentar für Rückfragen/Abweisen",
       "application-comment": "Bermerkungen zum Antrag:",
       "application-comment_placeholder": "Keine",
       "loading": "Lade Daten...",
@@ -275,7 +275,9 @@ const ReviewForm = () => {
         setFormValue,
         params.applicationId,
         MemberApplicationUpdate.Reject)
-      .then(() => navigate('../', { replace: true }))
+      .then(() => {
+          navigate('..', { replace: true } );
+        })
       .catch(error => error.then(violations => setViolations(violations)));
   };
 
@@ -286,7 +288,9 @@ const ReviewForm = () => {
         setFormValue,
         params.applicationId,
         MemberApplicationUpdate.Inquiry)
-      .then(() => navigate('../', { replace: true }))
+      .then(() => {
+          navigate('..', { replace: true } );
+        })
       .catch(error => error.then(violations => setViolations(violations)));
   };
 
@@ -297,7 +301,9 @@ const ReviewForm = () => {
         setFormValue,
         params.applicationId,
         MemberApplicationUpdate.Accepted)
-      .then(() => navigate('../', { replace: true }))
+      .then(() => {
+          navigate('..', { replace: true } );
+        })
       .catch(error => error.then(violations => setViolations(violations)));
   };
   
@@ -470,7 +476,6 @@ const ReviewForm = () => {
         <FormField
             name="birthdate"
             label={ t('birthdate') }
-            validate={ ( value ) => !member && (!(value instanceof Date) || isNaN(value.getTime())) ? t('birthdate_validation') : undefined }
             disabled={ loading || !!member }>
           <DateInput
               format={ t('birthdate_format') }
@@ -555,7 +560,7 @@ const ReviewForm = () => {
         </Collapsible>
         {/* comment */}
         <FormField
-            name="comment"
+            label={ t('comment') }
             disabled={ loading }
             htmlFor='comment'>
           <TextArea

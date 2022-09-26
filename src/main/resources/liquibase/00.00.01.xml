@@ -51,7 +51,8 @@
 			<column name="UPDATED_AT" type="timestamp" />
 			<column name="MEMBER_ID" type="int" />
 			<column name="EMAIL" type="varchar(2048)" />
-      <column name="GIVEN_EMAIL_CODE" type="varchar(4)" />
+      <column name="EMAIL_CONFIRMED" type="boolean" />
+      <column name="EMAIL_FOR_CODE" type="varchar(2048)" />
       <column name="GENERATED_EMAIL_CODE" type="varchar(4)" />
       <column name="TITLE" type="varchar(255)" />
 			<column name="FIRST_NAME" type="varchar(255)" />
@@ -63,7 +64,8 @@
 			<column name="STREET" type="varchar(255)" />
 			<column name="STREET_NUMBER" type="varchar(25)" />
 			<column name="PHONE_NUMBER" type="varchar(30)" />
-      <column name="GIVEN_PHONE_CODE" type="varchar(4)" />
+      <column name="PHONE_CONFIRMED" type="boolean" />
+      <column name="PHONE_FOR_CODE" type="varchar(30)" />
       <column name="GENERATED_PHONE_CODE" type="varchar(4)" />
 			<column name="NOTIFY_PER_SMS" type="boolean" />
       <column name="IBAN" type="varchar(34)" />

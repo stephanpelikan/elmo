@@ -3,7 +3,7 @@ import { Add, Group, User, UserFemale } from "grommet-icons";
 import { CircleButton } from '../components/CircleButton';
 import { useAppContext } from '../AppContext';
 import { Sex } from "../client/gui";
-import { MainLayout, Heading1, Content } from '../components/MainLayout';
+import { MainLayout, SubHeading, Content } from '../components/MainLayout';
 import { MemberIdAvatar } from '../components/MemberIdAvatar';
 
 const Main = () => {
@@ -12,8 +12,9 @@ const Main = () => {
   
   return (
     <>
-      <MainLayout>
-        <Heading1>
+      <MainLayout
+          pad='none'>
+        <SubHeading>
           <Box
               gap="xsmall"
               direction='row'>
@@ -22,7 +23,7 @@ const Main = () => {
                 : <User color="accent-3" size='medium' /> }
             <Box justify='center'>Meine Fahrten:</Box>
           </Box>
-        </Heading1>
+        </SubHeading>
         <Content
             background='light-2'>
           <Heading
@@ -34,14 +35,14 @@ const Main = () => {
             Verwende den blauen "Plus"-Knopf rechts unten, um eine Fahrt zu planen.
           </Text>
         </Content>
-        <Heading1>
+        <SubHeading>
           <Box
               gap="xsmall"
               direction='row'>
             <Group color="accent-3" size='medium' />
             <Box justify='center'>Meine Freunde:</Box>
           </Box>
-        </Heading1>
+        </SubHeading>
         <Box pad="small" direction="row" gap="medium">
           <MemberIdAvatar memberId={46} sex={Sex.Female} />
           <MemberIdAvatar memberId={48} sex={Sex.Male} />

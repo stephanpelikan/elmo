@@ -36,16 +36,38 @@ i18n.addResources('en', 'registration-form', {
       "OTHER": "Other",
       "birthdate": "Birthdate:",
       "birthdate_format": "yyyy/mm/dd",
-      "birthdate_validation": "Wrong format, use yyyy/mm/dd",
       "address data": "Address data",
       "street": "Street:",
+      "street_missing": "Please enter the name of the street!",
       "street-number": "Street number:",
+      "street-number_missing": "Please enter the street-number!",
       "zip": "ZIP:",
+      "zip_missing": "Please enter a ZIP code!",
       "city": "City:",
+      "city_missing": "Please enter the name of the city!",
       "contact data": "Contact data",
       "email": "Email-address:",
+      "email_missing": "Please enter the email address!",
+      "email_format": "Format: [name]@[domain]",
       "email-confirmation-code": "Email confirmation code:",
+      "email-confirmation-code-title": "Email confirmation code:",
+      "email-confirmation-code-message": "The code was sent to the given email-address!",
+      "email-confirmation-code_missing": "Use the button to the right to get a code by email!",
+      "email-confirmation-code_mismatch": "The code does not match! Request another one.",
+      "email-confirmation-code_format": "The code must consist of 4 digits!",
+      "email-confirmation-code_enter": "Enter the code you received by email!",
+      "request-email-confirmation-code": "Request",
       "phone-number": "Phone number:",
+      "phone-number_missing": "Please enter the phone number!",
+      "phone-number_format": "Wrong format: +[country][area code without zero][number]!",
+      "phone-confirmation-code": "SMS confirmation code:",
+      "phone-confirmation-code-title": "SMS confirmation code:",
+      "phone-confirmation-code-message": "The code was sent to the given phone number!",
+      "phone-confirmation-code_missing": "Use the button to the right to get a code by email!",
+      "phone-confirmation-code_mismatch": "The code does not match! Request another one.",
+      "phone-confirmation-code_format": "The code must consist of 4 digits!",
+      "phone-confirmation-code_enter": "Enter the code you received as text-message!",
+      "request-phone-confirmation-code": "Request",
       "prefer-notifications-per-sms": "Notify by SMS instead email?",
       "about application": "About your application",
       "comment": "Change notices:",
@@ -77,7 +99,6 @@ i18n.addResources('de', 'registration-form', {
       "OTHER": "Andere",
       "birthdate": "Geburtstag:",
       "birthdate_format": "dd.mm.yyyy",
-      "birthdate_validation": "Format: DD.MM.JJJJ",
       "address data": "Adressdaten",
       "street": "Straße:",
       "street_missing": "Bitte trage deine Straße ein!",
@@ -203,7 +224,7 @@ const RegistrationForm = () => {
     }
     try {
       await memberApi
-          .requestPhoneCode({ phoneNo: formValue.phoneNumber })
+          .requestPhoneCode({ body: formValue.phoneNumber })
           .then(() =>
             toast({
               namespace: 'registration-form',
@@ -228,7 +249,7 @@ const RegistrationForm = () => {
     }
     try {
       await memberApi
-          .requestEmailCode({ emailAddress: formValue.email })
+          .requestEmailCode({ body: formValue.email })
           .then(() =>
             toast({
               namespace: 'registration-form',

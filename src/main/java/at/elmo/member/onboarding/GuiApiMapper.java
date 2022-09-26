@@ -10,8 +10,8 @@ public abstract class GuiApiMapper extends GuiApiMapperBase {
 
     @Mapping(target = "applicationId", source = "id")
     @Mapping(target = "taskId", source = "userTaskId")
-    @Mapping(target = "emailConfirmationCode", source = "givenEmailConfirmationCode")
-    @Mapping(target = "phoneConfirmationCode", source = "givenPhoneConfirmationCode")
+    @Mapping(target = "emailConfirmationCode", ignore = true)
+    @Mapping(target = "phoneConfirmationCode", ignore = true)
     public abstract MemberApplicationForm toApi(MemberApplication application);
 
 }

@@ -1,12 +1,14 @@
 package at.elmo.member;
 
-import java.io.InputStream;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
-import java.util.UUID;
-
+import at.elmo.config.ElmoProperties;
+import at.elmo.member.Member.Status;
+import at.elmo.member.MemberBase.Payment;
+import at.elmo.member.MemberBase.Sex;
+import at.elmo.util.config.ConfigService;
+import at.elmo.util.email.EmailService;
+import at.elmo.util.email.NamedObject;
+import at.elmo.util.exceptions.ElmoUserMessageException;
+import at.elmo.util.sms.SmsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -16,13 +18,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StreamUtils;
 
-import at.elmo.config.ElmoProperties;
-import at.elmo.member.Member.Status;
-import at.elmo.member.MemberBase.Payment;
-import at.elmo.member.MemberBase.Sex;
-import at.elmo.member.onboarding.MemberApplication;
-import at.elmo.util.email.EmailService;
-import at.elmo.util.sms.SmsService;
+import java.io.InputStream;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+import java.util.Random;
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -35,23 +36,26 @@ public class MemberService {
 
     @Autowired
     private MemberRepository members;
-    
+
     @Autowired
     private MemberAvatarRepository memberAvatars;
 
     @Autowired
     private EmailService emailService;
-    
+
     @Autowired
     private SmsService smsService;
-    
+
+    @Autowired
+    private ConfigService configs;
+
     public Optional<Member> getMemberByOAuth2User(
             final String oauth2Id) {
-        
+
         return members.findByOauth2Ids_Id(oauth2Id);
-        
+
     }
-    
+
     public void createMember(
             final int memberId,
             final List<Role> roles,
@@ -69,7 +73,7 @@ public class MemberService {
             final String comment,
             final String iban,
             final Payment payment) {
-        
+
         if (members.findByMemberId(memberId).isPresent()) {
             return;
         }
@@ -94,16 +98,104 @@ public class MemberService {
         member.setStreetNumber(streetNumber);
         member.setTitle(title);
         member.setZip(zip);
-        
+
         members.saveAndFlush(member);
 
     }
 
     public Optional<Member> getMember(
-            final Integer memberId) {
-        
+            final int memberId) {
+
         return members.findByMemberId(memberId);
-        
+
+    }
+
+    public boolean deleteMember(
+            final int memberId) {
+
+        final var member = getMember(memberId);
+        if (member.isEmpty()) {
+            return false;
+        }
+
+        member.get().setStatus(Status.TO_BE_DELETED);
+        members.save(member.get());
+
+        return true;
+
+    }
+
+    public int getNewMemberId() {
+
+        final var lastMemberId = configs.getLastMemberId();
+        final var newMemberId = lastMemberId + 1;
+        configs.setLastMemberId(newMemberId);
+
+        return newMemberId;
+
+    }
+
+    public Integer saveMember(
+            final Integer memberId,
+            final boolean updateByMember,
+            final Member updatedMember,
+            final List<Role> newRoles) {
+
+        final Member toBeUpdated;
+        if (memberId == null) {
+            final var newMemberId = getNewMemberId();
+            toBeUpdated = new Member();
+            toBeUpdated.setId(UUID.randomUUID().toString());
+            toBeUpdated.setMemberId(newMemberId);
+        } else {
+            final var member = getMember(memberId);
+            if (member.isEmpty()) {
+                return null;
+            }
+            toBeUpdated = member.get();
+        }
+
+        if (updatedMember.getStatus() != Status.TO_BE_DELETED) {
+            toBeUpdated.setStatus(updatedMember.getStatus());
+        }
+        toBeUpdated.setTitle(updatedMember.getTitle());
+        toBeUpdated.setFirstName(updatedMember.getFirstName());
+        toBeUpdated.setLastName(updatedMember.getLastName());
+        toBeUpdated.setSex(updatedMember.getSex());
+        toBeUpdated.setBirthdate(updatedMember.getBirthdate());
+        toBeUpdated.setStreet(updatedMember.getStreet());
+        toBeUpdated.setStreetNumber(updatedMember.getStreetNumber());
+        toBeUpdated.setZip(updatedMember.getZip());
+        toBeUpdated.setCity(updatedMember.getCity());
+        toBeUpdated.setPreferNotificationsPerSms(updatedMember.isPreferNotificationsPerSms());
+
+        // reset confirmation codes if email was changed by others than the member
+        if (!updateByMember) {
+            if ((updatedMember.getEmail() == null)
+                    || (toBeUpdated.getEmail() != null)
+                            && !updatedMember.getEmail().equals(toBeUpdated.getEmail())) {
+                toBeUpdated.setEmailConfirmed(false);
+            }
+            if ((updatedMember.getPhoneNumber() == null)
+                    || (toBeUpdated.getPhoneNumber() != null)
+                            && !updatedMember.getPhoneNumber().equals(toBeUpdated.getPhoneNumber())) {
+                toBeUpdated.setPhoneConfirmed(false);
+            }
+        }
+        toBeUpdated.setEmail(updatedMember.getEmail());
+        toBeUpdated.setPhoneNumber(updatedMember.getPhoneNumber());
+
+        if (!updateByMember) {
+            toBeUpdated.setComment(updatedMember.getComment());
+            if (newRoles != null) {
+                toBeUpdated.updateRoles(newRoles);
+            }
+        }
+
+        members.save(toBeUpdated);
+
+        return toBeUpdated.getMemberId();
+
     }
 
     public static enum MemberApplicationUpdate {
@@ -117,12 +209,12 @@ public class MemberService {
             final int page,
             final int amount,
             final String query) {
-        
+
         final var pageable =
                 PageRequest.of(page, amount, Direction.ASC, "lastName", "firstName", "memberId");
-        
+
         if (query == null) {
-            return members.findAll(pageable);
+            return members.findNotDeletedMembers(pageable);
         } else {
             try {
                 final var memberId = Integer.parseInt(query);
@@ -135,53 +227,102 @@ public class MemberService {
                 return members.findByQuery(query, pageable);
             }
         }
-        
+
     }
 
     public int getCountOfActiveMembers() {
-        
+
         return (int) members.countByStatus(
                 at.elmo.member.Member.Status.ACTIVE);
-        
+
     }
-    
+
     public void requestEmailCode(
-            final MemberApplication application,
+            final MemberBase member,
             final String emailAddress) throws Exception {
 
         final var code = String.format("%04d", random.nextInt(10000));
-        application.setEmail(emailAddress);
-        application.setGeneratedEmailConfirmationCode(code);
+        member.setEmailForConfirmationCode(emailAddress);
+        member.setGeneratedEmailConfirmationCode(code);
 
         emailService.sendEmail(
                 "member/email-confirmation",
                 emailAddress,
-                application);
-        
+                NamedObject.from(member).as("member"));
+
     }
-    
+
+    public void saveEmail(
+            final Member member,
+            final String email,
+            final String givenEmailConfirmationCode) {
+
+        member.setEmail(email);
+
+        if ((member.getEmailForConfirmationCode() != null)
+                && member.getEmailForConfirmationCode().equals(email)
+                && (member.getGeneratedEmailConfirmationCode() != null)
+                && member.getGeneratedEmailConfirmationCode().equals(givenEmailConfirmationCode)) {
+
+            member.setEmailConfirmed(true);
+
+        }
+
+    }
+
+    public void savePhoneNumber(
+            final Member member,
+            final String phoneNumber,
+            final String givenPhoneConfirmationCode) {
+
+        member.setPhoneNumber(phoneNumber);
+
+        if ((member.getPhoneForConfirmationCode() != null)
+                && member.getPhoneForConfirmationCode().equals(phoneNumber)
+                && (member.getGeneratedPhoneConfirmationCode() != null)
+                && member.getGeneratedPhoneConfirmationCode().equals(givenPhoneConfirmationCode)) {
+
+            member.setEmailConfirmed(true);
+
+        }
+
+    }
+
+    public void savePreferedWayForNotifications(
+            final Integer memberId,
+            final boolean preferSms) {
+
+        final var member = getMember(memberId);
+        if (member.isEmpty()) {
+            throw new ElmoUserMessageException();
+        }
+
+        member.get().setPreferNotificationsPerSms(preferSms);
+
+    }
+
     public void requestPhoneCode(
-            final MemberApplication application,
+            final MemberBase member,
             final String phoneNumber) throws Exception {
 
         final var code = String.format("%04d", random.nextInt(10000));
-        application.setPhoneNumber(phoneNumber);
-        application.setGeneratedPhoneConfirmationCode(code);
+        member.setPhoneForConfirmationCode(phoneNumber);
+        member.setGeneratedPhoneConfirmationCode(code);
 
         smsService.sendSms(
                 "member/phone-number-confirmation",
                 null,
                 properties.getPassanagerServicePhoneNumber(),
-                application.getId(),
+                member.getId(),
                 phoneNumber,
-                application);
-        
+                NamedObject.from(member).as("member"));
+
     }
-    
+
     public void saveAvatar(
             final int memberId,
             final InputStream png) throws Exception {
-        
+
         final var avatar = memberAvatars.findByOwner_MemberId(memberId);
 
         final var owner = members.findByMemberId(memberId);
@@ -193,12 +334,12 @@ public class MemberService {
         }
 
         if (avatar.isPresent()) {
-            
+
             avatar.get().setPng(
                     StreamUtils.copyToByteArray(png));
             owner.get().setTimestampOfAvatar(System.currentTimeMillis());
             return;
-            
+
         }
 
         final var newAvatar = new MemberAvatar();
@@ -209,19 +350,19 @@ public class MemberService {
         owner.get().setTimestampOfAvatar(System.currentTimeMillis());
 
         memberAvatars.saveAndFlush(newAvatar);
-        
+
     }
-    
+
     public Optional<byte[]> getAvatar(
             final int memberId) {
-        
+
         final var avatar = memberAvatars.findByOwner_MemberId(memberId);
         if (avatar.isEmpty()) {
             return Optional.empty();
         }
-        
+
         return Optional.of(avatar.get().getPng());
-        
+
     }
-    
+
 }

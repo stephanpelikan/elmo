@@ -1,5 +1,9 @@
 package at.elmo.member;
 
+import at.elmo.member.login.OAuth2Identifier;
+import at.elmo.member.login.RoleMembership;
+
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -12,9 +16,6 @@ import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
 
-import at.elmo.member.login.OAuth2Identifier;
-import at.elmo.member.login.RoleMembership;
-
 @Entity
 @DiscriminatorValue("M")
 public class Member extends MemberBase {
@@ -24,11 +25,10 @@ public class Member extends MemberBase {
         INACTIVE,
         TO_BE_DELETED
     };
-    
-    @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY, cascade = { CascadeType.MERGE, CascadeType.PERSIST,
-            CascadeType.DETACH })
+
+    @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY, cascade = { CascadeType.ALL }, orphanRemoval = true)
     private List<OAuth2Identifier> oauth2Ids;
-    
+
     @Enumerated(EnumType.STRING)
     @Column(name = "STATUS")
     private Status status;
@@ -36,8 +36,7 @@ public class Member extends MemberBase {
     @Column(name = "AVATAR")
     private Long timestampOfAvatar;
 
-    @OneToMany(mappedBy = "member", fetch = FetchType.EAGER, cascade = { CascadeType.MERGE, CascadeType.PERSIST,
-            CascadeType.DETACH })
+    @OneToMany(mappedBy = "member", fetch = FetchType.EAGER, cascade = { CascadeType.ALL }, orphanRemoval = true)
     private List<RoleMembership> roles = new LinkedList<>();
 
     public List<OAuth2Identifier> getOauth2Ids() {
@@ -59,7 +58,7 @@ public class Member extends MemberBase {
     public List<RoleMembership> getRoles() {
         return roles;
     }
-    
+
     public void setRoles(List<RoleMembership> roles) {
         this.roles = roles;
     }
@@ -73,41 +72,64 @@ public class Member extends MemberBase {
     }
 
     public void addRoles(
-            final List<Role> roles) {
-        
-        roles.forEach(role -> addRole(role));
-        
+            final List<Role> newRoles) {
+
+        newRoles.forEach(role -> addRole(role));
+
+    }
+
+    public void updateRoles(
+            final List<Role> newRoles) {
+
+        Arrays
+                .stream(Role.values())
+                .filter(potentialRole -> !newRoles.contains(potentialRole))
+                .forEach(role -> removeRole(role));
+
+        addRoles(newRoles);
+
     }
 
     public void addRole(
             final Role role) {
-        
-        final var membership = new RoleMembership();
-        membership.setMember(this);
-        membership.setRole(role);
-        roles.add(membership);
-        
+
+        roles
+                .stream()
+                .filter(existingRole -> existingRole.getRole() == role)
+                .findFirst()
+                .ifPresentOrElse(
+                        (existingRole) -> {},
+                        () -> {
+                            final var membership = new RoleMembership();
+                            membership.setMember(this);
+                            membership.setRole(role);
+                            roles.add(membership);
+                        });
+
     }
-    
+
     public void removeRole(
             final Role role) {
 
-        final var membership = new RoleMembership();
-        membership.setMember(this);
-        membership.setRole(role);
-        roles.remove(membership);
-        
+        roles
+                .stream()
+                .filter(existingRole -> existingRole.getRole() == role)
+                .findFirst()
+                .ifPresent((existingRole) -> {
+                    roles.remove(existingRole);
+                });
+
     }
-    
+
     public boolean hasRole(
             final Role role) {
-        
+
         return roles
                 .stream()
                 .filter(membership -> membership.getRole().equals(role))
                 .findFirst()
                 .isPresent();
-        
+
     }
-    
+
 }

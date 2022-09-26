@@ -45,7 +45,7 @@ i18n.addResources('en', 'administration/car-details', {
       "phone-number_format": "Wrong format: +[country][area code without zero][number]!",
       "name_missing": "Please enter a name!",
       "car-saved_title": "Save",
-      "car-saved_message": "Changes were persisted!",
+      "car-saved_message": "Changes were successfully persisted!",
       "not-deleted_title": "Delete",
       "not-deleted_message": `The car war not deleted, because it's already in use!
 However, it can be deactivated for passanger-service and car-sharing.`,

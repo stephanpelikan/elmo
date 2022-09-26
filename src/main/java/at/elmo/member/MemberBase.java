@@ -49,6 +49,9 @@ public abstract class MemberBase {
     @Column(name = "EMAIL")
     private String email;
 
+    @Column(name = "EMAIL_CONFIRMED")
+    private boolean emailConfirmed;
+
     @Column(name = "TITLE")
     private String title;
 
@@ -87,6 +90,9 @@ public abstract class MemberBase {
     @Column(name = "PHONE_NUMBER")
     private String phoneNumber;
 
+    @Column(name = "PHONE_CONFIRMED")
+    private boolean phoneConfirmed;
+
     @Column(name = "NOTIFY_PER_SMS")
     private boolean preferNotificationsPerSms;
 
@@ -96,14 +102,14 @@ public abstract class MemberBase {
     @Column(name = "GENERATED_EMAIL_CODE")
     private String generatedEmailConfirmationCode;
 
-    @Column(name = "GIVEN_EMAIL_CODE")
-    private String givenEmailConfirmationCode;
+    @Column(name = "EMAIL_FOR_CODE")
+    private String emailForConfirmationCode;
 
     @Column(name = "GENERATED_PHONE_CODE")
     private String generatedPhoneConfirmationCode;
 
-    @Column(name = "GIVEN_PHONE_CODE")
-    private String givenPhoneConfirmationCode;
+    @Column(name = "PHONE_FOR_CODE")
+    private String phoneForConfirmationCode;
 
     public String getId() {
         return id;
@@ -241,28 +247,12 @@ public abstract class MemberBase {
         this.generatedEmailConfirmationCode = generatedEmailConfirmationCode;
     }
 
-    public String getGivenEmailConfirmationCode() {
-        return givenEmailConfirmationCode;
-    }
-
-    public void setGivenEmailConfirmationCode(String givenEmailConfirmationCode) {
-        this.givenEmailConfirmationCode = givenEmailConfirmationCode;
-    }
-
     public String getGeneratedPhoneConfirmationCode() {
         return generatedPhoneConfirmationCode;
     }
 
     public void setGeneratedPhoneConfirmationCode(String generatedPhoneConfirmationCode) {
         this.generatedPhoneConfirmationCode = generatedPhoneConfirmationCode;
-    }
-
-    public String getGivenPhoneConfirmationCode() {
-        return givenPhoneConfirmationCode;
-    }
-
-    public void setGivenPhoneConfirmationCode(String givenPhoneConfirmationCode) {
-        this.givenPhoneConfirmationCode = givenPhoneConfirmationCode;
     }
 
     public String getTitle() {
@@ -287,6 +277,38 @@ public abstract class MemberBase {
 
     public void setPayment(Payment payment) {
         this.payment = payment;
+    }
+
+    public boolean isEmailConfirmed() {
+        return emailConfirmed;
+    }
+
+    public void setEmailConfirmed(boolean emailConfirmed) {
+        this.emailConfirmed = emailConfirmed;
+    }
+
+    public boolean isPhoneConfirmed() {
+        return phoneConfirmed;
+    }
+
+    public void setPhoneConfirmed(boolean phoneConfirmed) {
+        this.phoneConfirmed = phoneConfirmed;
+    }
+
+    public String getEmailForConfirmationCode() {
+        return emailForConfirmationCode;
+    }
+
+    public void setEmailForConfirmationCode(String emailForConfirmationCode) {
+        this.emailForConfirmationCode = emailForConfirmationCode;
+    }
+
+    public String getPhoneForConfirmationCode() {
+        return phoneForConfirmationCode;
+    }
+
+    public void setPhoneForConfirmationCode(String phoneForConfirmationCode) {
+        this.phoneForConfirmationCode = phoneForConfirmationCode;
     }
 
 }

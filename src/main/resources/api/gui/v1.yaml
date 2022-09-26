@@ -131,6 +131,28 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ValidationErrors'
+  /gui/member/{memberId}/prefer-notifications-per-sms:
+    post:
+      tags:
+        - member
+      summary: Set prefered way for notifications
+      operationId: setPreferedWayForNotifications
+      parameters:
+        - in: path
+          name: memberId
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          text/plain:
+            schema:
+              type: string
+      responses:
+        200:
+          description: The setting was saved
+        404:
+          description: The member-id is unknown
   /gui/member/{memberId}/avatar:
     get:
       tags:
@@ -153,12 +175,17 @@ paths:
                 format: binary
         404:
           description: The member-id is unknown
-  /gui/member/avatar:
     post:
       tags:
         - member
       summary: upload avatar for given member id
       operationId: uploadAvatar
+      parameters:
+        - in: path
+          name: memberId
+          required: true
+          schema:
+            type: integer
       requestBody:
         content:
           image/png:
@@ -168,18 +195,38 @@ paths:
       responses:
         200:
           description: The avatar as PNG-stream was saved
-  /gui/member/request-phone-code:
+  /gui/member/{memberId}:
     get:
+      tags:
+        - member
+      summary: load details for given member id
+      operationId: getMemberDetails
+      parameters:
+        - in: path
+          name: memberId
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: The member details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Member'
+        404:
+          description: The member-id is unknown
+  /gui/member/phone-code:
+    put:
       tags:
         - member
       summary: Request a code sent to phone via SMS
       operationId: requestPhoneCode
-      parameters:
-        - in: query
-          name: phoneNo
-          required: true
-          schema:
-            type: string
+      requestBody:
+        content:
+          text/plain:
+            schema:
+              type: string
       responses:
         200:
           description: The code was sent
@@ -187,23 +234,56 @@ paths:
           description: phone number is wrong format
         404:
           description: The member-id is unknown
-  /gui/member/request-email-code:
-    get:
+    post:
+      tags:
+        - member
+      summary: Changes the users phone number
+      operationId: changePhoneNumber
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CodeBasedChange'
+      responses:
+        200:
+          description: Number successfully changed
+        400:
+          description: phone number is wrong format
+        404:
+          description: The member-id is unknown
+  /gui/member/email-code:
+    put:
       tags:
         - member
       summary: Request a code sent via email
       operationId: requestEmailCode
-      parameters:
-        - in: query
-          name: emailAddress
-          required: true
-          schema:
-            type: string
+      requestBody:
+        content:
+          text/plain:
+            schema:
+              type: string
       responses:
         200:
           description: The code was sent
         400:
           description: email address is wrong format
+        404:
+          description: The member-id is unknown
+    post:
+      tags:
+        - member
+      summary: Changes the users email address
+      operationId: changeEmail
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CodeBasedChange'
+      responses:
+        200:
+          description: Email successfully changed
+        400:
+          description: Email is wrong format
         404:
           description: The member-id is unknown
 components:
@@ -245,6 +325,8 @@ components:
           type: string
         homepageServiceConditionsUrl:
           type: string
+        contactEmailAddress:
+          type: string
         version:
           type: string
     NativeLogin:
@@ -264,6 +346,13 @@ components:
         url:
           type: string
         name:
+          type: string
+    CodeBasedChange:
+      type: object
+      properties:
+        code:
+          type: string
+        value:
           type: string
     User:
       type: object
@@ -289,6 +378,33 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Role'
+    Member:
+      type: object
+      properties:
+        title:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        birthdate:
+          type: string
+        sex:
+          $ref: '#/components/schemas/Sex'
+        zip:
+          type: string
+        city:
+          type: string
+        street:
+          type: string
+        streetNumber:
+          type: string
+        phoneNumber:
+          type: string
+        preferNotificationsPerSms:
+          type: boolean
     MemberApplicationForm:
       type: object
       properties:

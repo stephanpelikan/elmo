@@ -39,7 +39,7 @@ const UserAvatar = ({
         symbolSize = '27rem';
     }
   } else {
-    symbolSize = `${ intSize * 0.65 }px`;
+    symbolSize = `${ intSize }px`;
   }
       
   return (

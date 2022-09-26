@@ -1,5 +1,16 @@
 const LOCAL_DATE_FORMAT: RegExp = /^([0-9]{4})-([0-9]{2})-([0-9]{2})$/;
 
+const isValidLocalDate = (localDate: string): boolean => {
+  
+  try {
+    parseLocalDate(localDate);
+    return true;
+  } catch (error) {
+    return false;
+  }
+  
+}
+
 const parseLocalDate = (localDate: string): Date | undefined => {
   
   if (!Boolean(localDate)) {
@@ -44,4 +55,4 @@ const toLocalDateString = (date: Date): string | undefined => {
   
 }
 
-export { parseLocalDate, toLocalDateString, parseLocalDateToIsoString };
+export { parseLocalDate, toLocalDateString, parseLocalDateToIsoString, isValidLocalDate };
