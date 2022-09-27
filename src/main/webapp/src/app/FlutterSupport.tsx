@@ -1,5 +1,6 @@
 import { Ready } from './Ready';
-import { lazy, useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
+import { Box } from 'grommet';
 
 const FLUTTER_REFRESH_TOKEN = "Flutter-Refresh-Token";
 const FLUTTER_AUTH_TOKEN = "Flutter-Auth-Token";
@@ -42,10 +43,10 @@ const FlutterSupport = () => {
     }, [ setIsCarApp ]);
 
   return (
-    <>
+    <Suspense fallback={<Box>Loading...</Box>}>
       { isCarApp ? <CarAppSupport /> : <></> }
       <Ready />
-    </>);
+    </Suspense>);
  
 }
 
