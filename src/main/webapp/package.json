@@ -18,6 +18,7 @@
     "react-sse-hooks": "^1.0.5",
     "reconnecting-eventsource": "^1.5.2",
     "styled-components": "^5.3.3",
+    "usehooks-ts": "^2.7.1",
     "web-vitals": "^1.1.2"
   },
   "devDependencies": {

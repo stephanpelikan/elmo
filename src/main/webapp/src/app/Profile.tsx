@@ -15,7 +15,7 @@ import { parseLocalDate } from '../utils/timeUtils';
 
 i18n.addResources('en', 'passanger/profile', {
     "avatar_title": "Avatar:",
-    "avatar_upload_toobig": "The file is too big! Pleaes use a picture having a file size of less than 120kB.",
+    "avatar_upload_toobig": "The file is too big! Pleaes use a picture having a file size of less than 4MB.",
     "avatar_hint": "Click here...",
     "change": "Change",
     "save": "Save",
@@ -59,7 +59,7 @@ i18n.addResources('en', 'passanger/profile', {
   });
 i18n.addResources('de', 'passanger/profile', {
     "avatar_title": "Avatar:",
-    "avatar_upload_toobig": "Das Bild ist zu groß! Bitte verwende ein Bild mit einer maximalen Dateigröße von 120kB.",
+    "avatar_upload_toobig": "Das Bild ist zu groß! Bitte verwende ein Bild mit einer maximalen Dateigröße von 4MB.",
     "avatar_hint": "Klicke hier...",
     "change": "Ändern",
     "save": "Speichern",
@@ -142,7 +142,7 @@ const Profile = () => {
   const [ violations, setViolations ] = useState({});
   
   const onBeforeAvatarLoad = (elem) => {
-    if(elem.target.files[0].size > 120 * 1024){
+    if(elem.target.files[0].size > 4 * 1024 * 1024){
       elem.target.value = "";
       toast({
         namespace: 'passanger/profile',
@@ -373,8 +373,8 @@ const Profile = () => {
             gap='medium'
             direction='row'>
           <AvatarUpload
-              width={ 200 }
-              height={ 200 }
+              width={ isPhone ? 200 : 400 }
+              height={ isPhone ? 150 : 300 }
               exportAsSquare={ true }
               exportSize={ 300 }
               label={ t('avatar_hint') }

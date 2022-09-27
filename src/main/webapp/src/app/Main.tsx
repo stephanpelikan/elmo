@@ -1,4 +1,3 @@
-import { Box } from 'grommet';
 import { useEffect, useLayoutEffect } from 'react';
 import { useAppContext } from '../AppContext';
 import { Role } from '../client/gui';
@@ -25,7 +24,7 @@ const Main = () => {
         && !isPassanger) {
       navigate(t('url-administration'));
     }
-  }, [ hasNoRoles, isPassanger ]);
+  }, [ hasNoRoles, isPassanger, navigate, t ]);
   
   return hasNoRoles
     ? <RegistrationMain />

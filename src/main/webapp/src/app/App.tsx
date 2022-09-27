@@ -156,7 +156,7 @@ i18n.addResources('de', appNs, {
     });
 
 const Administration = lazy(() => import('../administration/Main'));
-const UserProfile = lazy(() => import('../passanger/Profile'));
+const UserProfile = lazy(() => import('./Profile'));
 
 type AppProps = {};
 

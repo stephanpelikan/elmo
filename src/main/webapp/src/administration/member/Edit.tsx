@@ -3,7 +3,7 @@ import { useMemberApi } from '../AdminAppContext';
 import i18n from '../../i18n';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Box, Button, CheckBox, DateInput, Form, FormField, Header, Heading, Layer, Page, Paragraph, Select, Text, TextArea } from 'grommet';
+import { Box, Button, CheckBox, DateInput, Form, FormField, Heading, Paragraph, Select, Text, TextArea } from 'grommet';
 import { useTranslation } from 'react-i18next';
 import { ViolationsAwareFormField } from "../../components/ViolationsAwareFormField";
 import { parseLocalDateToIsoString, toLocalDateString } from '../../utils/timeUtils';
@@ -165,7 +165,7 @@ const EditMember = () => {
     })
   };
   
-  const isInactive = () => formValue?.status == MemberStatus.Inactive;
+  const isInactive = () => formValue?.status === MemberStatus.Inactive;
   
   const setBirthdate = (dateInput: string|Date) => {
     let date: string;
