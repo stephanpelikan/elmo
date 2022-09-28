@@ -517,6 +517,7 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
         // Custom calls from Elmo-Drivers-App
         if (isElmoApp(request)) {
             response.setHeader(AUTH_HEADER, token);
+            return;
         }
 
         // Common user requests
