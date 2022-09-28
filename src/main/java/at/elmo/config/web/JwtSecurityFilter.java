@@ -9,6 +9,7 @@ import at.elmo.member.Role;
 import at.elmo.member.login.ElmoJwtToken;
 import at.elmo.member.login.ElmoOAuth2Provider;
 import at.elmo.member.login.ElmoOAuth2User;
+import at.elmo.member.login.GuiApiController;
 import at.elmo.member.onboarding.MemberApplication;
 import at.elmo.member.onboarding.MemberApplicationRepository;
 import at.elmo.util.config.ConfigService;
@@ -56,8 +57,6 @@ import javax.servlet.http.HttpServletResponse;
 public class JwtSecurityFilter extends OncePerRequestFilter {
 
     public static final String USER_AGENT_HEADER = "User-Agent";
-
-    public static final String APP_USER_AGENT = "Elmo-App";
 
     public static final String AUTH_HEADER = "Authorization";
 
@@ -180,7 +179,8 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
 
                 SecurityContextHolder.getContext().setAuthentication(auth);
 
-            } else if (request.getHeader(RefreshToken.HEADER_NAME) != null) {
+            } else if ((request.getHeader(RefreshToken.HEADER_NAME) != null)
+                    || isElmoApp(request)) {
 
                 throw new ExpiredJwtException(null, null, null);
 
@@ -445,13 +445,27 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
 
     }
 
+    private static boolean isElmoApp(
+        final HttpServletRequest request) {
+
+        if (request == null) {
+            return false;
+        }
+
+        final var userAgent = request.getHeader(USER_AGENT_HEADER);
+        if ((userAgent != null)
+                && userAgent.startsWith(GuiApiController.FLUTTER_USER_AGENT_PREFIX)) {
+            return true;
+        }
+        return false;
+
+    }
+
     private String resolveToken(
             final HttpServletRequest request) {
 
         // Custom calls from Elmo-Drivers-App
-        final var userAgent = request.getHeader(USER_AGENT_HEADER);
-        if ((userAgent != null)
-                && userAgent.equals(APP_USER_AGENT)) {
+        if (isElmoApp(request)) {
 
             final var authorization = request.getHeader(AUTH_HEADER);
             if ((authorization != null)
@@ -501,14 +515,8 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
             final String token) {
 
         // Custom calls from Elmo-Drivers-App
-        if (request != null) {
-            final var userAgent = request.getHeader(USER_AGENT_HEADER);
-            if ((userAgent != null)
-                    && userAgent.equals(APP_USER_AGENT)) {
-
-                response.setHeader(AUTH_HEADER, token);
-
-            }
+        if (isElmoApp(request)) {
+            response.setHeader(AUTH_HEADER, token);
         }
 
         // Common user requests

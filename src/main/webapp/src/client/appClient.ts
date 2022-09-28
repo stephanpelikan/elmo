@@ -4,8 +4,6 @@ import { REFRESH_TOKEN_HEADER } from './guiClient';
 import { FLUTTER_AUTH_TOKEN, FLUTTER_REFRESH_TOKEN } from '../app/FlutterSupport';
 import { AppApi, Configuration, FetchParams, Middleware, RequestContext, ResponseContext } from './app';
 
-const ELMO_USER_AGENT = 'Elmo-App';
-
 const AppMiddleware: Middleware = {
   
   pre(context: RequestContext): Promise<FetchParams | void> {
@@ -17,7 +15,6 @@ const AppMiddleware: Middleware = {
     if (authToken) {
       init.headers = {
           ...init.headers,
-          'User-Agent': ELMO_USER_AGENT,
           'Authorization': `Bearer token=${authToken}`,
         };
     }
@@ -42,7 +39,6 @@ const AppMiddleware: Middleware = {
           ...context.init,
           headers: {
             ...context.init.headers,
-            'UserAgent': ELMO_USER_AGENT,
             [REFRESH_TOKEN_HEADER]: storedRefreshToken
           }
         }

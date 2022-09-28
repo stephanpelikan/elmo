@@ -38,7 +38,7 @@ import javax.validation.Valid;
 @RequestMapping("/api/v1")
 public class GuiApiController implements LoginApi {
 
-    private static final String FLUTTER_USER_AGENT_PREFIX = "native-";
+    public static final String FLUTTER_USER_AGENT_PREFIX = "native-";
 
     @Autowired
     private Logger logger;
