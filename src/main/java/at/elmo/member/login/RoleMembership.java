@@ -1,5 +1,9 @@
 package at.elmo.member.login;
 
+import at.elmo.member.Member;
+import at.elmo.member.Role;
+import at.elmo.util.spring.PersistenceBase;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -10,13 +14,10 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-import at.elmo.member.Member;
-import at.elmo.member.Role;
-
 @Entity
 @Table(name = "ELMO_MEMBER_ROLE")
 @IdClass(RoleMembershipId.class)
-public class RoleMembership {
+public class RoleMembership extends PersistenceBase<Role> {
 
     @Id
     @Enumerated(EnumType.STRING)
@@ -27,6 +28,11 @@ public class RoleMembership {
     @ManyToOne(optional = false)
     @JoinColumn(name = "MEMBER", nullable = false, updatable = false)
     private Member member;
+
+    @Override
+    public Role getId() {
+        return getRole();
+    }
 
     public Role getRole() {
         return role;

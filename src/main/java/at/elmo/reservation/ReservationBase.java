@@ -1,6 +1,7 @@
 package at.elmo.reservation;
 
 import at.elmo.car.Car;
+import at.elmo.util.spring.PersistenceBase;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -21,7 +22,7 @@ import javax.persistence.Table;
 @Table(name = "ELMO_RESERVATION")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "TYPE", discriminatorType = DiscriminatorType.STRING)
-public abstract class ReservationBase {
+public abstract class ReservationBase extends PersistenceBase<String> {
 
     @Id
     @Column(name = "ID")
@@ -45,6 +46,7 @@ public abstract class ReservationBase {
     @JoinColumn(name = "CAR", referencedColumnName = "ID")
     private Car car;
 
+    @Override
     public String getId() {
         return id;
     }

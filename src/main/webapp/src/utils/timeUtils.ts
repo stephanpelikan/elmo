@@ -55,4 +55,34 @@ const toLocalDateString = (date: Date): string | undefined => {
   
 }
 
-export { parseLocalDate, toLocalDateString, parseLocalDateToIsoString, isValidLocalDate };
+const currentHour = (history: boolean): Date => {
+  
+  const now = new Date();
+  return new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      now.getHours()
+    );
+  
+}
+
+const nextHours = (from: Date, hours: number, history: boolean): Date => {
+  
+  return new Date(
+      from.getFullYear(),
+      from.getMonth(),
+      from.getDate(),
+      from.getHours() + hours * (history ? -1 : 1)
+    );
+  
+}
+
+export {
+  parseLocalDate,
+  toLocalDateString,
+  parseLocalDateToIsoString,
+  isValidLocalDate,
+  currentHour,
+  nextHours,
+};

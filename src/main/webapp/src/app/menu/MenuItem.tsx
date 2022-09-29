@@ -1,8 +1,8 @@
 import React, { PropsWithChildren } from 'react';
 import { AnchorExtendedProps, Box, BoxProps } from 'grommet';
 import { Role } from '../../client/gui';
-import { useAppContext } from '../../AppContext';
 import { BackgroundType } from 'grommet/utils';
+import { useCurrentUserRoles } from '../../utils/roleUtils';
 
 interface MenuItemProps extends PropsWithChildren<BoxProps> {
   href?: string;
@@ -17,22 +17,10 @@ const MenuItem = ({
   roles = [],
   ...props
 }: MenuItemProps) => {
-  const { state } = useAppContext();
+  
+  const { hasOneOfRoles } = useCurrentUserRoles();
 
-  const hasOneOfRequestRoles = () => {
-    if ((state.currentUser === null)
-        || (state.currentUser === undefined)) {
-      return false;
-    }
-    const result = roles === null
-        ? true
-        : roles.length === 0
-        ? (state.currentUser.roles.length > 0)
-        : roles.reduce((result, role) => result || state.currentUser.roles.includes(role), false);
-    return result;
-  };
-
-  if (!hasOneOfRequestRoles()) {
+  if (!hasOneOfRoles(roles)) {
     return <></>;
   }
   

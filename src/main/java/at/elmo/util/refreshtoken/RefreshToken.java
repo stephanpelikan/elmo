@@ -1,6 +1,7 @@
 package at.elmo.util.refreshtoken;
 
 import at.elmo.member.login.ElmoOAuth2Provider;
+import at.elmo.util.spring.PersistenceBase;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -12,7 +13,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "ELMO_REFRESH_TOKEN")
-public class RefreshToken {
+public class RefreshToken extends PersistenceBase<String> {
 
     public static final String HEADER_NAME = "X-Refresh-Token";
 
@@ -29,6 +30,11 @@ public class RefreshToken {
 
     @Column(name = "PROVIDER")
     private ElmoOAuth2Provider provider;
+
+    @Override
+    public String getId() {
+        return getToken();
+    }
 
     public String getToken() {
         return token;

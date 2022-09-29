@@ -7,16 +7,16 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAppContext } from '../AppContext';
 import { useMemberApi, useOnboardingAdministrationApi } from './AdminAppContext';
+import { useCurrentUserRoles } from '../utils/roleUtils';
 
 const TaskCards = () => {
-  const { setAppHeaderTitle } = useAppContext();
   
+  const { setAppHeaderTitle } = useAppContext();
   const memberApi = useMemberApi();
   const onboardingApi = useOnboardingAdministrationApi();
-  
   const { t } = useTranslation('administration');
-  
   const navigate = useNavigate();
+  const { isAdminOnly } = useCurrentUserRoles();
   
   const [ countOfInprogressMemberOnboardings, setCountOfInprogressMemberOnboardings ] = useState(-1);
   const [ countOfActiveMembers, setCountOfActiveMembers ] = useState(-1);
@@ -46,8 +46,8 @@ const TaskCards = () => {
   }, [ countOfActiveMembers, loadCountOfActiveMembers ]);
 
   useLayoutEffect(() => {
-    setAppHeaderTitle('administration', true);
-  }, [ setAppHeaderTitle ]);
+    setAppHeaderTitle(isAdminOnly ? 'app' : 'administration', true);
+  }, [ setAppHeaderTitle, isAdminOnly ]);
   
   return (
     <Box justify="center" pad="medium" direction="row" wrap>

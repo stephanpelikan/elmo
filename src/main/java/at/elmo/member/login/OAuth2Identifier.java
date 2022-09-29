@@ -1,5 +1,8 @@
 package at.elmo.member.login;
 
+import at.elmo.member.MemberBase;
+import at.elmo.util.spring.PersistenceBase;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -7,11 +10,9 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-import at.elmo.member.MemberBase;
-
 @Entity
 @Table(name = "ELMO_OAUTH_ID")
-public class OAuth2Identifier {
+public class OAuth2Identifier extends PersistenceBase<String> {
 
     @Id
     @Column(name = "ID")
@@ -24,6 +25,7 @@ public class OAuth2Identifier {
     @Column(name = "PROVIDER")
     private ElmoOAuth2Provider provider;
 
+    @Override
     public String getId() {
         return id;
     }

@@ -1,5 +1,6 @@
 package at.elmo.util.sms;
 
+import at.elmo.util.spring.PersistenceBase;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -14,7 +15,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "ELMO_SMS")
-public class Sms {
+public class Sms extends PersistenceBase<String> {
 
     public static enum Status {
         READY, SENT
@@ -51,6 +52,7 @@ public class Sms {
     @Column(name = "CONTENT")
     private String content;
 
+    @Override
     public String getId() {
         return id;
     }

@@ -1,5 +1,7 @@
 package at.elmo.member;
 
+import at.elmo.util.spring.PersistenceBase;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -12,7 +14,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "ELMO_AVATAR")
-public class MemberAvatar {
+public class MemberAvatar extends PersistenceBase<String> {
 
     @Id
     @Column(name = "ID")
@@ -27,6 +29,7 @@ public class MemberAvatar {
     @Column(name = "PNG")
     private byte[] png;
 
+    @Override
     public String getId() {
         return id;
     }

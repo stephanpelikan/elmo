@@ -1,7 +1,7 @@
 import { Outlet } from 'react-router-dom';
-import { useAppContext } from '../AppContext';
 import { Role } from '../client/gui';
 import { Login } from '../login/Login';
+import { useCurrentUserRoles } from '../utils/roleUtils';
 
 interface ProtectedRouteProps {
   roles?: Array<Role>;
@@ -10,23 +10,15 @@ interface ProtectedRouteProps {
 const ProtectedRoute = ({
   roles = undefined,
 }: ProtectedRouteProps) => {
-  const { state } = useAppContext();
-  
-  const hasOneOfRequestRoles = () => {
-    if ((state.currentUser === null)
-        || (state.currentUser === undefined)) {
-      return false;
-    }
-    const result = roles === undefined
-        ? true
-        : roles.reduce((result, role) => result || state.currentUser.roles.includes(role), false);
-    if (!result) {
-      console.error(`Try to fetch route protected by ${roles ? roles : 'any role'} but user has ${state.currentUser.roles.length === 0 ? 'none' : state.currentUser.roles}!`);
-    }
-    return result;
-  };
 
-  return hasOneOfRequestRoles()
+  const { hasOneOfRoles, currentUser } = useCurrentUserRoles();
+  
+  const hasOneOfRequestRoles = hasOneOfRoles(roles);
+  if (currentUser && !hasOneOfRequestRoles) {
+    console.error(`Try to fetch route protected by ${roles ? roles : 'any role'} but user has ${currentUser?.roles?.length === 0 ? 'none' : currentUser.roles}!`);
+  }
+
+  return hasOneOfRequestRoles
       ? <Outlet />
       : <Login />;
 };

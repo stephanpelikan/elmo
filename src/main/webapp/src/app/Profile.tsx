@@ -4,7 +4,7 @@ import { UserAvatar } from '../components/UserAvatar';
 import i18n from '../i18n';
 import AvatarUpload from 'react-avatar-edit';
 import { Anchor, Avatar, Box, Button, CheckBox, Collapsible, Paragraph, Stack, Text, TextInput } from 'grommet';
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import { useAppContext, useMemberGuiApi } from '../AppContext';
 import { ViolationsAwareFormField } from "../components/ViolationsAwareFormField";
 import styled from 'styled-components';
@@ -14,6 +14,8 @@ import { Member, MemberApi } from '../client/gui';
 import { parseLocalDate } from '../utils/timeUtils';
 
 i18n.addResources('en', 'passanger/profile', {
+    "title.short": "Profile",
+    "title.long": "User profile",
     "avatar_title": "Avatar:",
     "avatar_upload_toobig": "The file is too big! Pleaes use a picture having a file size of less than 4MB.",
     "avatar_hint": "Click here...",
@@ -58,6 +60,8 @@ i18n.addResources('en', 'passanger/profile', {
     "birthdate_format": "yyyy/m/d",
   });
 i18n.addResources('de', 'passanger/profile', {
+    "title.short": "Profil",
+    "title.long": "Benutzerprofil",
     "avatar_title": "Avatar:",
     "avatar_upload_toobig": "Das Bild ist zu groß! Bitte verwende ein Bild mit einer maximalen Dateigröße von 4MB.",
     "avatar_hint": "Klicke hier...",
@@ -122,6 +126,7 @@ const loadMember = async (memberApi: MemberApi, memberId: number, setMember: (me
 
 const Profile = () => {
   
+  const { setAppHeaderTitle } = useAppContext();
   const { isPhone, isNotPhone } = useResponsiveScreen();
   const { t } = useTranslation('passanger/profile');
   const { state, toast, fetchCurrentUser } = useAppContext();
@@ -334,6 +339,10 @@ const Profile = () => {
       loadMember(memberApi, state.currentUser.memberId, setMember);
     }
   }, [ memberApi, state.currentUser, member, setMember ]);
+  
+  useLayoutEffect(() => {
+    setAppHeaderTitle('passanger/profile', false);
+  }, [ setAppHeaderTitle ]);
   
   return (
     <MainLayout>
@@ -580,7 +589,7 @@ const Profile = () => {
           { member?.title }
           { member?.firstName }&nbsp;
           { member?.lastName }<br/>
-          { t('birthday') }
+          { t('birthday') }&nbsp;
           { parseLocalDate(member?.birthdate)?.toLocaleDateString() }
         </Paragraph>
         { t('ask_management_board') }

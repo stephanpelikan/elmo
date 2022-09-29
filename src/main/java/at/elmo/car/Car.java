@@ -1,5 +1,6 @@
 package at.elmo.car;
 
+import at.elmo.util.spring.PersistenceBase;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -12,7 +13,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "ELMO_CAR")
-public class Car {
+public class Car extends PersistenceBase<String> {
 
     @Id
     @Column(name = "ID")
@@ -44,6 +45,7 @@ public class Car {
     @Column(name = "UPDATED_AT", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private LocalDateTime updatedAt;
 
+    @Override
     public String getId() {
         return id;
     }

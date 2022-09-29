@@ -1,34 +1,33 @@
 import { useEffect, useLayoutEffect } from 'react';
 import { useAppContext } from '../AppContext';
-import { Role } from '../client/gui';
 import { Main as PassangerMain } from '../passanger/Main';
 import { RegistrationMain } from '../login/RegistrationMain';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useCurrentUserRoles } from '../utils/roleUtils';
 
 const Main = () => {
 
-  const { state, setAppHeaderTitle } = useAppContext();
+  const { setAppHeaderTitle } = useAppContext();
   const navigate = useNavigate();
   const { t } = useTranslation('app');
+  const { isAdminOnly, isDriverOnly, isInRegistration } = useCurrentUserRoles();
 
   useLayoutEffect(() => {
     setAppHeaderTitle('app');
   }, [ setAppHeaderTitle ]);
   
-  const hasNoRoles = state.currentUser?.roles.length === 0;
-  const isPassanger = state.currentUser?.roles.indexOf(Role.Passanger) !== -1;
-
   useEffect(() => {
-    if (!hasNoRoles
-        && !isPassanger) {
+    if (isAdminOnly) {
       navigate(t('url-administration'));
+    } else if (isDriverOnly) {
+      navigate(t('url-driver'));
     }
-  }, [ hasNoRoles, isPassanger, navigate, t ]);
+  }, [ isAdminOnly, isDriverOnly, navigate, t ]);
   
-  return hasNoRoles
-    ? <RegistrationMain />
-    : <PassangerMain />;
+  return isInRegistration
+      ? <RegistrationMain />
+      : <PassangerMain />;
 
 }
 

@@ -1,5 +1,7 @@
 package at.elmo.util.config;
 
+import at.elmo.util.spring.PersistenceBase;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -7,7 +9,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "ELMO_CONFIG")
-class ConfigValue {
+class ConfigValue extends PersistenceBase<String> {
 
     @Id
     @Column(name = "NAME")
@@ -25,6 +27,12 @@ class ConfigValue {
             final String value) {
         this.name = name;
         this.value = value;
+    }
+
+    @Override
+    public String getId() {
+        // TODO Auto-generated method stub
+        return getName();
     }
 
     public String getName() {

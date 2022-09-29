@@ -140,6 +140,7 @@ i18n.addResources('en', appNs, {
       "not-found": "The requested page is unknown!",
       "not-found hint": "Maybe use used a link in a mail which is already expired.",
       "url-administration": "/administration",
+      "url-driver": "/driver",
       "url-user-profile": "/user-profile",
     });
 i18n.addResources('de', appNs, {
@@ -152,11 +153,13 @@ i18n.addResources('de', appNs, {
       "not-found": "Die angeforderte Seite ist unbekannt!",
       "not-found hint": "Eventuell hast du einen Link aus einer Mail verwendet, der bereits veraltet ist.",
       "url-administration": "/verwaltung",
+      "url-driver": "/fahrer",
       "url-user-profile": "/benutzerprofil",
     });
 
 const Administration = lazy(() => import('../administration/Main'));
 const UserProfile = lazy(() => import('./Profile'));
+const Driver = lazy(() => import('../driver/Main'));
 
 type AppProps = {};
 
@@ -199,6 +202,9 @@ const App: React.FC<AppProps> = (props: AppProps): JSX.Element => {
                     <Routes>
                       <Route element={<ProtectedRoute roles={[ Role.Admin ]} />}>
                         <Route path={t('url-administration') + '/*'} element={<Administration />} />
+                      </Route>
+                      <Route element={<ProtectedRoute roles={[ Role.Driver ]} />}>
+                        <Route path={t('url-driver') + '/*'} element={<Driver />} />
                       </Route>
                       <Route element={<ProtectedRoute />}>
                         <Route path={t('url-user-profile') + '/*'} element={<UserProfile />} />

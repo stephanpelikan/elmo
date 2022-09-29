@@ -13,4 +13,6 @@ public interface CarRepository extends JpaRepository<Car, String> {
 
     List<Car> findByPassangerService(boolean passangerService);
 
+    List<Car> findByCarSharing(boolean carSharing);
+
 }

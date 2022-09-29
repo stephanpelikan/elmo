@@ -111,6 +111,12 @@ public class CarService {
         return cars.findAll(pageable);
 
     }
+    
+    public List<Car> getCarSharingCars() {
+        
+        return cars.findByCarSharing(true);
+        
+    }
 
     public int getCountCars() {
 

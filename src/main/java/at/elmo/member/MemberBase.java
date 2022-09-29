@@ -1,5 +1,6 @@
 package at.elmo.member;
 
+import at.elmo.util.spring.PersistenceBase;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -21,7 +22,7 @@ import javax.persistence.Table;
 @Table(name = "ELMO_MEMBER")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "TYPE", discriminatorType = DiscriminatorType.STRING)
-public abstract class MemberBase {
+public abstract class MemberBase extends PersistenceBase<String> {
 
     public static enum Sex {
         FEMALE, MALE, OTHER
@@ -111,6 +112,7 @@ public abstract class MemberBase {
     @Column(name = "PHONE_FOR_CODE")
     private String phoneForConfirmationCode;
 
+    @Override
     public String getId() {
         return id;
     }

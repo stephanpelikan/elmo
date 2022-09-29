@@ -286,6 +286,24 @@ paths:
           description: Email is wrong format
         404:
           description: The member-id is unknown
+  /gui/car-sharing/calendar:
+    post:
+      tags:
+        - car-sharing
+      summary: The calendar for car-sharing
+      operationId: getCarSharingCalendar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CarSharingCalendarRequest'
+      responses:
+        200:
+          description: The calander
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CarSharingCalendar'
 components:
   schemas:
     ValidationErrors:
@@ -314,6 +332,12 @@ components:
         - REJECTED
         - ACTIVE
         - INACTIVE
+    CarSharingReservationType:
+      type: string
+      enum:
+        - CS # shortcut of CarSharing
+        - BLOCK
+        - PS # shortcut of PassanagerService
     AppInformation:
       type: object
       properties:
@@ -447,3 +471,66 @@ components:
           type: string
         applicationComment:
           type: string
+    CarSharingCalendarRequest:
+      type: object
+      properties:
+        startsAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: string
+          format: date-time
+        history:
+          type: boolean
+    CarSharingDriver:
+      type: object
+      properties:
+        memberId:
+          type: integer
+        firstName:
+          type: string
+        lastName:
+          type: string
+        sex:
+          $ref: '#/components/schemas/Sex'
+        phoneNumber:
+          type: string
+    CarSharingCar:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        shortcut:
+          type: string
+    CarSharingReservation:
+      type: object
+      properties:
+        startsAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: string
+          format: date-time
+        type:
+          $ref: '#/components/schemas/CarSharingReservationType'
+        driverMemberId:
+          type: integer
+        carId:
+          type: string
+    CarSharingCalendar:
+      type: object
+      properties:
+        drivers:
+          type: array
+          items:
+            $ref: '#/components/schemas/CarSharingDriver'
+        cars:
+          type: array
+          items:
+            $ref: '#/components/schemas/CarSharingCar'
+        reservations:
+          type: array
+          items:
+            $ref: '#/components/schemas/CarSharingReservation'
