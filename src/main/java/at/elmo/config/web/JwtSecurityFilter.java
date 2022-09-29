@@ -64,6 +64,8 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
 
     public static final String COOKIE_AUTH = "token";
 
+    public static final String COOKIE_HAS_TOKEN = "hasToken";
+
     private static final String JWT_PROVIDER = "p";
 
     private static final String JWT_ROLE = "role";
@@ -158,7 +160,7 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
                         throw new IllegalArgumentException("Unknown car id '" + carId + "'");
                     }
                     if (!car.get().isAppActive()) {
-                        sendUnauthorizedIfProtected(request, response, filterChain);
+                        doFilterOrSendUnauthorizedIfProtected(request, response, filterChain);
                         return;
                     }
                     auth = buildAuthentication(jwt, jwtBody, roles, car.get());
@@ -192,7 +194,7 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
 
             final var refreshToken = request.getHeader(RefreshToken.HEADER_NAME);
             if (!StringUtils.hasText(refreshToken)) {
-                sendUnauthorizedIfProtected(request, response, filterChain);
+                doFilterOrSendUnauthorizedIfProtected(request, response, filterChain);
                 return;
             }
 
@@ -200,7 +202,7 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
                     .consumeRefreshToken(
                             refreshToken);
             if (newRefreshToken == null) {
-                sendUnauthorizedIfProtected(request, response, filterChain);
+                doFilterOrSendUnauthorizedIfProtected(request, response, filterChain);
                 return;
             }
 
@@ -211,7 +213,7 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
             final var car = cars.findById(id);
             if (car.isPresent()) {
                 if (!car.get().isAppActive()) {
-                    sendUnauthorizedIfProtected(request, response, filterChain);
+                    doFilterOrSendUnauthorizedIfProtected(request, response, filterChain);
                     return;
                 }
                 auth = buildAuthentication(newRefreshToken, car.get());
@@ -252,7 +254,7 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
 
     }
 
-    private void sendUnauthorizedIfProtected(
+    private void doFilterOrSendUnauthorizedIfProtected(
             final HttpServletRequest request,
             final HttpServletResponse response,
             final FilterChain filterChain)
@@ -267,6 +269,7 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
         if (isLoginPage
                 || isLogoutUrl
                 || isOauth2Url
+                || !request.getRequestURI().startsWith("/api/v")
                 || privilegeEvaluator.isAllowed(
                         request.getContextPath(),
                         request.getRequestURI(),
@@ -526,6 +529,11 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
         authCookie.setPath("/");
         authCookie.setMaxAge((int) accessTokenLifetime.getSeconds() * 2);
         response.addCookie(authCookie);
+        final var isAuthCookie = new Cookie(COOKIE_HAS_TOKEN, "true");
+        isAuthCookie.setHttpOnly(false);
+        isAuthCookie.setPath("/");
+        isAuthCookie.setMaxAge((int) accessTokenLifetime.getSeconds() * 2);
+        response.addCookie(isAuthCookie);
 
     }
 
