@@ -111,11 +111,11 @@ public class CarService {
         return cars.findAll(pageable);
 
     }
-    
+
     public List<Car> getCarSharingCars() {
-        
+
         return cars.findByCarSharing(true);
-        
+
     }
 
     public int getCountCars() {
@@ -161,7 +161,7 @@ public class CarService {
 
         car.get().setAppActive(false);
 
-        refreshTokenService.deleteRefreshToken(
+        refreshTokenService.deleteAllTokens(
                 carId,
                 ElmoOAuth2Provider.ELMO);
 

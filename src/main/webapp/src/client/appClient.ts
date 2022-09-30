@@ -13,10 +13,27 @@ const AppMiddleware: Middleware = {
         ...context.init,
       };
     if (authToken) {
+      
       init.headers = {
           ...init.headers,
-          'Authorization': `Bearer token=${authToken}`,
+          'Authorization': `Bearer ${authToken}`,
         };
+        
+    } else {
+      
+      const headers: Headers = new Headers(context.init?.headers);
+      const storedRefreshToken = window.localStorage.getItem(FLUTTER_REFRESH_TOKEN);
+
+      if (!Boolean(headers.get(REFRESH_TOKEN_HEADER))
+          && storedRefreshToken) {
+
+        init.headers = {
+            ...context.init?.headers,
+            'Authorization': `RefreshToken ${storedRefreshToken}`,
+          };
+        
+      }
+      
     }
     
     return new Promise((resolve, reject) => resolve({ url: context.url, init }));
@@ -26,23 +43,32 @@ const AppMiddleware: Middleware = {
   post(context: ResponseContext): Promise<Response | void> {
 
     if (context.response.status === 401) {
-      
-      const headers: Headers = new Headers(context.init.headers);
-      const storedRefreshToken = window.localStorage.getItem(FLUTTER_REFRESH_TOKEN);
 
+      const headers: Headers = new Headers(context.init.headers);
+      
+      window.localStorage.removeItem(FLUTTER_AUTH_TOKEN);
+      if (headers.get('Authorization')?.startsWith('RefreshToken ')) {
+        window.localStorage.removeItem(FLUTTER_REFRESH_TOKEN);
+      }
+
+      const storedRefreshToken = window.localStorage.getItem(FLUTTER_REFRESH_TOKEN);
       if (!Boolean(headers.get(REFRESH_TOKEN_HEADER))
           && storedRefreshToken) {
 
-        window.localStorage.removeItem(FLUTTER_REFRESH_TOKEN);
-        
-        const init = {
-          ...context.init,
-          headers: {
-            ...context.init.headers,
-            [REFRESH_TOKEN_HEADER]: storedRefreshToken
-          }
-        }
-        return context.fetch(new Request(context.url, init));
+        return new Promise((resolve, reject) => {
+            context
+                .fetch(new Request(context.url, context.init))
+                .then(result => {
+                    window.localStorage.removeItem(FLUTTER_REFRESH_TOKEN);
+                    resolve(result);
+                  })
+                .catch(error => {
+                  if (error.response) { // server denied access
+                    window.localStorage.removeItem(FLUTTER_REFRESH_TOKEN);
+                  }
+                  reject(error);
+                });
+          });
         
       }
       

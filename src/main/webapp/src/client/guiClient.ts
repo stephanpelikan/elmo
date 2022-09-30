@@ -48,8 +48,6 @@ const RefreshAwareMiddleware: Middleware = {
       if (!Boolean(headers.get(REFRESH_TOKEN_HEADER))
           && storedRefreshToken) {
 
-        window.localStorage.removeItem(REFRESH_TOKEN_HEADER);
-        
         const init = {
           ...context.init,
           headers: {
@@ -57,7 +55,21 @@ const RefreshAwareMiddleware: Middleware = {
             [REFRESH_TOKEN_HEADER]: storedRefreshToken
           }
         }
-        return context.fetch(new Request(context.url, init));
+        
+        return new Promise((resolve, reject) => {
+            context
+                .fetch(new Request(context.url, init))
+                .then(result => {
+                    window.localStorage.removeItem(REFRESH_TOKEN_HEADER);
+                    resolve(result);
+                  })
+                .catch(error => {
+                  if (error.response) { // server denied access
+                    window.localStorage.removeItem(REFRESH_TOKEN_HEADER);
+                  }
+                  reject(error);
+                });
+          });
         
       }
       

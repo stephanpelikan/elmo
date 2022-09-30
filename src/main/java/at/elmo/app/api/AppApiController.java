@@ -46,6 +46,13 @@ public class AppApiController implements AppApi {
 
     private Map<String, SseEmitter> smsEmitters = new HashMap<>();
 
+    @Override
+    public ResponseEntity<Void> testAppActivation() {
+
+        return ResponseEntity.ok().build();
+
+    }
+
     @RequestMapping(
             method = RequestMethod.GET,
             value = "/app/text-messages-notification/{token}"
@@ -91,7 +98,7 @@ public class AppApiController implements AppApi {
                 .getContext()
                 .getAuthentication()
                 .getPrincipal();
-        final var token = JwtSecurityFilter.generateToken(user, 5);
+        final var token = JwtSecurityFilter.generateToken(user, 60);
 
         return ResponseEntity.ok(token);
 

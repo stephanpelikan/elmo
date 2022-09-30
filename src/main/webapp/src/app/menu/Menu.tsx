@@ -9,6 +9,7 @@ import i18n from '../../i18n';
 import { Role, Sex } from '../../client/gui';
 import { useNavigate } from 'react-router-dom';
 import { useCurrentUserRoles } from '../../utils/roleUtils';
+import { REFRESH_TOKEN_HEADER } from '../../client/guiClient';
 
 i18n.addResources('en', 'menu', {
       "logout": "Logout",
@@ -41,6 +42,22 @@ const Menu = () => {
   
   const hideMenu = () => showMenu(false);
   
+  const logout = async () => {
+    const storedRefreshToken = window.localStorage.getItem(REFRESH_TOKEN_HEADER);
+    const response = await window.fetch('/logout', {
+        method: 'GET',
+        headers: {
+          [REFRESH_TOKEN_HEADER]: storedRefreshToken
+        },
+      });
+    if (response.status < 200 && response.status > 302) {
+      document.location.href = '/logout';
+    } else {
+      document.location.href = '/';
+    }
+    window.localStorage.removeItem(REFRESH_TOKEN_HEADER);
+  };
+  
   return (
     <Grid
         pad="small"
@@ -65,7 +82,7 @@ const Menu = () => {
           }
           <MenuItem
               roles={null}
-              onClick={() => document.location.href = '/logout'}>
+              onClick={ logout }>
             <Logout />
             <Text>{t('logout')}</Text>
           </MenuItem>

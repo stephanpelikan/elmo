@@ -1,7 +1,7 @@
 package at.elmo.config.web;
 
 import at.elmo.config.ElmoProperties;
-import at.elmo.member.login.ElmoOAuth2User;
+import at.elmo.util.refreshtoken.RefreshToken;
 import at.elmo.util.refreshtoken.RefreshTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -28,24 +28,20 @@ public class LogoutSuccessHandler implements org.springframework.security.web.au
             final Authentication authentication)
             throws IOException, ServletException {
 
-        if ((authentication != null)
-                && (authentication.getPrincipal() != null)) {
-    
-            final var user = (ElmoOAuth2User) authentication.getPrincipal();
-    
-            // delete refresh token
-            refreshTokenService.deleteRefreshToken(
-                    user.getOAuth2Id(),
-                    user.getProvider());
-    
-            // delete access token
-            final var authCookie = new Cookie(JwtSecurityFilter.COOKIE_AUTH, "");
-            authCookie.setHttpOnly(true);
-            authCookie.setPath("/");
-            authCookie.setMaxAge(0);
-            response.addCookie(authCookie);
-            
-        }
+        final var refreshToken = request.getHeader(RefreshToken.HEADER_NAME);
+        refreshTokenService.deleteRefreshToken(refreshToken);
+
+        // delete access token
+        final var authCookie = new Cookie(JwtSecurityFilter.COOKIE_AUTH, "");
+        authCookie.setHttpOnly(true);
+        authCookie.setPath("/");
+        authCookie.setMaxAge(0);
+        response.addCookie(authCookie);
+        final var isAuthCookie = new Cookie(JwtSecurityFilter.COOKIE_HAS_TOKEN, "");
+        isAuthCookie.setHttpOnly(false);
+        isAuthCookie.setPath("/");
+        isAuthCookie.setMaxAge(0);
+        response.addCookie(isAuthCookie);
 
         response.sendRedirect(properties.getGatewayUrl());
 

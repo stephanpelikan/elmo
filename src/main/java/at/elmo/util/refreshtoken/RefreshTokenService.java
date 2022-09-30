@@ -18,11 +18,21 @@ public class RefreshTokenService {
     @Autowired
     private RefreshTokenRepository refreshTokens;
 
-    public void deleteRefreshToken(
-            final String oauth2Id,
-            final ElmoOAuth2Provider provider) {
+    public void deleteAllTokens(final String oauth2Id, final ElmoOAuth2Provider provider) {
 
-        final var oldToken = refreshTokens.findByProviderAndOauth2Id(provider, oauth2Id);
+        final var tokens = refreshTokens.findByProviderAndOauth2Id(provider, oauth2Id);
+        if (tokens.isEmpty()) {
+            return;
+        }
+
+        refreshTokens.deleteAll(tokens);
+
+    }
+
+    public void deleteRefreshToken(
+            final String refreshToken) {
+
+        final var oldToken = refreshTokens.findById(refreshToken);
         if (oldToken.isEmpty()) {
             return;
         }
@@ -34,11 +44,6 @@ public class RefreshTokenService {
     public String buildRefreshToken(
             final String oauth2Id,
             final ElmoOAuth2Provider provider) {
-
-        final var oldToken = refreshTokens.findByProviderAndOauth2Id(provider, oauth2Id);
-        if (oldToken.isPresent()) {
-            refreshTokens.delete(oldToken.get());
-        }
 
         final var newToken = new RefreshToken();
         newToken.setToken(UUID.randomUUID().toString());
@@ -63,9 +68,11 @@ public class RefreshTokenService {
                 oldToken.get().getCreatedAt(),
                 LocalDateTime.now());
 
+        // delete consumed token
+        refreshTokens.delete(oldToken.get());
+
         // refresh token expired
         if (ageOfToken.compareTo(properties.getRefreshTokenLifetime()) == 1) {
-            refreshTokens.delete(oldToken.get());
             return null;
         }
 
@@ -73,8 +80,6 @@ public class RefreshTokenService {
         newToken.setToken(UUID.randomUUID().toString());
         newToken.setOauth2Id(oldToken.get().getOauth2Id());
         newToken.setProvider(oldToken.get().getProvider());
-
-        refreshTokens.delete(oldToken.get());
 
         return refreshTokens.saveAndFlush(newToken);
 
@@ -89,7 +94,7 @@ public class RefreshTokenService {
             return null;
         }
 
-        return token.get().getCreatedAt();
+        return token.iterator().next().getCreatedAt();
 
     }
 

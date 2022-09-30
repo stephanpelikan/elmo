@@ -1,6 +1,7 @@
 import { Ready } from './Ready';
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { Box } from 'grommet';
+import { useAppApi } from './car-app/CarAppContext';
 
 const FLUTTER_REFRESH_TOKEN = "Flutter-Refresh-Token";
 const FLUTTER_AUTH_TOKEN = "Flutter-Auth-Token";
@@ -13,34 +14,40 @@ const flutterSupported = !!consoleCommunicator;
 
 const FlutterSupport = () => {
 
-  window.console = new FlutterConsole();
-  console.log("Welcome Flutter");
+  const appApi = useAppApi();
 
   const [ isCarApp, setIsCarApp ] = useState(!!window.localStorage.getItem(FLUTTER_REFRESH_TOKEN));
   
   useEffect(() => {
+
+      window.console = new FlutterConsole();
+      console.log("Welcome Flutter");
     
       const storedToken = window.localStorage.getItem(FLUTTER_REFRESH_TOKEN);
       const carAppIsActive = Boolean(storedToken);
       if (!carAppIsActive) {
         // @ts-ignore 
         window['activateAppCallback'] = async (token?: string) => {
+            let result: boolean;
             if (token) {
               window.localStorage.setItem(FLUTTER_REFRESH_TOKEN, token);
-              setIsCarApp(true);
+              await appApi.testAppActivation();
+              result = true;
             } else {
               window.localStorage.removeItem(FLUTTER_REFRESH_TOKEN);
-              setIsCarApp(false);
+              result = false;
             }
+            setIsCarApp(result);
             // @ts-ignore 
             window['activateAppCallback'] = undefined;
+            return result;
           };
       }
       
       // @ts-ignore 
       return () => window['activateAppCallback'] = undefined;
       
-    }, [ setIsCarApp ]);
+    }, [ setIsCarApp, appApi ]);
 
   return (
     <Suspense fallback={<Box>Loading...</Box>}>

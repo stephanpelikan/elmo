@@ -1,17 +1,16 @@
 package at.elmo.util.refreshtoken;
 
-import java.util.Optional;
-
+import at.elmo.member.login.ElmoOAuth2Provider;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import at.elmo.member.login.ElmoOAuth2Provider;
+import java.util.List;
 
 @Repository
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, String> {
 
-    Optional<RefreshToken> findByProviderAndOauth2Id(
+    List<RefreshToken> findByProviderAndOauth2Id(
             ElmoOAuth2Provider provider,
             String oauth2Id);
-    
+
 }

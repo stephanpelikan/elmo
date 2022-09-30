@@ -9,7 +9,6 @@ import at.elmo.member.Role;
 import at.elmo.member.login.ElmoJwtToken;
 import at.elmo.member.login.ElmoOAuth2Provider;
 import at.elmo.member.login.ElmoOAuth2User;
-import at.elmo.member.login.GuiApiController;
 import at.elmo.member.onboarding.MemberApplication;
 import at.elmo.member.onboarding.MemberApplicationRepository;
 import at.elmo.util.config.ConfigService;
@@ -25,6 +24,7 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.io.Encoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
+import org.camunda.bpm.engine.impl.util.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -61,6 +61,8 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
     public static final String AUTH_HEADER = "Authorization";
 
     public static final String AUTH_PREFIX = "Bearer ";
+
+    public static final String APP_AUTH_PREFIX = "RefreshToken ";
 
     public static final String COOKIE_AUTH = "token";
 
@@ -192,7 +194,12 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
 
         } catch (ExpiredJwtException e) {
 
-            final var refreshToken = request.getHeader(RefreshToken.HEADER_NAME);
+            if (isPublicUrl(request)) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            final var refreshToken = getRefreshToken(request);
             if (!StringUtils.hasText(refreshToken)) {
                 doFilterOrSendUnauthorizedIfProtected(request, response, filterChain);
                 return;
@@ -254,19 +261,34 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
 
     }
 
-    private void doFilterOrSendUnauthorizedIfProtected(
-            final HttpServletRequest request,
-            final HttpServletResponse response,
-            final FilterChain filterChain)
-            throws ServletException, IOException {
+    private String getRefreshToken(
+            final HttpServletRequest request) {
+
+        final var appAuthHeader = request.getHeader(AUTH_HEADER);
+        if ((appAuthHeader != null) && appAuthHeader.startsWith(APP_AUTH_PREFIX)) {
+            return appAuthHeader.substring(APP_AUTH_PREFIX.length());
+        }
+
+        return request.getHeader(RefreshToken.HEADER_NAME);
+
+    }
+
+    private boolean isPublicUrl(
+            final HttpServletRequest request) {
 
         final var isLoginPage = request.getRequestURI().startsWith(
                 DefaultLoginPageGeneratingFilter.DEFAULT_LOGIN_PAGE_URL);
         final var isLogoutUrl = request.getRequestURI().equals("/logout");
+        final var isCurrentUserUrl = request.getRequestURI().endsWith("/current-user");
         final var isOauth2Url = request.getRequestURI().startsWith(
                 OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI);
 
-        if (isLoginPage
+        if (isCurrentUserUrl) {
+            // this is technically public but it's implemented
+            // behavior is the same as a protected URL
+            return false;
+        }
+        return isLoginPage
                 || isLogoutUrl
                 || isOauth2Url
                 || !request.getRequestURI().startsWith("/api/v")
@@ -274,7 +296,14 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
                         request.getContextPath(),
                         request.getRequestURI(),
                         request.getMethod(),
-                        ANONYMOUS)) {
+                        ANONYMOUS);
+
+    }
+
+    private void doFilterOrSendUnauthorizedIfProtected(final HttpServletRequest request,
+            final HttpServletResponse response, final FilterChain filterChain) throws ServletException, IOException {
+
+        if (isPublicUrl(request)) {
             filterChain.doFilter(request, response);
         } else {
             response.sendError(HttpStatus.UNAUTHORIZED.value());
@@ -455,12 +484,7 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
             return false;
         }
 
-        final var userAgent = request.getHeader(USER_AGENT_HEADER);
-        if ((userAgent != null)
-                && userAgent.startsWith(GuiApiController.FLUTTER_USER_AGENT_PREFIX)) {
-            return true;
-        }
-        return false;
+        return StringUtil.hasText(request.getHeader(AUTH_HEADER));
 
     }
 

@@ -10,6 +10,19 @@ security:
   - JWT: []
 
 paths:
+  /app/activate:
+    post:
+      tags:
+        - app
+      summary: Test app activation
+      operationId: testAppActivation
+      responses:
+        200:
+          description: Activation confirmed
+        400:
+          description: email address is wrong format
+        404:
+          description: The member-id is unknown
   /app/text-messages:
     get:
       tags:
