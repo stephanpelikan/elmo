@@ -237,13 +237,12 @@ const Booking = () => {
                 height: `calc(100% - ${headerHeight})`,
               } }>
           <Box
-              align='center'
               style={ {
                   position: isPhone ? 'relative' : 'absolute',
                   right: isNotPhone ? '2rem' : undefined,
                   marginLeft: isPhone ? 'auto' : undefined,
                   marginRight: isPhone ? 'auto' : undefined,
-                  width: '2rem',
+                  width: `${isPhone ? '2.6' : '3'}rem`,
                   top: '0',
                   height: '100%',
                   backgroundColor: 'rgba(200, 200, 200, 0.5)'
@@ -256,21 +255,22 @@ const Booking = () => {
                       <Box
                           key={ id }
                           style={ {
-                              border: 'solid 1px red',
                               position: 'absolute',
                               top: dateMarker.offsetTop,
+                              left: `calc((100% - ${isPhone ? '2' : '2.4'}rem) / 2)`,
+                              maxWidth: 'unset',
+                              maxHeight: 'unset',
                             } }>
                         <Box
                             style={ {
-                                border: 'solid 1px green',
-                                position: 'relative',
-                                transform: 'rotate(-90deg)',
-                                right: '0',
-                                maxWidth: 'unset',
-                              } }
-                            >{
-                          dateMarker.text
-                        }</Box>
+                                  position: 'relative',
+                                  transform: 'rotate(-90deg)',
+                                  left: '-100%',
+                                  transformOrigin: 'top right',
+                                  marginTop: '0.2rem'
+                              } }>
+                          <Tag value={ dateMarker.text } />
+                        </Box>
                       </Box>);
                 })
             }
