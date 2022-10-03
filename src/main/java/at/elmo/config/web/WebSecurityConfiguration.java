@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -99,6 +100,13 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                     .requestMatchers(administrationApi).hasRole(Role.ADMIN.name())
                     .anyRequest().authenticated()
     				.and()
+				.exceptionHandling()
+				    .defaultAccessDeniedHandlerFor((request, response, exception) -> {
+				            response.sendError(HttpStatus.UNAUTHORIZED.value());
+				        },
+			            request -> request.getRequestURI().startsWith("/api/v"))
+				    .authenticationEntryPoint(null)
+				    .and()
     			.logout()
     				.permitAll()
     				.clearAuthentication(false)
