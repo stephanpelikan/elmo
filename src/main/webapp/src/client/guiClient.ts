@@ -59,10 +59,7 @@ const RefreshAwareMiddleware: Middleware = {
         return new Promise((resolve, reject) => {
             context
                 .fetch(new Request(context.url, init))
-                .then(result => {
-                    window.localStorage.removeItem(REFRESH_TOKEN_HEADER);
-                    resolve(result);
-                  })
+                .then(result => resolve(result))
                 .catch(error => {
                   if (error.response) { // server denied access
                     window.localStorage.removeItem(REFRESH_TOKEN_HEADER);

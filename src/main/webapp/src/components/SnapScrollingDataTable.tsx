@@ -1,17 +1,20 @@
 import { Box, DataTable, DataTableExtendedProps } from 'grommet';
 import { SnapAlignBox, SnapScrollingGrid } from './SnapScrolling';
 import useResponsiveScreen from '../utils/responsiveUtils';
-import { forwardRef, UIEventHandler } from 'react';
+import { forwardRef, PropsWithChildren, UIEventHandler } from 'react';
 
-interface SnapScrollingDataTableProps<TRowType = any> extends DataTableExtendedProps<TRowType> {
+interface SnapScrollingDataTableProps<TRowType = any> extends PropsWithChildren<DataTableExtendedProps<TRowType>> {
+  headerHeight: string;
   phoneMargin: string;
   onScroll?: UIEventHandler<any> | undefined;
 };
 
 const SnapScrollingDataTable = forwardRef(({
     phoneMargin,
+    headerHeight,
     columns,
     onScroll,
+    children,
     ...props
   }: SnapScrollingDataTableProps, ref) => {
 
@@ -27,7 +30,7 @@ const SnapScrollingDataTable = forwardRef(({
     ? <SnapScrollingGrid
           fill
           snapDirection='horizontal'
-          rows={ [ 'xxsmall' ] }>
+          rows={ [ headerHeight ] }>
         <Box
             fill={ isNotPhone }
             style={
@@ -65,7 +68,7 @@ const SnapScrollingDataTable = forwardRef(({
                 column.header
               }</SnapAlignBox>)
             }</Box>
-          </Box>
+        </Box>
         <Box
             style={ { position: 'relative' }}
             fill={ isNotPhone }
@@ -87,6 +90,7 @@ const SnapScrollingDataTable = forwardRef(({
               columns={ dataTableColumns }
               { ...props } />
         </Box>
+        { children }
       </SnapScrollingGrid>
     : <></>);
   

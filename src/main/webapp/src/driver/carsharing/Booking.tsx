@@ -31,6 +31,7 @@ interface DateMarkerElement {
   next: string;
   offsetTop: number;
   height: number;
+  text: string;
 }
 
 const loadData = async (
@@ -89,16 +90,16 @@ const loadData = async (
 const Booking = () => {
   
   const { t } = useTranslation('driver/carsharing/booking');
-  const { isPhone } = useResponsiveScreen();
+  const { isPhone, isNotPhone } = useResponsiveScreen();
   const carSharingApi = useCarSharingApi();
 
   const [ hours, setHours ] = useState(undefined);
   const [ cars, setCars ] = useState<Array<CarSharingCar>>(undefined);
   //const [ history, setHistory ] = useState(false);
   const history = false;
-  //const [ dateMarkers, setDateMarkers ] = useState({});
+  const [ dateMarkers, setDateMarkers ] = useState({});
   const tableRef = useRef<HTMLDivElement>();
-  const dateMarkers = {};
+  //const dateMarkers = {};
   
   useEffect(() => {
     if (hours === undefined) {
@@ -127,11 +128,12 @@ const Booking = () => {
         });
     };
   
+  const columnSize = isPhone ? '70vw' : '200px';
   const columns: ColumnConfig<any>[] = !cars
       ? []
       : cars?.map(car => ({
           property: car.id,
-          size: isPhone ? '70vw' : '250px',
+          size: columnSize,
           render: hour => {
               const index = hours.indexOf(hour);
               const carIndex = cars.indexOf(car);
@@ -139,7 +141,6 @@ const Booking = () => {
               const showDate = (carIndex === 0) // first car column only
                             && /*(*/((index === 0) // first row
                                 || (reservationHour.startsAt.getHours() === 0)); // or midnight row
-
               let prevDateElement = undefined;
               let dateElementIndex = 0;
               return <Box
@@ -149,67 +150,45 @@ const Booking = () => {
                               position: 'relative',
                               maxWidth: '20px',
                             } }
-                          align="end">
+                          align="end"
+                          ref={ el => {
+                              if (!showDate) return;
+                              if (!el) return;
+                              const id = reservationHour.startsAt.toISOString();
+                              const dateMarker = dateMarkers[id];
+                              if (dateMarker !== undefined) return;
+                              let offset = 0;
+                              let current: HTMLElement = el;
+                              const currentHour = reservationHour.startsAt.getHours();
+                              const isFirstRow = (index === 0) // first row
+                                  && (currentHour !== 0); // and not midnight
+                              while (current && (!(current instanceof HTMLTableElement))) {
+                                offset += isFirstRow
+                                    ? -1 * current.offsetHeight * currentHour + 1 // 1 = border above first line
+                                    : current.offsetTop;
+                                current = current.offsetParent as HTMLElement;
+                              }
+                              const newDateMarker: DateMarkerElement =  {
+                                id,
+                                index: dateElementIndex,
+                                prev: prevDateElement,
+                                next: undefined,
+                                offsetTop: offset - 1, // 1 = top margin
+                                height: el.offsetWidth + 2, // 2 = top and bottom margin
+                                text: reservationHour.startsAt.toLocaleDateString()
+                              };
+                              if (prevDateElement) {
+                                prevDateElement.next = newDateMarker.id;
+                              }
+                              prevDateElement = newDateMarker;
+                              setDateMarkers({
+                                ...dateMarkers,
+                                [id]: newDateMarker,
+                              })
+                            }
+                        }>
                       {
                         reservationHour.startsAt.getHours()
-                      }
-                      {
-                        showDate
-                          ? <Box
-                                id={ reservationHour.startsAt.toISOString() }
-                                style={ {
-                                  position: 'absolute',
-                                  top: '0',
-                                  transform: 'rotate(-90deg)',
-                                  } }>
-                              <Box
-                                  style={ {
-                                      position: 'absolute',
-                                      bottom: '2rem',
-                                      right: '0',
-                                      maxWidth: 'unset',
-                                    } }
-                                    ref={ el => {
-                                        if (!el) return;
-                                        const id = reservationHour.startsAt.toISOString();
-                                        const dateMarker = dateMarkers[id];
-                                        if (dateMarker !== undefined) {
-                                          //el.style.right = document.getElementById(id).style.right;
-                                          return;
-                                        }
-                                        let offset = 0;
-                                        let current: HTMLElement = (el.offsetParent as HTMLElement).offsetParent as HTMLElement;
-                                        const currentHour = reservationHour.startsAt.getHours();
-                                        const isFirstRow = (index === 0) // first row
-                                            && (currentHour !== 0); // and not midnight
-                                        el.parentElement.style.top = isFirstRow
-                                            ? (-1 * current.offsetHeight * currentHour + 1).toString() + 'px'
-                                            : '0px';
-                                        while (current && (!(current instanceof HTMLTableElement))) {
-                                          offset += isFirstRow
-                                              ? -1 * current.offsetHeight * currentHour + 1 // 1 = border above first line
-                                              : current.offsetTop;
-                                          current = current.offsetParent as HTMLElement;
-                                        }
-                                        const newDateMarker: DateMarkerElement =  {
-                                          id,
-                                          index: dateElementIndex,
-                                          prev: prevDateElement,
-                                          next: undefined,
-                                          offsetTop: offset - 1, // 1 = top margin
-                                          height: el.offsetWidth + 2, // 2 = top and bottom margin
-                                        };
-                                        if (prevDateElement) {
-                                          prevDateElement.next = newDateMarker.id;
-                                        }
-                                        prevDateElement = newDateMarker;
-                                        dateMarkers[id] = newDateMarker;
-                                      }
-                                  }>
-                                <Tag value={ reservationHour.startsAt.toLocaleDateString() } />
-                              </Box>
-                            </Box>
-                          : <></>
                       }
                       </Box>;
             },
@@ -230,18 +209,75 @@ const Booking = () => {
     loadData(carSharingApi, startsAt, endsAt, history, hours, setHours, setCars);
   };
   
+  const headerHeight = '2.8rem';
+  const phoneMargin = '15vw';
+  
   return (
-    <SnapScrollingDataTable
-        onScroll={ moveDateMarkers }
-        ref={ tableRef }
-        phoneMargin="15vw"
-        primaryKey={ false }
-        placeholder={ hours === undefined ? t('loading') : undefined }
-        columns={ columns }
-        step={ itemsBatchSize }
-        sort={ { property: 'nothing', direction: "asc", external: true } }
-        onMore={ loadMore }
-        data={ hours } />);
+    <Box
+        style={ { position: 'relative' }}>
+      <SnapScrollingDataTable
+          headerHeight={ headerHeight }
+//          onScroll={ moveDateMarkers }
+          ref={ tableRef }
+          phoneMargin={ phoneMargin }
+          primaryKey={ false }
+          placeholder={ hours === undefined ? t('loading') : undefined }
+          columns={ columns }
+          step={ itemsBatchSize }
+          sort={ { property: 'nothing', direction: "asc", external: true } }
+          onMore={ loadMore }
+          data={ hours }>
+        <Box
+            overflow='hidden'
+            style={ {
+                position: 'absolute',
+                top: headerHeight,
+                left: '0',
+                width: isPhone ? phoneMargin : `calc((100% - (${columnSize} * ${columns.length})) / 2)`,
+                height: `calc(100% - ${headerHeight})`,
+              } }>
+          <Box
+              align='center'
+              style={ {
+                  position: isPhone ? 'relative' : 'absolute',
+                  right: isNotPhone ? '2rem' : undefined,
+                  marginLeft: isPhone ? 'auto' : undefined,
+                  marginRight: isPhone ? 'auto' : undefined,
+                  width: '2rem',
+                  top: '0',
+                  height: '100%',
+                  backgroundColor: 'rgba(200, 200, 200, 0.5)'
+                } }
+              >
+            {
+              Object.keys(dateMarkers).map(id => {
+                  const dateMarker: DateMarkerElement = dateMarkers[id];
+                  return (
+                      <Box
+                          key={ id }
+                          style={ {
+                              border: 'solid 1px red',
+                              position: 'absolute',
+                              top: dateMarker.offsetTop,
+                            } }>
+                        <Box
+                            style={ {
+                                border: 'solid 1px green',
+                                position: 'relative',
+                                transform: 'rotate(-90deg)',
+                                right: '0',
+                                maxWidth: 'unset',
+                              } }
+                            >{
+                          dateMarker.text
+                        }</Box>
+                      </Box>);
+                })
+            }
+          </Box>
+        </Box>
+      </SnapScrollingDataTable>
+    </Box>);
       
 };
 
