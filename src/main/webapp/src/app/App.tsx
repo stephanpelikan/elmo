@@ -38,6 +38,13 @@ export const theme: ThemeType = {
       }
     }
   },
+  table: {
+    body: {
+      extend: css`
+        overflow: visible;
+      `
+    }
+  },
   heading: {
     color: '#444444'
   },

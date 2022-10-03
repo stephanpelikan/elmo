@@ -35,7 +35,7 @@ i18n.addResources('de', 'menu', {
 const Menu = () => {
   
   const { state, showMenu } = useAppContext();
-  const { isPassangerOnly } = useCurrentUserRoles();
+  const { isPassangerOnly, isInRegistration } = useCurrentUserRoles();
   const navigate = useNavigate();
   const { t } = useTranslation('menu');
   const { t: tApp } = useTranslation('app');
@@ -68,7 +68,7 @@ const Menu = () => {
           <User
               user={ state.currentUser } />
           {
-            !isPassangerOnly
+            !isPassangerOnly && !isInRegistration
                 ? <Box
                       align="center"
                       gap='small'
