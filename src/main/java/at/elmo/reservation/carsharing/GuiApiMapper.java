@@ -11,6 +11,7 @@ import at.elmo.reservation.ReservationMapperBase;
 import at.elmo.reservation.blocking.BlockingReservation;
 import at.elmo.reservation.passangerservice.shift.Shift;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 import java.util.Collection;
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.List;
 @Mapper
 public abstract class GuiApiMapper extends ReservationMapperBase {
 
+    @Mapping(target = "reservations", ignore = true)
     public abstract CarSharingCar toApi(Car car);
 
     public abstract List<CarSharingCar> toApi(List<Car> car);
@@ -35,7 +37,6 @@ public abstract class GuiApiMapper extends ReservationMapperBase {
         result.setStartsAt(reservation.getStartsAt());
         result.setEndsAt(reservation.getEndsAt());
         result.setType(toCarSharingReservationType(reservation));
-        result.setCarId(reservation.getCar().getId());
         if (result.getType() == CarSharingReservationType.CS) {
             result.setDriverMemberId(((CarSharing) reservation).getDriver().getMemberId());
         }

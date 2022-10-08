@@ -43,7 +43,7 @@ export const theme: ThemeType = {
       extend: css`
         overflow: visible;
       `
-    }
+    },
   },
   heading: {
     color: '#444444'

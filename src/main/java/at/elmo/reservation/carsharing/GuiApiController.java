@@ -1,10 +1,10 @@
 package at.elmo.reservation.carsharing;
 
+import at.elmo.car.Car;
 import at.elmo.car.CarService;
 import at.elmo.gui.api.v1.CarSharingApi;
 import at.elmo.gui.api.v1.CarSharingCalendar;
 import at.elmo.gui.api.v1.CarSharingCalendarRequest;
-import at.elmo.gui.api.v1.CarSharingReservation;
 import at.elmo.reservation.ReservationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +12,8 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.LinkedList;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController("carSharingGuiApi")
@@ -44,20 +45,29 @@ public class GuiApiController implements CarSharingApi {
                 request.getEndsAt(),
                 request.getHistory() == null ? false : request.getHistory());
 
-        final var cars = carService.getCarSharingCars();
+        final var carReservations = carService
+                .getCarSharingCars()
+                .stream()
+                .collect(Collectors.toMap(
+                        Car::getId,
+                        mapper::toApi,
+                        (u, v) -> {
+                            throw new IllegalStateException(String.format("Duplicate key %s", u));
+                        },
+                        LinkedHashMap::new));
 
-        final var reservations = new LinkedList<CarSharingReservation>();
         final var drivers = reservationsInPeriod
             .stream()
-            .peek(r -> reservations.add(mapper.toApi(r)))
+            .peek(r -> carReservations
+                    .get(r.getCar().getId())
+                    .addReservationsItem(mapper.toApi(r)))
             .filter(r -> (r instanceof CarSharing))
             .map(r -> ((CarSharing) r).getDriver())
             .collect(Collectors.toList());
 
         final var result = new CarSharingCalendar();
         result.setDrivers(mapper.toApi(drivers));
-        result.setCars(mapper.toApi(cars));
-        result.setReservations(reservations);
+        result.setCars(List.copyOf(carReservations.values()));
 
         return ResponseEntity.ok(result);
 

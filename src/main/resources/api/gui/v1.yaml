@@ -504,6 +504,10 @@ components:
           type: string
         shortcut:
           type: string
+        reservations:
+          type: array
+          items:
+            $ref: '#/components/schemas/CarSharingReservation'
     CarSharingReservation:
       type: object
       properties:
@@ -517,8 +521,6 @@ components:
           $ref: '#/components/schemas/CarSharingReservationType'
         driverMemberId:
           type: integer
-        carId:
-          type: string
     CarSharingCalendar:
       type: object
       properties:
@@ -530,7 +532,3 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/CarSharingCar'
-        reservations:
-          type: array
-          items:
-            $ref: '#/components/schemas/CarSharingReservation'

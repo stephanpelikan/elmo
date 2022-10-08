@@ -1,4 +1,4 @@
-import { Box, DataTable, DataTableExtendedProps } from 'grommet';
+import { Box, DataTable, DataTableExtendedProps, Text } from 'grommet';
 import { SnapAlignBox, SnapScrollingGrid } from './SnapScrolling';
 import useResponsiveScreen from '../utils/responsiveUtils';
 import { forwardRef, PropsWithChildren, UIEventHandler } from 'react';
@@ -64,9 +64,13 @@ const SnapScrollingDataTable = forwardRef(({
                   key={ `column${index}` }
                   align="center"
                   width={ column.size }
-                  snapAlign='center'>{
-                column.header
-              }</SnapAlignBox>)
+                  snapAlign='center'>
+                <Text
+                    truncate='tip'
+                    weight='bold'>{
+                  column.header
+                }</Text>
+              </SnapAlignBox>)
             }</Box>
         </Box>
         <Box
