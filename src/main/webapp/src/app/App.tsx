@@ -39,6 +39,9 @@ export const theme: ThemeType = {
     }
   },
   table: {
+    header: {
+      border: undefined,
+    },
     body: {
       extend: css`
         overflow: visible;
