@@ -4,11 +4,16 @@ import i18n from '../../i18n';
 import useResponsiveScreen from '../../utils/responsiveUtils';
 import { currentHour, nextHours } from '../../utils/timeUtils';
 import { SnapScrollingDataTable } from '../../components/SnapScrollingDataTable';
+import { UserAvatar } from '../../components/UserAvatar';
 import { useCarSharingApi } from '../DriverAppContext';
 import { CarSharingApi, CarSharingCar, CarSharingReservation } from "../../client/gui";
 import { CSSProperties, memo, MouseEvent, useCallback, useEffect, useRef, useState } from "react";
 import { BorderType } from "grommet/utils";
 import { TFunction } from "i18next";
+import styled from "styled-components";
+import { normalizeColor,  } from "grommet/utils";
+import { FormCheckmark, FormClose, FormDown, FormUp } from "grommet-icons";
+import { useAppContext } from "../../AppContext";
 
 i18n.addResources('en', 'driver/carsharing/booking', {
       "loading": "loading...",
@@ -56,14 +61,161 @@ const dayEffectedBySelection
       && (selection.endsAt.getTime() >= day.startsAt.getTime());
 };
 
+const ButtonBox = styled(Box)`
+    position: absolute;
+    right: 5px;
+    bottom: -24px;
+  `;
+
+const DragBox = styled(Box)<{
+    top?: boolean,
+  }>`
+    position: absolute;
+    background-color: ${props => normalizeColor("brand", props.theme)};
+    ${props => !props.top ? 'left: 5px' : 'right: 5px'};
+    ${props => props.top ? 'top: -16px' : 'bottom: -16px'};
+    border: solid 3px ${props => normalizeColor("accent-3", props.theme)};
+    width: 30px;
+    height: 30px;
+    border-radius: 15px;
+    display: inline-block;
+  `;
+
+const StyledSelectionBox = styled(Box)<{
+    selectionBorderRadius: CSSProperties,
+    isFirstHourOfSelection: boolean,
+  }>`
+    border-top-left-radius: ${props => props.selectionBorderRadius.borderTopLeftRadius};
+    border-top-right-radius: ${props => props.selectionBorderRadius.borderTopRightRadius};
+    border-bottom-left-radius: ${props => props.selectionBorderRadius.borderBottomLeftRadius};
+    border-bottom-right-radius: ${props => props.selectionBorderRadius.borderBottomRightRadius};
+    position: absolute;
+    box-sizing: content-box;
+    left: -3px;
+    top: ${props => props.isFirstHourOfSelection ? '-3px' : '0'};
+    min-height: 100%;
+    z-index: 2;
+  `;
+
+const SelectionBox = ({ hour, selection, mouseDownOnDrag, cancelSelection, acceptSelection }: {
+    hour: CalendarHour,
+    selection: Selection,
+    cancelSelection: () => void,
+    acceptSelection: () => void,
+    mouseDownOnDrag: (event: MouseEvent, top: boolean) => void,
+  }) => {
+
+    const { state } = useAppContext();
+
+    const isFirstHourOfSelection = selection.startsAt.getTime() === hour.startsAt.getTime();
+    const isLastHourOfSelection = selection.endsAt.getTime() === hour.endsAt.getTime();
+    const selectionBorderRadius: CSSProperties = {};
+    const selectionBorders: BorderType = [ {
+        color: 'accent-3',
+        style: "solid",
+        size: '3px',
+        side: 'vertical',
+      } ];
+    if (isFirstHourOfSelection) {
+      selectionBorders.push({
+          color: 'accent-3',
+          style: "solid",
+          size: '3px',
+          side: 'top',
+        });
+      selectionBorderRadius.borderTopLeftRadius = '7px';
+      selectionBorderRadius.borderTopRightRadius = '7px';
+    }
+    if (isLastHourOfSelection) {
+      selectionBorders.push({
+          color: 'accent-3',
+          style: "solid",
+          size: '3px',
+          side: 'bottom',
+        });
+      selectionBorderRadius.borderBottomLeftRadius = '7px';
+      selectionBorderRadius.borderBottomRightRadius = '7px';
+    }
+
+    return <StyledSelectionBox
+              selectionBorderRadius={ selectionBorderRadius }
+              isFirstHourOfSelection={ isFirstHourOfSelection }
+              background={ {
+                  color: 'brand',
+                  opacity: "medium",
+                } }
+              border={ selectionBorders }
+              direction="row"
+              align="center"
+              justify="between"
+              width="100%">{
+              isFirstHourOfSelection
+                  ? <>
+                      <Box
+                          direction="row"
+                          gap="xsmall"
+                          pad={ { left: '34px' } }>
+                        <UserAvatar
+                            size='small'
+                            user={ state.currentUser } />
+                        <Text>{ (selection.endsAt.getTime() - selection.startsAt.getTime()) / 3600000 }h</Text>
+                      </Box>
+                      <DragBox
+                          top
+                          onMouseDown={ event => mouseDownOnDrag(event, true) }>
+                        <FormUp color="white" />
+                      </DragBox>
+                    </>
+                  : <Text />
+            }{
+              isLastHourOfSelection
+                  ? <>
+                      <ButtonBox>
+                        <Box
+                            direction="row"
+                            gap="small">
+                          <Box
+                              round="full"
+                              overflow="hidden"
+                              border={ { color: 'accent-3', size: '3px' } }
+                              background='green'>
+                            <FormCheckmark
+                                color="white"
+                                size="30rem" />
+                          </Box>
+                          <Box
+                              round="full"
+                              overflow="hidden"
+                              border={ { color: 'accent-3', size: '3px' } }
+                              background='red'>
+                            <FormClose
+                                onClick={ cancelSelection }
+                                color="white"
+                                size="30rem" />
+                          </Box>
+                        </Box>
+                      </ButtonBox>
+                      <DragBox
+                          onMouseDown={ event => mouseDownOnDrag(event, false) }>
+                        <FormDown color="white" />
+                      </DragBox>
+                    </>
+                  : <Text />
+            }
+          </StyledSelectionBox>  
+  };
+
 const DayTable = memo<{
     t: TFunction,
     car: CarSharingCar,
     day: CalendarDay,
     selection: Selection,
+    cancelSelection: () => void,
+    acceptSelection: () => void,
+    mouseDownOnDrag: (event: MouseEvent, top: boolean) => void,
     mouseDownOnHour: (event: MouseEvent, car: CarSharingCar, hour: CalendarHour) => void,
     mouseEnterHour: (event: MouseEvent, car: CarSharingCar, hour: CalendarHour) => void }>(
-  ({ t, car, day, selection, mouseDownOnHour, mouseEnterHour }) => {
+  ({ t, car, day, selection, cancelSelection, acceptSelection, mouseDownOnHour, mouseEnterHour, mouseDownOnDrag }) => {
 
     const hours = day.hours[car.id];
 
@@ -89,39 +241,6 @@ const DayTable = memo<{
                         && (selection.carId === car.id)
                         && (selection.startsAt.getTime() <= hour.startsAt.getTime())
                         && (selection.endsAt.getTime() >= hour.endsAt.getTime());
-            const isFirstHourOfSelection = hasSelection
-                        && (selection.startsAt.getTime() === hour.startsAt.getTime());
-            const isLastHourOfSelection = hasSelection
-                        && (selection.endsAt.getTime() === hour.endsAt.getTime());
-            const selectionBorderRadius: CSSProperties = {};
-            const selectionBorders: BorderType = hasSelection
-                ? [ {
-                    color: 'accent-3',
-                    style: "solid",
-                    size: '3px',
-                    side: 'vertical',
-                  } ]
-                : undefined
-            if (isFirstHourOfSelection) {
-              selectionBorders.push({
-                  color: 'accent-3',
-                  style: "solid",
-                  size: '3px',
-                  side: 'top',
-                });
-              selectionBorderRadius.borderTopLeftRadius = '7px';
-              selectionBorderRadius.borderTopRightRadius = '7px';
-            }
-            if (isLastHourOfSelection) {
-              selectionBorders.push({
-                  color: 'accent-3',
-                  style: "solid",
-                  size: '3px',
-                  side: 'bottom',
-                });
-              selectionBorderRadius.borderBottomLeftRadius = '7px';
-              selectionBorderRadius.borderBottomRightRadius = '7px';
-            }
             
             const index = hours.indexOf(hour);
             
@@ -173,35 +292,12 @@ const DayTable = memo<{
                           : undefined
                     }</Text>{
                     hasSelection
-                        ? <Box
-                              background={ {
-                                  color: 'brand',
-                                  opacity: "medium",
-                                } }
-                              border={ selectionBorders }
-                              direction="row"
-                              align="center"
-                              justify="between"
-                              width="100%"
-                              style={ {
-                                  ...selectionBorderRadius,
-                                  position: 'absolute',
-                                  boxSizing: 'content-box',
-                                  left: '-3px',
-                                  top: isFirstHourOfSelection ? '-3px' : '0',
-                                  minHeight: '100%',
-                                  zIndex: '2'
-                                } }>{
-                            isFirstHourOfSelection
-                                ? <Box>
-                                    <Text>B</Text>
-                                  </Box>
-                                : <Text />
-                          }{
-                            isLastHourOfSelection
-                                ? <Text>E</Text>
-                                : <Text />
-                          }</Box>
+                        ? <SelectionBox
+                              hour={ hour }
+                              selection={ selection }
+                              acceptSelection={ acceptSelection }
+                              cancelSelection={ cancelSelection }
+                              mouseDownOnDrag={ mouseDownOnDrag } />
                         : undefined
                     }
                   </Box>
@@ -213,8 +309,7 @@ const DayTable = memo<{
                 background="dark-1" 
                 align="center">
               <Text
-                  weight="bold"
-                  size="xsmall"
+                  size="medium"
                   >{
                 day.startsAt.toLocaleDateString()
               }</Text>
@@ -237,12 +332,10 @@ const DayTable = memo<{
     if (prev.day.startsAt.getTime() !== next.day.startsAt.getTime()) return false;
     const prevDayEffectedBySelection = dayEffectedBySelection(prev.day, prev.selection);
     const nextDayEffectedBySelection = dayEffectedBySelection(next.day, next.selection);
-    if ((nextDayEffectedBySelection === prevDayEffectedBySelection)
-        && ((nextDayEffectedBySelection === false)
-            || ((next.car.id !== next.selection?.carId)
-                && (prev.car.id !== prev.selection.carId)))) {
-      return true;
-    }
+    if ((prevDayEffectedBySelection === false)
+        && (nextDayEffectedBySelection === false)) return true;
+    if ((prev.car.id !== prev.selection?.carId)
+        && (next.car.id !== next.selection?.carId)) return true;
     return false;
     
   });
@@ -344,7 +437,23 @@ const Booking = () => {
   const [ _selection, setSelection ] = useState<Selection>(undefined);
   const selection = useRef(_selection);
   
+  const mouseDownOnDrag = useCallback((event: MouseEvent, top: boolean) => {
+      if (isMouseDown.current) return;
+      setMouseIsDown(true);
+      isMouseDown.current = true;
+      const s = {
+          startedAtStarts: top ? selection.current.endsAt : selection.current.startsAt,
+          startedAtEnds: top ? selection.current.endsAt : selection.current.startsAt,
+          startsAt: selection.current.startsAt,
+          endsAt: selection.current.endsAt,
+          carId: selection.current.carId,
+        };
+      setSelection(s);
+      selection.current = s;
+      event.preventDefault();
+    }, [ setMouseIsDown, setSelection ]);
   const mouseDownOnHour = useCallback((event: MouseEvent, car: CarSharingCar, hour: CalendarHour) => {
+      if (isMouseDown.current) return;
       setMouseIsDown(true);
       isMouseDown.current = true;
       const s = {
@@ -380,6 +489,12 @@ const Booking = () => {
       setMouseIsDown(false);
       isMouseDown.current = false;
     }, [ setMouseIsDown ]);
+  const cancelSelection = useCallback(() => {
+      setSelection(undefined);
+      selection.current = undefined;
+    }, [ setSelection, selection ]);
+  const acceptSelection = useCallback(() => {
+    }, [  ]);
     
   useEffect(() => {
       window.addEventListener('mouseup', mouseUp);
@@ -403,6 +518,9 @@ const Booking = () => {
                   day={ day }
                   car={ car }
                   selection={ selection.current }
+                  cancelSelection={ cancelSelection }
+                  acceptSelection={ acceptSelection }
+                  mouseDownOnDrag={ mouseDownOnDrag }
                   mouseDownOnHour={ mouseDownOnHour }
                   mouseEnterHour={ mouseEnterHour } />;
             },

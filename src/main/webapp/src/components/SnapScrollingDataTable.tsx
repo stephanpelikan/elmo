@@ -60,14 +60,18 @@ const SnapScrollingDataTable = forwardRef(({
                     : undefined }>{
             columns.map((column, index) =>
               <SnapAlignBox
-                  pad={ isPhone ? 'medium' : 'small' }
+                  pad={ { horizontal: isPhone ? 'medium' : 'xsmall' } }
                   key={ `column${index}` }
                   align="center"
+                  justify='center'
+                  height="100%"
                   width={ column.size }
                   snapAlign='center'>
                 <Text
-                    truncate='tip'
-                    weight='bold'>{
+                    weight='bold'
+                    size='large'
+                    color='light-2'
+                    truncate='tip'>{
                   column.header
                 }</Text>
               </SnapAlignBox>)
