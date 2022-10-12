@@ -5,10 +5,16 @@ import at.elmo.car.CarService;
 import at.elmo.gui.api.v1.CarSharingApi;
 import at.elmo.gui.api.v1.CarSharingCalendar;
 import at.elmo.gui.api.v1.CarSharingCalendarRequest;
+import at.elmo.gui.api.v1.CarSharingReservation;
+import at.elmo.gui.api.v1.CarSharingReservationType;
 import at.elmo.reservation.ReservationService;
+import at.elmo.util.UserContext;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -22,6 +28,9 @@ import java.util.stream.Collectors;
 public class GuiApiController implements CarSharingApi {
 
     @Autowired
+    private Logger logger;
+    
+    @Autowired
     private ReservationService reservationService;
 
     @Autowired
@@ -29,6 +38,12 @@ public class GuiApiController implements CarSharingApi {
 
     @Autowired
     private CarService carService;
+
+    @Autowired
+    private CarSharingService carSharingService;
+
+    @Autowired
+    private UserContext userContext;
 
     @Override
     public ResponseEntity<CarSharingCalendar> getCarSharingCalendar(
@@ -70,6 +85,57 @@ public class GuiApiController implements CarSharingApi {
         result.setCars(List.copyOf(carReservations.values()));
 
         return ResponseEntity.ok(result);
+
+    }
+
+    @Override
+    public ResponseEntity<Void> addCarSharingReservation(
+            final String carId,
+            final CarSharingReservation carSharingReservation) {
+
+        if ((carSharingReservation == null)
+                || (carSharingReservation.getType() != CarSharingReservationType.CS)) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        if (!StringUtils.hasText(carId)) {
+            return ResponseEntity.badRequest().build();
+        }
+        final var car = carService.getCar(carId);
+        if (car.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        final var driver = userContext.getLoggedInMember();
+        if ((carSharingReservation.getDriverMemberId() == null)
+                || !driver.getMemberId().equals(carSharingReservation.getDriverMemberId())) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        if ((carSharingReservation.getStartsAt() == null)
+                || (carSharingReservation.getEndsAt() == null)) {
+            return ResponseEntity.badRequest().build();
+        }
+        final var overlappings = reservationService.checkForOverlappings(
+                car.get(),
+                carSharingReservation.getStartsAt(),
+                carSharingReservation.getEndsAt());
+        if (!overlappings.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+
+        try {
+            carSharingService.addCarSharing(
+                    car.get(),
+                    carSharingReservation.getStartsAt(),
+                    carSharingReservation.getEndsAt(),
+                    driver);
+        } catch (Exception e) {
+            logger.error("Could not add car-sharing", e);
+            return ResponseEntity.internalServerError().build();
+        }
+
+        return ResponseEntity.ok().build();
 
     }
 

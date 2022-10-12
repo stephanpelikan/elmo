@@ -6,6 +6,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
@@ -28,6 +30,9 @@ public abstract class ReservationBase extends PersistenceBase<String> {
     @Column(name = "ID")
     private String id;
 
+    @Column(name = "CANCELLED")
+    private boolean cancelled;
+
     @CreationTimestamp
     @Column(name = "CREATED_AT", nullable = false, updatable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private LocalDateTime createdAt;
@@ -45,6 +50,40 @@ public abstract class ReservationBase extends PersistenceBase<String> {
     @ManyToOne()
     @JoinColumn(name = "CAR", referencedColumnName = "ID")
     private Car car;
+
+    public Date getFifteenMinutesBeforeStart() {
+
+        return Date.from(getStartsAt()
+                .minusMinutes(15)
+                .atZone(ZoneId.systemDefault())
+                .toInstant());
+
+    }
+
+    public Date getTwoHoursAfterEnd() {
+
+        return Date.from(getEndsAt()
+                .plusHours(2)
+                .atZone(ZoneId.systemDefault())
+                .toInstant());
+
+    }
+
+    public Date getStartsAtDate() {
+
+        return Date.from(getStartsAt()
+                .atZone(ZoneId.systemDefault())
+                .toInstant());
+
+    }
+
+    public Date getEndsAtDate() {
+
+        return Date.from(getEndsAt()
+                .atZone(ZoneId.systemDefault())
+                .toInstant());
+
+    }
 
     @Override
     public String getId() {
@@ -87,7 +126,20 @@ public abstract class ReservationBase extends PersistenceBase<String> {
         this.endsAt = endsAt;
     }
 
-    public Car getCar() {return car;}
+    public Car getCar() {
+        return car;
+    }
 
-    public void setCar(Car car) {this.car = car;}
+    public void setCar(Car car) {
+        this.car = car;
+    }
+
+    public boolean isCancelled() {
+        return cancelled;
+    }
+
+    public void setCancelled(boolean cancelled) {
+        this.cancelled = cancelled;
+    }
+
 }

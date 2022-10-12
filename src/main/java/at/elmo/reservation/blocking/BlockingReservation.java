@@ -10,7 +10,7 @@ import javax.persistence.Entity;
 @DiscriminatorValue("B")
 public class BlockingReservation extends ReservationBase {
 
-    @Column(name = "reason")
+    @Column(name = "REASON")
     private String reason;
 
     public String getReason() {

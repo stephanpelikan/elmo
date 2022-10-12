@@ -204,4 +204,17 @@
       <column name="REASON" type="varchar(255)" />
     </addColumn>
   </changeSet>
+  <changeSet id="introduce-carsharing-reservations"
+             author="stephanpelikan">
+    <addColumn tableName="ELMO_RESERVATION">
+      <column name="CANCELLED" type="boolean" defaultValueBoolean="false" />
+      <column name="COMMENT" type="text" />
+      <column name="CONFIRM_USERTASK" type="varchar(40)" />
+      <column name="STATUS" type="varchar(30)" />
+    </addColumn>
+    <addColumn tableName="ELMO_MEMBER">
+      <column name="PS_HOURS" type="int" />
+      <column name="CS_HOURS" type="int" />
+    </addColumn>
+  </changeSet>
 </databaseChangeLog>

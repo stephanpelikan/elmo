@@ -304,6 +304,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CarSharingCalendar'
+  /gui/car-sharing/{carId}/reservation:
+    post:
+      tags:
+        - car-sharing
+      summary: Take a reservation
+      operationId: addCarSharingReservation
+      parameters:
+        - in: path
+          name: carId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CarSharingReservation'
+      responses:
+        200:
+          description: Reservation accepted
+        400:
+          description: Input parameters invalid
+        404:
+          description: Car not found
+        409:
+          description: Reservation declined due to other reservations
 components:
   schemas:
     ValidationErrors:

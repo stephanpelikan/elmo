@@ -72,7 +72,7 @@ const DragBox = styled(Box)<{
   }>`
     position: absolute;
     background-color: ${props => normalizeColor("brand", props.theme)};
-    ${props => !props.top ? 'left: 5px' : 'right: 5px'};
+    ${props => !props.top ? 'left: 3.5rem' : 'right: 5px'};
     ${props => props.top ? 'top: -16px' : 'bottom: -16px'};
     border: solid 3px ${props => normalizeColor("accent-3", props.theme)};
     width: 30px;
@@ -84,6 +84,8 @@ const DragBox = styled(Box)<{
 const StyledSelectionBox = styled(Box)<{
     selectionBorderRadius: CSSProperties,
     isFirstHourOfSelection: boolean,
+    numberOfHours: number,
+    currentHour: number,
   }>`
     border-top-left-radius: ${props => props.selectionBorderRadius.borderTopLeftRadius};
     border-top-right-radius: ${props => props.selectionBorderRadius.borderTopRightRadius};
@@ -94,7 +96,7 @@ const StyledSelectionBox = styled(Box)<{
     left: -3px;
     top: ${props => props.isFirstHourOfSelection ? '-3px' : '0'};
     min-height: 100%;
-    z-index: 2;
+    z-index: ${props => props.numberOfHours - props.currentHour + 1};
   `;
 
 const SelectionBox = ({ hour, selection, mouseDownOnDrag, cancelSelection, acceptSelection }: {
@@ -136,6 +138,8 @@ const SelectionBox = ({ hour, selection, mouseDownOnDrag, cancelSelection, accep
       selectionBorderRadius.borderBottomLeftRadius = '7px';
       selectionBorderRadius.borderBottomRightRadius = '7px';
     }
+    const numberOfHours = (selection.endsAt.getTime() - selection.startsAt.getTime()) / 3600000;
+    const currentHour = (hour.startsAt.getTime() - selection.startsAt.getTime()) / 3600000;
 
     return <StyledSelectionBox
               selectionBorderRadius={ selectionBorderRadius }
@@ -145,6 +149,8 @@ const SelectionBox = ({ hour, selection, mouseDownOnDrag, cancelSelection, accep
                   opacity: "medium",
                 } }
               border={ selectionBorders }
+              numberOfHours={ numberOfHours }
+              currentHour={ currentHour }
               direction="row"
               align="center"
               justify="between"
@@ -152,13 +158,35 @@ const SelectionBox = ({ hour, selection, mouseDownOnDrag, cancelSelection, accep
               isFirstHourOfSelection
                   ? <>
                       <Box
+                          style={ { position: 'relative' } }
                           direction="row"
                           gap="xsmall"
-                          pad={ { left: '34px' } }>
-                        <UserAvatar
-                            size='small'
-                            user={ state.currentUser } />
-                        <Text>{ (selection.endsAt.getTime() - selection.startsAt.getTime()) / 3600000 }h</Text>
+                          pad={ { left: numberOfHours > 1 ? '3.5rem' : '5.5rem' } }>
+                        <Box
+                            style={ {
+                                position: 'absolute',
+                                left: '4px',
+                                top: '-50%',
+                              } }>
+                          <UserAvatar
+                              size='medium'
+                              user={ state.currentUser } />
+                        </Box>
+                        <Box>
+                          <Text>
+                            { numberOfHours }h
+                            {
+                              numberOfHours > 1 
+                                  ? <Text
+                                        margin='small'>{
+                                      selection.startsAt.toLocaleTimeString().replace(':00', '')
+                                    } - {
+                                      selection.endsAt.toLocaleTimeString().replace(':00', '')
+                                    }</Text>
+                                  : undefined
+                            }
+                          </Text>
+                        </Box>
                       </Box>
                       <DragBox
                           top
@@ -489,10 +517,12 @@ const Booking = () => {
       setMouseIsDown(false);
       isMouseDown.current = false;
     }, [ setMouseIsDown ]);
+  
   const cancelSelection = useCallback(() => {
       setSelection(undefined);
       selection.current = undefined;
     }, [ setSelection, selection ]);
+  
   const acceptSelection = useCallback(() => {
     }, [  ]);
     

@@ -2,6 +2,9 @@ package at.elmo.reservation.passangerservice.shift;
 
 import at.elmo.car.Car;
 import at.elmo.reservation.ReservationService;
+import at.phactum.bp.blueprint.process.ProcessService;
+import at.phactum.bp.blueprint.service.BpmnProcess;
+import at.phactum.bp.blueprint.service.WorkflowService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,8 +13,12 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
+@WorkflowService(
+        workflowAggregateClass = Shift.class,
+        bpmnProcess = { @BpmnProcess(bpmnProcessId = "ShiftLifecycle") })
 @Transactional
 public class ShiftService {
 
@@ -19,10 +26,10 @@ public class ShiftService {
     private ShiftRepository shifts;
 
     @Autowired
-    private ShiftLifecycle shiftLifecycle;
+    private ReservationService reservationService;
 
     @Autowired
-    private ReservationService reservationService;
+    private ProcessService<Shift> processService;
 
     public List<Shift> getShifts(){
         return shifts.findAll();
@@ -43,7 +50,17 @@ public class ShiftService {
         final var startsAt = day.atTime(LocalTime.parse(properties.getStart()));
         final var endsAt = day.atTime(LocalTime.parse(properties.getEnd()));
 
-        reservationService.checkForOverlappings(startsAt, endsAt);
+        final var overlappings = reservationService
+                .checkForOverlappings(car, startsAt, endsAt);
+        if (!overlappings.isEmpty()) {
+            throw new Exception(
+                    "Cannot create shift at "
+                    + startsAt
+                    + " -> "
+                    + endsAt
+                    + " due to existing overlapping reservations: "
+                    + overlappings.stream().collect(Collectors.joining(", ")));
+        }
 
         final var shift = new Shift();
         shift.setId(UUID.randomUUID().toString());
@@ -51,7 +68,7 @@ public class ShiftService {
         shift.setStartsAt(startsAt);
         shift.setEndsAt(endsAt);
 
-        return shiftLifecycle.createShift(shift);
+        return processService.startWorkflow(shift);
 
     }
 
