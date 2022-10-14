@@ -1,14 +1,17 @@
 import { User as UserDto, Sex } from '../client/gui';
 import { User as UserMale, UserFemale } from 'grommet-icons';
 import { Avatar } from 'grommet';
+import { BorderType } from 'grommet/utils';
 
 type UserAvatarProps = {
   user: UserDto;
+  border?: BorderType;
   size?: 'xsmall' | 'small' | 'medium' | 'large' | 'xlarge' | string;
 };
 
 const UserAvatar = ({
   user,
+  border,
   size = 'medium'
 }: UserAvatarProps) => {
 
@@ -39,13 +42,14 @@ const UserAvatar = ({
         symbolSize = '27rem';
     }
   } else {
-    symbolSize = `${ intSize }px`;
+    symbolSize = `${ intSize * 0.65 }px`;
   }
       
   return (
       <Avatar
-          style={ { backgroundColor } }
+          background={ backgroundColor }
           size={ size }
+          border={ border }
           src={ user.avatar ? `/api/v1/gui/member/${ user.memberId }/avatar?ts=${ user.avatar }` : undefined }>
         {
           user.sex === Sex.Female

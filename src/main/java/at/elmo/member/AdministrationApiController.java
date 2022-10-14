@@ -9,6 +9,7 @@ import at.elmo.member.MemberBase.Payment;
 import at.elmo.member.MemberBase.Sex;
 import at.elmo.util.email.EmailService;
 import at.elmo.util.exceptions.ElmoValidationException;
+import at.elmo.util.pos.NullableCell;
 import at.elmo.util.sms.SmsService;
 import at.elmo.util.spring.FileCleanupInterceptor;
 import org.apache.poi.ss.usermodel.BorderStyle;
@@ -213,7 +214,7 @@ public class AdministrationApiController implements MemberApi {
                     logger.info("About to import member {} from uploaded Excel",
                             memberId);
 
-                    final var typeValue = row.getCell(1).getStringCellValue();
+                    final var typeValue = NullableCell.from(row.getCell(1)).getStringCellValue();
                     final var roles = gTranslation
                             .getRoleShortcuts()
                             .entrySet()
@@ -221,7 +222,7 @@ public class AdministrationApiController implements MemberApi {
                             .filter(entry -> typeValue.contains(entry.getValue()))
                             .map(Entry::getKey)
                             .collect(Collectors.toList());
-                    final var salutation = row.getCell(2).getStringCellValue();
+                    final var salutation = NullableCell.from(row.getCell(2)).getStringCellValue();
                     final var sex = gTranslation
                             .getSalutation()
                             .entrySet()
@@ -230,10 +231,10 @@ public class AdministrationApiController implements MemberApi {
                             .findFirst()
                             .map(Entry::getKey)
                             .orElse(Sex.OTHER);
-                    final var title = row.getCell(3).getStringCellValue();
-                    final var lastName = row.getCell(4).getStringCellValue();
-                    final var firstName = row.getCell(5).getStringCellValue();
-                    final var birthdate = row.getCell(6).getCellType() == CellType.NUMERIC
+                    final var title = NullableCell.from(row.getCell(3)).getStringCellValue();
+                    final var lastName = NullableCell.from(row.getCell(4)).getStringCellValue();
+                    final var firstName = NullableCell.from(row.getCell(5)).getStringCellValue();
+                    final var birthdate = NullableCell.from(row.getCell(6)).getCellType() == CellType.NUMERIC
                             ? row.getCell(6).getLocalDateTimeCellValue().toLocalDate()
                             : row.getCell(6).getStringCellValue() == null
                             ? null
@@ -242,19 +243,19 @@ public class AdministrationApiController implements MemberApi {
                             : LocalDate.parse(
                                     row.getCell(6).getStringCellValue(),
                                     DateTimeFormatter.ofPattern(gTranslation.getDateFormat()));
-                    final var streetValue = row.getCell(7).getStringCellValue();
+                    final var streetValue = NullableCell.from(row.getCell(7)).getStringCellValue();
                     final var streetNumber = streetValue != null
                             ? streetValue.replaceFirst("^\\D+", "")
                             : null;
                     final var street = streetValue != null
                             ? streetValue.substring(0, streetValue.length() - streetNumber.length())
                             : null;
-                    final var zip = row.getCell(8).getCellType() == CellType.NUMERIC
+                    final var zip = NullableCell.from(row.getCell(8)).getCellType() == CellType.NUMERIC
                             ? Integer.toString((int) Math.floor(row.getCell(8).getNumericCellValue()))
-                            : row.getCell(8).getStringCellValue();
-                    final var city = row.getCell(9).getStringCellValue();
-                    final var email = row.getCell(10).getStringCellValue();
-                    final var phoneNumberValue = row.getCell(11).getStringCellValue();
+                            : NullableCell.from(row.getCell(8)).getStringCellValue();
+                    final var city = NullableCell.from(row.getCell(9)).getStringCellValue();
+                    final var email = NullableCell.from(row.getCell(10)).getStringCellValue();
+                    final var phoneNumberValue = NullableCell.from(row.getCell(11)).getStringCellValue();
                     final String phoneNumber;
                     if (!StringUtils.hasText(phoneNumberValue)) {
                         phoneNumber = null;
@@ -267,9 +268,9 @@ public class AdministrationApiController implements MemberApi {
                         phoneNumber = properties.getDefaultPhoneCountry()
                                 + phoneNumberValue.trim().replaceAll("[-\\/\\s]+", "");
                     }
-                    final var comment = row.getCell(12).getStringCellValue();
-                    final var iban = row.getCell(13).getStringCellValue();
-                    final var paymentValue = row.getCell(14).getStringCellValue();
+                    final var comment = NullableCell.from(row.getCell(12)).getStringCellValue();
+                    final var iban = NullableCell.from(row.getCell(13)).getStringCellValue();
+                    final var paymentValue = NullableCell.from(row.getCell(14)).getStringCellValue();
                     final var payment = gTranslation
                             .getPayment()
                             .entrySet()
@@ -278,6 +279,27 @@ public class AdministrationApiController implements MemberApi {
                             .findFirst()
                             .map(Entry::getKey)
                             .orElse(Payment.MONTHLY);
+                    final int hoursServedPassangerService;
+                    final var hoursServedPassangerServiceCell = NullableCell.from(row.getCell(15));
+                    if ((hoursServedPassangerServiceCell.getCellType() != CellType.NUMERIC)
+                            && !StringUtils.hasText(hoursServedPassangerServiceCell.getStringCellValue())) {
+                        throw new ElmoValidationException("hoursServedPassangerService", "missing");
+                    } else if (hoursServedPassangerServiceCell.getCellType() == CellType.NUMERIC) {
+                        hoursServedPassangerService = (int) hoursServedPassangerServiceCell.getNumericCellValue();
+                    } else {
+                        hoursServedPassangerService = Integer
+                                .parseInt(hoursServedPassangerServiceCell.getStringCellValue());
+                    }
+                    final int hoursConsumedCarSharing;
+                    final var hoursConsumedCarSharingCell = NullableCell.from(row.getCell(16));
+                    if ((hoursConsumedCarSharingCell.getCellType() != CellType.NUMERIC)
+                            && !StringUtils.hasText(hoursConsumedCarSharingCell.getStringCellValue())) {
+                        throw new ElmoValidationException("hoursServedPassangerService", "missing");
+                    } else if (hoursConsumedCarSharingCell.getCellType() == CellType.NUMERIC) {
+                        hoursConsumedCarSharing = (int) hoursConsumedCarSharingCell.getNumericCellValue();
+                    } else {
+                        hoursConsumedCarSharing = Integer.parseInt(hoursConsumedCarSharingCell.getStringCellValue());
+                    }
 
                     memberService.createMember(
                             memberId,
@@ -295,8 +317,12 @@ public class AdministrationApiController implements MemberApi {
                             phoneNumber,
                             comment,
                             iban,
-                            payment);
+                            payment,
+                            hoursServedPassangerService,
+                            hoursConsumedCarSharing);
 
+                } catch (ElmoValidationException e) {
+                    throw e;
                 } catch (Exception e) {
 
                     logger.info("Could not import member {} from uploaded Excel",
@@ -366,6 +392,8 @@ public class AdministrationApiController implements MemberApi {
                 sheet.setColumnWidth(12, 7000);
                 sheet.setColumnWidth(13, 7000);
                 sheet.setColumnWidth(14, 3000);
+                sheet.setColumnWidth(15, 3500);
+                sheet.setColumnWidth(16, 3500);
                 sheet.createFreezePane(0, 1);
 
                 int rowNo = 0;
@@ -387,6 +415,8 @@ public class AdministrationApiController implements MemberApi {
                 headerRow.createCell(12).setCellValue(translation.getComment());
                 headerRow.createCell(13).setCellValue(translation.getIban());
                 headerRow.createCell(14).setCellValue(translation.getPayment());
+                headerRow.createCell(15).setCellValue(translation.getHoursServedPassangerService());
+                headerRow.createCell(16).setCellValue(translation.getHoursConsumedCarSharing());
                 for (short i = headerRow.getFirstCellNum(); i < headerRow.getLastCellNum(); ++i) {
                     headerRow.getCell(i).setCellStyle(headerStyle);
                 }
@@ -424,6 +454,8 @@ public class AdministrationApiController implements MemberApi {
                         dataRow.createCell(13).setCellValue(member.getIban());
                         dataRow.createCell(14).setCellValue(
                                 gTranslation.getPayment().get(member.getPayment()));
+                        dataRow.createCell(15).setCellValue(member.getHoursServedPassangerService());
+                        dataRow.createCell(16).setCellValue(member.getHoursConsumedCarSharing());
 
                     }
 

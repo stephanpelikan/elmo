@@ -21,6 +21,7 @@ i18n.addResources('en', 'administration/member', {
       "status_TO_BE_DELETED": "Will be deleted soon...",
       "email": "Email",
       "last-name": "Firstname",
+      "name": "Name",
       "first-name": "Lastname",
       "roles": "Roles",
       "member-id.short": "M-ID",
@@ -43,13 +44,14 @@ i18n.addResources('de', 'administration/member', {
       "status_TO_BE_DELETED": "Wird bald entfernt...",
       "email": "Email",
       "last-name": "Zuname",
+      "name": "Name",
       "first-name": "Vorname",
       "roles": "Rolen",
       "member-id.short": "M-NR",
       "member-id.long": "Mitgliedsnummer",
       "action": "Aktion",
       "total": "Anzahl:",
-      "download": "Excel hochladen",
+      "download": "Excel herunterladen",
       "upload": "Excel hochladen",
       "upload_title": "Excel hochladen",
       "upload_success": "Die Excel-Datei wurde erfolgreich hochgeladen. Mitglieder aus dem Excel, die bereits im System erfasst sind, wurden beim Verarbeiten ignoriert.",
@@ -177,10 +179,17 @@ const ListOfMembers = () => {
           { property: 'status', header: t('status'),
             render: member => <Text>{ t(`status_${member.status}`) }</Text>
           },
-          { property: 'status', header: t('action'), align: 'center',
-            render: member => (<>
-                <Text>{ t(`status_${member.status}`) }</Text>
-                <Button label={ t('edit') } onClick={ () => edit(member) } /></>)
+          { property: 'member.hoursServedPassangerService', header: t('Fahrtendienst'),
+            render: member => <Text>{ member.hoursServedPassangerService }h</Text>
+          },
+          { property: 'member.hoursConsumedCarSharing', header: t('Car-Sharing'),
+            render: member => <Text>{ member.hoursConsumedCarSharing }h</Text>
+          },
+          { property: 'xxxx', header: t('action'), align: 'center',
+            render: member => (
+              <>
+                <Button label={ t('edit') } onClick={ () => edit(member) } />
+              </>)
           },
         ]
       : [
@@ -190,11 +199,13 @@ const ListOfMembers = () => {
                 <MemberIdAvatar memberId={ member.memberId } sex={ member.sex } avatar={ member.avatar } />
               </Box>)
           },
-          { property: 'lastName', header: t('last-name')},
+          { property: 'lastName', header: t('name'),
+            render: member => `${member.lastName} ${member.firstName ? member.firstName.substring(0, 1) + '.' : ''}`},
           { property: 'status', header: t('action'), align: 'center',
-            render: member => (<>
-                <Text>{ t(`status_${member.status}`) }</Text>
-                <Button icon={<FormEdit />} onClick={ () => edit(member) } /></>)
+            render: member => (
+              <>
+                <Button icon={<FormEdit />} onClick={ () => edit(member) } />
+              </>)
           },
         ];
   
@@ -248,6 +259,7 @@ const ListOfMembers = () => {
                 placeholder={ members === undefined ? t('loading') : undefined }
                 columns={columns}
                 step={itemsBatchSize}
+                sortable={ false }
                 onMore={() => loadData(memberApi, setNumberOfMembers, setMembers, members)}
                 data={members} />
           </Box>

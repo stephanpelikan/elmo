@@ -29,7 +29,7 @@ public class GuiApiController implements CarSharingApi {
 
     @Autowired
     private Logger logger;
-    
+
     @Autowired
     private ReservationService reservationService;
 
@@ -80,9 +80,14 @@ public class GuiApiController implements CarSharingApi {
             .map(r -> ((CarSharing) r).getDriver())
             .collect(Collectors.toList());
 
+        final var driver = userContext.getLoggedInMember();
+
         final var result = new CarSharingCalendar();
         result.setDrivers(mapper.toApi(drivers));
         result.setCars(List.copyOf(carReservations.values()));
+        result.setRemainingHours(
+                driver.getHoursServedPassangerService()
+                - driver.getHoursConsumedCarSharing());
 
         return ResponseEntity.ok(result);
 

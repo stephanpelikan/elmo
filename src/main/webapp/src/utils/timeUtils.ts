@@ -78,6 +78,20 @@ const nextHours = (from: Date, hours: number, history: boolean): Date => {
   
 }
 
+const hoursBetween = (from: Date, to: Date) => {
+  
+  return Math.abs(from.getTime() - to.getTime()) / 3600000;
+  
+};
+
+const timeAsString = (date: Date) => {
+  
+  return String(date.getHours()).padStart(2, '0')
+      + ':'
+      + String(date.getMinutes()).padStart(2, '0');
+      
+}
+
 export {
   parseLocalDate,
   toLocalDateString,
@@ -85,4 +99,6 @@ export {
   isValidLocalDate,
   currentHour,
   nextHours,
+  timeAsString,
+  hoursBetween,
 };

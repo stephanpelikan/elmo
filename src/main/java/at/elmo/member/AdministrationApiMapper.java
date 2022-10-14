@@ -35,6 +35,8 @@ public abstract class AdministrationApiMapper extends AdministrationApiMapperBas
     @Mapping(target = "generatedEmailConfirmationCode", ignore = true)
     @Mapping(target = "generatedPhoneConfirmationCode", ignore = true)
     @Mapping(target = "timestampOfAvatar", ignore = true)
+    @Mapping(target = "hoursServedPassangerService", ignore = true)
+    @Mapping(target = "hoursConsumedCarSharing", ignore = true)
     public abstract Member toDomain(at.elmo.administration.api.v1.Member member);
 
 }

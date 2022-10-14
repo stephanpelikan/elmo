@@ -655,6 +655,12 @@ components:
           type: string
         comment:
           type: string
+        hoursServedPassangerService:
+          type: integer
+          format: int32
+        hoursConsumedCarSharing:
+          type: integer
+          format: int32
         roles:
           type: array
           items:

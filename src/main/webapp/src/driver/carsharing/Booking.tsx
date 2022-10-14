@@ -2,7 +2,7 @@ import { Box, ColumnConfig, DataTable, Text } from "grommet";
 import { useTranslation } from "react-i18next";
 import i18n from '../../i18n';
 import useResponsiveScreen from '../../utils/responsiveUtils';
-import { currentHour, nextHours } from '../../utils/timeUtils';
+import { currentHour, nextHours, timeAsString, hoursBetween } from '../../utils/timeUtils';
 import { SnapScrollingDataTable } from '../../components/SnapScrollingDataTable';
 import { UserAvatar } from '../../components/UserAvatar';
 import { useCarSharingApi } from '../DriverAppContext';
@@ -19,11 +19,13 @@ i18n.addResources('en', 'driver/carsharing/booking', {
       "loading": "loading...",
       "reservation-type_BLOCK": "Unavailable",
       "reservation-type_PS": "Passanger Service",
+      "remaining": "Remaining hours",
     });
 i18n.addResources('de', 'driver/carsharing/booking', {
       "loading": "Lade Daten...",
       "reservation-type_BLOCK": "Nicht verfügbar",
       "reservation-type_PS": "Fahrtendienst",
+      "remaining": "Verbleibende Stunden",
     });
 
 const itemsBatchSize = 48;
@@ -102,8 +104,8 @@ const StyledSelectionBox = styled(Box)<{
 const SelectionBox = ({ hour, selection, mouseDownOnDrag, cancelSelection, acceptSelection }: {
     hour: CalendarHour,
     selection: Selection,
-    cancelSelection: () => void,
-    acceptSelection: () => void,
+    cancelSelection: (event: MouseEvent) => void,
+    acceptSelection: (event: MouseEvent) => void,
     mouseDownOnDrag: (event: MouseEvent, top: boolean) => void,
   }) => {
 
@@ -138,8 +140,8 @@ const SelectionBox = ({ hour, selection, mouseDownOnDrag, cancelSelection, accep
       selectionBorderRadius.borderBottomLeftRadius = '7px';
       selectionBorderRadius.borderBottomRightRadius = '7px';
     }
-    const numberOfHours = (selection.endsAt.getTime() - selection.startsAt.getTime()) / 3600000;
-    const currentHour = (hour.startsAt.getTime() - selection.startsAt.getTime()) / 3600000;
+    const numberOfHours = hoursBetween(selection.endsAt, selection.startsAt);
+    const currentHour = hoursBetween(hour.startsAt, selection.startsAt);
 
     return <StyledSelectionBox
               selectionBorderRadius={ selectionBorderRadius }
@@ -170,6 +172,7 @@ const SelectionBox = ({ hour, selection, mouseDownOnDrag, cancelSelection, accep
                               } }>
                           <UserAvatar
                               size='medium'
+                              border={ { color: 'accent-3', size: '3px' }}
                               user={ state.currentUser } />
                         </Box>
                         <Box>
@@ -179,9 +182,9 @@ const SelectionBox = ({ hour, selection, mouseDownOnDrag, cancelSelection, accep
                               numberOfHours > 1 
                                   ? <Text
                                         margin='small'>{
-                                      selection.startsAt.toLocaleTimeString().replace(':00', '')
+                                      timeAsString(selection.startsAt)
                                     } - {
-                                      selection.endsAt.toLocaleTimeString().replace(':00', '')
+                                      timeAsString(selection.endsAt)
                                     }</Text>
                                   : undefined
                             }
@@ -190,7 +193,7 @@ const SelectionBox = ({ hour, selection, mouseDownOnDrag, cancelSelection, accep
                       </Box>
                       <DragBox
                           top
-                          onMouseDown={ event => mouseDownOnDrag(event, true) }>
+                          onMouseDownCapture={ event => mouseDownOnDrag(event, true) }>
                         <FormUp color="white" />
                       </DragBox>
                     </>
@@ -206,7 +209,7 @@ const SelectionBox = ({ hour, selection, mouseDownOnDrag, cancelSelection, accep
                               round="full"
                               overflow="hidden"
                               border={ { color: 'accent-3', size: '3px' } }
-                              background='green'>
+                              background='status-ok'>
                             <FormCheckmark
                                 color="white"
                                 size="30rem" />
@@ -215,16 +218,16 @@ const SelectionBox = ({ hour, selection, mouseDownOnDrag, cancelSelection, accep
                               round="full"
                               overflow="hidden"
                               border={ { color: 'accent-3', size: '3px' } }
-                              background='red'>
+                              background='status-critical'>
                             <FormClose
-                                onClick={ cancelSelection }
+                                onMouseDownCapture={ cancelSelection }
                                 color="white"
                                 size="30rem" />
                           </Box>
                         </Box>
                       </ButtonBox>
                       <DragBox
-                          onMouseDown={ event => mouseDownOnDrag(event, false) }>
+                          onMouseDownCapture={ event => mouseDownOnDrag(event, false) }>
                         <FormDown color="white" />
                       </DragBox>
                     </>
@@ -238,8 +241,8 @@ const DayTable = memo<{
     car: CarSharingCar,
     day: CalendarDay,
     selection: Selection,
-    cancelSelection: () => void,
-    acceptSelection: () => void,
+    cancelSelection: (event: MouseEvent) => void,
+    acceptSelection: (event: MouseEvent) => void,
     mouseDownOnDrag: (event: MouseEvent, top: boolean) => void,
     mouseDownOnHour: (event: MouseEvent, car: CarSharingCar, hour: CalendarHour) => void,
     mouseEnterHour: (event: MouseEvent, car: CarSharingCar, hour: CalendarHour) => void }>(
@@ -291,7 +294,7 @@ const DayTable = memo<{
                           }
                           mouseDownOnHour(event, car, hour);
                         } }
-                      onMouseOverCapture={ event => {
+                      onMouseOver={ event => {
                           if (hour.reservation) {
                             event.preventDefault();
                             event.stopPropagation();
@@ -334,7 +337,7 @@ const DayTable = memo<{
         header: (
             <Box
                 fill
-                background="dark-1" 
+                background="dark-1"
                 align="center">
               <Text
                   size="medium"
@@ -374,7 +377,8 @@ const loadData = async (
       endsAt: Date,
       days: Array<CalendarDay>,
       setDays: (hours: Array<CalendarDay>) => void,
-      setCars: (cars: Array<CarSharingCar>) => void | undefined,
+      setCars?: (cars: Array<CarSharingCar>) => void,
+      setRemainingHours?: (hours: number) => void,
     ) => {
 
   const calendar = await carSharingApi.getCarSharingCalendar({
@@ -385,6 +389,9 @@ const loadData = async (
       }
     });
   
+  if (setRemainingHours) {
+    setRemainingHours(calendar.remainingHours);
+  }
   if (setCars) {
     setCars(calendar.cars);
   }
@@ -450,15 +457,21 @@ const Booking = () => {
   const [ endDate, setEndDate ] = useState<Date>(undefined);
   const [ days, setDays]  = useState<Array<CalendarDay>>(undefined);
   const [ cars, setCars ] = useState<Array<CarSharingCar>>(undefined);
+  const [ remainingHours, _setRemainingHours ] = useState(0);
+  const remainingHoursRef = useRef(remainingHours);
+  const setRemainingHours = (hours: number) => {
+      remainingHoursRef.current = hours;
+      _setRemainingHours(hours);
+    };
 
   useEffect(() => {
       if (days === undefined) {
         const startsAt = currentHour(false);
         const endsAt = nextHours(startsAt, (24 - startsAt.getHours()) + 24, false);
         setEndDate(endsAt);
-        loadData(carSharingApi, startsAt, endsAt, days, setDays, setCars);
+        loadData(carSharingApi, startsAt, endsAt, days, setDays, setCars, setRemainingHours);
       }
-    }, [ carSharingApi, days, setDays ]);
+    }, [ carSharingApi, days, setDays, remainingHours, setRemainingHours ]);
     
   const [ _isMouseDown, setMouseIsDown ] = useState(false);
   const isMouseDown = useRef(_isMouseDown);
@@ -467,6 +480,8 @@ const Booking = () => {
   
   const mouseDownOnDrag = useCallback((event: MouseEvent, top: boolean) => {
       if (isMouseDown.current) return;
+      event.preventDefault();
+      event.stopPropagation();
       setMouseIsDown(true);
       isMouseDown.current = true;
       const s = {
@@ -478,10 +493,12 @@ const Booking = () => {
         };
       setSelection(s);
       selection.current = s;
-      event.preventDefault();
     }, [ setMouseIsDown, setSelection ]);
   const mouseDownOnHour = useCallback((event: MouseEvent, car: CarSharingCar, hour: CalendarHour) => {
       if (isMouseDown.current) return;
+      if (remainingHoursRef.current < 1) return;
+      event.preventDefault();
+      event.stopPropagation();
       setMouseIsDown(true);
       isMouseDown.current = true;
       const s = {
@@ -493,17 +510,32 @@ const Booking = () => {
         };
       setSelection(s);
       selection.current = s;
-      event.preventDefault();
     }, [ setMouseIsDown, setSelection ]);
   const mouseEnterHour = useCallback((event: MouseEvent, car: CarSharingCar, hour: CalendarHour) => {
       if (!isMouseDown.current) return;
       if (car.id !== selection.current.carId) return;
       event.preventDefault();
+      event.stopPropagation();
+      const wasUpperBoundaryChanged = hour.startsAt.getTime() < selection.current.startedAtStarts.getTime();
+      const newStartsAt = wasUpperBoundaryChanged
+          ? hour.startsAt
+          : selection.current.startedAtStarts;
+      const maxStartsAt = wasUpperBoundaryChanged
+          ? nextHours(selection.current.startedAtEnds, remainingHoursRef.current, true)
+          : selection.current.startedAtStarts;
+      const wasLowerBoundaryChanged = hour.endsAt.getTime() > selection.current.startedAtEnds.getTime();
+      const newEndsAt = wasLowerBoundaryChanged
+          ? hour.endsAt
+          : selection.current.startedAtEnds;
+      const maxEndsAt = wasLowerBoundaryChanged
+          ? nextHours(selection.current.startedAtStarts, remainingHoursRef.current, false)
+          : selection.current.startedAtEnds;
+      const total = hoursBetween(newStartsAt, newEndsAt);
       const s = {
           startedAtStarts: selection.current.startedAtStarts,
           startedAtEnds: selection.current.startedAtEnds,
-          startsAt: hour.startsAt.getTime() < selection.current.startedAtStarts.getTime() ? hour.startsAt : selection.current.startedAtStarts,
-          endsAt: hour.endsAt.getTime() > selection.current.startedAtEnds.getTime() ? hour.endsAt : selection.current.startedAtEnds,
+          startsAt: total > remainingHoursRef.current ?  maxStartsAt : newStartsAt,
+          endsAt: total > remainingHoursRef.current ? maxEndsAt : newEndsAt,
           carId: car.id,
         };
       setSelection(s);
@@ -512,13 +544,16 @@ const Booking = () => {
   const mouseMove = useCallback(event => {
       if (!isMouseDown.current) return;
       event.preventDefault();
+      event.stopPropagation();
     }, [ isMouseDown ]);
-  const mouseUp = useCallback(event => {
+  const mouseUp = useCallback(() => {
       setMouseIsDown(false);
       isMouseDown.current = false;
     }, [ setMouseIsDown ]);
   
-  const cancelSelection = useCallback(() => {
+  const cancelSelection = useCallback(event => {
+      event.preventDefault();
+      event.stopPropagation();
       setSelection(undefined);
       selection.current = undefined;
     }, [ setSelection, selection ]);
@@ -535,7 +570,7 @@ const Booking = () => {
         };
     }, [ mouseUp, mouseMove ]);
   
-  const carColumnSize = isPhone ? '70vw' : '270px';
+  const carColumnSize = isPhone ? '80vw' : '300px';
   const carColumns: ColumnConfig<any>[] = !cars
       ? []
       : cars?.map(car => ({
@@ -564,13 +599,38 @@ const Booking = () => {
     const startsAt = endDate;
     const endsAt = nextHours(startsAt, itemsBatchSize, false);
     setEndDate(endsAt);
-    loadData(carSharingApi, startsAt, endsAt, days, setDays, setCars);
+    loadData(carSharingApi, startsAt, endsAt, days, setDays);
   };
   
-  const headerHeight = '2.8rem';
-  const phoneMargin = '15vw';
+  const headerHeight = '3rem';
+  const phoneMargin = '10vw';
+  
+  const currentRemainingHours = remainingHours
+      - (selection.current !== undefined ? hoursBetween(selection.current.endsAt, selection.current.startsAt) : 0);
   
   return (
+      <>
+        <Box
+            align='center'
+            background='dark-3'
+            pad='small'>
+          <Text>
+            { t('remaining') }:
+            <Text
+                weight='bold'
+                style={ {
+                    textShadow: currentRemainingHours < 1 ? '0 0 5px white' : undefined
+                  } }
+                color={
+                    currentRemainingHours < 1
+                        ? 'status-critical'
+                        : currentRemainingHours < 5
+                        ? 'status-warning'
+                        : 'white' }>
+              &nbsp;{ currentRemainingHours }h
+            </Text>
+          </Text>
+        </Box>
       <SnapScrollingDataTable
           fill
           headerHeight={ headerHeight }
@@ -580,7 +640,8 @@ const Booking = () => {
           step={ 2 }
           onMore={ loadMore }
           data={ days }
-          replace={ true } />);
+          replace={ true } />
+          </>);
       
 };
 

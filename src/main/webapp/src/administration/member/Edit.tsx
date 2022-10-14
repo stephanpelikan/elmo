@@ -3,7 +3,7 @@ import { useMemberApi } from '../AdminAppContext';
 import i18n from '../../i18n';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Box, Button, CheckBox, DateInput, Form, FormField, Heading, Paragraph, Select, Text, TextArea } from 'grommet';
+import { Box, Button, CheckBox, DateInput, Form, FormField, Heading, Paragraph, Select, Table, TableBody, TableCell, TableRow, Text, TextArea } from 'grommet';
 import { useTranslation } from 'react-i18next';
 import { ViolationsAwareFormField } from "../../components/ViolationsAwareFormField";
 import { parseLocalDateToIsoString, toLocalDateString } from '../../utils/timeUtils';
@@ -15,6 +15,8 @@ import { useAppContext } from '../../AppContext';
 i18n.addResources('en', 'administration/member-details', {
     "loading": "Loading...",
     "new": "new",
+    "hoursServedPassangerService": "Hours served passanger service",
+    "hoursConsumedCarSharing": "Hours consumed car-sharing",
     "person-title": "Title:",
     "first-name": "First name:",
     "first-name_missing": "Please enter a name!",
@@ -49,7 +51,7 @@ i18n.addResources('en', 'administration/member-details', {
     "ADMIN": "Administrator",
     "comment": "Comment:",
     "comment_placeholder": "Comment, e.g. hints for purchasing",
-    "reset": "Reset",
+    "reset": "Reset changes",
     "delete": "Delete",
     "delete_header": "Delete member?",
     "delete_question": "Delete a member irrevocably?",
@@ -70,6 +72,8 @@ i18n.addResources('en', 'administration/member-details', {
 i18n.addResources('de', 'administration/member-details', {
     "loading": "Lade Daten...",
     "new": "Neu",
+    "hoursServedPassangerService": "Geleiste Stunden Fahrtendienst",
+    "hoursConsumedCarSharing": "Konsumierte Stunden Car-Sharing",
     "person-title": "Titel:",
     "first-name": "Vorname:",
     "first-name_missing": "Bitte trage einen Vornamen ein!",
@@ -119,7 +123,7 @@ i18n.addResources('de', 'administration/member-details', {
     "delete_hint_header": "Hinweis:",
     "delete_header": "Mitglied löschen?",
     "inactive": "Das Mitglied ist inaktiv!",
-    "reset": "Zurücksetzen",
+    "reset": "Änderungen zurücksetzen",
     "abort": "Abbrechen",
   });
 
@@ -263,6 +267,22 @@ const EditMember = () => {
             : <></>
       }
       </Heading>
+      {
+          formValue?.roles?.includes(Role.Driver)
+              ? <Table style={ { maxWidth: '23rem' } }>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell>{ t('hoursServedPassangerService') }:</TableCell>
+                      <TableCell>{ formValue.hoursServedPassangerService }h</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>{ t('hoursConsumedCarSharing') }:</TableCell>
+                      <TableCell>{ formValue.hoursConsumedCarSharing }h</TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              : undefined
+      }
       <Form<Member>
           value={ formValue }
           validate='change'
@@ -385,7 +405,7 @@ const EditMember = () => {
             disabled={ loading }
             htmlFor="rolesSelect">
           <Select
-              id="reolesSelect"
+              id="rolesSelect"
               multiple
               options={[ Role.Passanger, Role.Driver, Role.Manager, Role.Admin ]}
               value={ formValue?.roles }

@@ -550,6 +550,9 @@ components:
     CarSharingCalendar:
       type: object
       properties:
+        remainingHours:
+          type: integer
+          format: int32
         drivers:
           type: array
           items:

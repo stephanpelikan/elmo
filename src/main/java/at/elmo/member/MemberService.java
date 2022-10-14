@@ -72,7 +72,9 @@ public class MemberService {
             final String phoneNumber,
             final String comment,
             final String iban,
-            final Payment payment) {
+            final Payment payment,
+            final int hoursServedPassangerService,
+            final int hoursConsumedCarSharing) {
 
         if (members.findByMemberId(memberId).isPresent()) {
             return;
@@ -98,6 +100,8 @@ public class MemberService {
         member.setStreetNumber(streetNumber);
         member.setTitle(title);
         member.setZip(zip);
+        member.setHoursConsumedCarSharing(hoursConsumedCarSharing);
+        member.setHoursServedPassangerService(hoursServedPassangerService);
 
         members.saveAndFlush(member);
 
