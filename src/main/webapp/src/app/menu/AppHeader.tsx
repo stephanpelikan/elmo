@@ -1,5 +1,6 @@
 import { Box, Button, Header, Heading, Image } from "grommet";
 import { Menu as MenuIcon } from 'grommet-icons';
+import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useAppContext } from '../../AppContext';
@@ -12,7 +13,13 @@ const AppHeader = () => {
   const { t } = useTranslation(state.title);
   const navigate = useNavigate();
 
-  const toogleMenu = () => showMenu(!state.showMenu);
+  const stateShowMenuRef = useRef(state.showMenu);
+  stateShowMenuRef.current = state.showMenu;
+
+  const toggleMenu = () => {
+      if (stateShowMenuRef.current) return;
+      showMenu(!state.showMenu);
+    };
   
   return (
     <Header
@@ -55,7 +62,7 @@ const AppHeader = () => {
                     focusIndicator={false}
                     margin='small'
                     icon={<MenuIcon />}
-                    onClick={toogleMenu} />
+                    onMouseDown={toggleMenu} />
               </Box>
             : <></>
       }

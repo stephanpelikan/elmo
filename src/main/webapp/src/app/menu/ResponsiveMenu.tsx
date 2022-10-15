@@ -4,7 +4,7 @@ import { Menu } from './Menu';
 import { FormClose } from 'grommet-icons';
 import { useAppContext } from '../../AppContext';
 import useResponsiveScreen from '../../utils/responsiveUtils';
-import { useOnClickOutside } from 'usehooks-ts'
+import useOnClickOutside from '../../utils/clickOutside';
 
 const ResponsiveMenu = () => {
   
@@ -13,8 +13,16 @@ const ResponsiveMenu = () => {
   
   const hideMenu = () => showMenu(false);
   
+  const stateShowMenuRef = useRef(state.showMenu);
+  stateShowMenuRef.current = state.showMenu;
+  
   const ref = useRef(null);
-  useOnClickOutside(ref, hideMenu);
+  useOnClickOutside(ref, event => {
+      if (!stateShowMenuRef.current) return;
+      event.preventDefault();
+      event.stopPropagation();
+      hideMenu();
+    });
 
   return isPhone && state.showMenu
       ? <Layer
