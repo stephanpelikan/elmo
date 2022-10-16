@@ -6,7 +6,7 @@ import { currentHour, nextHours, timeAsString, hoursBetween } from '../../utils/
 import { SnapScrollingDataTable } from '../../components/SnapScrollingDataTable';
 import { UserAvatar } from '../../components/UserAvatar';
 import { useCarSharingApi } from '../DriverAppContext';
-import { CarSharingApi, CarSharingCar, CarSharingReservation } from "../../client/gui";
+import { CarSharingApi, CarSharingCar, CarSharingDriver, CarSharingReservation } from "../../client/gui";
 import { CSSProperties, memo, MouseEvent, useCallback, useEffect, useRef, useState } from "react";
 import { BorderType } from "grommet/utils";
 import { TFunction } from "i18next";
@@ -30,14 +30,18 @@ i18n.addResources('de', 'driver/carsharing/booking', {
 
 const itemsBatchSize = 48;
 
+interface ReservationDrivers {
+  [key: number /* member id */]: CarSharingDriver
+};
+
 interface CalendarHours {
   [key: string /* car id */]: Array<CalendarHour> /* hours of day */
-}
+};
 
 interface CalendarDay {
   startsAt: Date;
   hours: CalendarHours;
-}
+};
 
 interface CalendarHour {
   index: number;
@@ -206,6 +210,7 @@ const SelectionBox = ({ hour, selection, mouseDownOnDrag, cancelSelection, accep
                             direction="row"
                             gap="small">
                           <Box
+                              onMouseDownCapture={ acceptSelection }
                               round="full"
                               overflow="hidden"
                               border={ { color: 'accent-3', size: '3px' } }
@@ -215,12 +220,12 @@ const SelectionBox = ({ hour, selection, mouseDownOnDrag, cancelSelection, accep
                                 size="30rem" />
                           </Box>
                           <Box
+                              onMouseDownCapture={ cancelSelection }
                               round="full"
                               overflow="hidden"
                               border={ { color: 'accent-3', size: '3px' } }
                               background='status-critical'>
                             <FormClose
-                                onMouseDownCapture={ cancelSelection }
                                 color="white"
                                 size="30rem" />
                           </Box>
@@ -236,8 +241,37 @@ const SelectionBox = ({ hour, selection, mouseDownOnDrag, cancelSelection, accep
           </StyledSelectionBox>  
   };
 
+
+const CarSharingReservationBox = ({ drivers, hour }: {
+    drivers: ReservationDrivers,
+    hour: CalendarHour,
+  }) => {
+    return (
+        <Box
+            pad={ {
+                horizontal: '0rem',
+                vertical: '1px'
+              } }
+            gap='xsmall'
+            direction="row">
+          <UserAvatar
+              size='small'
+              border={ { color: 'dark-4', size: '1px' }}
+              user={ drivers[ hour.reservation.driverMemberId ] } />
+          <Box>
+              <Text
+                  truncate>{
+                timeAsString(hour.reservation.startsAt)
+              } - {
+                timeAsString(hour.reservation.endsAt)
+              }</Text>
+          </Box>
+        </Box>);
+  };
+
 const DayTable = memo<{
     t: TFunction,
+    drivers: ReservationDrivers,
     car: CarSharingCar,
     day: CalendarDay,
     selection: Selection,
@@ -246,7 +280,7 @@ const DayTable = memo<{
     mouseDownOnDrag: (event: MouseEvent, top: boolean) => void,
     mouseDownOnHour: (event: MouseEvent, car: CarSharingCar, hour: CalendarHour) => void,
     mouseEnterHour: (event: MouseEvent, car: CarSharingCar, hour: CalendarHour) => void }>(
-  ({ t, car, day, selection, cancelSelection, acceptSelection, mouseDownOnHour, mouseEnterHour, mouseDownOnDrag }) => {
+  ({ t, drivers, car, day, selection, cancelSelection, acceptSelection, mouseDownOnHour, mouseEnterHour, mouseDownOnDrag }) => {
 
     const hours = day.hours[car.id];
 
@@ -303,7 +337,7 @@ const DayTable = memo<{
                           mouseEnterHour(event, car, hour);
                         } }
                       pad={ {
-                          horizontal: 'small',
+                          horizontal: 'xsmall',
                           top: hasTopBorder ? undefined : '1px',
                           bottom: hasBottomBorder ? undefined : '1px',
                         } }
@@ -314,15 +348,15 @@ const DayTable = memo<{
                           minHeight: '100%'
                         } }
                       margin={ { horizontal: '1rem' }}
-                      background={ hour.reservation ? 'light-4' : undefined }>
-                    <Text
-                        truncate>{
-                      ((hour.reservation?.startsAt.getTime() === hour.startsAt.getTime())
-                          || (hour.reservation && (index === 0)))
-                          ? t(`reservation-type_${hour.reservation.type}`)
-                          : undefined
-                    }</Text>{
-                    hasSelection
+                      background={ hour.reservation ? 'light-4' : undefined }>{
+                    ((hour.reservation?.startsAt.getTime() === hour.startsAt.getTime())
+                        || (hour.reservation && (index === 0)))
+                        ? hour.reservation.type === "CS"
+                        ? <CarSharingReservationBox
+                            hour={ hour }
+                            drivers={ drivers } />
+                        : <Text>{ t(`reservation-type_${hour.reservation.type}`) }</Text>
+                        : hasSelection
                         ? <SelectionBox
                               hour={ hour }
                               selection={ selection }
@@ -377,16 +411,14 @@ const loadData = async (
       endsAt: Date,
       days: Array<CalendarDay>,
       setDays: (hours: Array<CalendarDay>) => void,
+      drivers: ReservationDrivers,
+      setDrivers: (drivers: ReservationDrivers) => void,
       setCars?: (cars: Array<CarSharingCar>) => void,
       setRemainingHours?: (hours: number) => void,
     ) => {
 
   const calendar = await carSharingApi.getCarSharingCalendar({
-      carSharingCalendarRequest: {
-        startsAt,
-        endsAt,
-        history: false
-      }
+      carSharingCalendarRequest: { startsAt, endsAt }
     });
   
   if (setRemainingHours) {
@@ -441,11 +473,20 @@ const loadData = async (
     
   }
 
+  const newDrivers = {};
+  calendar.drivers?.forEach(driver => newDrivers[ driver.memberId ] = driver );
+  if (drivers === undefined) {
+    setDrivers(newDrivers);
+  } else {
+    setDrivers({ ...drivers, ...newDrivers });
+  }
+
   if (days) {
     setDays([ ...days, ...newDays ]);
   } else {
     setDays(newDays);
   }
+    
 };
 
 const Booking = () => {
@@ -453,25 +494,28 @@ const Booking = () => {
   const { t } = useTranslation('driver/carsharing/booking');
   const { isPhone } = useResponsiveScreen();
   const carSharingApi = useCarSharingApi();
-
+  const { state } = useAppContext();
+  
   const [ endDate, setEndDate ] = useState<Date>(undefined);
   const [ days, setDays]  = useState<Array<CalendarDay>>(undefined);
   const [ cars, setCars ] = useState<Array<CarSharingCar>>(undefined);
-  const [ remainingHours, _setRemainingHours ] = useState(0);
+  const [ drivers, setDrivers ] = useState<ReservationDrivers>(undefined);
+  const [ remainingHours, _setRemainingHours ] = useState(-1);
   const remainingHoursRef = useRef(remainingHours);
-  const setRemainingHours = (hours: number) => {
+  const setRemainingHours = useCallback((hours: number) => {
       remainingHoursRef.current = hours;
       _setRemainingHours(hours);
-    };
+    }, [ remainingHoursRef, _setRemainingHours ]);
 
   useEffect(() => {
-      if (days === undefined) {
+      if (remainingHours === -1) {
         const startsAt = currentHour(false);
         const endsAt = nextHours(startsAt, (24 - startsAt.getHours()) + 24, false);
         setEndDate(endsAt);
-        loadData(carSharingApi, startsAt, endsAt, days, setDays, setCars, setRemainingHours);
+        setRemainingHours(0);
+        loadData(carSharingApi, startsAt, endsAt, days, setDays, drivers, setDrivers, setCars, setRemainingHours);
       }
-    }, [ carSharingApi, days, setDays, remainingHours, setRemainingHours ]);
+    }, [ carSharingApi, days, setDays, setRemainingHours, remainingHours, drivers, setDrivers ]);
     
   const [ _isMouseDown, setMouseIsDown ] = useState(false);
   const isMouseDown = useRef(_isMouseDown);
@@ -531,11 +575,23 @@ const Booking = () => {
           ? nextHours(selection.current.startedAtStarts, remainingHoursRef.current, false)
           : selection.current.startedAtEnds;
       const total = hoursBetween(newStartsAt, newEndsAt);
+//      const startsAt = hoursBetween(newStartsAt, selection.current.startsAt) > 1
+//          ? selection.current.startsAt
+//          : total > remainingHoursRef.current
+      const startsAt = total > remainingHoursRef.current
+          ? maxStartsAt
+          : newStartsAt
+//      const endsAt = hoursBetween(newEndsAt, selection.current.endsAt) > 1
+//          ? selection.current.endsAt
+//          : total > remainingHoursRef.current
+      const endsAt = total > remainingHoursRef.current
+          ? maxEndsAt
+          : newEndsAt;
       const s = {
           startedAtStarts: selection.current.startedAtStarts,
           startedAtEnds: selection.current.startedAtEnds,
-          startsAt: total > remainingHoursRef.current ?  maxStartsAt : newStartsAt,
-          endsAt: total > remainingHoursRef.current ? maxEndsAt : newEndsAt,
+          startsAt,
+          endsAt,
           carId: car.id,
         };
       setSelection(s);
@@ -558,8 +614,23 @@ const Booking = () => {
       selection.current = undefined;
     }, [ setSelection, selection ]);
   
-  const acceptSelection = useCallback(() => {
-    }, [  ]);
+  const acceptSelection = useCallback(event => {
+      event.preventDefault();
+      event.stopPropagation();
+      const addCarSharingReservation = async () => {
+          await carSharingApi.addCarSharingReservation({
+              carId: selection.current.carId,
+              carSharingReservation: {
+                driverMemberId: state.currentUser.memberId,
+                startsAt: selection.current.startsAt,
+                endsAt: selection.current.endsAt,
+                type: 'CS',
+              }
+            });
+          setSelection(undefined);
+        };
+      addCarSharingReservation();
+    }, [ carSharingApi, setSelection, selection, state.currentUser ]);
     
   useEffect(() => {
       window.addEventListener('mouseup', mouseUp);
@@ -580,6 +651,7 @@ const Booking = () => {
           render: (day: CalendarDay) => {
               return <DayTable
                   t={ t }
+                  drivers={ drivers }
                   day={ day }
                   car={ car }
                   selection={ selection.current }
@@ -599,7 +671,7 @@ const Booking = () => {
     const startsAt = endDate;
     const endsAt = nextHours(startsAt, itemsBatchSize, false);
     setEndDate(endsAt);
-    loadData(carSharingApi, startsAt, endsAt, days, setDays);
+    loadData(carSharingApi, startsAt, endsAt, days, setDays, drivers, setDrivers);
   };
   
   const headerHeight = '3rem';

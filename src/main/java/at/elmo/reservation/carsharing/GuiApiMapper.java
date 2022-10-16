@@ -24,6 +24,7 @@ public abstract class GuiApiMapper extends ReservationMapperBase {
 
     public abstract List<CarSharingCar> toApi(List<Car> car);
 
+    @Mapping(target = "avatar", source = "timestampOfAvatar")
     public abstract CarSharingDriver toApi(Member car);
 
     public abstract List<CarSharingDriver> toApi(Collection<Member> car);

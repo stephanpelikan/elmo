@@ -20,21 +20,21 @@ public class ReservationService {
             final LocalDateTime startsAt,
             final LocalDateTime endsAt) {
 
-        return reservations
-                .findOverlappingReservationsIds(startsAt, endsAt, car);
+        return reservations.findOverlappingReservationsIds(
+                startsAt,
+                endsAt,
+                car);
 
     }
 
     public List<ReservationBase> findReservations(
             final LocalDateTime startsAt,
-            final LocalDateTime endsAt,
-            final boolean history) {
+            final LocalDateTime endsAt) {
 
-        final Sort sort = history
-                ? Sort.by(Direction.DESC, "startsAt")
-                : Sort.by(Direction.ASC, "startsAt");
-
-        return reservations.findInPeriod(startsAt, endsAt, sort);
+        return reservations.findInPeriod(
+                startsAt,
+                endsAt,
+                Sort.by(Direction.ASC, "startsAt"));
 
     }
 

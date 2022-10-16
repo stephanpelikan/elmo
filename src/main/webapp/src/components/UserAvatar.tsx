@@ -1,10 +1,10 @@
-import { User as UserDto, Sex } from '../client/gui';
+import { User as UserDto, Sex, CarSharingDriver } from '../client/gui';
 import { User as UserMale, UserFemale } from 'grommet-icons';
 import { Avatar } from 'grommet';
 import { BorderType } from 'grommet/utils';
 
 type UserAvatarProps = {
-  user: UserDto;
+  user: UserDto | CarSharingDriver;
   border?: BorderType;
   size?: 'xsmall' | 'small' | 'medium' | 'large' | 'xlarge' | string;
 };

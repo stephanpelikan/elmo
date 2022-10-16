@@ -506,8 +506,6 @@ components:
         endsAt:
           type: string
           format: date-time
-        history:
-          type: boolean
     CarSharingDriver:
       type: object
       properties:
@@ -519,6 +517,9 @@ components:
           type: string
         sex:
           $ref: '#/components/schemas/Sex'
+        avatar:
+          type: integer
+          format: int64
         phoneNumber:
           type: string
     CarSharingCar:

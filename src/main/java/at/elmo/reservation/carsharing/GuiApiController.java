@@ -57,8 +57,7 @@ public class GuiApiController implements CarSharingApi {
 
         final var reservationsInPeriod = reservationService.findReservations(
                 request.getStartsAt(),
-                request.getEndsAt(),
-                request.getHistory() == null ? false : request.getHistory());
+                request.getEndsAt());
 
         final var carReservations = carService
                 .getCarSharingCars()
