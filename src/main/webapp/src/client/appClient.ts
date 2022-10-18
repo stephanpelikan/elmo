@@ -58,10 +58,7 @@ const AppMiddleware: Middleware = {
         return new Promise((resolve, reject) => {
             context
                 .fetch(new Request(context.url, context.init))
-                .then(result => {
-                    window.localStorage.removeItem(FLUTTER_REFRESH_TOKEN);
-                    resolve(result);
-                  })
+                .then(result => resolve(result))
                 .catch(error => {
                   if (error.response) { // server denied access
                     window.localStorage.removeItem(FLUTTER_REFRESH_TOKEN);
@@ -79,7 +76,7 @@ const AppMiddleware: Middleware = {
       
       window.localStorage.setItem(FLUTTER_REFRESH_TOKEN, refreshToken);
       
-      const authToken = context.response.headers.get('Authorization');
+      const authToken = context.response.headers.get('authorization');
       if (authToken) {
         window.localStorage.setItem(FLUTTER_AUTH_TOKEN, authToken);
       } else {

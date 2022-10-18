@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './app/App';
-import { FlutterSupport, flutterSupported } from './app/FlutterSupport';
+import { FlutterSupport } from './app/FlutterSupport';
 import reportWebVitals from './reportWebVitals';
 import { AppContextProvider } from './AppContext';
 import "@fontsource/roboto/latin-300.css";
@@ -26,7 +26,7 @@ ReactDOM.render(
   <React.StrictMode>
     <AppContextProvider>
       <App />
-      { flutterSupported ? <FlutterSupport /> : <></> }
+      <FlutterSupport />
     </AppContextProvider>
   </React.StrictMode>,
   document.getElementById('root')
