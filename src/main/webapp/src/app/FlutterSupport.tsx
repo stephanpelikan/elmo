@@ -1,63 +1,100 @@
-import { Ready } from './Ready';
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { Box } from 'grommet';
 import { useAppApi } from './car-app/CarAppContext';
 
-const FLUTTER_REFRESH_TOKEN = "Flutter-Refresh-Token";
-const FLUTTER_AUTH_TOKEN = "Flutter-Auth-Token";
+const FLUTTER_REFRESH_TOKEN = "flutter-refresh-token";
+const FLUTTER_AUTH_TOKEN = "flutter-auth-token";
 
 const CarAppSupport = lazy(() => import('./car-app/CarAppSupport'));
 
 // @ts-ignore
 const consoleCommunicator = typeof webkit !== 'undefined' ? webkit.messageHandlers.consoleToFlutter : window.consoleToFlutter;
 const flutterSupported = !!consoleCommunicator;
+// @ts-ignore
+const nativeCommunicator = typeof webkit !== 'undefined' ? webkit.messageHandlers.native : window.native;
+
+const sendReadyMessage = () => {
+
+  const storedToken = window.localStorage.getItem(FLUTTER_REFRESH_TOKEN);
+  const carAppIsActive = Boolean(storedToken);
+
+  if (nativeCommunicator) {
+    nativeCommunicator.postMessage(JSON.stringify([
+        {
+          "type": "Ready",
+          "carAppActive": carAppIsActive
+        }
+      ]));
+  } else {
+    console.log(`Ready; Car-App-Active: ${carAppIsActive ? 'Yes' : 'No'}`);
+  }
+    
+};
 
 const FlutterSupport = () => {
 
   const appApi = useAppApi();
 
-  const [ isCarApp, setIsCarApp ] = useState(!!window.localStorage.getItem(FLUTTER_REFRESH_TOKEN));
+  const [ isCarApp, setIsCarApp ] = useState(false);
   
   useEffect(() => {
 
+      if (!flutterSupported) {
+        return;
+      }
+      
       window.console = new FlutterConsole();
       console.log("Welcome Flutter");
     
       const storedToken = window.localStorage.getItem(FLUTTER_REFRESH_TOKEN);
       const carAppIsActive = Boolean(storedToken);
       if (!carAppIsActive) {
+        sendReadyMessage();
         // @ts-ignore 
         window['activateAppCallback'] = async (token?: string) => {
             let result: boolean;
             if (token) {
               window.localStorage.setItem(FLUTTER_REFRESH_TOKEN, token);
-              await appApi.testAppActivation();
-              result = true;
+              try {
+                await appApi.testAppActivation();
+                result = true;
+              } catch (e) {
+                window.localStorage.removeItem(FLUTTER_REFRESH_TOKEN);
+                window.localStorage.removeItem(FLUTTER_AUTH_TOKEN);
+                result = false;
+              }
             } else {
               window.localStorage.removeItem(FLUTTER_REFRESH_TOKEN);
+              window.localStorage.removeItem(FLUTTER_AUTH_TOKEN);
               result = false;
             }
             setIsCarApp(result);
             // @ts-ignore 
             window['activateAppCallback'] = undefined;
-            return result;
+            sendReadyMessage();
           };
+      } else {
+        const testAppActivation = async () => {
+            await appApi.testAppActivation();
+            setIsCarApp(true);
+            sendReadyMessage();
+          };
+        testAppActivation();
       }
       
       // @ts-ignore 
       return () => window['activateAppCallback'] = undefined;
       
-    }, [ setIsCarApp, appApi ]);
+    }, [ appApi ]);
 
-  return (
-    <Suspense fallback={<Box>Loading...</Box>}>
-      { isCarApp ? <CarAppSupport /> : <></> }
-      <Ready />
-    </Suspense>);
+  return isCarApp
+        ? <Suspense fallback=''>
+            <CarAppSupport />
+          </Suspense>
+        : <></>;
  
 }
 
-export { FlutterSupport, FLUTTER_AUTH_TOKEN, FLUTTER_REFRESH_TOKEN, flutterSupported };
+export { FlutterSupport, FLUTTER_AUTH_TOKEN, FLUTTER_REFRESH_TOKEN };
 
 interface Counts {
   [key: string]: number;

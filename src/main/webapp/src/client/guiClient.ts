@@ -3,7 +3,7 @@ import { Dispatch } from '../AppContext';
 import buildFetchApi from './fetchApi';
 import { Cookies } from "react-cookie";
 
-const REFRESH_TOKEN_HEADER = "X-Refresh-Token";
+const REFRESH_TOKEN_HEADER = "x-refresh-token";
 
 const RefreshAwareMiddleware: Middleware = {
   
