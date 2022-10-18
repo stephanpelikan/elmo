@@ -124,8 +124,11 @@ export const theme: ThemeType = {
         background: {
           color: 'accent-2',
           opacity: 'strong'
-        }
-      }
+        },
+        extend: css`
+          z-index: 999;
+        `
+      },
     }
   },
   page: {
