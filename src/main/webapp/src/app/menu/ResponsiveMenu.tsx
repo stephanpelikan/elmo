@@ -58,7 +58,7 @@ const ResponsiveMenu = () => {
             target='document'>
           <Box
               ref={ ref }
-              style={ { position: 'absolute', right: '0', zIndex: 1000 } }
+              style={ { position: 'absolute', right: '0', zIndex: 20 } }
               flex
               basis='medium'
               width='medium'

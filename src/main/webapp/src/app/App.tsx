@@ -126,7 +126,7 @@ export const theme: ThemeType = {
           opacity: 'strong'
         },
         extend: css`
-          z-index: 999;
+          z-index: 19;
         `
       },
     }
