@@ -18,6 +18,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -42,6 +43,9 @@ public class GuiApiController implements CarSharingApi {
     @Autowired
     private CarSharingService carSharingService;
 
+    @Autowired
+    private CarSharingProperties properties;
+    
     @Autowired
     private UserContext userContext;
 
@@ -87,6 +91,7 @@ public class GuiApiController implements CarSharingApi {
         result.setRemainingHours(
                 driver.getHoursServedPassangerService()
                 - driver.getHoursConsumedCarSharing());
+        result.setMaxHours(properties.getMaxHours());
 
         return ResponseEntity.ok(result);
 
@@ -120,6 +125,19 @@ public class GuiApiController implements CarSharingApi {
                 || (carSharingReservation.getEndsAt() == null)) {
             return ResponseEntity.badRequest().build();
         }
+        
+        final var hours = Duration
+    			.between(
+						carSharingReservation.getStartsAt(),
+						carSharingReservation.getEndsAt())
+    			.toHours();
+        final var newHoursConsumedCarSharing =
+        		driver.getHoursConsumedCarSharing()
+        		+ hours;
+        if (newHoursConsumedCarSharing > driver.getHoursServedPassangerService()) {
+        	return ResponseEntity.badRequest().build();
+        }
+        
         final var overlappings = reservationService.checkForOverlappings(
                 car.get(),
                 carSharingReservation.getStartsAt(),

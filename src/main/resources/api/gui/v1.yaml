@@ -554,6 +554,9 @@ components:
         remainingHours:
           type: integer
           format: int32
+        maxHours:
+          type: integer
+          format: int32
         drivers:
           type: array
           items:

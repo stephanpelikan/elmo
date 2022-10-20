@@ -2,6 +2,7 @@ package at.elmo.config;
 
 import at.elmo.car.CarProperties;
 import at.elmo.config.websockets.WebsocketProperties;
+import at.elmo.reservation.carsharing.CarSharingProperties;
 import at.elmo.reservation.passangerservice.PassangerServiceProperties;
 import at.elmo.util.email.EmailProperties;
 import at.elmo.util.sms.SmsProperties;
@@ -87,6 +88,8 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties, AsyncPro
     private CarProperties cars;
 
     private PassangerServiceProperties passangerService;
+    
+    private CarSharingProperties carSharing;
 
     @NonNull
     private String passanagerServicePhoneNumber;
@@ -289,4 +292,12 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties, AsyncPro
         this.passangerService = passangerService;
     }
 
+    public CarSharingProperties getCarSharing() {
+		return carSharing;
+	}
+    
+    public void setCarSharing(CarSharingProperties carSharing) {
+		this.carSharing = carSharing;
+	}
+    
 }

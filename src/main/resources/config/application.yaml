@@ -4,6 +4,9 @@ elmo:
     supported: true
   initial-new-member-id: 1
   admin-member-id: 1
+  car-sharing:
+    max-hours: 48
+    max-reservations: 3
   cors:
     allowedHeaders:
     - '*'

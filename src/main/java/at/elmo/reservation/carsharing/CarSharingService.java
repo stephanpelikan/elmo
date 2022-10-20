@@ -44,6 +44,10 @@ public class CarSharingService {
         carSharing.setEndsAt(endsAt);
         carSharing.setStatus(Status.RESERVED);
 
+    	final var newHours = driver.getHoursConsumedCarSharing()
+    			+ carSharing.getHours();
+    	driver.setHoursConsumedCarSharing(newHours);
+
         processService.startWorkflow(carSharing);
 
     }
@@ -117,7 +121,8 @@ public class CarSharingService {
     }
 
     @WorkflowTask
-    public void recordUsage() {
+    public void recordUsage(
+    		final CarSharing carSharing) {
 
     }
 

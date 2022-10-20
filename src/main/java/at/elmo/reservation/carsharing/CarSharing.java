@@ -3,6 +3,9 @@ package at.elmo.reservation.carsharing;
 import at.elmo.member.Member;
 import at.elmo.reservation.ReservationBase;
 
+import java.time.ZoneId;
+import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
@@ -64,6 +67,24 @@ public class CarSharing extends ReservationBase {
 
     public void setComment(String comment) {
         this.comment = comment;
+    }
+
+    public Date getFifteenMinutesBeforeStart() {
+
+        return Date.from(getStartsAt()
+                .minusMinutes(15)
+                .atZone(ZoneId.systemDefault())
+                .toInstant());
+
+    }
+
+    public Date getTwoHoursAfterEnd() {
+
+        return Date.from(getEndsAt()
+                .plusHours(2)
+                .atZone(ZoneId.systemDefault())
+                .toInstant());
+
     }
 
 }

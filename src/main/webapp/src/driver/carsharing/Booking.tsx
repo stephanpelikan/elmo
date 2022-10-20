@@ -6,9 +6,9 @@ import { currentHour, nextHours, timeAsString, hoursBetween } from '../../utils/
 import { SnapScrollingDataTable } from '../../components/SnapScrollingDataTable';
 import { UserAvatar } from '../../components/UserAvatar';
 import { useCarSharingApi } from '../DriverAppContext';
-import { CarSharingApi, CarSharingCar, CarSharingDriver, CarSharingReservation } from "../../client/gui";
+import { CarSharingApi, CarSharingCar, CarSharingDriver, CarSharingReservation, User } from "../../client/gui";
 import { CSSProperties, memo, MouseEvent, useCallback, useEffect, useRef, useState } from "react";
-import { BorderType } from "grommet/utils";
+import { BackgroundType, BorderType } from "grommet/utils";
 import { TFunction } from "i18next";
 import styled from "styled-components";
 import { normalizeColor,  } from "grommet/utils";
@@ -20,12 +20,18 @@ i18n.addResources('en', 'driver/carsharing/booking', {
       "reservation-type_BLOCK": "Unavailable",
       "reservation-type_PS": "Passanger Service",
       "remaining": "Remaining hours",
+      "max-hours": "Largest reservation possible",
+      "no-remaining-hours_title": "Car-Sharing",
+      "no-remaining-hours_msg": "The quota has been used up!",
     });
 i18n.addResources('de', 'driver/carsharing/booking', {
       "loading": "Lade Daten...",
       "reservation-type_BLOCK": "Nicht verfügbar",
       "reservation-type_PS": "Fahrtendienst",
       "remaining": "Verbleibende Stunden",
+      "max-hours": "Größtmögliche Reservierung",
+      "no-remaining-hours_title": "Car-Sharing",
+      "no-remaining-hours_msg": "Das Kontingent ist aufgebraucht!",
     });
 
 const itemsBatchSize = 48;
@@ -56,7 +62,12 @@ interface Selection {
   startsAt: Date;
   endsAt: Date;
   carId: string;
-}
+};
+
+interface Restrictions {
+  maxHours: number;
+  remainingHours: number;
+};
 
 const dayEffectedBySelection
     : (day: CalendarDay, selection: Selection) => boolean
@@ -102,7 +113,7 @@ const StyledSelectionBox = styled(Box)<{
     left: -3px;
     top: ${props => props.isFirstHourOfSelection ? '-3px' : '0'};
     min-height: 100%;
-    z-index: ${props => props.numberOfHours - props.currentHour + 1};
+    z-index: ${props => props.currentHour === 0 ? 2 : 1};
   `;
 
 const SelectionBox = ({ hour, selection, mouseDownOnDrag, cancelSelection, acceptSelection }: {
@@ -271,16 +282,18 @@ const CarSharingReservationBox = ({ drivers, hour }: {
 
 const DayTable = memo<{
     t: TFunction,
+    currentUser: User,
     drivers: ReservationDrivers,
     car: CarSharingCar,
+    days: CalendarDay[],
     day: CalendarDay,
     selection: Selection,
     cancelSelection: (event: MouseEvent) => void,
     acceptSelection: (event: MouseEvent) => void,
     mouseDownOnDrag: (event: MouseEvent, top: boolean) => void,
     mouseDownOnHour: (event: MouseEvent, car: CarSharingCar, hour: CalendarHour) => void,
-    mouseEnterHour: (event: MouseEvent, car: CarSharingCar, hour: CalendarHour) => void }>(
-  ({ t, drivers, car, day, selection, cancelSelection, acceptSelection, mouseDownOnHour, mouseEnterHour, mouseDownOnDrag }) => {
+    mouseEnterHour: (event: MouseEvent, car: CarSharingCar, days: CalendarDay[], day: CalendarDay, hour: CalendarHour) => void }>(
+  ({ t, currentUser, drivers, car, days, day, selection, cancelSelection, acceptSelection, mouseDownOnHour, mouseEnterHour, mouseDownOnDrag }) => {
 
     const hours = day.hours[car.id];
 
@@ -288,17 +301,25 @@ const DayTable = memo<{
         property: '-not-used-but-mandatory-',
         sortable: false,
         render: (hour: CalendarHour) => {
+            const borderColor = hour.reservation?.driverMemberId === currentUser.memberId
+                ? 'accent-3'
+                : 'dark-4';
+            const backgroundColor: BackgroundType = hour.reservation
+                ? hour.reservation?.driverMemberId === currentUser.memberId
+                ? { color: 'accent-3', opacity: 'strong' }
+                : 'light-4'
+                : undefined;
             const borders = [];
             let hasTopBorder = false;
             let hasBottomBorder = false;
             if (hour.reservation) {
-              borders.push({ side: "vertical", color: 'dark-4', size: '1px' });
+              borders.push({ side: "vertical", color: borderColor, size: '1px' });
               if (hour.reservation.startsAt.getTime() === hour.startsAt.getTime()) {
-                borders.push({ side: "top", color: 'dark-4', size: '1px' });
+                borders.push({ side: "top", color: borderColor, size: '1px' });
                 hasTopBorder = true;
               }
               if (hour.reservation.endsAt.getTime() === hour.endsAt.getTime()) {
-                borders.push({ side: "bottom", color: 'dark-4', size: '1px' });
+                borders.push({ side: "bottom", color: borderColor, size: '1px' });
                 hasBottomBorder = true;
               }
             }
@@ -334,7 +355,7 @@ const DayTable = memo<{
                             event.stopPropagation();
                             return;
                           }
-                          mouseEnterHour(event, car, hour);
+                          mouseEnterHour(event, car, days, day, hour);
                         } }
                       pad={ {
                           horizontal: 'xsmall',
@@ -348,7 +369,7 @@ const DayTable = memo<{
                           minHeight: '100%'
                         } }
                       margin={ { horizontal: '1rem' }}
-                      background={ hour.reservation ? 'light-4' : undefined }>{
+                      background={ backgroundColor }>{
                     ((hour.reservation?.startsAt.getTime() === hour.startsAt.getTime())
                         || (hour.reservation && (index === 0)))
                         ? hour.reservation.type === "CS"
@@ -414,15 +435,18 @@ const loadData = async (
       drivers: ReservationDrivers,
       setDrivers: (drivers: ReservationDrivers) => void,
       setCars?: (cars: Array<CarSharingCar>) => void,
-      setRemainingHours?: (hours: number) => void,
+      setRestrictions?: (restrictions: Restrictions) => void,
     ) => {
 
   const calendar = await carSharingApi.getCarSharingCalendar({
       carSharingCalendarRequest: { startsAt, endsAt }
     });
   
-  if (setRemainingHours) {
-    setRemainingHours(calendar.remainingHours);
+  if (setRestrictions) {
+    setRestrictions({
+        remainingHours: calendar.remainingHours,
+        maxHours: calendar.maxHours,
+      });
   }
   if (setCars) {
     setCars(calendar.cars);
@@ -494,28 +518,27 @@ const Booking = () => {
   const { t } = useTranslation('driver/carsharing/booking');
   const { isPhone } = useResponsiveScreen();
   const carSharingApi = useCarSharingApi();
-  const { state } = useAppContext();
+  const { state, toast } = useAppContext();
   
   const [ endDate, setEndDate ] = useState<Date>(undefined);
   const [ days, setDays]  = useState<Array<CalendarDay>>(undefined);
   const [ cars, setCars ] = useState<Array<CarSharingCar>>(undefined);
   const [ drivers, setDrivers ] = useState<ReservationDrivers>(undefined);
-  const [ remainingHours, _setRemainingHours ] = useState(-1);
-  const remainingHoursRef = useRef(remainingHours);
-  const setRemainingHours = useCallback((hours: number) => {
-      remainingHoursRef.current = hours;
-      _setRemainingHours(hours);
-    }, [ remainingHoursRef, _setRemainingHours ]);
+  const [ restrictions, _setRestrictions ] = useState<Restrictions>(undefined);
+  const restrictionsRef = useRef(restrictions);
+  const setRestrictions = useCallback((r: Restrictions) => {
+      restrictionsRef.current = r;
+      _setRestrictions(r);
+    }, [ restrictionsRef, _setRestrictions ]);
 
   useEffect(() => {
-      if (remainingHours === -1) {
+      if (restrictions === undefined) {
         const startsAt = currentHour(false);
         const endsAt = nextHours(startsAt, (24 - startsAt.getHours()) + 24, false);
         setEndDate(endsAt);
-        setRemainingHours(0);
-        loadData(carSharingApi, startsAt, endsAt, days, setDays, drivers, setDrivers, setCars, setRemainingHours);
+        loadData(carSharingApi, startsAt, endsAt, days, setDays, drivers, setDrivers, setCars, setRestrictions);
       }
-    }, [ carSharingApi, days, setDays, setRemainingHours, remainingHours, drivers, setDrivers ]);
+    }, [ carSharingApi, days, setDays, setRestrictions, drivers, setDrivers ]);
     
   const [ _isMouseDown, setMouseIsDown ] = useState(false);
   const isMouseDown = useRef(_isMouseDown);
@@ -540,7 +563,15 @@ const Booking = () => {
     }, [ setMouseIsDown, setSelection ]);
   const mouseDownOnHour = useCallback((event: MouseEvent, car: CarSharingCar, hour: CalendarHour) => {
       if (isMouseDown.current) return;
-      if (remainingHoursRef.current < 1) return;
+      if (restrictionsRef.current.remainingHours < 1) {
+        toast({
+            namespace: 'driver/car-sharing/booking',
+            title: t('no-remaining-hours_title'),
+            message: t('no-remaining-hours_msg'),
+            status: 'warning'
+          });
+        return;
+      }
       event.preventDefault();
       event.stopPropagation();
       setMouseIsDown(true);
@@ -555,38 +586,80 @@ const Booking = () => {
       setSelection(s);
       selection.current = s;
     }, [ setMouseIsDown, setSelection ]);
-  const mouseEnterHour = useCallback((event: MouseEvent, car: CarSharingCar, hour: CalendarHour) => {
+  const mouseEnterHour = useCallback((event: MouseEvent, car: CarSharingCar, days: CalendarDay[], day: CalendarDay, hour: CalendarHour) => {
       if (!isMouseDown.current) return;
       if (car.id !== selection.current.carId) return;
       event.preventDefault();
       event.stopPropagation();
       const wasUpperBoundaryChanged = hour.startsAt.getTime() < selection.current.startedAtStarts.getTime();
-      const newStartsAt = wasUpperBoundaryChanged
-          ? hour.startsAt
-          : selection.current.startedAtStarts;
-      const maxStartsAt = wasUpperBoundaryChanged
-          ? nextHours(selection.current.startedAtEnds, remainingHoursRef.current, true)
-          : selection.current.startedAtStarts;
       const wasLowerBoundaryChanged = hour.endsAt.getTime() > selection.current.startedAtEnds.getTime();
-      const newEndsAt = wasLowerBoundaryChanged
-          ? hour.endsAt
-          : selection.current.startedAtEnds;
-      const maxEndsAt = wasLowerBoundaryChanged
-          ? nextHours(selection.current.startedAtStarts, remainingHoursRef.current, false)
-          : selection.current.startedAtEnds;
-      const total = hoursBetween(newStartsAt, newEndsAt);
-//      const startsAt = hoursBetween(newStartsAt, selection.current.startsAt) > 1
-//          ? selection.current.startsAt
-//          : total > remainingHoursRef.current
-      const startsAt = total > remainingHoursRef.current
-          ? maxStartsAt
-          : newStartsAt
-//      const endsAt = hoursBetween(newEndsAt, selection.current.endsAt) > 1
-//          ? selection.current.endsAt
-//          : total > remainingHoursRef.current
-      const endsAt = total > remainingHoursRef.current
-          ? maxEndsAt
-          : newEndsAt;
+      const hours = day.hours[car.id];
+      const indexOfHour = hours.indexOf(hour);
+      const indexOfDay = days.indexOf(day);
+      let startsAt = selection.current.startedAtStarts;
+      // check for selection-rules of upper boundary:
+      if (wasUpperBoundaryChanged) {
+        // reducing the selection will always be fine, only increasing has to checked:
+        if (hour.startsAt.getTime() > selection.current.startsAt.getTime()) {
+          startsAt = hour.startsAt;
+        } else {
+          const maxStartsAt = nextHours(
+              selection.current.startedAtEnds,
+              Math.min(restrictionsRef.current.remainingHours, restrictionsRef.current.maxHours),
+              true);
+          const indexOfStartsAt = indexOfHour
+              + hoursBetween(selection.current.startsAt, hour.startsAt);
+          // test each hour beginning at last selection start:
+          startsAt = selection.current.startsAt;
+          for (let i = 1; startsAt.getTime() !== hour.startsAt.getTime(); ++i) {
+            // until period hits remaining-hours boundary:
+            if (startsAt.getTime() === maxStartsAt.getTime()) break;
+            // or until first reservation is found:
+            const indexToTest = indexOfStartsAt - i;
+            const absoluteIndexToTest = indexOfDay === 0
+                ? indexToTest
+                : days[0].hours[car.id].length + 24 * (indexOfDay - 1) + indexToTest;
+            const dayOffset = absoluteIndexToTest < days[0].hours[car.id].length ? 0 : days[0].hours[car.id].length;
+            const indexOfDayToTest = Math.floor((absoluteIndexToTest - dayOffset) / 24) + (indexOfDay === 0 ? 0 : 1);
+            const indexOfHourToTest = (absoluteIndexToTest - dayOffset) % 24;
+            const hourToTest = days[ indexOfDayToTest ].hours[car.id][ indexOfHourToTest ];
+            if (hourToTest.reservation) break;
+            startsAt = nextHours(selection.current.startsAt, i, true);
+          }
+        }
+      }
+      let endsAt = selection.current.startedAtEnds;
+      // check for selection-rules of lower boundary:
+      if (wasLowerBoundaryChanged) {
+        // reducing the selection will always be fine, only increasing has to checked:
+        if (hour.endsAt.getTime() < selection.current.endsAt.getTime()) {
+          endsAt = hour.endsAt;
+        } else {
+          const maxEndsAt = nextHours(
+              selection.current.startedAtStarts,
+              Math.min(restrictionsRef.current.remainingHours, restrictionsRef.current.maxHours),
+              false);
+          const indexOfEndsAt = indexOfHour
+              - hoursBetween(selection.current.endsAt, hour.endsAt);
+          // test each hour beginning at last selection end:
+          endsAt = selection.current.endsAt;
+          for (let i = 1; endsAt.getTime() !== hour.endsAt.getTime(); ++i) {
+            // until period hits remaining-hours boundary:
+            if (endsAt.getTime() === maxEndsAt.getTime()) break;
+            // or until first reservation is found:
+            const indexToTest = indexOfEndsAt + i;
+            const absoluteIndexToTest = indexOfDay === 0
+                ? indexToTest
+                : days[0].hours[car.id].length + 24 * (indexOfDay - 1) + indexToTest;
+            const dayOffset = absoluteIndexToTest < days[0].hours[car.id].length ? 0 : days[0].hours[car.id].length;
+            const indexOfDayToTest = Math.floor((absoluteIndexToTest - dayOffset) / 24) + (indexOfDay === 0 ? 0 : 1);
+            const indexOfHourToTest = (absoluteIndexToTest - dayOffset) % 24;
+            const hourToTest = days[ indexOfDayToTest ].hours[car.id][ indexOfHourToTest ];
+            if (hourToTest.reservation) break;
+            endsAt = nextHours(selection.current.endsAt, i, false);
+          }
+        }
+      }
       const s = {
           startedAtStarts: selection.current.startedAtStarts,
           startedAtEnds: selection.current.startedAtEnds,
@@ -651,7 +724,9 @@ const Booking = () => {
           render: (day: CalendarDay) => {
               return <DayTable
                   t={ t }
+                  currentUser={ state.currentUser }
                   drivers={ drivers }
+                  days={ days }
                   day={ day }
                   car={ car }
                   selection={ selection.current }
@@ -677,14 +752,17 @@ const Booking = () => {
   const headerHeight = '3rem';
   const phoneMargin = '10vw';
   
-  const currentRemainingHours = remainingHours
-      - (selection.current !== undefined ? hoursBetween(selection.current.endsAt, selection.current.startsAt) : 0);
+  const currentRemainingHours = restrictions === undefined
+      ? '-'
+      : (restrictions.remainingHours - (selection.current !== undefined ? hoursBetween(selection.current.endsAt, selection.current.startsAt) : 0));
   
   return (
       <>
         <Box
-            align='center'
+            direction="row"
+            justify="center"
             background='dark-3'
+            gap='small'
             pad='small'>
           <Text>
             { t('remaining') }:
@@ -699,7 +777,14 @@ const Booking = () => {
                         : currentRemainingHours < 5
                         ? 'status-warning'
                         : 'white' }>
-              &nbsp;{ currentRemainingHours }h
+              &nbsp;{ currentRemainingHours } h
+            </Text>
+          </Text>
+          <Text>
+            { t('max-hours') }:
+            <Text
+                weight='bold'>
+              &nbsp;{ restrictions === undefined ? '-' : restrictions.maxHours } h
             </Text>
           </Text>
         </Box>

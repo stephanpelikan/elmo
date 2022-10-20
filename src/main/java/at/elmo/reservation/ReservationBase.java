@@ -5,6 +5,7 @@ import at.elmo.util.spring.PersistenceBase;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
@@ -51,24 +52,14 @@ public abstract class ReservationBase extends PersistenceBase<String> {
     @JoinColumn(name = "CAR", referencedColumnName = "ID")
     private Car car;
 
-    public Date getFifteenMinutesBeforeStart() {
-
-        return Date.from(getStartsAt()
-                .minusMinutes(15)
-                .atZone(ZoneId.systemDefault())
-                .toInstant());
-
+    public int getHours() {
+    	
+    	return (int) Duration
+    			.between(startsAt, endsAt)
+    			.toHours();
+    	
     }
-
-    public Date getTwoHoursAfterEnd() {
-
-        return Date.from(getEndsAt()
-                .plusHours(2)
-                .atZone(ZoneId.systemDefault())
-                .toInstant());
-
-    }
-
+    
     public Date getStartsAtDate() {
 
         return Date.from(getStartsAt()
