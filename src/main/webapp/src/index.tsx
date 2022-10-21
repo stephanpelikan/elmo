@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import App from './app/App';
 import { FlutterSupport } from './app/FlutterSupport';
 import reportWebVitals from './reportWebVitals';
@@ -22,15 +22,13 @@ Date.prototype.toISOString = function() {
     return `${this.getFullYear()}-${String(this.getMonth() + 1).padStart(2, '0')}-${String(this.getDate()).padStart(2, '0')}T${String(this.getHours()).padStart(2, '0')}:${String(this.getMinutes()).padStart(2, '0')}:${String(this.getSeconds()).padStart(2, '0')}.${String(this.getMilliseconds()).padStart(3, '0')}`;
   };
 
-ReactDOM.render(
-  <React.StrictMode>
-    <AppContextProvider>
-      <App />
-      <FlutterSupport />
-    </AppContextProvider>
-  </React.StrictMode>,
-  document.getElementById('root')
-);
+const container = document.getElementById('root');
+const root = createRoot(container);
+root.render(
+  <AppContextProvider>
+    <App />
+    <FlutterSupport />
+  </AppContextProvider>);
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))

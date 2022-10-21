@@ -7,7 +7,7 @@ import { SnapScrollingDataTable } from '../../components/SnapScrollingDataTable'
 import { UserAvatar } from '../../components/UserAvatar';
 import { useCarSharingApi } from '../DriverAppContext';
 import { CarSharingApi, CarSharingCar, CarSharingDriver, CarSharingReservation, User } from "../../client/gui";
-import { CSSProperties, memo, MouseEvent, useCallback, useEffect, useRef, useState } from "react";
+import { CSSProperties, memo, MouseEvent, startTransition, useCallback, useEffect, useRef, useState } from "react";
 import { BackgroundType, BorderType } from "grommet/utils";
 import { TFunction } from "i18next";
 import styled from "styled-components";
@@ -380,7 +380,7 @@ const DayTable = memo<{
                         ? <CarSharingReservationBox
                             hour={ hour }
                             drivers={ drivers } />
-                        : <Text>{ t(`reservation-type_${hour.reservation.type}`) }</Text>
+                        : <Text>{ t(`reservation-type_${hour.reservation.type}` as const) }</Text>
                         : hasSelection
                         ? <SelectionBox
                               hour={ hour }
@@ -537,12 +537,14 @@ const Booking = () => {
 
   useEffect(() => {
       if (restrictions === undefined) {
-        const startsAt = currentHour(false);
-        const endsAt = nextHours(startsAt, (24 - startsAt.getHours()) + 24, false);
-        setEndDate(endsAt);
-        loadData(carSharingApi, startsAt, endsAt, days, setDays, drivers, setDrivers, setCars, setRestrictions);
+        startTransition(() => {
+            const startsAt = currentHour(false);
+            const endsAt = nextHours(startsAt, (24 - startsAt.getHours()) + 24, false);
+            setEndDate(endsAt);
+            loadData(carSharingApi, startsAt, endsAt, days, setDays, drivers, setDrivers, setCars, setRestrictions);
+          });
       }
-    }, [ carSharingApi, days, setDays, setRestrictions, drivers, setDrivers ]);
+    }, [ carSharingApi, days, setDays, restrictions, setRestrictions, drivers, setDrivers ]);
     
   const [ _isMouseDown, setMouseIsDown ] = useState(false);
   const isMouseDown = useRef(_isMouseDown);
@@ -553,8 +555,6 @@ const Booking = () => {
       if (isMouseDown.current) return;
       event.preventDefault();
       event.stopPropagation();
-      setMouseIsDown(true);
-      isMouseDown.current = true;
       const s = {
           startedAtStarts: top ? selection.current.endsAt : selection.current.startsAt,
           startedAtEnds: top ? selection.current.endsAt : selection.current.startsAt,
@@ -562,8 +562,12 @@ const Booking = () => {
           endsAt: selection.current.endsAt,
           carId: selection.current.carId,
         };
-      setSelection(s);
-      selection.current = s;
+      startTransition(() => {
+          selection.current = s;
+          setSelection(s);
+          isMouseDown.current = true;
+          setMouseIsDown(true);
+        });
     }, [ setMouseIsDown, setSelection ]);
   const mouseDownOnHour = useCallback((event: MouseEvent, car: CarSharingCar, hour: CalendarHour) => {
       if (isMouseDown.current) return;
@@ -578,8 +582,6 @@ const Booking = () => {
       }
       event.preventDefault();
       event.stopPropagation();
-      setMouseIsDown(true);
-      isMouseDown.current = true;
       const s = {
           startedAtStarts: hour.startsAt,
           startedAtEnds: hour.endsAt,
@@ -587,9 +589,13 @@ const Booking = () => {
           endsAt: hour.endsAt,
           carId: car.id
         };
-      setSelection(s);
-      selection.current = s;
-    }, [ setMouseIsDown, setSelection ]);
+      startTransition(() => {
+          selection.current = s;
+          setSelection(s);
+          isMouseDown.current = true;
+          setMouseIsDown(true);
+        });
+    }, [ setMouseIsDown, t, toast, selection, setSelection ]);
   const mouseEnterHour = useCallback((event: MouseEvent, car: CarSharingCar, days: CalendarDay[], day: CalendarDay, hour: CalendarHour) => {
       if (!isMouseDown.current) return;
       if (car.id !== selection.current.carId) return;
@@ -671,8 +677,8 @@ const Booking = () => {
           endsAt,
           carId: car.id,
         };
-      setSelection(s);
       selection.current = s;
+      setSelection(s);
     }, [ isMouseDown, setSelection, selection ]);
   const mouseMove = useCallback(event => {
       if (!isMouseDown.current) return;
@@ -680,15 +686,15 @@ const Booking = () => {
       event.stopPropagation();
     }, [ isMouseDown ]);
   const mouseUp = useCallback(() => {
-      setMouseIsDown(false);
       isMouseDown.current = false;
+      setMouseIsDown(false);
     }, [ setMouseIsDown ]);
   
   const cancelSelection = useCallback(event => {
       event.preventDefault();
       event.stopPropagation();
-      setSelection(undefined);
       selection.current = undefined;
+      setSelection(undefined);
     }, [ setSelection, selection ]);
   
   const acceptSelection = useCallback(event => {
@@ -720,7 +726,7 @@ const Booking = () => {
           } 
         };
       addCarSharingReservation();
-    }, [ carSharingApi, setSelection, selection, state.currentUser ]);
+    }, [ carSharingApi, t, toast, setSelection, selection, state.currentUser ]);
     
   useEffect(() => {
       window.addEventListener('mouseup', mouseUp);
@@ -760,10 +766,12 @@ const Booking = () => {
     if (days.length === 0) return;
     const day = days[ days.length - 1 ];
     if (!day) return;
-    const startsAt = endDate;
-    const endsAt = nextHours(startsAt, itemsBatchSize, false);
-    setEndDate(endsAt);
-    loadData(carSharingApi, startsAt, endsAt, days, setDays, drivers, setDrivers);
+    startTransition(() => {
+        const startsAt = endDate;
+        const endsAt = nextHours(startsAt, itemsBatchSize, false);
+        setEndDate(endsAt);
+        loadData(carSharingApi, startsAt, endsAt, days, setDays, drivers, setDrivers);
+      });
   };
   
   const headerHeight = '3rem';
@@ -782,7 +790,7 @@ const Booking = () => {
             gap='small'
             pad='small'>
           <Text>
-            { t('remaining') }:
+            <>{ t('remaining') }:</>
             <Text
                 weight='bold'
                 style={ {
@@ -798,7 +806,7 @@ const Booking = () => {
             </Text>
           </Text>
           <Text>
-            { t('max-hours') }:
+            <>{ t('max-hours') }:</>
             <Text
                 weight='bold'>
               &nbsp;{ restrictions === undefined ? '-' : restrictions.maxHours } h
