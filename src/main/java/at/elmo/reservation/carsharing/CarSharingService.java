@@ -30,6 +30,16 @@ public class CarSharingService {
     @Autowired
     private ProcessService<CarSharing> processService;
 
+    public long numberOfFutureCarSharings(
+            final Member driver) {
+
+        return carSharings.countByStatusAndStartsAtGreaterThanEqualAndDriver_Id(
+                Status.RESERVED,
+                LocalDateTime.now(),
+                driver.getId());
+
+    }
+
     public void addCarSharing(
             final Car car,
             final LocalDateTime startsAt,
@@ -122,7 +132,7 @@ public class CarSharingService {
 
     @WorkflowTask
     public void recordUsage(
-    		final CarSharing carSharing) {
+            final CarSharing carSharing) {
 
     }
 

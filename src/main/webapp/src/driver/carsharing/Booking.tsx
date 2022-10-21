@@ -23,6 +23,8 @@ i18n.addResources('en', 'driver/carsharing/booking', {
       "max-hours": "Largest reservation possible",
       "no-remaining-hours_title": "Car-Sharing",
       "no-remaining-hours_msg": "The quota has been used up!",
+      "max-reservations_title": "Car-Sharing",
+      "max-reservations_msg": "The maximum number of car-sharing reservations is reached: {{maxReservations}}!",
     });
 i18n.addResources('de', 'driver/carsharing/booking', {
       "loading": "Lade Daten...",
@@ -32,6 +34,8 @@ i18n.addResources('de', 'driver/carsharing/booking', {
       "max-hours": "Größtmögliche Reservierung",
       "no-remaining-hours_title": "Car-Sharing",
       "no-remaining-hours_msg": "Das Kontingent ist aufgebraucht!",
+      "max-reservations_title": "Car-Sharing",
+      "max-reservations_msg": "Du hast bereits die maximale Anzahl an Car-Sharing-Reservierungen gebucht: {{maxReservations}}!",
     });
 
 const itemsBatchSize = 48;
@@ -691,16 +695,29 @@ const Booking = () => {
       event.preventDefault();
       event.stopPropagation();
       const addCarSharingReservation = async () => {
-          await carSharingApi.addCarSharingReservation({
-              carId: selection.current.carId,
-              carSharingReservation: {
-                driverMemberId: state.currentUser.memberId,
-                startsAt: selection.current.startsAt,
-                endsAt: selection.current.endsAt,
-                type: 'CS',
-              }
-            });
-          setSelection(undefined);
+          try {
+            await carSharingApi.addCarSharingReservation({
+                carId: selection.current.carId,
+                carSharingReservation: {
+                  driverMemberId: state.currentUser.memberId,
+                  startsAt: selection.current.startsAt,
+                  endsAt: selection.current.endsAt,
+                  type: 'CS',
+                }
+              });
+            setSelection(undefined);
+          } catch (error) {
+            if (error.response?.json) {
+              const violations = await error.response?.json()
+              console.warn(violations);
+              toast({
+                  namespace: 'driver/car-sharing/booking',
+                  title: t('max-reservations_title'),
+                  message: t('max-reservations_msg', { maxReservations: violations["max-reservations"] }),
+                  status: 'critical'
+                });
+            }
+          } 
         };
       addCarSharingReservation();
     }, [ carSharingApi, setSelection, selection, state.currentUser ]);

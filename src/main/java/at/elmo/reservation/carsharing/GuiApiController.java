@@ -9,6 +9,7 @@ import at.elmo.gui.api.v1.CarSharingReservation;
 import at.elmo.gui.api.v1.CarSharingReservationType;
 import at.elmo.reservation.ReservationService;
 import at.elmo.util.UserContext;
+import at.elmo.util.exceptions.ElmoValidationException;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -137,6 +138,11 @@ public class GuiApiController implements CarSharingApi {
         if (newHoursConsumedCarSharing > driver.getHoursServedPassangerService()) {
         	return ResponseEntity.badRequest().build();
         }
+
+        if (carSharingService.numberOfFutureCarSharings(driver) >=
+                properties.getMaxReservations()) {
+            throw new ElmoValidationException("max-reservations", Long.toString(properties.getMaxReservations()));
+        }
         
         final var overlappings = reservationService.checkForOverlappings(
                 car.get(),
@@ -145,7 +151,7 @@ public class GuiApiController implements CarSharingApi {
         if (!overlappings.isEmpty()) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
-
+        
         try {
             carSharingService.addCarSharing(
                     car.get(),
