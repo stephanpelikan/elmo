@@ -128,15 +128,15 @@ public class GuiApiController implements CarSharingApi {
         }
         
         final var hours = Duration
-    			.between(
-						carSharingReservation.getStartsAt(),
-						carSharingReservation.getEndsAt())
-    			.toHours();
+                .between(
+                        carSharingReservation.getStartsAt(),
+                        carSharingReservation.getEndsAt())
+                .toHours();
         final var newHoursConsumedCarSharing =
-        		driver.getHoursConsumedCarSharing()
-        		+ hours;
+                driver.getHoursConsumedCarSharing()
+                + hours;
         if (newHoursConsumedCarSharing > driver.getHoursServedPassangerService()) {
-        	return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().build();
         }
 
         if (carSharingService.numberOfFutureCarSharings(driver) >=

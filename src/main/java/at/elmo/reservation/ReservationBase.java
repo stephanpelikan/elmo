@@ -53,11 +53,11 @@ public abstract class ReservationBase extends PersistenceBase<String> {
     private Car car;
 
     public int getHours() {
-    	
-    	return (int) Duration
-    			.between(startsAt, endsAt)
-    			.toHours();
-    	
+        
+        return (int) Duration
+                .between(startsAt, endsAt)
+                .toHours();
+        
     }
     
     public Date getStartsAtDate() {

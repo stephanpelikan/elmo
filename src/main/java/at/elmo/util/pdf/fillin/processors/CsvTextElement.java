@@ -5,92 +5,92 @@ import at.elmo.util.pdf.fillin.elements.TextElement;
 
 public class CsvTextElement implements TextElement {
 
-	private int pageNumber;
-	
-	private float horizontalPosition;
-	
-	private float verticalPosition;
-	
-	private Unit unit;
-	
-	private Font font;
-	
-	private float fontSize;
-	
-	private String text;
+    private int pageNumber;
+    
+    private float horizontalPosition;
+    
+    private float verticalPosition;
+    
+    private Unit unit;
+    
+    private Font font;
+    
+    private float fontSize;
+    
+    private String text;
 
-	private float maxLength;
+    private float maxLength;
 
-	@Override
+    @Override
     public int getPageNumber() {
-		return pageNumber;
-	}
+        return pageNumber;
+    }
 
-	public void setPageNumber(final int pageNumber) {
-		this.pageNumber = pageNumber;
-	}
+    public void setPageNumber(final int pageNumber) {
+        this.pageNumber = pageNumber;
+    }
 
-	@Override
+    @Override
     public float getHorizontalPosition() {
-		return horizontalPosition;
-	}
+        return horizontalPosition;
+    }
 
-	public void setHorizontalPosition(final float horizontalPosition) {
-		this.horizontalPosition = horizontalPosition;
-	}
+    public void setHorizontalPosition(final float horizontalPosition) {
+        this.horizontalPosition = horizontalPosition;
+    }
 
-	@Override
+    @Override
     public float getVerticalPosition() {
-		return verticalPosition;
-	}
+        return verticalPosition;
+    }
 
-	public void setVerticalPosition(final float verticalPosition) {
-		this.verticalPosition = verticalPosition;
-	}
+    public void setVerticalPosition(final float verticalPosition) {
+        this.verticalPosition = verticalPosition;
+    }
 
-	@Override
+    @Override
     public Unit getUnit() {
-		return unit;
-	}
+        return unit;
+    }
 
-	public void setUnit(final Unit unit) {
-		this.unit = unit;
-	}
+    public void setUnit(final Unit unit) {
+        this.unit = unit;
+    }
 
-	@Override
+    @Override
     public Font getFont() {
-		return font;
-	}
+        return font;
+    }
 
-	public void setFont(final Font font) {
-		this.font = font;
-	}
+    public void setFont(final Font font) {
+        this.font = font;
+    }
 
-	@Override
+    @Override
     public float getFontSize() {
-		return fontSize;
-	}
+        return fontSize;
+    }
 
-	public void setFontSize(final float fontSize) {
-		this.fontSize = fontSize;
-	}
+    public void setFontSize(final float fontSize) {
+        this.fontSize = fontSize;
+    }
 
-	@Override
+    @Override
     public String getText() {
-		return text;
-	}
+        return text;
+    }
 
-	public void setText(final String text) {
-		this.text = text;
-	}
+    public void setText(final String text) {
+        this.text = text;
+    }
 
-	@Override
+    @Override
     public float getMaxLength() {
-		return maxLength;
-	}
+        return maxLength;
+    }
 
-	public void setMaxLength(final float maxLength) {
-		this.maxLength = maxLength;
-	}
+    public void setMaxLength(final float maxLength) {
+        this.maxLength = maxLength;
+    }
 
 }

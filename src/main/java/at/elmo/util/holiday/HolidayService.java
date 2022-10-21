@@ -13,8 +13,8 @@ import java.util.Date;
  */
 public interface HolidayService {
 
-	boolean isHoliday();
-	
+    boolean isHoliday();
+    
     boolean isHoliday(Calendar date);
 
     boolean isHoliday(LocalDate date);

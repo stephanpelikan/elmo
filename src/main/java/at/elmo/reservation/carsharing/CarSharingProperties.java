@@ -8,24 +8,24 @@ public class CarSharingProperties {
 
     @NonNull
     private int maxHours;
-	
+    
     @NonNull
     private int maxReservations;
 
-	public int getMaxHours() {
-		return maxHours;
-	}
+    public int getMaxHours() {
+        return maxHours;
+    }
 
-	public void setMaxHours(int maxHours) {
-		this.maxHours = maxHours;
-	}
+    public void setMaxHours(int maxHours) {
+        this.maxHours = maxHours;
+    }
 
-	public int getMaxReservations() {
-		return maxReservations;
-	}
+    public int getMaxReservations() {
+        return maxReservations;
+    }
 
-	public void setMaxReservations(int maxReservations) {
-		this.maxReservations = maxReservations;
-	}
+    public void setMaxReservations(int maxReservations) {
+        this.maxReservations = maxReservations;
+    }
     
 }

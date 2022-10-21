@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog
-		xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
-		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd"
-		logicalFilePath="./00.00.01.xml">
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd"
+    logicalFilePath="./00.00.01.xml">
   <changeSet id="http-session-store" author="stephanpelikan">
     <comment>Create table necessary to use EnableJdbcHttpSession</comment>
     <sqlFile dbms="h2" path="classpath:org/springframework/session/jdbc/schema-h2.sql" relativeToChangelogFile="false" />
@@ -22,59 +22,59 @@
     <sqlFile dbms="!postgresql" path="classpath:org/springframework/security/oauth2/client/oauth2-client-schema.sql" relativeToChangelogFile="false" />
     <sqlFile dbms="postgresql" path="classpath:org/springframework/security/oauth2/client/oauth2-client-schema-postgres.sql" relativeToChangelogFile="false" />
   </changeSet>
-	<changeSet id="initial-setup-of-members"
-		author="stephanpelikan">
-		<comment>Create table for Member</comment>
-		<createTable tableName="ELMO_OAUTH_ID">
-			<column name="ID" type="varchar(255)">
-				<constraints primaryKey="true" />
-			</column>
-			<column name="OWNER" type="varchar(40)">
-				<constraints nullable="false" />
-			</column>
-			<column name="PROVIDER" type="varchar(40)">
-				<constraints nullable="false" />
-			</column>
-		</createTable>
-		<createTable tableName="ELMO_MEMBER">
-			<column name="ID" type="varchar(40)">
-				<constraints primaryKey="true" />
-			</column>
+  <changeSet id="initial-setup-of-members"
+    author="stephanpelikan">
+    <comment>Create table for Member</comment>
+    <createTable tableName="ELMO_OAUTH_ID">
+      <column name="ID" type="varchar(255)">
+        <constraints primaryKey="true" />
+      </column>
+      <column name="OWNER" type="varchar(40)">
+        <constraints nullable="false" />
+      </column>
+      <column name="PROVIDER" type="varchar(40)">
+        <constraints nullable="false" />
+      </column>
+    </createTable>
+    <createTable tableName="ELMO_MEMBER">
+      <column name="ID" type="varchar(40)">
+        <constraints primaryKey="true" />
+      </column>
       <column name="TYPE" type="varchar(1)" />
-			<column name="STATUS" type="varchar(30)" />
+      <column name="STATUS" type="varchar(30)" />
       <column name="APPLICATION_USERTASK" type="varchar(40)" />
       <column name="APPLICATION_COMMENT" type="clob" />
       <column name="APPLICATION_ROLE" type="varchar(20)" />
-			<column name="CREATED_AT" type="timestamp">
-				<constraints nullable="false" />
-			</column>
-			<column name="UPDATED_AT" type="timestamp" />
-			<column name="MEMBER_ID" type="int" />
-			<column name="EMAIL" type="varchar(2048)" />
+      <column name="CREATED_AT" type="timestamp">
+        <constraints nullable="false" />
+      </column>
+      <column name="UPDATED_AT" type="timestamp" />
+      <column name="MEMBER_ID" type="int" />
+      <column name="EMAIL" type="varchar(2048)" />
       <column name="EMAIL_CONFIRMED" type="boolean" />
       <column name="EMAIL_FOR_CODE" type="varchar(2048)" />
       <column name="GENERATED_EMAIL_CODE" type="varchar(4)" />
       <column name="TITLE" type="varchar(255)" />
-			<column name="FIRST_NAME" type="varchar(255)" />
-			<column name="LAST_NAME" type="varchar(255)" />
-			<column name="BIRTHDATE" type="date" />
-			<column name="SEX" type="varchar(6)" />
-			<column name="ZIP" type="varchar(10)" />
-			<column name="CITY" type="varchar(255)" />
-			<column name="STREET" type="varchar(255)" />
-			<column name="STREET_NUMBER" type="varchar(25)" />
-			<column name="PHONE_NUMBER" type="varchar(30)" />
+      <column name="FIRST_NAME" type="varchar(255)" />
+      <column name="LAST_NAME" type="varchar(255)" />
+      <column name="BIRTHDATE" type="date" />
+      <column name="SEX" type="varchar(6)" />
+      <column name="ZIP" type="varchar(10)" />
+      <column name="CITY" type="varchar(255)" />
+      <column name="STREET" type="varchar(255)" />
+      <column name="STREET_NUMBER" type="varchar(25)" />
+      <column name="PHONE_NUMBER" type="varchar(30)" />
       <column name="PHONE_CONFIRMED" type="boolean" />
       <column name="PHONE_FOR_CODE" type="varchar(30)" />
       <column name="GENERATED_PHONE_CODE" type="varchar(4)" />
-			<column name="NOTIFY_PER_SMS" type="boolean" />
+      <column name="NOTIFY_PER_SMS" type="boolean" />
       <column name="IBAN" type="varchar(34)" />
       <column name="PAYMENT" type="varchar(14)" />
-			<column name="COMMENT" type="clob" />
-		</createTable>
-		<createIndex tableName="ELMO_MEMBER" indexName="MEMBER_ID">
+      <column name="COMMENT" type="clob" />
+    </createTable>
+    <createIndex tableName="ELMO_MEMBER" indexName="MEMBER_ID">
       <column name="MEMBER_ID" />
-		</createIndex>
+    </createIndex>
     <createIndex tableName="ELMO_MEMBER" indexName="STATUS">
       <column name="STATUS" />
     </createIndex>
@@ -86,7 +86,7 @@
         <constraints primaryKey="true" />
       </column>
     </createTable>
-	</changeSet>
+  </changeSet>
   <changeSet id="introduce-sms-service"
     author="stephanpelikan">
     <comment>Create table for SMS to be sent</comment>

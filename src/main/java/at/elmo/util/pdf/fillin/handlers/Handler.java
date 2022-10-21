@@ -14,9 +14,9 @@ import at.elmo.util.pdf.fillin.elements.FillInElement;
  */
 public interface Handler {
 
-	void process(
-			final PDRectangle cropBox,
-			final PDPageContentStream contentStream,
-			final FillInElement element) throws IOException;
-	
+    void process(
+            final PDRectangle cropBox,
+            final PDPageContentStream contentStream,
+            final FillInElement element) throws IOException;
+    
 }

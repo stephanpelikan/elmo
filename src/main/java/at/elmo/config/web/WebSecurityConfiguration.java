@@ -57,61 +57,61 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Resource
     private JdbcTemplate jdbcTemplate;
 
-	@Override
+    @Override
     protected void configure(final HttpSecurity http) throws Exception {
 
-		final RequestMatcher[] unprotectedGuiApi = new RequestMatcher[] {
+        final RequestMatcher[] unprotectedGuiApi = new RequestMatcher[] {
                 new AntPathRequestMatcher("/api/v*/gui/app-info"),
                 new AntPathRequestMatcher("/api/v*/gui/current-user"),
                 new AntPathRequestMatcher("/api/v*/app/text-messages-notification/*"),
                 new AntPathRequestMatcher("/api/v*/gui/oauth2-clients"),
-		};
+        };
 
-		final RequestMatcher[] administrationApi = new RequestMatcher[] {
-		        new AntPathRequestMatcher("/api/v*/administration/**")
-		};
+        final RequestMatcher[] administrationApi = new RequestMatcher[] {
+                new AntPathRequestMatcher("/api/v*/administration/**")
+        };
 
         final RequestMatcher[] guiApi = new RequestMatcher[] {
                 new AntPathRequestMatcher("/api/v*/**"),
                 new AntPathRequestMatcher("/logout"),
                 new AntPathRequestMatcher("/**/oauth2/**"),
-		};
+        };
 
-		http
+        http
                 .requestMatchers()
                     .requestMatchers(guiApi)
                     .and()
                 .csrf()
-    				.disable()
-    				.cors()
-    				.configurationSource(httpRequest -> properties.getCors())
-    				.and()
-    			.headers()
-    				.contentTypeOptions().disable()
-    		        .frameOptions().disable()
-    		        .and()
+                    .disable()
+                    .cors()
+                    .configurationSource(httpRequest -> properties.getCors())
+                    .and()
+                .headers()
+                    .contentTypeOptions().disable()
+                    .frameOptions().disable()
+                    .and()
                 .sessionManagement()
                     .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-    		        .and()
-    			.authorizeRequests()
-    	            .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                    .and()
+                .authorizeRequests()
+                    .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     .antMatchers("**/websocket/**").permitAll()
                     .requestMatchers(unprotectedGuiApi).permitAll()
                     .requestMatchers(administrationApi).hasRole(Role.ADMIN.name())
                     .anyRequest().authenticated()
-    				.and()
-				.exceptionHandling()
-				    .defaultAccessDeniedHandlerFor((request, response, exception) -> {
-				            response.sendError(HttpStatus.UNAUTHORIZED.value());
-				        },
-			            request -> request.getRequestURI().startsWith("/api/v"))
-				    .authenticationEntryPoint(null)
-				    .and()
-    			.logout()
-    				.permitAll()
-    				.clearAuthentication(false)
-    				.logoutSuccessHandler(logoutSuccessHandler())
-    				.and()
+                    .and()
+                .exceptionHandling()
+                    .defaultAccessDeniedHandlerFor((request, response, exception) -> {
+                            response.sendError(HttpStatus.UNAUTHORIZED.value());
+                        },
+                        request -> request.getRequestURI().startsWith("/api/v"))
+                    .authenticationEntryPoint(null)
+                    .and()
+                .logout()
+                    .permitAll()
+                    .clearAuthentication(false)
+                    .logoutSuccessHandler(logoutSuccessHandler())
+                    .and()
                 .oauth2Login()
                     .loginPage(properties.getGatewayUrl() + DefaultLoginPageGeneratingFilter.DEFAULT_LOGIN_PAGE_URL)
                     .authorizationEndpoint()
@@ -125,13 +125,13 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                     .and()
                 .addFilterBefore(jwtSecurityFilter(), LogoutFilter.class);
 
-	}
+    }
 
-	@Bean
-	public LogoutSuccessHandler logoutSuccessHandler() {
+    @Bean
+    public LogoutSuccessHandler logoutSuccessHandler() {
 
-	    return new LogoutSuccessHandler();
-	}
+        return new LogoutSuccessHandler();
+    }
 
     @Bean
     public JwtSecurityFilter jwtSecurityFilter() {

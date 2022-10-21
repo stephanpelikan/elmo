@@ -10,6 +10,6 @@ import at.elmo.reservation.carsharing.CarSharing.Status;
 @Repository
 public interface CarSharingRepository extends JpaRepository<CarSharing, String> {
 
-	long countByStatusAndStartsAtGreaterThanEqualAndDriver_Id(Status status, LocalDateTime startsAt, String driverId);
-	
+    long countByStatusAndStartsAtGreaterThanEqualAndDriver_Id(Status status, LocalDateTime startsAt, String driverId);
+    
 }

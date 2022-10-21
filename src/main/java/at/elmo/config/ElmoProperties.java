@@ -1,7 +1,6 @@
 package at.elmo.config;
 
 import at.elmo.car.CarProperties;
-import at.elmo.config.websockets.WebsocketProperties;
 import at.elmo.reservation.carsharing.CarSharingProperties;
 import at.elmo.reservation.passangerservice.PassangerServiceProperties;
 import at.elmo.util.email.EmailProperties;
@@ -75,8 +74,6 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties, AsyncPro
 
     private CorsConfiguration cors = new CorsConfiguration();
 
-    private WebsocketProperties websockets;
-
     private Duration accessTokenLifetime = Duration.ofHours(1);
 
     private Duration refreshTokenLifetime = Duration.ofDays(14);
@@ -101,14 +98,6 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties, AsyncPro
 
     public void setAsync(AsyncProperties async) {
         this.async = async;
-    }
-
-    public WebsocketProperties getWebsockets() {
-        return websockets;
-    }
-
-    public void setWebsockets(WebsocketProperties websockets) {
-        this.websockets = websockets;
     }
 
     public CorsConfiguration getCors() {
@@ -293,11 +282,11 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties, AsyncPro
     }
 
     public CarSharingProperties getCarSharing() {
-		return carSharing;
-	}
+        return carSharing;
+    }
     
     public void setCarSharing(CarSharingProperties carSharing) {
-		this.carSharing = carSharing;
-	}
+        this.carSharing = carSharing;
+    }
     
 }

@@ -19,16 +19,6 @@ elmo:
     - DELETE
     - PATCH
     maxAge: 43200
-  websockets:
-    message-broker-max-pool-size: 64
-    message-broker-core-pool-size: 4
-    message-broker-queue-capacity: 512
-    in-bound-channel-max-pool-size: 64
-    in-bound-channel-core-pool-size: 4
-    in-bound-channel-queue-capacity: 512
-    out-bound-channel-max-pool-size: 64
-    out-bound-channel-core-pool-size: 4
-    out-bound-channel-queue-capacity: 512
   passanger-service:
     days-for-initial-shift-creation: 90
     shifts:
