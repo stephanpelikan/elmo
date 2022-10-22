@@ -7,7 +7,7 @@ import { SnapScrollingDataTable } from '../../components/SnapScrollingDataTable'
 import { UserAvatar } from '../../components/UserAvatar';
 import { useCarSharingApi } from '../DriverAppContext';
 import { CarSharingApi, CarSharingCar, CarSharingDriver, CarSharingReservation, User } from "../../client/gui";
-import { CSSProperties, memo, MouseEvent, startTransition, useCallback, useEffect, useRef, useState } from "react";
+import { CSSProperties, memo, MouseEvent, MutableRefObject, startTransition, useCallback, useEffect, useRef, useState } from "react";
 import { BackgroundType, BorderType } from "grommet/utils";
 import { TFunction } from "i18next";
 import styled from "styled-components";
@@ -33,12 +33,16 @@ i18n.addResources('de', 'driver/carsharing/booking', {
       "remaining": "Verbleibende Stunden",
       "max-hours": "Größtmögliche Reservierung",
       "no-remaining-hours_title": "Car-Sharing",
-      "no-remaining-hours_msg": "Das Kontingent ist aufgebraucht!",
+      "no-remaining-hours_msg": "Dein Car-Sharing-Kontingent ist bereits aufgebraucht!",
       "max-reservations_title": "Car-Sharing",
       "max-reservations_msg": "Du hast bereits die maximale Anzahl an Car-Sharing-Reservierungen gebucht: {{maxReservations}}!",
     });
 
 const itemsBatchSize = 48;
+
+interface DayVersions {
+  [key: string /* YYYYMMdd + '_' + car.id */]: number
+};
 
 interface ReservationDrivers {
   [key: number /* member id */]: CarSharingDriver
@@ -71,15 +75,6 @@ interface Selection {
 interface Restrictions {
   maxHours: number;
   remainingHours: number;
-};
-
-const dayEffectedBySelection
-    : (day: CalendarDay, selection: Selection) => boolean
-    = (day, selection) => {
-  if (selection === undefined) return false;
-  const hoursOfDay = day.hours[ Object.keys(day.hours)[0] ].length;
-  return (selection.startsAt.getTime() <= day.startsAt.getTime() + hoursOfDay * 3600000)
-      && (selection.endsAt.getTime() >= day.startsAt.getTime());
 };
 
 const ButtonBox = styled(Box)`
@@ -287,6 +282,7 @@ const CarSharingReservationBox = ({ drivers, hour }: {
 const DayTable = memo<{
     t: TFunction,
     currentUser: User,
+    dayVersion: number,
     drivers: ReservationDrivers,
     car: CarSharingCar,
     days: CalendarDay[],
@@ -417,21 +413,50 @@ const DayTable = memo<{
         data={ hours } />;
         
   }, (prev, next) => {
-
-    if (prev.car.id !== next.car.id) return false;
-    if (prev.day.startsAt.getTime() !== next.day.startsAt.getTime()) return false;
-    const prevDayEffectedBySelection = dayEffectedBySelection(prev.day, prev.selection);
-    const nextDayEffectedBySelection = dayEffectedBySelection(next.day, next.selection);
-    if ((prevDayEffectedBySelection === false)
-        && (nextDayEffectedBySelection === false)) return true;
-    if ((prev.car.id !== prev.selection?.carId)
-        && (next.car.id !== next.selection?.carId)) return true;
-    return false;
-    
+    return prev.dayVersion === next.dayVersion;
   });
+
+const dayVersionKey = (time: Date, carId: string) =>
+    (time.getFullYear() * 10000 + time.getMonth() * 100 + time.getDate()) + carId;
+    
+const getDayVersion = (
+    dayVersions: DayVersions,
+    time: Date,
+    carId: string
+  ) => {
+    const key = dayVersionKey(time, carId);
+    const result = dayVersions[key];
+    if (result === undefined) return 0;
+    return result;
+  };
+  
+const increaseDayVersions = (
+    dayVersions: MutableRefObject<DayVersions>,
+    time: Date,
+    cars: Array<CarSharingCar>
+  ) => {
+    cars.forEach(car => increaseDayVersion(dayVersions, time, car.id));
+  };   
+
+const increaseDayVersion = (
+    dayVersions: MutableRefObject<DayVersions>,
+    time: Date,
+    carId: string
+  ) => {
+    const key = dayVersionKey(time, carId);
+    const v = dayVersions.current[key];
+    if (v === undefined) {
+      dayVersions.current[key] = 1;
+    } else {
+      dayVersions.current[key] = v + 1;
+    }
+  };
 
 const loadData = async (
       carSharingApi: CarSharingApi,
+      dayVersions: MutableRefObject<DayVersions>,
+      updateDayVersions: (versions: DayVersions) => void,
+      setEndDate: (Date) => void,
       startsAt: Date,
       endsAt: Date,
       days: Array<CalendarDay>,
@@ -445,76 +470,85 @@ const loadData = async (
   const calendar = await carSharingApi.getCarSharingCalendar({
       carSharingCalendarRequest: { startsAt, endsAt }
     });
-  
-  if (setRestrictions) {
-    setRestrictions({
-        remainingHours: calendar.remainingHours,
-        maxHours: calendar.maxHours,
-      });
-  }
-  if (setCars) {
-    setCars(calendar.cars);
-  }
-  
-  const newDays = [];
 
-  const currentHour = { at: startsAt, day: { startsAt, hours: {} } };
-  newDays.push(currentHour.day);
-  const carReservationIndex = {};
-  calendar.cars.forEach(car => carReservationIndex[car.id] = 0);
-  while (currentHour.at.getTime() !== endsAt.getTime()) {
+  startTransition(() => {
     
-    const nextHour = nextHours(currentHour.at, 1, false);
-    
-    calendar.cars.forEach((car, index) => {
-      let hours: Array<CalendarHour> = currentHour.day.hours[car.id];
-      if (hours === undefined) {
-        hours = [];
-        currentHour.day.hours[car.id] = hours;
+      if (setRestrictions) {
+        setRestrictions({
+            remainingHours: calendar.remainingHours,
+            maxHours: calendar.maxHours,
+          });
       }
-      const numberOfReservations = car.reservations?.length;
-      let reservation = undefined;
-      if (numberOfReservations > 0) {
-        for (var i = carReservationIndex[car.id];
-            (i < numberOfReservations); ++i) {
-          const r = car.reservations[i];
-          if ((r.startsAt <= currentHour.at) && (r.endsAt >= nextHour)) {
-            reservation = r;
-          }
-        }
+      if (setCars) {
+        setCars(calendar.cars);
       }
-      const item: CalendarHour = {
-        index,
-        startsAt: currentHour.at,
-        endsAt: nextHour,
-        reservation,
-      };
-      hours.push(item);
-    });
+      
+      const newDays = [];
     
-    currentHour.at = nextHour;
-    if ((currentHour.day.startsAt.getDate() !== nextHour.getDate())
-        && nextHour.getTime() !== endsAt.getTime()) {
-      currentHour.day = { startsAt: nextHour, hours: {} };
+      const currentHour = { at: startsAt, day: { startsAt, hours: {} } };
       newDays.push(currentHour.day);
-    }
+      increaseDayVersions(dayVersions, startsAt, calendar.cars);
+      
+      const carReservationIndex = {};
+      calendar.cars.forEach(car => carReservationIndex[car.id] = 0);
+      while (currentHour.at.getTime() !== endsAt.getTime()) {
+        
+        const nextHour = nextHours(currentHour.at, 1, false);
+        
+        calendar.cars.forEach((car, index) => {
+          let hours: Array<CalendarHour> = currentHour.day.hours[car.id];
+          if (hours === undefined) {
+            hours = [];
+            currentHour.day.hours[car.id] = hours;
+          }
+          const numberOfReservations = car.reservations?.length;
+          let reservation = undefined;
+          if (numberOfReservations > 0) {
+            for (var i = carReservationIndex[car.id];
+                (i < numberOfReservations); ++i) {
+              const r = car.reservations[i];
+              if ((r.startsAt <= currentHour.at) && (r.endsAt >= nextHour)) {
+                reservation = r;
+              }
+            }
+          }
+          const item: CalendarHour = {
+            index,
+            startsAt: currentHour.at,
+            endsAt: nextHour,
+            reservation,
+          };
+          hours.push(item);
+        });
+        
+        currentHour.at = nextHour;
+        if ((currentHour.day.startsAt.getDate() !== nextHour.getDate())
+            && nextHour.getTime() !== endsAt.getTime()) {
+          currentHour.day = { startsAt: nextHour, hours: {} };
+          newDays.push(currentHour.day);
+          increaseDayVersions(dayVersions, nextHour, calendar.cars);
+        }
+        
+      }
     
-  }
-
-  const newDrivers = {};
-  calendar.drivers?.forEach(driver => newDrivers[ driver.memberId ] = driver );
-  if (drivers === undefined) {
-    setDrivers(newDrivers);
-  } else {
-    setDrivers({ ...drivers, ...newDrivers });
-  }
-
-  if (days) {
-    setDays([ ...days, ...newDays ]);
-  } else {
-    setDays(newDays);
-  }
+      const newDrivers = {};
+      calendar.drivers?.forEach(driver => newDrivers[ driver.memberId ] = driver );
+      if (drivers === undefined) {
+        setDrivers(newDrivers);
+      } else {
+        setDrivers({ ...drivers, ...newDrivers });
+      }
     
+      if (days) {
+        setDays([ ...days, ...newDays ]);
+      } else {
+        setDays(newDays);
+      }
+      
+      updateDayVersions(dayVersions.current);
+      setEndDate(endsAt);
+  
+    });
 };
 
 const Booking = () => {
@@ -523,6 +557,14 @@ const Booking = () => {
   const { isPhone } = useResponsiveScreen();
   const carSharingApi = useCarSharingApi();
   const { state, toast } = useAppContext();
+  
+  const [ dayVersions, _setDayVersions ] = useState<DayVersions>({});
+  const dayVersionsRef = useRef(dayVersions);
+  const updateDayVersions = (versions: DayVersions) => {
+      const newVersions = { ...versions };
+      dayVersionsRef.current = newVersions;
+      _setDayVersions(newVersions);
+    };
   
   const [ endDate, setEndDate ] = useState<Date>(undefined);
   const [ days, setDays]  = useState<Array<CalendarDay>>(undefined);
@@ -537,12 +579,9 @@ const Booking = () => {
 
   useEffect(() => {
       if (restrictions === undefined) {
-        startTransition(() => {
-            const startsAt = currentHour(false);
-            const endsAt = nextHours(startsAt, (24 - startsAt.getHours()) + 24, false);
-            setEndDate(endsAt);
-            loadData(carSharingApi, startsAt, endsAt, days, setDays, drivers, setDrivers, setCars, setRestrictions);
-          });
+        const startsAt = currentHour(false);
+        const endsAt = nextHours(startsAt, (24 - startsAt.getHours()) + 24, false);
+        loadData(carSharingApi, dayVersionsRef, updateDayVersions, setEndDate, startsAt, endsAt, days, setDays, drivers, setDrivers, setCars, setRestrictions);
       }
     }, [ carSharingApi, days, setDays, restrictions, setRestrictions, drivers, setDrivers ]);
     
@@ -555,6 +594,7 @@ const Booking = () => {
       if (isMouseDown.current) return;
       event.preventDefault();
       event.stopPropagation();
+
       const s = {
           startedAtStarts: top ? selection.current.endsAt : selection.current.startsAt,
           startedAtEnds: top ? selection.current.endsAt : selection.current.startsAt,
@@ -562,12 +602,11 @@ const Booking = () => {
           endsAt: selection.current.endsAt,
           carId: selection.current.carId,
         };
-      startTransition(() => {
-          selection.current = s;
-          setSelection(s);
-          isMouseDown.current = true;
-          setMouseIsDown(true);
-        });
+      selection.current = s;
+      setSelection(s);
+      isMouseDown.current = true;
+      setMouseIsDown(true);
+
     }, [ setMouseIsDown, setSelection ]);
   const mouseDownOnHour = useCallback((event: MouseEvent, car: CarSharingCar, hour: CalendarHour) => {
       if (isMouseDown.current) return;
@@ -582,6 +621,17 @@ const Booking = () => {
       }
       event.preventDefault();
       event.stopPropagation();
+
+      if (selection.current !== undefined) {
+        for (let hour = selection.current.startsAt.getTime()
+            ; hour !== selection.current.endsAt.getTime()
+            ; hour += 3600000) {
+          increaseDayVersion(dayVersionsRef, new Date(hour), selection.current.carId);
+        }
+      }
+      increaseDayVersion(dayVersionsRef, hour.startsAt, car.id);
+      increaseDayVersion(dayVersionsRef, hour.endsAt, car.id);
+      updateDayVersions(dayVersionsRef.current);
       const s = {
           startedAtStarts: hour.startsAt,
           startedAtEnds: hour.endsAt,
@@ -589,12 +639,11 @@ const Booking = () => {
           endsAt: hour.endsAt,
           carId: car.id
         };
-      startTransition(() => {
-          selection.current = s;
-          setSelection(s);
-          isMouseDown.current = true;
-          setMouseIsDown(true);
-        });
+      selection.current = s;
+      setSelection(s);
+      isMouseDown.current = true;
+      setMouseIsDown(true);
+
     }, [ setMouseIsDown, t, toast, selection, setSelection ]);
   const mouseEnterHour = useCallback((event: MouseEvent, car: CarSharingCar, days: CalendarDay[], day: CalendarDay, hour: CalendarHour) => {
       if (!isMouseDown.current) return;
@@ -629,14 +678,23 @@ const Booking = () => {
             const absoluteIndexToTest = indexOfDay === 0
                 ? indexToTest
                 : days[0].hours[car.id].length + 24 * (indexOfDay - 1) + indexToTest;
-            const dayOffset = absoluteIndexToTest < days[0].hours[car.id].length ? 0 : days[0].hours[car.id].length;
-            const indexOfDayToTest = Math.floor((absoluteIndexToTest - dayOffset) / 24) + (indexOfDay === 0 ? 0 : 1);
-            const indexOfHourToTest = (absoluteIndexToTest - dayOffset) % 24;
+            const firstDayOffset = days[0].hours[car.id].length;
+            let indexOfDayToTest: number;
+            let indexOfHourToTest: number;
+            if (absoluteIndexToTest < firstDayOffset) {
+              indexOfDayToTest = 0;
+              indexOfHourToTest = absoluteIndexToTest;
+            } else {
+              indexOfDayToTest = Math.floor((absoluteIndexToTest - firstDayOffset) / 24) + 1;
+              indexOfHourToTest = (absoluteIndexToTest - firstDayOffset) % 24;
+            }
             const hourToTest = days[ indexOfDayToTest ].hours[car.id][ indexOfHourToTest ];
             if (hourToTest.reservation) break;
             startsAt = nextHours(selection.current.startsAt, i, true);
           }
         }
+        increaseDayVersion(dayVersionsRef, selection.current.startsAt, car.id);
+        increaseDayVersion(dayVersionsRef, startsAt, car.id);
       }
       let endsAt = selection.current.startedAtEnds;
       // check for selection-rules of lower boundary:
@@ -661,15 +719,31 @@ const Booking = () => {
             const absoluteIndexToTest = indexOfDay === 0
                 ? indexToTest
                 : days[0].hours[car.id].length + 24 * (indexOfDay - 1) + indexToTest;
-            const dayOffset = absoluteIndexToTest < days[0].hours[car.id].length ? 0 : days[0].hours[car.id].length;
-            const indexOfDayToTest = Math.floor((absoluteIndexToTest - dayOffset) / 24) + (indexOfDay === 0 ? 0 : 1);
-            const indexOfHourToTest = (absoluteIndexToTest - dayOffset) % 24;
+            const firstDayOffset = days[0].hours[car.id].length;
+            let indexOfDayToTest: number;
+            let indexOfHourToTest: number;
+            if (absoluteIndexToTest < firstDayOffset) {
+              indexOfDayToTest = 0;
+              indexOfHourToTest = absoluteIndexToTest;
+            } else {
+              indexOfDayToTest = Math.floor((absoluteIndexToTest - firstDayOffset) / 24) + 1;
+              indexOfHourToTest = (absoluteIndexToTest - firstDayOffset) % 24;
+            }
             const hourToTest = days[ indexOfDayToTest ].hours[car.id][ indexOfHourToTest ];
             if (hourToTest.reservation) break;
             endsAt = nextHours(selection.current.endsAt, i, false);
           }
         }
+        increaseDayVersion(dayVersionsRef, new Date(selection.current.endsAt.getTime() - 3600000), car.id);
+        increaseDayVersion(dayVersionsRef, endsAt, car.id);
       }
+      // minimize selection to start-hour
+      if (!wasUpperBoundaryChanged && !wasLowerBoundaryChanged) {
+        increaseDayVersion(dayVersionsRef, selection.current.startsAt, car.id);
+        increaseDayVersion(dayVersionsRef, new Date(selection.current.endsAt.getTime() - 3600000), car.id);
+      }
+
+      updateDayVersions(dayVersionsRef.current);
       const s = {
           startedAtStarts: selection.current.startedAtStarts,
           startedAtEnds: selection.current.startedAtEnds,
@@ -679,6 +753,7 @@ const Booking = () => {
         };
       selection.current = s;
       setSelection(s);
+      
     }, [ isMouseDown, setSelection, selection ]);
   const mouseMove = useCallback(event => {
       if (!isMouseDown.current) return;
@@ -693,8 +768,16 @@ const Booking = () => {
   const cancelSelection = useCallback(event => {
       event.preventDefault();
       event.stopPropagation();
+
+      for (let hour = selection.current.startsAt.getTime()
+          ; hour !== selection.current.endsAt.getTime()
+          ; hour += 3600000) {
+        increaseDayVersion(dayVersionsRef, new Date(hour), selection.current.carId);
+      }
+      updateDayVersions(dayVersionsRef.current);
       selection.current = undefined;
       setSelection(undefined);
+
     }, [ setSelection, selection ]);
   
   const acceptSelection = useCallback(event => {
@@ -711,6 +794,14 @@ const Booking = () => {
                   type: 'CS',
                 }
               });
+            // cancel selection
+            for (let hour = selection.current.startsAt.getTime()
+                ; hour !== selection.current.endsAt.getTime()
+                ; hour += 3600000) {
+              increaseDayVersion(dayVersionsRef, new Date(hour), selection.current.carId);
+            }
+            updateDayVersions(dayVersionsRef.current);
+            selection.current = undefined;
             setSelection(undefined);
           } catch (error) {
             if (error.response?.json) {
@@ -745,9 +836,11 @@ const Booking = () => {
           sortable: false,
           size: carColumnSize,
           render: (day: CalendarDay) => {
+              const dayVersion = getDayVersion(dayVersions, day.startsAt, car.id);
               return <DayTable
                   t={ t }
                   currentUser={ state.currentUser }
+                  dayVersion={ dayVersion }
                   drivers={ drivers }
                   days={ days }
                   day={ day }
@@ -766,12 +859,9 @@ const Booking = () => {
     if (days.length === 0) return;
     const day = days[ days.length - 1 ];
     if (!day) return;
-    startTransition(() => {
-        const startsAt = endDate;
-        const endsAt = nextHours(startsAt, itemsBatchSize, false);
-        setEndDate(endsAt);
-        loadData(carSharingApi, startsAt, endsAt, days, setDays, drivers, setDrivers);
-      });
+    const startsAt = endDate;
+    const endsAt = nextHours(startsAt, itemsBatchSize, false);
+    await loadData(carSharingApi, dayVersionsRef, updateDayVersions, setEndDate, startsAt, endsAt, days, setDays, drivers, setDrivers);
   };
   
   const headerHeight = '3rem';
