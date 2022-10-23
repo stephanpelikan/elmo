@@ -20,7 +20,9 @@ const MessageToast = ({ dispatch, msg }: MessageToastProps) => {
   const close = useCallback(() => dispatch({ type: 'toast', toast: undefined }), [dispatch]);
   
   useEffect(() => {
-    const timer = setTimeout(close, 4000);
+    let timeout = msg.timeout !== undefined ? msg.timeout : msg.message.length * 50;
+    if (timeout < 3000) timeout = 3000;
+    const timer = setTimeout(close, timeout);
     return () => clearTimeout(timer);
   }, [msg, close]);
   

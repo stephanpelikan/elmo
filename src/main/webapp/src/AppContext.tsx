@@ -17,6 +17,7 @@ export type Toast = {
   title: string | undefined;
   message: string;
   status?: StatusType;
+  timeout?: number;
 };
 type State = {
   appInformation: AppInformation | null;

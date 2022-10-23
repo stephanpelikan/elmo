@@ -25,6 +25,8 @@ i18n.addResources('en', 'driver/carsharing/booking', {
       "no-remaining-hours_msg": "The quota has been used up!",
       "max-reservations_title": "Car-Sharing",
       "max-reservations_msg": "The maximum number of car-sharing reservations is reached: {{maxReservations}}!",
+      "conflicting-reservation_title": "Car-Sharing",
+      "conflicting-reservation_msg": "This view is not up to date! Meanwhile there is a conflicting reservation. Please go back and reenter to refresh the view.",
     });
 i18n.addResources('de', 'driver/carsharing/booking', {
       "loading": "Lade Daten...",
@@ -36,6 +38,8 @@ i18n.addResources('de', 'driver/carsharing/booking', {
       "no-remaining-hours_msg": "Dein Car-Sharing-Kontingent ist bereits aufgebraucht!",
       "max-reservations_title": "Car-Sharing",
       "max-reservations_msg": "Du hast bereits die maximale Anzahl an Car-Sharing-Reservierungen gebucht: {{maxReservations}}!",
+      "conflicting-reservation_title": "Car-Sharing",
+      "conflicting-reservation_msg": "Diese Ansicht ist nicht aktuell! Mittlerweile gibt es eine andere Reservierung in dieser Zeit. Bitte wechsle zur vorigen Ansicht steige neu ein, um die Ansicht zu aktualisieren.",
     });
 
 const itemsBatchSize = 48;
@@ -804,9 +808,18 @@ const Booking = () => {
             selection.current = undefined;
             setSelection(undefined);
           } catch (error) {
-            if (error.response?.json) {
+            // CONFLICT means there is another reservation
+            if (error.response?.status === 409) {
+              toast({
+                  namespace: 'driver/car-sharing/booking',
+                  title: t('conflicting-reservation_title'),
+                  message: t('conflicting-reservation_msg'),
+                  status: 'critical'
+                });
+            }
+            // violations response
+            else if (error.response?.json) {
               const violations = await error.response?.json()
-              console.warn(violations);
               toast({
                   namespace: 'driver/car-sharing/booking',
                   title: t('max-reservations_title'),
