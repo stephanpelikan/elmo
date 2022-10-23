@@ -423,7 +423,7 @@ components:
           $ref: '#/components/schemas/Sex'
         avatar:
           type: integer
-          format: int64
+          format: int32
         roles:
           type: array
           items:
@@ -519,7 +519,7 @@ components:
           $ref: '#/components/schemas/Sex'
         avatar:
           type: integer
-          format: int64
+          format: int32
         phoneNumber:
           type: string
     CarSharingCar:

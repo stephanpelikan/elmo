@@ -16,9 +16,11 @@ import javax.persistence.ManyToOne;
 
 
 @Entity
-@DiscriminatorValue("CS")
+@DiscriminatorValue(CarSharing.TYPE)
 public class CarSharing extends ReservationBase {
 
+    public static final String TYPE = "CS";
+    
     public static enum Status {
         RESERVED, ONGOING, COMPLETED, CANCELLED
     };

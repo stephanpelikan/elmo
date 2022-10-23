@@ -7,11 +7,13 @@ import at.elmo.gui.api.v1.CarSharingCalendar;
 import at.elmo.gui.api.v1.CarSharingCalendarRequest;
 import at.elmo.gui.api.v1.CarSharingReservation;
 import at.elmo.gui.api.v1.CarSharingReservationType;
+import at.elmo.reservation.ReservationNotification;
 import at.elmo.reservation.ReservationService;
 import at.elmo.util.UserContext;
 import at.elmo.util.exceptions.ElmoValidationException;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
@@ -49,6 +51,14 @@ public class GuiApiController implements CarSharingApi {
     
     @Autowired
     private UserContext userContext;
+
+    @EventListener(classes = ReservationNotification.class)
+    public void updateClients(
+            final ReservationNotification notification) {
+        
+        logger.info("JUHU: {}", notification.getCarId());
+        
+    }
 
     @Override
     public ResponseEntity<CarSharingCalendar> getCarSharingCalendar(

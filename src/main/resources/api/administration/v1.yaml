@@ -620,7 +620,7 @@ components:
           format: int32
         avatar:
           type: integer
-          format: int64
+          format: int32
         title:
           type: string
         firstName:

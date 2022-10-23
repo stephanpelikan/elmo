@@ -34,7 +34,7 @@ public class Member extends MemberBase {
     private Status status;
 
     @Column(name = "AVATAR")
-    private Long timestampOfAvatar;
+    private Integer timestampOfAvatar;
 
     @Column(name = "PS_HOURS")
     private int hoursServedPassangerService;
@@ -69,11 +69,11 @@ public class Member extends MemberBase {
         this.roles = roles;
     }
 
-    public Long getTimestampOfAvatar() {
+    public Integer getTimestampOfAvatar() {
         return timestampOfAvatar;
     }
 
-    public void setTimestampOfAvatar(Long timestampOfAvatar) {
+    public void setTimestampOfAvatar(Integer timestampOfAvatar) {
         this.timestampOfAvatar = timestampOfAvatar;
     }
 

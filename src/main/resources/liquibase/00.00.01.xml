@@ -158,7 +158,7 @@
   <changeSet id="introduce-avatars"
       author="stephanpelikan">
     <addColumn tableName="ELMO_MEMBER">
-      <column name="AVATAR" type="long" />
+      <column name="AVATAR" type="int" />
     </addColumn>
     <createTable tableName="ELMO_AVATAR">
       <column name="ID" type="varchar(40)">
@@ -216,5 +216,38 @@
       <column name="PS_HOURS" type="int" />
       <column name="CS_HOURS" type="int" />
     </addColumn>
+  </changeSet>
+  <changeSet id="introduce-reservation-notifications"
+             author="stephanpelikan"
+             dbms="postgresql">
+    <createProcedure encoding="utf8"
+                     procedureName="NOTIFY_TRIGGER"><![CDATA[
+      CREATE OR REPLACE FUNCTION NOTIFY_TRIGGER() RETURNS trigger AS $trigger$
+      DECLARE
+        rec ELMO_RESERVATION;
+        dat ELMO_RESERVATION;
+        payload TEXT;
+      BEGIN
+        CASE TG_OP
+        WHEN 'UPDATE' THEN
+           rec := NEW;
+           dat := OLD;
+        WHEN 'INSERT' THEN
+           rec := NEW;
+        WHEN 'DELETE' THEN
+           rec := OLD;
+        ELSE
+           RAISE EXCEPTION 'Unknown TG_OP: "%". Should never occur!', TG_OP;
+        END CASE;
+        payload := json_build_object('timestamp', CURRENT_TIMESTAMP, 'action', TG_OP, 'schema', UPPER(TG_TABLE_SCHEMA), 'identity', TG_TABLE_NAME, 'record', row_to_json(rec), 'old', row_to_json(dat));
+        PERFORM pg_notify('record_event', payload);
+        RETURN rec;
+      END;
+      $trigger$ LANGUAGE plpgsql;
+    ]]></createProcedure>
+    <sql><![CDATA[
+      CREATE TRIGGER ELMO_RESERVATION_TRIGGER AFTER INSERT OR UPDATE OR DELETE ON ELMO_RESERVATION
+      FOR EACH ROW EXECUTE PROCEDURE NOTIFY_TRIGGER();      
+    ]]></sql>
   </changeSet>
 </databaseChangeLog>

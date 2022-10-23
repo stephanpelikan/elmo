@@ -11,13 +11,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
@@ -26,14 +24,12 @@ import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.authentication.ui.DefaultLoginPageGeneratingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
-import org.springframework.session.jdbc.config.annotation.web.http.EnableJdbcHttpSession;
 
 import javax.annotation.Resource;
 
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(jsr250Enabled = true)
-@EnableJdbcHttpSession
 public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Value("${camunda.bpm.admin-user.id}")
@@ -54,8 +50,8 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Resource
     private ClientRegistrationRepository repo;
 
-    @Resource
-    private JdbcTemplate jdbcTemplate;
+    //@Resource
+    //private JdbcTemplate jdbcTemplate;
 
     @Override
     protected void configure(final HttpSecurity http) throws Exception {
@@ -95,7 +91,6 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                     .and()
                 .authorizeRequests()
                     .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                    .antMatchers("**/websocket/**").permitAll()
                     .requestMatchers(unprotectedGuiApi).permitAll()
                     .requestMatchers(administrationApi).hasRole(Role.ADMIN.name())
                     .anyRequest().authenticated()
@@ -117,7 +112,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                     .authorizationEndpoint()
                         .authorizationRequestRepository(authorizationRequestRepository())
                         .and()
-                    .authorizedClientService(oAuth2AuthorizedClientService())
+                    //.authorizedClientService(oAuth2AuthorizedClientService())
                     .userInfoEndpoint()
                         .userService(oauth2UserService())
                         .and()
@@ -157,12 +152,12 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     }
 
-    @Bean
-    public OAuth2AuthorizedClientService oAuth2AuthorizedClientService() {
-
-        return new TransactionalJdbcOAuth2AuthorizedClientService(jdbcTemplate, repo);
-
-    }
+//    @Bean
+//    public OAuth2AuthorizedClientService oAuth2AuthorizedClientService() {
+//
+//        return new TransactionalJdbcOAuth2AuthorizedClientService(jdbcTemplate, repo);
+//
+//    }
 
     /**
      * Used instead of HttpSession based implementation to avoid creating

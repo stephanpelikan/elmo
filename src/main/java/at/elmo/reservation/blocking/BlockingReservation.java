@@ -7,9 +7,11 @@ import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 
 @Entity
-@DiscriminatorValue("B")
+@DiscriminatorValue(BlockingReservation.TYPE)
 public class BlockingReservation extends ReservationBase {
 
+    public static final String TYPE = "B";
+    
     @Column(name = "REASON")
     private String reason;
 

@@ -22,11 +22,12 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "ELMO_RESERVATION")
+@Table(name = ReservationBase.TABLE_NAME)
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "TYPE", discriminatorType = DiscriminatorType.STRING)
 public abstract class ReservationBase extends PersistenceBase<String> {
 
+    public static final String TABLE_NAME = "ELMO_RESERVATION";
     @Id
     @Column(name = "ID")
     private String id;

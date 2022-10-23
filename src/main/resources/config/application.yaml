@@ -80,10 +80,16 @@ spring:
   resources:
     # see de.mhb.commons.spa.SpaNoHandlerFoundExceptionHandler
     add-mappings: false
-  session:
-    store-type: none
+#  session:
+#    store-type: none
   liquibase:
     change-log: classpath:liquibase/master.yml
+  jpa:
+    open-in-view: false
+  data:
+    r2dbc:
+      repositories:
+        enabled: false
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     hikari:
@@ -92,7 +98,7 @@ spring:
       minimum-idle: 0
       max-lifetime: 600000 # Build new connections every 10 minutes.
       idle-timeout: 180000 # Release new connections after 3 minutes of inactivity.
-      leak-detection-threshold: 4000 # TODO determine a good value
+      leak-detection-threshold: 6000 # TODO determine a good value
       data-source-properties:
       defaultRowPrefetch: 100
   freemarker:
@@ -126,9 +132,9 @@ camunda:
     - at.elmo.**
 logging:
   level:
-# see de.mhb.commons.spa.SpaNoHandlerFoundExceptionHandler
+    liquibase.hub: ERROR
+    # see de.mhb.commons.spa.SpaNoHandlerFoundExceptionHandler
     org.springframework.web.servlet.PageNotFound: ERROR
-    org.springframework.web.socket.config.WebSocketMessageBrokerStats: ERROR
     org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: ERROR
     org.springframework.web.servlet.NoHandlerFoundException: FATAL
 
