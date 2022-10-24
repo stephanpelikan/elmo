@@ -86,10 +86,6 @@ spring:
     change-log: classpath:liquibase/master.yml
   jpa:
     open-in-view: false
-  data:
-    r2dbc:
-      repositories:
-        enabled: false
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     hikari:
@@ -213,3 +209,13 @@ translations:
       payment: Zahlung
       hoursServedPassangerService: Fahrtendienst
       hoursConsumedCarSharing: Car-Sharing
+
+---
+spring:
+  config:
+    activate:
+      on-profile: "!local"
+  data:
+    r2dbc:
+      repositories:
+        enabled: false

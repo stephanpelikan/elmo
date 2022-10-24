@@ -218,9 +218,9 @@
     </addColumn>
   </changeSet>
   <changeSet id="introduce-reservation-notifications"
-             author="stephanpelikan"
-             dbms="postgresql">
-    <createProcedure encoding="utf8"
+             author="stephanpelikan">
+    <createProcedure dbms="postgresql"
+                     encoding="utf8"
                      procedureName="NOTIFY_TRIGGER"><![CDATA[
       CREATE OR REPLACE FUNCTION NOTIFY_TRIGGER() RETURNS trigger AS $trigger$
       DECLARE
@@ -245,9 +245,17 @@
       END;
       $trigger$ LANGUAGE plpgsql;
     ]]></createProcedure>
-    <sql><![CDATA[
+    <sql dbms="postgresql"><![CDATA[
       CREATE TRIGGER ELMO_RESERVATION_TRIGGER AFTER INSERT OR UPDATE OR DELETE ON ELMO_RESERVATION
       FOR EACH ROW EXECUTE PROCEDURE NOTIFY_TRIGGER();      
+    ]]></sql>
+    <sql dbms="h2"><![CDATA[
+      CREATE TRIGGER ELMO_RESERVATION_TRIGGER_INSERT AFTER INSERT ON ELMO_RESERVATION
+      FOR EACH ROW CALL "at.elmo.config.db.H2Notifications";      
+      CREATE TRIGGER ELMO_RESERVATION_TRIGGER_UPDATE AFTER UPDATE ON ELMO_RESERVATION
+      FOR EACH ROW CALL "at.elmo.config.db.H2Notifications";      
+      CREATE TRIGGER ELMO_RESERVATION_TRIGGER_DELETE AFTER DELETE ON ELMO_RESERVATION
+      FOR EACH ROW CALL "at.elmo.config.db.H2Notifications";      
     ]]></sql>
   </changeSet>
 </databaseChangeLog>

@@ -1,10 +1,6 @@
 package at.elmo.config.db;
 
-import at.elmo.config.db.DbNotifications.Action;
 import com.fasterxml.jackson.core.TreeNode;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.r2dbc.postgresql.api.Notification;
 import org.springframework.context.ApplicationEvent;
 
 import java.io.IOException;
@@ -13,28 +9,28 @@ public class DbNotification extends ApplicationEvent {
 
     private static final long serialVersionUID = 1L;
 
-    private Action action;
-    
-    private String table;
-    
-    private TreeNode record;
+    public static enum Action { INSERT, UPDATE, DELETE };
 
-    private TreeNode old;
+    private final Action action;
+    
+    private final String table;
+    
+    private final TreeNode record;
+
+    private final TreeNode old;
 
     public DbNotification(
-            final Notification notification) throws IOException {
+            final Object source,
+            final Action action,
+            final String table,
+            final TreeNode record,
+            final TreeNode old) throws IOException {
         
-        super(DbNotifications.class);
-        
-        final var objectMapper = new ObjectMapper();
-        final var tree = objectMapper
-                .createParser(notification.getParameter())
-                .readValueAsTree();
-        
-        action = Action.valueOf(((JsonNode) tree.get("action")).asText().toUpperCase());
-        table = ((JsonNode) tree.get("identity")).asText().toUpperCase();
-        record = tree.get("record");
-        old = tree.get("old");
+        super(source);
+        this.action = action;
+        this.table = table;
+        this.record = record;
+        this.old = old;
         
     }
     

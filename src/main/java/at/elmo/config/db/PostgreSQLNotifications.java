@@ -1,12 +1,14 @@
 package at.elmo.config.db;
 
+import at.elmo.config.db.DbNotification.Action;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.r2dbc.postgresql.api.PostgresqlConnection;
 import io.r2dbc.postgresql.api.PostgresqlResult;
 import io.r2dbc.spi.ConnectionFactory;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -15,10 +17,7 @@ import java.io.IOException;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-@Component
-public class DbNotifications {
-
-    public static enum Action { INSERT, UPDATE, DELETE };
+public class PostgreSQLNotifications {
 
     @Autowired
     private Logger logger;
@@ -46,9 +45,24 @@ public class DbNotifications {
         receiver.getNotifications()
                 .flatMap(notification -> {
                     try {
-                        return Flux.just(new DbNotification(notification));
+                        final var objectMapper = new ObjectMapper();
+                        final var tree = objectMapper
+                                .createParser(notification.getParameter())
+                                .readValueAsTree();
+                        
+                        final var action = Action.valueOf(((JsonNode) tree.get("action")).asText().toUpperCase());
+                        final var table = ((JsonNode) tree.get("identity")).asText().toUpperCase();
+                        final var record = tree.get("record");
+                        final var old = tree.get("old");
+                        
+                        return Flux.just(new DbNotification(
+                                PostgreSQLNotifications.class,
+                                action,
+                                table,
+                                record,
+                                old));
                     } catch (IOException e) {
-                        logger.error("Could not deserialize DB notification '{}'", notification, e);
+                        logger.error("Could not build DB notification '{}'", notification, e);
                         return Flux.empty();
                     }
                 })
