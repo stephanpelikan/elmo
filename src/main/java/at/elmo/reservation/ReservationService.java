@@ -14,7 +14,10 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import javax.transaction.Transactional;
+
 @Service
+@Transactional
 public class ReservationService {
     
     @Autowired
@@ -30,24 +33,31 @@ public class ReservationService {
     public void processDbNotification(
             final DbNotification notification) throws Exception {
         
-        final var startsAt = ((JsonNode) notification
-                .getRecord()
+        final var record = notification.getRecord() != null
+                ? notification.getRecord()
+                : notification.getOld();
+        
+        final var id = ((JsonNode) record
+                .get("id"))
+                .asText();
+
+        final var startsAt = ((JsonNode) record
                 .get("starts_at"))
                 .asText();
 
-        final var endsAt = ((JsonNode) notification
-                .getRecord()
+        final var endsAt = ((JsonNode) record
                 .get("ends_at"))
                 .asText();
 
-        final var carId = ((JsonNode) notification
-                .getRecord()
+        final var carId = ((JsonNode) record
                 .get("car"))
                 .asText();
 
         applicationEventPublisher.publishEvent(
                 new ReservationNotification(
-                        ReservationService.class,
+                        ReservationService.class.getSimpleName() + "#" + DbNotification.class.getSimpleName(),
+                        "Reservation#all",
+                        id,
                         LocalDateTime.parse(startsAt),
                         LocalDateTime.parse(endsAt),
                         carId));

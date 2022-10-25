@@ -14,6 +14,8 @@ import { Role } from '../client/gui';
 import { Login } from '../login/Login';
 import { css } from 'styled-components';
 import { MessageToast } from '../components/Toast';
+import { PreconfiguredReconnectingEventSource } from "../utils/sseUtils";
+import { EventSourceProvider } from 'react-sse-hooks';
 
 export const theme: ThemeType = {
   global: {
@@ -197,8 +199,9 @@ const App: React.FC<AppProps> = (props: AppProps): JSX.Element => {
   return (
     <Grommet
         theme={theme}
-        full>
-      <>
+        full>{/*
+// @ts-ignore */}
+      <EventSourceProvider eventSource={ PreconfiguredReconnectingEventSource }>
         {state.toast && (
           <MessageToast dispatch={dispatch} msg={state.toast} />
         )}
@@ -247,7 +250,7 @@ const App: React.FC<AppProps> = (props: AppProps): JSX.Element => {
             </Box>
           </Box>
         </Router>
-      </>
+      </EventSourceProvider>
     </Grommet>
   );
 };

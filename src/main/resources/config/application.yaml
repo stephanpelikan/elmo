@@ -129,6 +129,8 @@ camunda:
 logging:
   level:
     liquibase.hub: ERROR
+    # suppress warnings on loosing SSE connection due to user closed the browser
+    org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver: ERROR
     # see de.mhb.commons.spa.SpaNoHandlerFoundExceptionHandler
     org.springframework.web.servlet.PageNotFound: ERROR
     org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: ERROR

@@ -103,7 +103,7 @@ public class H2Notifications extends TriggerAdapter {
             case java.sql.Types.CLOB:
             case java.sql.Types.BLOB:
             case java.sql.Types.BINARY: {
-                eventLogger.warn("Unsupported type BINARY, ignoring column '{}'", name);
+                eventLogger.debug("Unsupported type BINARY, ignoring column '{}'", name);
                 break;
             }
             case java.sql.Types.BOOLEAN:

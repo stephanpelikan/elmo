@@ -7,13 +7,11 @@ import at.elmo.gui.api.v1.CarSharingCalendar;
 import at.elmo.gui.api.v1.CarSharingCalendarRequest;
 import at.elmo.gui.api.v1.CarSharingReservation;
 import at.elmo.gui.api.v1.CarSharingReservationType;
-import at.elmo.reservation.ReservationNotification;
 import at.elmo.reservation.ReservationService;
 import at.elmo.util.UserContext;
 import at.elmo.util.exceptions.ElmoValidationException;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
@@ -52,14 +50,6 @@ public class GuiApiController implements CarSharingApi {
     @Autowired
     private UserContext userContext;
 
-    @EventListener(classes = ReservationNotification.class)
-    public void updateClients(
-            final ReservationNotification notification) {
-        
-        logger.info("JUHU: {}", notification.getCarId());
-        
-    }
-
     @Override
     public ResponseEntity<CarSharingCalendar> getCarSharingCalendar(
             final CarSharingCalendarRequest request) {
@@ -92,7 +82,7 @@ public class GuiApiController implements CarSharingApi {
                     .addReservationsItem(mapper.toApi(r)))
             .filter(r -> (r instanceof CarSharing))
             .map(r -> ((CarSharing) r).getDriver())
-            .collect(Collectors.toList());
+            .collect(Collectors.toSet());
 
         final var driver = userContext.getLoggedInMember();
 
@@ -163,11 +153,23 @@ public class GuiApiController implements CarSharingApi {
         }
         
         try {
-            carSharingService.addCarSharing(
+            
+            final var carSharing = carSharingService.addCarSharing(
                     car.get(),
                     carSharingReservation.getStartsAt(),
                     carSharingReservation.getEndsAt(),
                     driver);
+            
+            // overlappings may happen by a small chance if a concurrent transaction is not committed
+            final var overlappingsAfterwards = reservationService.checkForOverlappings(
+                    car.get(),
+                    carSharingReservation.getStartsAt(),
+                    carSharingReservation.getEndsAt());
+            if (!overlappingsAfterwards.isEmpty()) {
+                carSharingService.cancelCarSharingDueToConflict(
+                        carSharing.getId());
+            }
+            
         } catch (Exception e) {
             logger.error("Could not add car-sharing", e);
             return ResponseEntity.internalServerError().build();

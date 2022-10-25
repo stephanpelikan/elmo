@@ -12,11 +12,16 @@ import at.elmo.util.UserContext;
 import at.elmo.util.exceptions.ElmoException;
 import at.elmo.util.refreshtoken.RefreshToken;
 import at.elmo.util.refreshtoken.RefreshTokenService;
+import at.elmo.util.spring.NotificationEvent;
+import at.elmo.util.spring.PingNotification;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
@@ -26,11 +31,16 @@ import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AccessToken.TokenType;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import javax.validation.Valid;
 
@@ -63,6 +73,76 @@ public class GuiApiController implements LoginApi {
 
     @Autowired
     private OAuth2UserService oauth2UserService;
+
+    private Map<String, SseEmitter> updateEmitters = new HashMap<>();
+    
+    @RequestMapping(
+            method = RequestMethod.GET,
+            value = "/gui/updates"
+        )
+    public SseEmitter updatesSubscription() throws Exception {
+        
+        final var id = UUID.randomUUID().toString();
+        
+        final var updateEmitter = new SseEmitter(-1l);
+        updateEmitters.put(id, updateEmitter);
+
+        return updateEmitter;
+
+    }
+
+    @EventListener(classes = NotificationEvent.class)
+    public void updateClients(
+            final NotificationEvent notification) {
+        
+        updateEmitters
+                .values()
+                .forEach(emitter -> {
+                    try {
+                        emitter.send(
+                                SseEmitter
+                                        .event()
+                                        .id(UUID.randomUUID().toString())
+                                        .data(notification, MediaType.APPLICATION_JSON)
+                                        .name(notification.getType())
+                                        .reconnectTime(30000));
+                    } catch (Exception e) {
+                        logger.warn("Could not send update event", e);
+                    }
+                });
+        
+    }
+
+    /**
+     * SseEmitter timeouts are absolute. So we need to ping
+     * the connection and if the user closed the browser we
+     * will see an error which indicates we have to drop 
+     * this emitter. 
+     */
+    @Scheduled(fixedDelayString = "PT1M")
+    public void cleanupUpdateEmitters() {
+        
+        final var ping = new PingNotification(GuiApiController.class.getName());
+        
+        final var toBeDeleted = new LinkedList<String>();
+        updateEmitters
+                .entrySet()
+                .forEach(entry -> {
+                    try {
+                        final var emitter = entry.getValue();
+                        emitter.send(
+                                SseEmitter
+                                        .event()
+                                        .id(UUID.randomUUID().toString())
+                                        .data(ping, MediaType.APPLICATION_JSON)
+                                        .name(ping.getType()));
+                    } catch (Exception e) {
+                        toBeDeleted.add(entry.getKey());
+                    }
+                });
+        toBeDeleted.forEach(updateEmitters::remove);
+        
+    }
 
     @Override
     public ResponseEntity<User> currentUser(

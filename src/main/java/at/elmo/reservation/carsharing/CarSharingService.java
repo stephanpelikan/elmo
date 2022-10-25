@@ -40,7 +40,7 @@ public class CarSharingService {
 
     }
 
-    public void addCarSharing(
+    public CarSharing addCarSharing(
             final Car car,
             final LocalDateTime startsAt,
             final LocalDateTime endsAt,
@@ -58,10 +58,52 @@ public class CarSharingService {
                 + carSharing.getHours();
         driver.setHoursConsumedCarSharing(newHours);
 
-        processService.startWorkflow(carSharing);
+        return processService.startWorkflow(carSharing);
 
     }
+    
+    public void cancelCarSharingDueToConflict(
+            final String reservationId) {
+        
+        cancelCarSharing(
+                reservationId,
+                "CancelledDueToConflict");
+        
+    }
 
+    public void cancelCarSharingByDriver(
+            final String reservationId) {
+        
+        cancelCarSharing(
+                reservationId,
+                "CancelledByDriver");
+        
+    }
+
+    public void cancelCarSharingByAdministrator(
+            final String reservationId) {
+        
+        cancelCarSharing(
+                reservationId,
+                "CancelledByAdministrator");
+        
+    }
+
+    private void cancelCarSharing(
+            final String reservationId,
+            final String causingEvent) {
+        
+        final var carSharing = carSharings.findById(reservationId);
+        if (carSharing.isEmpty()) {
+            return;
+        }
+        
+        processService.correlateMessage(
+                carSharing.get(),
+                causingEvent);
+        
+    }
+    
     public void cancelCarSharing(
             final String carSharingId,
             final boolean cancelledByAdministrator,

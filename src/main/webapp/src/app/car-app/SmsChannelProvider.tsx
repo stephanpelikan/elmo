@@ -1,17 +1,8 @@
 import { useEffect, useState } from "react";
 import { EventSourceProvider } from "react-sse-hooks";
-import ReconnectingEventSource from "reconnecting-eventsource";
 import { useAppApi } from "./CarAppContext";
 import { SmsSender } from "./SmsSender";
-
-class PreconfiguredReconnectingEventSource extends ReconnectingEventSource {
-  constructor(url: string | URL, eventSourceInitDict?: EventSourceInit) {
-    super(url, {
-      ...eventSourceInitDict,
-      max_retry_time: 30000
-    });
-  }
-};
+import { PreconfiguredReconnectingEventSource } from "../../utils/sseUtils";
 
 const SmsChannelProvider = () => {
   
@@ -30,7 +21,7 @@ const SmsChannelProvider = () => {
   return token
       ? (<>{/*
 // @ts-ignore */}
-          <EventSourceProvider eventSource={PreconfiguredReconnectingEventSource}>
+          <EventSourceProvider eventSource={ PreconfiguredReconnectingEventSource }>
             <SmsSender token={ token } />
           </EventSourceProvider>
         </>)

@@ -112,7 +112,9 @@ public class SmsService {
             // send notification delayed, to guarantee that transaction is committed
             scheduler.schedule(
                     () -> applicationEventPublisher.publishEvent(
-                            new SmsEvent(this, fromNumber)),
+                            new SmsEvent(
+                                    SmsService.class.getSimpleName() + "#sendSms",
+                                    fromNumber)),
                     Instant.now().plusSeconds(1));
 
         } else {

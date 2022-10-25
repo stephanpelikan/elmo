@@ -3,6 +3,8 @@ import { Dispatch } from '../AppContext';
 import buildFetchApi from './fetchApi';
 import { Cookies } from "react-cookie";
 
+const SSE_UPDATE_URL = "/api/v1/gui/updates";
+
 const REFRESH_TOKEN_HEADER = "x-refresh-token";
 
 const RefreshAwareMiddleware: Middleware = {
@@ -113,8 +115,8 @@ const getMemberGuiApi = (dispatch: Dispatch): MemberApi => {
 export { RefreshAwareMiddleware, REFRESH_TOKEN_HEADER };
 
 export {
+    SSE_UPDATE_URL,
     getLoginGuiApi,
     getOnboardingGuiApi,
     getMemberGuiApi,
   };
-

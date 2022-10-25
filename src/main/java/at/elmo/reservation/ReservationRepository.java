@@ -24,8 +24,8 @@ public interface ReservationRepository extends JpaRepository<ReservationBase, St
     @Query("SELECT r FROM ReservationBase r WHERE "
             + "(r.cancelled = false) "
             + "AND ((r.startsAt <= ?1 AND r.endsAt >= ?2) "
-            + "OR (r.startsAt <= ?1 AND r.endsAt >= ?1) "
-            + "OR (r.startsAt <= ?2 AND r.endsAt >= ?2) "
+            + "OR (r.startsAt <= ?1 AND r.endsAt > ?1) "
+            + "OR (r.startsAt < ?2 AND r.endsAt >= ?2) "
             + "OR (r.startsAt > ?1 AND r.endsAt < ?2))"
             + "ORDER BY r.startsAt")
     List<ReservationBase> findInPeriod(LocalDateTime startsAt, LocalDateTime endsAt, Sort sort);

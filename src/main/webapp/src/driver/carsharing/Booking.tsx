@@ -1,12 +1,14 @@
 import { Box, ColumnConfig, DataTable, Text } from "grommet";
 import { useTranslation } from "react-i18next";
 import i18n from '../../i18n';
+import useDebounce from '../../utils/debounce-hook';
 import useResponsiveScreen from '../../utils/responsiveUtils';
 import { currentHour, nextHours, timeAsString, hoursBetween } from '../../utils/timeUtils';
 import { SnapScrollingDataTable } from '../../components/SnapScrollingDataTable';
 import { UserAvatar } from '../../components/UserAvatar';
 import { useCarSharingApi } from '../DriverAppContext';
 import { CarSharingApi, CarSharingCar, CarSharingDriver, CarSharingReservation, User } from "../../client/gui";
+import { SSE_UPDATE_URL } from "../../client/guiClient";
 import { CSSProperties, memo, MouseEvent, MutableRefObject, startTransition, useCallback, useEffect, useRef, useState } from "react";
 import { BackgroundType, BorderType } from "grommet/utils";
 import { TFunction } from "i18next";
@@ -14,6 +16,7 @@ import styled from "styled-components";
 import { normalizeColor,  } from "grommet/utils";
 import { FormCheckmark, FormClose, FormDown, FormUp } from "grommet-icons";
 import { useAppContext } from "../../AppContext";
+import { useEventSource, useEventSourceListener } from "react-sse-hooks";
 
 i18n.addResources('en', 'driver/carsharing/booking', {
       "loading": "loading...",
@@ -43,6 +46,14 @@ i18n.addResources('de', 'driver/carsharing/booking', {
     });
 
 const itemsBatchSize = 48;
+
+interface UpdateEvent {
+  type: string;
+  id: string;
+  startsAt: string;
+  endsAt: string;
+  carId: string;
+}
 
 interface DayVersions {
   [key: string /* YYYYMMdd + '_' + car.id */]: number
@@ -544,7 +555,10 @@ const loadData = async (
       }
     
       if (days) {
-        setDays([ ...days, ...newDays ]);
+        const result = { };
+        days.forEach(d => { result[d.startsAt.getTime()] = d; });
+        newDays.forEach(d => { result[d.startsAt.getTime()] = d; });
+        setDays(Object.keys(result).sort().map(t => result[t]));
       } else {
         setDays(newDays);
       }
@@ -571,9 +585,19 @@ const Booking = () => {
     };
   
   const [ endDate, setEndDate ] = useState<Date>(undefined);
-  const [ days, setDays]  = useState<Array<CalendarDay>>(undefined);
+  const [ days, _setDays]  = useState<Array<CalendarDay>>(undefined);
+  const daysRef = useRef(days);
+  const setDays = (d: Array<CalendarDay>) => {
+      daysRef.current = d;
+      _setDays(d);
+    };
   const [ cars, setCars ] = useState<Array<CarSharingCar>>(undefined);
-  const [ drivers, setDrivers ] = useState<ReservationDrivers>(undefined);
+  const [ drivers, _setDrivers ] = useState<ReservationDrivers>(undefined);
+  const driversRef = useRef(drivers);
+  const setDrivers = (d: ReservationDrivers) => {
+      driversRef.current = d;
+      _setDrivers(d);
+    };
   const [ restrictions, _setRestrictions ] = useState<Restrictions>(undefined);
   const restrictionsRef = useRef(restrictions);
   const setRestrictions = useCallback((r: Restrictions) => {
@@ -587,7 +611,7 @@ const Booking = () => {
         const endsAt = nextHours(startsAt, (24 - startsAt.getHours()) + 24, false);
         loadData(carSharingApi, dayVersionsRef, updateDayVersions, setEndDate, startsAt, endsAt, days, setDays, drivers, setDrivers, setCars, setRestrictions);
       }
-    }, [ carSharingApi, days, setDays, restrictions, setRestrictions, drivers, setDrivers ]);
+    }, [ carSharingApi, days, restrictions, setRestrictions, drivers ]);
     
   const [ _isMouseDown, setMouseIsDown ] = useState(false);
   const isMouseDown = useRef(_isMouseDown);
@@ -841,6 +865,42 @@ const Booking = () => {
         };
     }, [ mouseUp, mouseMove ]);
   
+  const updateSource = useEventSource({
+      source: SSE_UPDATE_URL,
+    });
+    
+  const debounceSse = useDebounce();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { startListening, stopListening } = useEventSourceListener<UpdateEvent>({
+      source: updateSource,
+      startOnInit: true,
+      event: {
+        name: "Reservation#all",
+        listener: ({ data }) => {
+            const startsAt = new Date(data.startsAt);
+            const endsAt = new Date(data.endsAt);
+            const effectedDays = [];
+            for (let day = startsAt.getTime(); day < endsAt.getTime(); day += 3600000 * 24) {
+              const current = new Date(day);
+              const key = dayVersionKey(current, data.carId);
+              if (!effectedDays.includes(key)) {
+                effectedDays.push(new Date(current.getFullYear(), current.getMonth(), current.getDate()));
+              }
+            }
+            const key = dayVersionKey(endsAt, data.carId);
+            if (!effectedDays.includes(key)) {
+              effectedDays.push(nextHours(endsAt, 24 - endsAt.getHours(), false));
+            }
+            const updateStartsAt = effectedDays[0].getTime() < daysRef.current[0].startsAt.getTime() ? daysRef.current[0].startsAt : effectedDays[0];
+            const updateEndsAt = effectedDays[effectedDays.length - 1];
+            debounceSse(() => async () => {
+                loadData(carSharingApi, dayVersionsRef, updateDayVersions, setEndDate, updateStartsAt, updateEndsAt, daysRef.current, setDays, driversRef.current, setDrivers);
+              });
+          },
+      },
+    },
+    [ updateSource ]);
+  
   const carColumnSize = isPhone ? '80vw' : '300px';
   const carColumns: ColumnConfig<any>[] = !cars
       ? []
@@ -916,17 +976,17 @@ const Booking = () => {
             </Text>
           </Text>
         </Box>
-      <SnapScrollingDataTable
-          fill
-          headerHeight={ headerHeight }
-          phoneMargin={ phoneMargin }
-          primaryKey={ false }
-          columns={ carColumns }
-          step={ 2 }
-          onMore={ loadMore }
-          data={ days }
-          replace={ true } />
-          </>);
+        <SnapScrollingDataTable
+            fill
+            headerHeight={ headerHeight }
+            phoneMargin={ phoneMargin }
+            primaryKey={ false }
+            columns={ carColumns }
+            step={ 2 }
+            onMore={ loadMore }
+            data={ days }
+            replace={ true } />
+      </>);
       
 };
 

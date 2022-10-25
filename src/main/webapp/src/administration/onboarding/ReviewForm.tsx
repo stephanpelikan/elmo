@@ -10,7 +10,7 @@ import i18n from '../../i18n';
 import { css } from "styled-components";
 import { CalendarHeader } from '../../components/CalendarHeader';
 import { ViolationsAwareFormField } from "../../components/ViolationsAwareFormField";
-import useDebounce from '../../components/Debounce';
+import useDebounce from '../../utils/debounce-hook';
 import { Copy } from "grommet-icons";
 import { useOnboardingAdministrationApi, useMemberApi } from '../AdminAppContext';
 import { parseLocalDate, toLocalDateString } from '../../utils/timeUtils';
