@@ -30,6 +30,8 @@ i18n.addResources('en', 'driver/carsharing/booking', {
       "max-reservations_msg": "The maximum number of car-sharing reservations is reached: {{maxReservations}}!",
       "conflicting-reservation_title": "Car-Sharing",
       "conflicting-reservation_msg": "This view is not up to date! Meanwhile there is a conflicting reservation. Please go back and reenter to refresh the view.",
+      "conflicting-incoming_title": "Car-Sharing",
+      "conflicting-incoming_msg": "Another driver created a conflicting reservation. Your selection was removed.",
     });
 i18n.addResources('de', 'driver/carsharing/booking', {
       "loading": "Lade Daten...",
@@ -43,6 +45,8 @@ i18n.addResources('de', 'driver/carsharing/booking', {
       "max-reservations_msg": "Du hast bereits die maximale Anzahl an Car-Sharing-Reservierungen gebucht: {{maxReservations}}!",
       "conflicting-reservation_title": "Car-Sharing",
       "conflicting-reservation_msg": "Diese Ansicht ist nicht aktuell! Mittlerweile gibt es eine andere Reservierung in dieser Zeit. Bitte wechsle zur vorigen Ansicht steige neu ein, um die Ansicht zu aktualisieren.",
+      "conflicting-incoming_title": "Car-Sharing",
+      "conflicting-incoming_msg": "Ein(e) andere(r) Fahrer(in) hat eine Reservierung in der Zeit deiner Auswahl eingetragen, weshalb sie entfernt wurde.",
     });
 
 const itemsBatchSize = 48;
@@ -615,8 +619,12 @@ const Booking = () => {
     
   const [ _isMouseDown, setMouseIsDown ] = useState(false);
   const isMouseDown = useRef(_isMouseDown);
-  const [ _selection, setSelection ] = useState<Selection>(undefined);
+  const [ _selection, _setSelection ] = useState<Selection>(undefined);
   const selection = useRef(_selection);
+  const setSelection = (s: Selection) => {
+      selection.current = s;
+      _setSelection(s);
+    };
   
   const mouseDownOnDrag = useCallback((event: MouseEvent, top: boolean) => {
       if (isMouseDown.current) return;
@@ -630,7 +638,6 @@ const Booking = () => {
           endsAt: selection.current.endsAt,
           carId: selection.current.carId,
         };
-      selection.current = s;
       setSelection(s);
       isMouseDown.current = true;
       setMouseIsDown(true);
@@ -667,7 +674,6 @@ const Booking = () => {
           endsAt: hour.endsAt,
           carId: car.id
         };
-      selection.current = s;
       setSelection(s);
       isMouseDown.current = true;
       setMouseIsDown(true);
@@ -779,7 +785,6 @@ const Booking = () => {
           endsAt,
           carId: car.id,
         };
-      selection.current = s;
       setSelection(s);
       
     }, [ isMouseDown, setSelection, selection ]);
@@ -803,7 +808,6 @@ const Booking = () => {
         increaseDayVersion(dayVersionsRef, new Date(hour), selection.current.carId);
       }
       updateDayVersions(dayVersionsRef.current);
-      selection.current = undefined;
       setSelection(undefined);
 
     }, [ setSelection, selection ]);
@@ -829,7 +833,6 @@ const Booking = () => {
               increaseDayVersion(dayVersionsRef, new Date(hour), selection.current.carId);
             }
             updateDayVersions(dayVersionsRef.current);
-            selection.current = undefined;
             setSelection(undefined);
           } catch (error) {
             // CONFLICT means there is another reservation
@@ -895,6 +898,24 @@ const Booking = () => {
             const updateEndsAt = effectedDays[effectedDays.length - 1];
             debounceSse(() => async () => {
                 loadData(carSharingApi, dayVersionsRef, updateDayVersions, setEndDate, updateStartsAt, updateEndsAt, daysRef.current, setDays, driversRef.current, setDrivers);
+                if (selection.current === undefined) return;
+                // detect overlapping selection:
+                if ((startsAt.getTime() >= selection.current.startsAt.getTime()
+                        && (endsAt.getTime() <= selection.current.endsAt.getTime()))
+                    || (startsAt.getTime() < selection.current.startsAt.getTime()
+                        && (endsAt.getTime() > selection.current.endsAt.getTime()))
+                    || (startsAt.getTime() <= selection.current.startsAt.getTime()
+                        && (endsAt.getTime() > selection.current.startsAt.getTime()))
+                    || (startsAt.getTime() < selection.current.endsAt.getTime()
+                        && (endsAt.getTime() >= selection.current.endsAt.getTime()))) {
+                  toast({
+                      namespace: 'driver/car-sharing/booking',
+                      title: t('conflicting-incoming_title'),
+                      message: t('conflicting-incoming_msg'),
+                      status: 'warning'
+                    });
+                  setSelection(undefined);
+                }
               });
           },
       },
