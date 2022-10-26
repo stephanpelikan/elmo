@@ -15,6 +15,7 @@ import { Copy } from "grommet-icons";
 import { useOnboardingAdministrationApi, useMemberApi } from '../AdminAppContext';
 import { parseLocalDate, toLocalDateString } from '../../utils/timeUtils';
 import useResponsiveScreen from '../../utils/responsiveUtils';
+import { LoadingIndicator } from "../../components/LoadingIndicator";
 
 i18n.addResources('en', 'administration/onboarding/review', {
       "member-id": "Member ID:",
@@ -50,7 +51,6 @@ i18n.addResources('en', 'administration/onboarding/review', {
       "comment_placeholder": "Comment on reject/inquiry",
       "application-comment": "Remarks on application:",
       "application-comment_placeholder": "None",
-      "loading": "Loading...",
       "reset": "Reset",
       "save": "Save",
       "save_title": "Save member data",
@@ -96,7 +96,6 @@ i18n.addResources('de', 'administration/onboarding/review', {
       "comment_placeholder": "Kommentar für Rückfragen/Abweisen",
       "application-comment": "Bermerkungen zum Antrag:",
       "application-comment_placeholder": "Keine",
-      "loading": "Lade Daten...",
       "reset": "Zurücksetzen",
       "save": "Speichern",
       "save_title": "Mitgliedsdaten speichern",
@@ -382,11 +381,13 @@ const ReviewForm = () => {
         pad='small'>
       <Heading
           size='small'
-          level='2'>{
-        loading
-            ? t('loading')
-            : `${formValue?.firstName} ${formValue?.lastName}`
-      }</Heading>
+          level='2'>
+        {
+          formValue?.firstName
+        } {
+          formValue?.lastName
+        }
+      </Heading>
       <ThemeContext.Extend value={ theme }>
       <Form<FormState>
           value={ formValue }
@@ -599,6 +600,9 @@ const ReviewForm = () => {
         </Box>
       </Form>
       </ThemeContext.Extend>
+      {
+        loading ? <LoadingIndicator /> : undefined
+      }
     </Box>
   );
 };

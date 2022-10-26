@@ -1,4 +1,4 @@
-import { Box, ColumnConfig, DataTable, Layer, Text } from "grommet";
+import { Box, ColumnConfig, DataTable, Text } from "grommet";
 import { useTranslation } from "react-i18next";
 import i18n from '../../i18n';
 import useDebounce from '../../utils/debounce-hook';
@@ -6,6 +6,7 @@ import useResponsiveScreen from '../../utils/responsiveUtils';
 import { currentHour, nextHours, timeAsString, hoursBetween } from '../../utils/timeUtils';
 import { SnapScrollingDataTable } from '../../components/SnapScrollingDataTable';
 import { UserAvatar } from '../../components/UserAvatar';
+import { LoadingIndicator } from '../../components/LoadingIndicator';
 import { useCarSharingApi } from '../DriverAppContext';
 import { CarSharingApi, CarSharingCar, CarSharingDriver, CarSharingReservation, User } from "../../client/gui";
 import { SSE_UPDATE_URL } from "../../client/guiClient";
@@ -14,12 +15,11 @@ import { BackgroundType, BorderType } from "grommet/utils";
 import { TFunction } from "i18next";
 import styled from "styled-components";
 import { normalizeColor,  } from "grommet/utils";
-import { Cycle, FormCheckmark, FormClose, FormDown, FormUp } from "grommet-icons";
+import { FormCheckmark, FormClose, FormDown, FormUp } from "grommet-icons";
 import { useAppContext } from "../../AppContext";
 import { useEventSource, useEventSourceListener } from "react-sse-hooks";
 
 i18n.addResources('en', 'driver/carsharing/booking', {
-      "loading": "loading...",
       "reservation-type_BLOCK": "Unavailable",
       "reservation-type_PS": "Passanger Service",
       "remaining": "Remaining hours",
@@ -34,7 +34,6 @@ i18n.addResources('en', 'driver/carsharing/booking', {
       "conflicting-incoming_msg": "Another driver created a conflicting reservation. Your selection was removed.",
     });
 i18n.addResources('de', 'driver/carsharing/booking', {
-      "loading": "Lade Daten...",
       "reservation-type_BLOCK": "Nicht verfügbar",
       "reservation-type_PS": "Fahrtendienst",
       "remaining": "Verbleibende Stunden",
@@ -1083,16 +1082,7 @@ const Booking = () => {
             replace={ true } />
         {
           waitingForUpdate
-              ? <Layer
-                    responsive={true}
-                    modal={true}>
-                  <Box
-                      fill
-                      animation="rotateRight"
-                      pad='small'>
-                    <Cycle />
-                  </Box>
-                </Layer>
+              ? <LoadingIndicator />
               : undefined
         }
       </>);

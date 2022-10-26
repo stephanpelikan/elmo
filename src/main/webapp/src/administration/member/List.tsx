@@ -10,11 +10,11 @@ import { CircleButton } from '../../components/CircleButton';
 import { MemberIdAvatar } from '../../components/MemberIdAvatar';
 import i18n from '../../i18n';
 import useResponsiveScreen from '../../utils/responsiveUtils';
+import { LoadingIndicator } from '../../components/LoadingIndicator';
 
 i18n.addResources('en', 'administration/member', {
       "edit": "edit",
       "check": "check",
-      "loading": "loading...",
       "status": "Status",
       "status_ACTIVE": "Active",
       "status_INACTIVE": "Inactive",
@@ -37,7 +37,6 @@ i18n.addResources('en', 'administration/member', {
 i18n.addResources('de', 'administration/member', {
       "edit": "Bearbeiten",
       "check": "Prüfen",
-      "loading": "Lade Daten...",
       "status": "Status",
       "status_ACTIVE": "Aktiv",
       "status_INACTIVE": "Inaktiv",
@@ -256,7 +255,6 @@ const ListOfMembers = () => {
                 background={ {
                   body: ['white', 'light-2']
                 } }
-                placeholder={ members === undefined ? t('loading') : undefined }
                 columns={columns}
                 step={itemsBatchSize}
                 sortable={ false }
@@ -270,6 +268,9 @@ const ListOfMembers = () => {
           color='brand'
           icon={<Add color='white' />}
           onClick={ newMember } />
+      {
+        members === undefined ? <LoadingIndicator /> : undefined
+      }
     </>);
 }
 

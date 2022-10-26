@@ -8,10 +8,10 @@ import { CircleButton } from '../../components/CircleButton';
 import i18n from '../../i18n';
 import { Car, CarApi } from '../../client/administration';
 import useResponsiveScreen from '../../utils/responsiveUtils';
+import { LoadingIndicator } from '../../components/LoadingIndicator';
 
 i18n.addResources('en', 'administration/car', {
       "edit": "edit",
-      "loading": "loading...",
       "total": "Total:",
       "shortcut": "Shortcut",
       "name": "Name",
@@ -22,7 +22,6 @@ i18n.addResources('en', 'administration/car', {
     });
 i18n.addResources('de', 'administration/car', {
       "edit": "Bearbeiten",
-      "loading": "Lade Daten...",
       "total": "Anzahl:",
       "shortcut": "Kürzel",
       "name": "Name",
@@ -151,7 +150,6 @@ const ListOfCars = () => {
                 background={ {
                   body: ['white', 'light-2']
                 } }
-                placeholder={ cars === undefined ? t('loading') : undefined }
                 columns={columns}
                 step={itemsBatchSize}
                 onMore={() => loadData(carAdministrationApi, setNumberOfCars, setCars, cars)}
@@ -164,6 +162,9 @@ const ListOfCars = () => {
           color='brand'
           icon={<Add color='white' />}
           onClick={ newCar } />
+      {
+        cars === undefined ? <LoadingIndicator /> : undefined
+      }
     </>);
 }
 

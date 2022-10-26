@@ -16,6 +16,7 @@ import { css } from 'styled-components';
 import { MessageToast } from '../components/Toast';
 import { PreconfiguredReconnectingEventSource } from "../utils/sseUtils";
 import { EventSourceProvider } from 'react-sse-hooks';
+import { LoadingIndicator } from '../components/LoadingIndicator';
 
 export const theme: ThemeType = {
   global: {
@@ -213,7 +214,7 @@ const App: React.FC<AppProps> = (props: AppProps): JSX.Element => {
                 flex
                 overflow={{ horizontal: 'hidden' }}>
               <Box flex>
-                <Suspense fallback={<Box>Loading...</Box>}>
+                <Suspense fallback={<LoadingIndicator />}>
                   <CurrentUser>
                     <Routes>
                       <Route element={<ProtectedRoute roles={[ Role.Admin ]} />}>

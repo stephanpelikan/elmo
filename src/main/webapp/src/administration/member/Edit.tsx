@@ -11,9 +11,9 @@ import useResponsiveScreen from '../../utils/responsiveUtils';
 import { CalendarHeader } from '../../components/CalendarHeader';
 import { Modal } from '../../components/Modal';
 import { useAppContext } from '../../AppContext';
+import { LoadingIndicator } from '../../components/LoadingIndicator';
 
 i18n.addResources('en', 'administration/member-details', {
-    "loading": "Loading...",
     "new": "new",
     "hoursServedPassangerService": "Hours served passanger service",
     "hoursConsumedCarSharing": "Hours consumed car-sharing",
@@ -70,7 +70,6 @@ i18n.addResources('en', 'administration/member-details', {
     "abort": "Abort",
   });
 i18n.addResources('de', 'administration/member-details', {
-    "loading": "Lade Daten...",
     "new": "Neu",
     "hoursServedPassangerService": "Geleiste Stunden Fahrtendienst",
     "hoursConsumedCarSharing": "Konsumierte Stunden Car-Sharing",
@@ -252,20 +251,23 @@ const EditMember = () => {
         pad='small'>
       <Heading
           size='small'
-          level='2'>{
-        loading
-            ? t('loading')
-            : `${formValue?.firstName ? formValue?.firstName : ''} ${formValue?.lastName ? formValue?.lastName :''} (${memberIdString})`
-      }
-      {
-        isInactive()
-            ? <Paragraph
-                  margin={ { vertical: 'xsmall' } }
-                  color="red">
-                { t('inactive') }
-              </Paragraph>
-            : <></>
-      }
+          level='2'>
+        {
+          formValue?.firstName ? formValue?.firstName : ''
+        } {
+          formValue?.lastName ? formValue?.lastName : ''
+        } ({
+          memberIdString
+        })
+        {
+          isInactive()
+              ? <Paragraph
+                    margin={ { vertical: 'xsmall' } }
+                    color="red">
+                  { t('inactive') }
+                </Paragraph>
+              : <></>
+        }
       </Heading>
       {
           formValue?.roles?.includes(Role.Driver)
@@ -463,6 +465,9 @@ const EditMember = () => {
           <Text><i>{ t('delete_hint_header') }</i> { t('delete_hint') }</Text>
         </Paragraph>
       </Modal>
+      {
+        loading ? <LoadingIndicator /> : undefined
+      }
     </Box>);
     
 }

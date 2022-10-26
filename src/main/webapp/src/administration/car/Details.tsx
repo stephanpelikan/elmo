@@ -10,9 +10,9 @@ import { Car, CarApi } from "../../client/administration";
 import i18n from '../../i18n';
 import { useCarAdministrationApi } from "../AdminAppContext";
 import useResponsiveScreen from '../../utils/responsiveUtils';
+import { LoadingIndicator } from '../../components/LoadingIndicator';
 
 i18n.addResources('en', 'administration/car-details', {
-      "loading": "loading...",
       "shortcut": "Shortcut:",
       "shortcut-readonly": "Shortcut (not changeable):",
       "name": "Name of the car:",
@@ -52,7 +52,6 @@ However, it can be deactivated for passanger-service and car-sharing.`,
       "new": "New",
   });
 i18n.addResources('de', 'administration/car-details', {
-      "loading": "Lade Daten...",
       "shortcut": "Kürzel:",
       "shortcut-readonly": "Kürzel (nicht änderbar):",
       "name": "Name des Autos:",
@@ -261,13 +260,7 @@ const Details = () => {
   };
 
   if (loading) {
-    return (
-        <Box
-            pad='medium'>
-          <Heading
-              size='small'
-              level='2'>{ t('loading') }</Heading>
-        </Box>);
+    return <LoadingIndicator />;
   }
   
   return (

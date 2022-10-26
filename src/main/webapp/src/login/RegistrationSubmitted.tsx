@@ -6,9 +6,9 @@ import { MemberApplicationForm, OnboardingApi, UserStatus } from '../client/gui'
 import { useEffect, useState } from 'react';
 import { parseLocalDate } from '../utils/timeUtils';
 import { Emoji } from 'grommet-icons';
+import { LoadingIndicator } from '../components/LoadingIndicator';
 
 i18n.addResources('en', 'login/registration/submitted', {
-      "loading": "Loading...",
       "title_REJECTED": "Sorry...",
       "title_APPLICATION_SUBMITTED": "Thank you!",
       "title_INACTIVE": "Inactive!",
@@ -25,7 +25,6 @@ i18n.addResources('en', 'login/registration/submitted', {
 
 // @ts-ignore
 i18n.addResources('de', 'login/registration/submitted', {
-      "loading": "Lade Daten...",
       "title_REJECTED": "Leider...",
       "title_APPLICATION_SUBMITTED": "Danke!",
       "title_INACTIVE": "Inaktiv!",
@@ -106,13 +105,7 @@ const RegistrationSubmitted = () => {
   const { t } = useTranslation('login/registration/submitted');
   
   if (loading) {
-    return (
-        <Box
-            pad='medium'>
-          <Heading
-              size='small'
-              level='2'>{ t('loading') }</Heading>
-        </Box>)
+    return <LoadingIndicator />
   }
   
   switch (state.currentUser.status) {
