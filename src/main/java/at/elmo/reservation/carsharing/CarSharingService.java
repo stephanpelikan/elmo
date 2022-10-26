@@ -2,6 +2,7 @@ package at.elmo.reservation.carsharing;
 
 import at.elmo.car.Car;
 import at.elmo.member.Member;
+import at.elmo.member.MemberRepository;
 import at.elmo.reservation.carsharing.CarSharing.Status;
 import at.phactum.bp.blueprint.process.ProcessService;
 import at.phactum.bp.blueprint.service.BpmnProcess;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 @Service
@@ -26,10 +28,13 @@ public class CarSharingService {
 
     @Autowired
     private CarSharingRepository carSharings;
+    
+    @Autowired
+    private MemberRepository members;
 
     @Autowired
     private ProcessService<CarSharing> processService;
-
+    
     public long numberOfFutureCarSharings(
             final Member driver) {
 
@@ -53,10 +58,14 @@ public class CarSharingService {
         carSharing.setStartsAt(startsAt);
         carSharing.setEndsAt(endsAt);
         carSharing.setStatus(Status.RESERVED);
+        carSharing.setHoursPlanned(carSharing.getHours());
 
-        final var newHours = driver.getHoursConsumedCarSharing()
-                + carSharing.getHours();
-        driver.setHoursConsumedCarSharing(newHours);
+        final var newHours = driver
+                .getHoursConsumedCarSharing()
+                + carSharing.getHoursPlanned();
+        members
+                .getById(driver.getId())
+                .setHoursConsumedCarSharing(newHours);
 
         return processService.startWorkflow(carSharing);
 
@@ -67,36 +76,59 @@ public class CarSharingService {
         
         return cancelCarSharing(
                 reservationId,
+                null,
+                null,
                 "CancelledDueToConflict");
         
     }
 
     public boolean cancelCarSharingByDriver(
             final String reservationId) {
-        carSharings.deleteById(reservationId);
-//        return cancelCarSharing(
-//                reservationId,
-//                "CancelledByDriver");
-        return true;
+        
+        return cancelCarSharing(
+                reservationId,
+                LocalDateTime
+                        .now()
+                        .truncatedTo(ChronoUnit.HOURS)
+                        .plusHours(1),
+                null,
+                "CancelledByDriver");
         
     }
 
     public boolean cancelCarSharingByAdministrator(
-            final String reservationId) {
+            final String reservationId,
+            final String comment) {
         
         return cancelCarSharing(
                 reservationId,
+                LocalDateTime
+                        .now()
+                        .truncatedTo(ChronoUnit.HOURS)
+                        .plusHours(1),
+                comment,
                 "CancelledByAdministrator");
         
     }
 
     private boolean cancelCarSharing(
             final String reservationId,
+            final LocalDateTime endOfUsage,
+            final String comment,
             final String causingEvent) {
         
         final var carSharing = carSharings.findById(reservationId);
         if (carSharing.isEmpty()) {
             return false;
+        }
+        
+        if ((endOfUsage != null)
+                && !endOfUsage.isBefore(carSharing.get().getEndsAt()) ){
+            carSharing.get().setEndsAt(endOfUsage);
+        }
+        
+        if (comment != null) {
+            carSharing.get().setComment(comment);
         }
         
         processService.correlateMessage(
@@ -107,26 +139,6 @@ public class CarSharingService {
         
     }
     
-    public void cancelCarSharing(
-            final String carSharingId,
-            final boolean cancelledByAdministrator,
-            final String comment) {
-
-        final var carSharing = carSharings.findById(carSharingId);
-        if (carSharing.isEmpty()) {
-            return;
-        }
-
-        carSharing.get().setCancelled(true);
-        carSharing.get().setStatus(Status.CANCELLED);
-        carSharing.get().setComment(comment);
-
-        processService.correlateMessage(
-                carSharing.get(),
-                cancelledByAdministrator ? "CancelledByAdministrator" : "CancelledByDriver");
-
-    }
-
     @WorkflowTask
     public void remindDriverToConfirmStartOfUsage() {
 
@@ -176,8 +188,42 @@ public class CarSharingService {
     }
 
     @WorkflowTask
-    public void recordUsage(
+    @WorkflowTask(taskDefinition = "recordUsage") // legacy
+    public void updateRecordedUsage(
             final CarSharing carSharing) {
+        
+        final var now = LocalDateTime.now();
+        
+        // cancelled before start of car-sharing
+        if (carSharing.getStartsAt().isAfter(now)) {
+            
+            carSharing.setCancelled(true);
+            carSharing.setStatus(Status.CANCELLED);
+            carSharing.getDriver().setHoursConsumedCarSharing(
+                    carSharing.getDriver().getHoursConsumedCarSharing()
+                    - carSharing.getHoursPlanned());
+            
+        }
+        // cancelled before end of car-sharing or completed normally
+        else {
+            
+            if (carSharing.getHours() != carSharing.getHoursPlanned()) {
+                
+                final var hoursCarReturnedEarlier =
+                        carSharing.getHoursPlanned()
+                        - carSharing.getHours();
+                // hoursCarReturnedEarlier might be negative in case of
+                // car returned later than planned. In this case the
+                // driver's fixed hours of consumed car-sharing may increase
+                // and become greater than the hours served passenger service.
+                // this special situation will not be treated in a special way.
+                carSharing.getDriver().setHoursConsumedCarSharing(
+                        carSharing.getDriver().getHoursConsumedCarSharing()
+                        - hoursCarReturnedEarlier);
+                
+            }
+            
+        }
 
     }
 

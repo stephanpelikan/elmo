@@ -15,16 +15,20 @@ const LoadingIndicator = () => {
   return (
       <ThemeContext.Extend value={ theme }>
         <Layer
-            background={ { color: 'rgba(0, 0, 0, 0.3)' } }
-            responsive={true}
+            plain
+            animate={false}
+            responsive={false}
             modal={true}>
           <Box
-              round='large'
-              animation="rotateRight"
-              pad='medium'>
-            <Cycle
-                color="white"
-                size="large" />
+              round='medium'
+              background={ { color: 'rgba(0, 0, 0, 0.3)' } }>
+            <Box
+                animation="rotateRight"
+                pad='medium'>
+              <Cycle
+                  color="white"
+                  size="large" />
+            </Box>
           </Box>
         </Layer>
       </ThemeContext.Extend>);

@@ -8,8 +8,8 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <camunda-edition>ce</camunda-edition>
-    <camunda-version>7.16</camunda-version>
+    <camunda-edition>ee</camunda-edition>
+    <camunda-version>7.18</camunda-version>
     <camunda-version-minor>0</camunda-version-minor>
     <jackson.version>2.12.5</jackson.version>
     <mapstruct.version>1.5.2.Final</mapstruct.version>
@@ -447,16 +447,6 @@
   </dependencies>
 
   <profiles>
-    <profile>
-      <id>camunda-ce</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-        <property>
-          <name>camunda-edition</name>
-          <value>ce</value>
-        </property>
-      </activation>
-    </profile>
     <profile>
       <id>pdf</id>
       <activation>

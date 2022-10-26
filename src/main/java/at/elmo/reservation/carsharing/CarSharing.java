@@ -3,8 +3,7 @@ package at.elmo.reservation.carsharing;
 import at.elmo.member.Member;
 import at.elmo.reservation.ReservationBase;
 
-import java.time.ZoneId;
-import java.util.Date;
+import java.time.format.DateTimeFormatter;
 
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
@@ -38,6 +37,9 @@ public class CarSharing extends ReservationBase {
 
     @Column(name = "COMMENT")
     private String comment;
+    
+    @Column(name = "HOURS_PLANNED")
+    private int hoursPlanned;
 
     public Member getDriver() {
         return driver;
@@ -70,23 +72,29 @@ public class CarSharing extends ReservationBase {
     public void setComment(String comment) {
         this.comment = comment;
     }
+    
+    public int getHoursPlanned() {
+        return hoursPlanned;
+    }
+    
+    public void setHoursPlanned(int hoursPlanned) {
+        this.hoursPlanned = hoursPlanned;
+    }
 
-    public Date getFifteenMinutesBeforeStart() {
+    public String getFifteenMinutesBeforeStart() {
 
-        return Date.from(getStartsAt()
+        return getStartsAt()
                 .minusMinutes(15)
-                .atZone(ZoneId.systemDefault())
-                .toInstant());
+                .format(DateTimeFormatter.ISO_DATE_TIME);
 
     }
 
-    public Date getTwoHoursAfterEnd() {
+    public String getTwoHoursAfterEnd() {
 
-        return Date.from(getEndsAt()
+        return getEndsAt()
                 .plusHours(2)
-                .atZone(ZoneId.systemDefault())
-                .toInstant());
+                .format(DateTimeFormatter.ISO_DATE_TIME);
 
     }
-
+    
 }

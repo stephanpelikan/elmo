@@ -15,7 +15,7 @@
       <bpmn:startEvent id="Event_1sppnlo" name="start of car usage">
         <bpmn:outgoing>Flow_18sabf4</bpmn:outgoing>
       </bpmn:startEvent>
-      <bpmn:sendTask id="Activity_150dlco" name="remind driver about confirming end of usage" camunda:expression="${remindDriverToConfirmEndOfUsage}">
+      <bpmn:sendTask id="Activity_150dlco" name="remind driver about confirming end of usage" camunda:asyncBefore="true" camunda:expression="${remindDriverToConfirmEndOfUsage}">
         <bpmn:incoming>Flow_1enmb8x</bpmn:incoming>
         <bpmn:incoming>Flow_09mygfl</bpmn:incoming>
         <bpmn:outgoing>Flow_0pc54w7</bpmn:outgoing>
@@ -36,7 +36,7 @@
           <bpmn:timeDate xsi:type="bpmn:tFormalExpression">${startsAtDate}</bpmn:timeDate>
         </bpmn:timerEventDefinition>
       </bpmn:boundaryEvent>
-      <bpmn:sendTask id="Activity_1a47arc" name="remind driver to confirm start of usage in app" camunda:expression="${remindDriverToConfirmStartOfUsage}">
+      <bpmn:sendTask id="Activity_1a47arc" name="remind driver to confirm start of usage in app" camunda:asyncBefore="true" camunda:expression="${remindDriverToConfirmStartOfUsage}">
         <bpmn:incoming>Flow_09cutr8</bpmn:incoming>
         <bpmn:incoming>Flow_0jznnqh</bpmn:incoming>
         <bpmn:outgoing>Flow_0qhzld0</bpmn:outgoing>
@@ -92,7 +92,7 @@
     <bpmn:sequenceFlow id="Flow_0a542fp" sourceRef="Activity_1ifav8b" targetRef="Activity_1qbm914" />
     <bpmn:sequenceFlow id="Flow_1uhhnvn" sourceRef="Activity_1cp3vsj" targetRef="Activity_1qbm914" />
     <bpmn:sequenceFlow id="Flow_0vpvual" sourceRef="Event_1anihtl" targetRef="Activity_1qbm914" />
-    <bpmn:sendTask id="Activity_1ifav8b" name="inform driver about cancellation" camunda:expression="${informDriverAboutCancellation}">
+    <bpmn:sendTask id="Activity_1ifav8b" name="inform driver about cancellation" camunda:asyncBefore="true" camunda:expression="${informDriverAboutCancellation}">
       <bpmn:incoming>Flow_1spxycx</bpmn:incoming>
       <bpmn:outgoing>Flow_0a542fp</bpmn:outgoing>
     </bpmn:sendTask>
@@ -104,10 +104,6 @@
       <bpmn:outgoing>Flow_0vpvual</bpmn:outgoing>
       <bpmn:messageEventDefinition id="MessageEventDefinition_1ofkslq" messageRef="Message_0edrp1a" />
     </bpmn:boundaryEvent>
-    <bpmn:sendTask id="Activity_1cp3vsj" name="inform administrator about unconfirmed usage" camunda:expression="${informAboutUnconfirmedUsage}">
-      <bpmn:incoming>Flow_1ysv7e7</bpmn:incoming>
-      <bpmn:outgoing>Flow_1uhhnvn</bpmn:outgoing>
-    </bpmn:sendTask>
     <bpmn:boundaryEvent id="Event_0g24ov8" name="two hours after end of usage" attachedToRef="Activity_1vsbnwj">
       <bpmn:outgoing>Flow_1ysv7e7</bpmn:outgoing>
       <bpmn:timerEventDefinition id="TimerEventDefinition_0oo1lqa">
@@ -119,7 +115,7 @@
       <bpmn:outgoing>Flow_0wjrgq5</bpmn:outgoing>
       <bpmn:messageEventDefinition id="MessageEventDefinition_1097rfg" messageRef="Message_0l87vd6" />
     </bpmn:boundaryEvent>
-    <bpmn:serviceTask id="Activity_1qbm914" name="record usage" camunda:expression="${recordUsage}">
+    <bpmn:serviceTask id="Activity_1qbm914" name="update recorded usage according to actual usage" camunda:asyncBefore="true" camunda:expression="${updateRecordedUsage}">
       <bpmn:incoming>Flow_16tomnj</bpmn:incoming>
       <bpmn:incoming>Flow_0a542fp</bpmn:incoming>
       <bpmn:incoming>Flow_1uhhnvn</bpmn:incoming>
@@ -133,6 +129,10 @@
     <bpmn:startEvent id="Event_0yatdx0" name="car sharing reserved">
       <bpmn:outgoing>Flow_08m2v9o</bpmn:outgoing>
     </bpmn:startEvent>
+    <bpmn:sendTask id="Activity_1cp3vsj" name="inform administrator about unconfirmed usage" camunda:asyncBefore="true" camunda:expression="${informAboutUnconfirmedUsage}">
+      <bpmn:incoming>Flow_1ysv7e7</bpmn:incoming>
+      <bpmn:outgoing>Flow_1uhhnvn</bpmn:outgoing>
+    </bpmn:sendTask>
   </bpmn:process>
   <bpmn:error id="Error_0msatxo" name="Email_Not_Verified" errorCode="Email_Not_Verified" />
   <bpmn:message id="Message_2upsvno" name="to" />

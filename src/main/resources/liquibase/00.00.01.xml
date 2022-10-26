@@ -211,6 +211,7 @@
       <column name="COMMENT" type="text" />
       <column name="CONFIRM_USERTASK" type="varchar(40)" />
       <column name="STATUS" type="varchar(30)" />
+      <column name="HOURS_PLANNED" type="int" />
     </addColumn>
     <addColumn tableName="ELMO_MEMBER">
       <column name="PS_HOURS" type="int" />

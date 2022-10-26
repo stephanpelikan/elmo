@@ -7,8 +7,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
+import java.time.format.DateTimeFormatter;
 
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
@@ -61,19 +60,17 @@ public abstract class ReservationBase extends PersistenceBase<String> {
         
     }
     
-    public Date getStartsAtDate() {
+    public String getStartsAtDate() {
 
-        return Date.from(getStartsAt()
-                .atZone(ZoneId.systemDefault())
-                .toInstant());
+        return getStartsAt()
+                .format(DateTimeFormatter.ISO_DATE_TIME);
 
     }
 
-    public Date getEndsAtDate() {
+    public String getEndsAtDate() {
 
-        return Date.from(getEndsAt()
-                .atZone(ZoneId.systemDefault())
-                .toInstant());
+        return getEndsAt()
+                .format(DateTimeFormatter.ISO_DATE_TIME);
 
     }
 
