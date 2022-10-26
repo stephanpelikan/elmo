@@ -104,7 +104,7 @@ public class GuiApiController implements LoginApi {
                                         .event()
                                         .id(UUID.randomUUID().toString())
                                         .data(notification, MediaType.APPLICATION_JSON)
-                                        .name(notification.getType())
+                                        .name(notification.getSource().toString())
                                         .reconnectTime(30000));
                     } catch (Exception e) {
                         logger.warn("Could not send update event", e);
@@ -122,7 +122,7 @@ public class GuiApiController implements LoginApi {
     @Scheduled(fixedDelayString = "PT1M")
     public void cleanupUpdateEmitters() {
         
-        final var ping = new PingNotification(GuiApiController.class.getName());
+        final var ping = new PingNotification();
         
         final var toBeDeleted = new LinkedList<String>();
         updateEmitters
@@ -135,7 +135,7 @@ public class GuiApiController implements LoginApi {
                                         .event()
                                         .id(UUID.randomUUID().toString())
                                         .data(ping, MediaType.APPLICATION_JSON)
-                                        .name(ping.getType()));
+                                        .name(ping.getSource().toString()));
                     } catch (Exception e) {
                         toBeDeleted.add(entry.getKey());
                     }

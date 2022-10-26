@@ -308,7 +308,7 @@ paths:
     post:
       tags:
         - car-sharing
-      summary: Take a reservation
+      summary: Take a car-sharing reservation
       operationId: addCarSharingReservation
       parameters:
         - in: path
@@ -330,6 +330,30 @@ paths:
           description: Car not found
         409:
           description: Reservation declined due to other reservations
+  /gui/car-sharing/{carId}/reservation/{reservationId}:
+    delete:
+      tags:
+        - car-sharing
+      summary: Cancel a car-sharing reservation
+      operationId: cancelCarSharingReservation
+      parameters:
+        - in: path
+          name: carId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: reservationId
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Reservation removed
+        400:
+          description: Reservation not found
+        404:
+          description: Car not found
 components:
   schemas:
     ValidationErrors:
@@ -538,6 +562,8 @@ components:
     CarSharingReservation:
       type: object
       properties:
+        id:
+          type: string
         startsAt:
           type: string
           format: date-time

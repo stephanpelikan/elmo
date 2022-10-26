@@ -1,4 +1,4 @@
-import { Box, ColumnConfig, DataTable, Text } from "grommet";
+import { Box, ColumnConfig, DataTable, Layer, Text } from "grommet";
 import { useTranslation } from "react-i18next";
 import i18n from '../../i18n';
 import useDebounce from '../../utils/debounce-hook';
@@ -9,12 +9,12 @@ import { UserAvatar } from '../../components/UserAvatar';
 import { useCarSharingApi } from '../DriverAppContext';
 import { CarSharingApi, CarSharingCar, CarSharingDriver, CarSharingReservation, User } from "../../client/gui";
 import { SSE_UPDATE_URL } from "../../client/guiClient";
-import { CSSProperties, memo, MouseEvent, MutableRefObject, startTransition, useCallback, useEffect, useRef, useState } from "react";
+import { CSSProperties, memo, MouseEvent as ReactMouseEvent, MutableRefObject, useCallback, useEffect, useRef, useState } from "react";
 import { BackgroundType, BorderType } from "grommet/utils";
 import { TFunction } from "i18next";
 import styled from "styled-components";
 import { normalizeColor,  } from "grommet/utils";
-import { FormCheckmark, FormClose, FormDown, FormUp } from "grommet-icons";
+import { Cycle, FormCheckmark, FormClose, FormDown, FormUp } from "grommet-icons";
 import { useAppContext } from "../../AppContext";
 import { useEventSource, useEventSourceListener } from "react-sse-hooks";
 
@@ -54,6 +54,7 @@ const itemsBatchSize = 48;
 interface UpdateEvent {
   type: string;
   id: string;
+  driverMemberId?: number;
   startsAt: string;
   endsAt: string;
   carId: string;
@@ -137,9 +138,9 @@ const StyledSelectionBox = styled(Box)<{
 const SelectionBox = ({ hour, selection, mouseDownOnDrag, cancelSelection, acceptSelection }: {
     hour: CalendarHour,
     selection: Selection,
-    cancelSelection: (event: MouseEvent) => void,
-    acceptSelection: (event: MouseEvent) => void,
-    mouseDownOnDrag: (event: MouseEvent, top: boolean) => void,
+    cancelSelection: (event: ReactMouseEvent) => void,
+    acceptSelection: (event: ReactMouseEvent) => void,
+    mouseDownOnDrag: (event: ReactMouseEvent, top: boolean) => void,
   }) => {
 
     const { state } = useAppContext();
@@ -270,12 +271,43 @@ const SelectionBox = ({ hour, selection, mouseDownOnDrag, cancelSelection, accep
           </StyledSelectionBox>  
   };
 
+const CancellationBox = ({
+    carId,
+    reservationId,
+    cancelReservation
+  }: {
+    carId: string,
+    reservationId: string,
+    cancelReservation: (event: ReactMouseEvent, carId: string, reservationId: string) => void
+  }) => <Box
+          style={ { position: 'relative' } }>
+        <Box
+            style={ { position: 'absolute', right: '2.5rem' } }
+            onMouseDownCapture={ (event) => cancelReservation(event, carId, reservationId) }
+            round="full"
+            overflow="hidden"
+            border={ { color: 'accent-3', size: '3px' } }
+            background='status-critical'>
+          <FormClose
+              color="white"
+              size="30rem" />
+        </Box>
+      </Box>;
 
-const CarSharingReservationBox = ({ drivers, hour }: {
+const CarSharingReservationBox = ({
+    drivers,
+    hour,
+    cancellationBox
+  }: {
     drivers: ReservationDrivers,
     hour: CalendarHour,
+    cancellationBox?: any,
   }) => {
     return (
+      <>
+          {
+            cancellationBox ? cancellationBox : undefined
+          }
         <Box
             pad={ {
                 horizontal: '0rem',
@@ -295,7 +327,8 @@ const CarSharingReservationBox = ({ drivers, hour }: {
                 timeAsString(hour.reservation.endsAt)
               }</Text>
           </Box>
-        </Box>);
+        </Box>
+      </>);
   };
 
 const DayTable = memo<{
@@ -307,12 +340,13 @@ const DayTable = memo<{
     days: CalendarDay[],
     day: CalendarDay,
     selection: Selection,
-    cancelSelection: (event: MouseEvent) => void,
-    acceptSelection: (event: MouseEvent) => void,
-    mouseDownOnDrag: (event: MouseEvent, top: boolean) => void,
-    mouseDownOnHour: (event: MouseEvent, car: CarSharingCar, hour: CalendarHour) => void,
-    mouseEnterHour: (event: MouseEvent, car: CarSharingCar, days: CalendarDay[], day: CalendarDay, hour: CalendarHour) => void }>(
-  ({ t, currentUser, drivers, car, days, day, selection, cancelSelection, acceptSelection, mouseDownOnHour, mouseEnterHour, mouseDownOnDrag }) => {
+    cancelSelection: (event: ReactMouseEvent) => void,
+    acceptSelection: (event: ReactMouseEvent) => void,
+    cancelReservation: (event: ReactMouseEvent, carId: string, reservationId: string) => void,
+    mouseDownOnDrag: (event: ReactMouseEvent, top: boolean) => void,
+    mouseDownOnHour: (event: ReactMouseEvent, car: CarSharingCar, hour: CalendarHour) => void,
+    mouseEnterHour: (event: ReactMouseEvent, car: CarSharingCar, days: CalendarDay[], day: CalendarDay, hour: CalendarHour) => void }>(
+  ({ t, currentUser, drivers, car, days, day, selection, cancelSelection, acceptSelection, cancelReservation, mouseDownOnHour, mouseEnterHour, mouseDownOnDrag }) => {
 
     const hours = day.hours[car.id];
 
@@ -349,6 +383,10 @@ const DayTable = memo<{
             
             const index = hours.indexOf(hour);
             
+            const isFirstHourOfReservation = (hour.reservation?.startsAt.getTime() === hour.startsAt.getTime())
+                        || (hour.reservation && (index === 0));
+            const isLastHourOfReservation = hour.reservation?.endsAt.getTime() === hour.endsAt.getTime();
+            const isCarSharingReservation = hour.reservation?.type === "CS";
             return (
                 <Box
                     direction="row"
@@ -389,20 +427,33 @@ const DayTable = memo<{
                         } }
                       margin={ { horizontal: '1rem' }}
                       background={ backgroundColor }>{
-                    ((hour.reservation?.startsAt.getTime() === hour.startsAt.getTime())
-                        || (hour.reservation && (index === 0)))
-                        ? hour.reservation.type === "CS"
-                        ? <CarSharingReservationBox
-                            hour={ hour }
-                            drivers={ drivers } />
-                        : <Text>{ t(`reservation-type_${hour.reservation.type}` as const) }</Text>
-                        : hasSelection
+                    hasSelection
                         ? <SelectionBox
+                                hour={ hour }
+                                selection={ selection }
+                                acceptSelection={ acceptSelection }
+                                cancelSelection={ cancelSelection }
+                                mouseDownOnDrag={ mouseDownOnDrag } />
+                        : isFirstHourOfReservation
+                        ? isCarSharingReservation
+                          ? <CarSharingReservationBox
                               hour={ hour }
-                              selection={ selection }
-                              acceptSelection={ acceptSelection }
-                              cancelSelection={ cancelSelection }
-                              mouseDownOnDrag={ mouseDownOnDrag } />
+                              drivers={ drivers }
+                              cancellationBox={ isLastHourOfReservation
+                                  ? <CancellationBox
+                                       carId={ car.id }
+                                       reservationId={ hour.reservation.id }
+                                       cancelReservation={ cancelReservation } />
+                                  : undefined }
+                               />
+                          : <Text>{ t(`reservation-type_${hour.reservation.type}` as const) }</Text>
+                        : isLastHourOfReservation
+                        ? isCarSharingReservation
+                          ? <CancellationBox
+                               carId={ car.id }
+                               reservationId={ hour.reservation.id }
+                               cancelReservation={ cancelReservation } />
+                          : undefined
                         : undefined
                     }
                   </Box>
@@ -475,7 +526,7 @@ const loadData = async (
       carSharingApi: CarSharingApi,
       dayVersions: MutableRefObject<DayVersions>,
       updateDayVersions: (versions: DayVersions) => void,
-      setEndDate: (Date) => void,
+      setEndDate: (endDate: Date) => void,
       startsAt: Date,
       endsAt: Date,
       days: Array<CalendarDay>,
@@ -490,87 +541,85 @@ const loadData = async (
       carSharingCalendarRequest: { startsAt, endsAt }
     });
 
-  startTransition(() => {
-    
-      if (setRestrictions) {
-        setRestrictions({
-            remainingHours: calendar.remainingHours,
-            maxHours: calendar.maxHours,
-          });
-      }
-      if (setCars) {
-        setCars(calendar.cars);
-      }
-      
-      const newDays = [];
-    
-      const currentHour = { at: startsAt, day: { startsAt, hours: {} } };
-      newDays.push(currentHour.day);
-      increaseDayVersions(dayVersions, startsAt, calendar.cars);
-      
-      const carReservationIndex = {};
-      calendar.cars.forEach(car => carReservationIndex[car.id] = 0);
-      while (currentHour.at.getTime() !== endsAt.getTime()) {
-        
-        const nextHour = nextHours(currentHour.at, 1, false);
-        
-        calendar.cars.forEach((car, index) => {
-          let hours: Array<CalendarHour> = currentHour.day.hours[car.id];
-          if (hours === undefined) {
-            hours = [];
-            currentHour.day.hours[car.id] = hours;
-          }
-          const numberOfReservations = car.reservations?.length;
-          let reservation = undefined;
-          if (numberOfReservations > 0) {
-            for (var i = carReservationIndex[car.id];
-                (i < numberOfReservations); ++i) {
-              const r = car.reservations[i];
-              if ((r.startsAt <= currentHour.at) && (r.endsAt >= nextHour)) {
-                reservation = r;
-              }
-            }
-          }
-          const item: CalendarHour = {
-            index,
-            startsAt: currentHour.at,
-            endsAt: nextHour,
-            reservation,
-          };
-          hours.push(item);
-        });
-        
-        currentHour.at = nextHour;
-        if ((currentHour.day.startsAt.getDate() !== nextHour.getDate())
-            && nextHour.getTime() !== endsAt.getTime()) {
-          currentHour.day = { startsAt: nextHour, hours: {} };
-          newDays.push(currentHour.day);
-          increaseDayVersions(dayVersions, nextHour, calendar.cars);
-        }
-        
-      }
-    
-      const newDrivers = {};
-      calendar.drivers?.forEach(driver => newDrivers[ driver.memberId ] = driver );
-      if (drivers === undefined) {
-        setDrivers(newDrivers);
-      } else {
-        setDrivers({ ...drivers, ...newDrivers });
-      }
-    
-      if (days) {
-        const result = { };
-        days.forEach(d => { result[d.startsAt.getTime()] = d; });
-        newDays.forEach(d => { result[d.startsAt.getTime()] = d; });
-        setDays(Object.keys(result).sort().map(t => result[t]));
-      } else {
-        setDays(newDays);
-      }
-      
-      updateDayVersions(dayVersions.current);
-      setEndDate(endsAt);
+  if (setRestrictions) {
+    setRestrictions({
+        remainingHours: calendar.remainingHours,
+        maxHours: calendar.maxHours,
+      });
+  }
+  if (setCars) {
+    setCars(calendar.cars);
+  }
   
+  const newDays = [];
+
+  const currentHour = { at: startsAt, day: { startsAt, hours: {} } };
+  newDays.push(currentHour.day);
+  increaseDayVersions(dayVersions, startsAt, calendar.cars);
+  
+  const carReservationIndex = {};
+  calendar.cars.forEach(car => carReservationIndex[car.id] = 0);
+  while (currentHour.at.getTime() !== endsAt.getTime()) {
+    
+    const nextHour = nextHours(currentHour.at, 1, false);
+    
+    calendar.cars.forEach((car, index) => {
+      let hours: Array<CalendarHour> = currentHour.day.hours[car.id];
+      if (hours === undefined) {
+        hours = [];
+        currentHour.day.hours[car.id] = hours;
+      }
+      const numberOfReservations = car.reservations?.length;
+      let reservation = undefined;
+      if (numberOfReservations > 0) {
+        for (var i = carReservationIndex[car.id];
+            (i < numberOfReservations); ++i) {
+          const r = car.reservations[i];
+          if ((r.startsAt <= currentHour.at) && (r.endsAt >= nextHour)) {
+            reservation = r;
+          }
+        }
+      }
+      const item: CalendarHour = {
+        index,
+        startsAt: currentHour.at,
+        endsAt: nextHour,
+        reservation,
+      };
+      hours.push(item);
     });
+    
+    currentHour.at = nextHour;
+    if ((currentHour.day.startsAt.getDate() !== nextHour.getDate())
+        && nextHour.getTime() !== endsAt.getTime()) {
+      currentHour.day = { startsAt: nextHour, hours: {} };
+      newDays.push(currentHour.day);
+      increaseDayVersions(dayVersions, nextHour, calendar.cars);
+    }
+    
+  }
+
+  const newDrivers = {};
+  calendar.drivers?.forEach(driver => newDrivers[ driver.memberId ] = driver );
+  if (drivers === undefined) {
+    setDrivers(newDrivers);
+  } else {
+    setDrivers({ ...drivers, ...newDrivers });
+  }
+
+  if (days) {
+    const result = { };
+    days.forEach(d => { result[d.startsAt.getTime()] = d; });
+    newDays.forEach(d => { result[d.startsAt.getTime()] = d; });
+    const updatedDays = Object.keys(result).sort().map(t => result[t]);
+    setDays(updatedDays);
+  } else {
+    setDays(newDays);
+  }
+  
+  updateDayVersions(dayVersions.current);
+  setEndDate(endsAt);
+
 };
 
 const Booking = () => {
@@ -621,12 +670,20 @@ const Booking = () => {
   const isMouseDown = useRef(_isMouseDown);
   const [ _selection, _setSelection ] = useState<Selection>(undefined);
   const selection = useRef(_selection);
-  const setSelection = (s: Selection) => {
+  const setSelection = useCallback((s: Selection) => {
       selection.current = s;
       _setSelection(s);
-    };
+    }, [ _setSelection, selection ]);
+    
+  const [ waitingForUpdate, _setWaitingForUpdate ] = useState(false);
+  const waitingForUpdateRef = useRef(waitingForUpdate);
+  const setWaitingForUpdate = (w: boolean) => {
+      if (w === waitingForUpdateRef.current) return;
+      waitingForUpdateRef.current = w;
+      _setWaitingForUpdate(w);
+    }
   
-  const mouseDownOnDrag = useCallback((event: MouseEvent, top: boolean) => {
+  const mouseDownOnDrag = useCallback((event: ReactMouseEvent, top: boolean) => {
       if (isMouseDown.current) return;
       event.preventDefault();
       event.stopPropagation();
@@ -643,7 +700,7 @@ const Booking = () => {
       setMouseIsDown(true);
 
     }, [ setMouseIsDown, setSelection ]);
-  const mouseDownOnHour = useCallback((event: MouseEvent, car: CarSharingCar, hour: CalendarHour) => {
+  const mouseDownOnHour = useCallback((event: ReactMouseEvent, car: CarSharingCar, hour: CalendarHour) => {
       if (isMouseDown.current) return;
       if (restrictionsRef.current.remainingHours < 1) {
         toast({
@@ -679,7 +736,7 @@ const Booking = () => {
       setMouseIsDown(true);
 
     }, [ setMouseIsDown, t, toast, selection, setSelection ]);
-  const mouseEnterHour = useCallback((event: MouseEvent, car: CarSharingCar, days: CalendarDay[], day: CalendarDay, hour: CalendarHour) => {
+  const mouseEnterHour = useCallback((event: ReactMouseEvent, car: CarSharingCar, days: CalendarDay[], day: CalendarDay, hour: CalendarHour) => {
       if (!isMouseDown.current) return;
       if (car.id !== selection.current.carId) return;
       event.preventDefault();
@@ -788,7 +845,7 @@ const Booking = () => {
       setSelection(s);
       
     }, [ isMouseDown, setSelection, selection ]);
-  const mouseMove = useCallback(event => {
+  const mouseMove = useCallback((event: MouseEvent) => {
       if (!isMouseDown.current) return;
       event.preventDefault();
       event.stopPropagation();
@@ -798,7 +855,7 @@ const Booking = () => {
       setMouseIsDown(false);
     }, [ setMouseIsDown ]);
   
-  const cancelSelection = useCallback(event => {
+  const cancelSelection = useCallback((event: ReactMouseEvent) => {
       event.preventDefault();
       event.stopPropagation();
 
@@ -812,11 +869,12 @@ const Booking = () => {
 
     }, [ setSelection, selection ]);
   
-  const acceptSelection = useCallback(event => {
+  const acceptSelection = useCallback((event: ReactMouseEvent) => {
       event.preventDefault();
       event.stopPropagation();
       const addCarSharingReservation = async () => {
           try {
+            setWaitingForUpdate(true);
             await carSharingApi.addCarSharingReservation({
                 carId: selection.current.carId,
                 carSharingReservation: {
@@ -826,15 +884,9 @@ const Booking = () => {
                   type: 'CS',
                 }
               });
-            // cancel selection
-            for (let hour = selection.current.startsAt.getTime()
-                ; hour !== selection.current.endsAt.getTime()
-                ; hour += 3600000) {
-              increaseDayVersion(dayVersionsRef, new Date(hour), selection.current.carId);
-            }
-            updateDayVersions(dayVersionsRef.current);
-            setSelection(undefined);
+            // selection will be cancelled by server-sent update
           } catch (error) {
+            setWaitingForUpdate(false);
             // CONFLICT means there is another reservation
             if (error.response?.status === 409) {
               toast({
@@ -857,8 +909,26 @@ const Booking = () => {
           } 
         };
       addCarSharingReservation();
-    }, [ carSharingApi, t, toast, setSelection, selection, state.currentUser ]);
-    
+    }, [ carSharingApi, t, toast, selection, state.currentUser ]);
+  
+  const cancelReservation = useCallback((event: ReactMouseEvent, carId: string, reservationId: string) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const removeCarSharingReservation = async () => {
+          try {
+            setWaitingForUpdate(true);
+            await carSharingApi.cancelCarSharingReservation({
+                carId,
+                reservationId,
+              });
+            // selection will be cancelled by server-sent update
+          } catch (error) {
+            console.log(error);
+            setWaitingForUpdate(false);
+          } 
+        };
+      removeCarSharingReservation();
+    }, [ carSharingApi ]);
   useEffect(() => {
       window.addEventListener('mouseup', mouseUp);
       window.addEventListener('mousemove', mouseMove);
@@ -873,8 +943,7 @@ const Booking = () => {
     });
     
   const debounceSse = useDebounce();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { startListening, stopListening } = useEventSourceListener<UpdateEvent>({
+  useEventSourceListener<UpdateEvent>({
       source: updateSource,
       startOnInit: true,
       event: {
@@ -896,10 +965,11 @@ const Booking = () => {
             }
             const updateStartsAt = effectedDays[0].getTime() < daysRef.current[0].startsAt.getTime() ? daysRef.current[0].startsAt : effectedDays[0];
             const updateEndsAt = effectedDays[effectedDays.length - 1];
-            debounceSse(() => async () => {
-                loadData(carSharingApi, dayVersionsRef, updateDayVersions, setEndDate, updateStartsAt, updateEndsAt, daysRef.current, setDays, driversRef.current, setDrivers);
+            const updateDataAndSelection = async () => {
+                await loadData(carSharingApi, dayVersionsRef, updateDayVersions, setEndDate, updateStartsAt, updateEndsAt, daysRef.current, setDays, driversRef.current, setDrivers);
+                setWaitingForUpdate(false);
+                // detect overlapping selection of other members:
                 if (selection.current === undefined) return;
-                // detect overlapping selection:
                 if ((startsAt.getTime() >= selection.current.startsAt.getTime()
                         && (endsAt.getTime() <= selection.current.endsAt.getTime()))
                     || (startsAt.getTime() < selection.current.startsAt.getTime()
@@ -908,15 +978,18 @@ const Booking = () => {
                         && (endsAt.getTime() > selection.current.startsAt.getTime()))
                     || (startsAt.getTime() < selection.current.endsAt.getTime()
                         && (endsAt.getTime() >= selection.current.endsAt.getTime()))) {
-                  toast({
-                      namespace: 'driver/car-sharing/booking',
-                      title: t('conflicting-incoming_title'),
-                      message: t('conflicting-incoming_msg'),
-                      status: 'warning'
-                    });
+                  if (data.driverMemberId !== state.currentUser.memberId) {
+                    toast({
+                        namespace: 'driver/car-sharing/booking',
+                        title: t('conflicting-incoming_title'),
+                        message: t('conflicting-incoming_msg'),
+                        status: 'warning'
+                      });
+                  }
                   setSelection(undefined);
                 }
-              });
+              };
+            debounceSse(() => { updateDataAndSelection(); });
           },
       },
     },
@@ -942,6 +1015,7 @@ const Booking = () => {
                   selection={ selection.current }
                   cancelSelection={ cancelSelection }
                   acceptSelection={ acceptSelection }
+                  cancelReservation={ cancelReservation }
                   mouseDownOnDrag={ mouseDownOnDrag }
                   mouseDownOnHour={ mouseDownOnHour }
                   mouseEnterHour={ mouseEnterHour } />;
@@ -1007,6 +1081,20 @@ const Booking = () => {
             onMore={ loadMore }
             data={ days }
             replace={ true } />
+        {
+          waitingForUpdate
+              ? <Layer
+                    responsive={true}
+                    modal={true}>
+                  <Box
+                      fill
+                      animation="rotateRight"
+                      pad='small'>
+                    <Cycle />
+                  </Box>
+                </Layer>
+              : undefined
+        }
       </>);
       
 };

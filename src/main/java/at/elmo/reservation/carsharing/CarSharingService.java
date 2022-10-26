@@ -39,7 +39,7 @@ public class CarSharingService {
                 driver.getId());
 
     }
-
+    
     public CarSharing addCarSharing(
             final Car car,
             final LocalDateTime startsAt,
@@ -62,45 +62,48 @@ public class CarSharingService {
 
     }
     
-    public void cancelCarSharingDueToConflict(
+    public boolean cancelCarSharingDueToConflict(
             final String reservationId) {
         
-        cancelCarSharing(
+        return cancelCarSharing(
                 reservationId,
                 "CancelledDueToConflict");
         
     }
 
-    public void cancelCarSharingByDriver(
+    public boolean cancelCarSharingByDriver(
             final String reservationId) {
-        
-        cancelCarSharing(
-                reservationId,
-                "CancelledByDriver");
+        carSharings.deleteById(reservationId);
+//        return cancelCarSharing(
+//                reservationId,
+//                "CancelledByDriver");
+        return true;
         
     }
 
-    public void cancelCarSharingByAdministrator(
+    public boolean cancelCarSharingByAdministrator(
             final String reservationId) {
         
-        cancelCarSharing(
+        return cancelCarSharing(
                 reservationId,
                 "CancelledByAdministrator");
         
     }
 
-    private void cancelCarSharing(
+    private boolean cancelCarSharing(
             final String reservationId,
             final String causingEvent) {
         
         final var carSharing = carSharings.findById(reservationId);
         if (carSharing.isEmpty()) {
-            return;
+            return false;
         }
         
         processService.correlateMessage(
                 carSharing.get(),
                 causingEvent);
+        
+        return true;
         
     }
     

@@ -5,7 +5,6 @@ import at.elmo.app.api.v1.TextMessages;
 import at.elmo.car.CarService;
 import at.elmo.config.web.JwtSecurityFilter;
 import at.elmo.member.login.ElmoOAuth2User;
-import at.elmo.member.login.GuiApiController;
 import at.elmo.util.sms.SmsEvent;
 import at.elmo.util.sms.SmsService;
 import at.elmo.util.spring.PingNotification;
@@ -103,7 +102,7 @@ public class AppApiController implements AppApi {
     @Scheduled(fixedDelayString = "PT1M")
     public void cleanupSmsEmitters() {
         
-        final var ping = new PingNotification(GuiApiController.class.getName());
+        final var ping = new PingNotification();
         
         final var toBeDeleted = new LinkedList<String>();
         smsEmitters
@@ -116,7 +115,7 @@ public class AppApiController implements AppApi {
                                         .event()
                                         .id(UUID.randomUUID().toString())
                                         .data(ping, MediaType.APPLICATION_JSON)
-                                        .name(ping.getType()));
+                                        .name(ping.getSource().toString()));
                     } catch (Exception e) {
                         toBeDeleted.add(entry.getKey());
                     }

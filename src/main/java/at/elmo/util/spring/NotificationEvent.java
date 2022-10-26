@@ -8,12 +8,14 @@ public abstract class NotificationEvent extends ApplicationEvent {
 
     private static final long serialVersionUID = 1L;
     
-    private final String type;
+    public static enum Type { NEW, UPDATE, DELETE };
+    
+    private final Type type;
 
     public NotificationEvent(
             final Object source,
             final Clock clock,
-            final String type) {
+            final Type type) {
         
         super(source, clock);
         this.type = type;
@@ -22,14 +24,14 @@ public abstract class NotificationEvent extends ApplicationEvent {
 
     public NotificationEvent(
             final Object source,
-            final String type) {
+            final Type type) {
         
         super(source);
         this.type = type;
         
     }
 
-    public String getType() {
+    public Type getType() {
         return type;
     }
     

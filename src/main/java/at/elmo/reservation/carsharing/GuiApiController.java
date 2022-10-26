@@ -97,6 +97,29 @@ public class GuiApiController implements CarSharingApi {
         return ResponseEntity.ok(result);
 
     }
+    
+    @Override
+    public ResponseEntity<Void> cancelCarSharingReservation(
+            final String carId,
+            final String reservationId) {
+        
+        if (!StringUtils.hasText(carId)) {
+            return ResponseEntity.badRequest().build();
+        }
+        final var car = carService.getCar(carId);
+        if (car.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        final var cancelled = carSharingService
+                .cancelCarSharingByDriver(reservationId);
+        if (!cancelled) {
+            return ResponseEntity.badRequest().build();
+        }
+        
+        return ResponseEntity.ok().build();
+        
+    }
 
     @Override
     public ResponseEntity<Void> addCarSharingReservation(
