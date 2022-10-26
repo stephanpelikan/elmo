@@ -6,7 +6,7 @@ elmo:
   homepage-service-conditions-url: https://www.elektromobil-gf.at/wp/kontakt-und-impressum
   passanger-agreement-pdf-directory: src/test/attachments/agreement  
   driver-agreement-pdf-directory: src/test/attachments/agreement  
-  gateway-url: http://localhost:8080
+  gateway-url: http://localhost:3000
   default-locale: de
   sms:
     supported: false
@@ -35,7 +35,7 @@ spring:
             # see https://console.cloud.google.com/apis/credentials
             client-id: to-be-set
             client-secret: to-be-set
-            redirect-uri: 'http://localhost:8080/{action}/oauth2/code/{registrationId}'
+            redirect-uri: 'http://localhost:3000/{action}/oauth2/code/{registrationId}'
             scope:
             - email
             - profile
@@ -45,7 +45,7 @@ spring:
             client-id: to-be-set
             client-secret: to-be-set
             authorization-grant-type: authorization_code
-            redirect-uri: 'http://localhost:8080/{action}/oauth2/code/{registrationId}'
+            redirect-uri: 'http://localhost:3000/{action}/oauth2/code/{registrationId}'
             scope:
             - profile
         provider:
