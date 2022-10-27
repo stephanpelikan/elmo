@@ -89,8 +89,8 @@ background-color: #f6f6f6;
                         Mitgliedsnummer: <b>${carSharing.driver.memberId!"-"}</b><br>
                         Name: <b>${carSharing.driver.firstName!""} ${carSharing.driver.lastName!""}</b><br>
                         Fahrzeug: <b>${carSharing.car.name!""}</b><br>
-                        Von: <b>${carSharing.startsAt!""}</b><br>
-                        Bis: <b>${carSharing.endsAt!""}</b><br>
+                        Von: <b>${(carSharing.startsAt).format("MEDIUM_DATETIME")}</b><br>
+                        Bis: <b>${(carSharing.endsAt).format("MEDIUM_DATETIME")}</b><br>
                         Stunden: <b>${carSharing.hoursPlanned!""}</b><br>
                       </div>
                     </div>

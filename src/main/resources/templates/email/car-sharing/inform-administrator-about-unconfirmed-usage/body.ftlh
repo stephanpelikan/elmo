@@ -88,6 +88,10 @@ background-color: #f6f6f6;
                       <div style="background-color: #FF9F00;">
                         Membership number: <b>${memberApplication.memberId!"-"}</b><br>
                         Name: <b>${memberApplication.firstName!""} ${memberApplication.lastName!""}</b><br>
+                        Car: <b>${carSharing.car.name!""}</b><br>
+                        From: <b>${(carSharing.startsAt).format("MEDIUM_DATETIME")}</b><br>
+                        To: <b>${(carSharing.endsAt).format("MEDIUM_DATETIME")}</b><br>
+                        Hours: <b>${carSharing.hoursPlanned!""}</b><br>
                       </div>
                     </div>
                   </td>
