@@ -1,9 +1,14 @@
 package at.elmo.reservation.carsharing;
 
 import at.elmo.car.Car;
+import at.elmo.config.ElmoProperties;
 import at.elmo.member.Member;
 import at.elmo.member.MemberRepository;
+import at.elmo.member.Role;
 import at.elmo.reservation.carsharing.CarSharing.Status;
+import at.elmo.util.email.EmailService;
+import at.elmo.util.email.NamedObject;
+import at.elmo.util.sms.SmsService;
 import at.phactum.bp.blueprint.process.ProcessService;
 import at.phactum.bp.blueprint.service.BpmnProcess;
 import at.phactum.bp.blueprint.service.TaskEvent;
@@ -18,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @WorkflowService(
@@ -34,6 +40,15 @@ public class CarSharingService {
 
     @Autowired
     private ProcessService<CarSharing> processService;
+    
+    @Autowired
+    private SmsService smsService;
+    
+    @Autowired
+    private EmailService emailService;
+    
+    @Autowired
+    private ElmoProperties properties;
     
     public long numberOfFutureCarSharings(
             final Member driver) {
@@ -72,11 +87,10 @@ public class CarSharingService {
     }
     
     public boolean cancelCarSharingDueToConflict(
-            final String reservationId) {
+            final CarSharing carSharing) {
         
         return cancelCarSharing(
-                reservationId,
-                null,
+                carSharing,
                 null,
                 "CancelledDueToConflict");
         
@@ -85,12 +99,8 @@ public class CarSharingService {
     public boolean cancelCarSharingByDriver(
             final String reservationId) {
         
-        return cancelCarSharing(
+        return cancelCarSharingByUser(
                 reservationId,
-                LocalDateTime
-                        .now()
-                        .truncatedTo(ChronoUnit.HOURS)
-                        .plusHours(1),
                 null,
                 "CancelledByDriver");
         
@@ -99,40 +109,56 @@ public class CarSharingService {
     public boolean cancelCarSharingByAdministrator(
             final String reservationId,
             final String comment) {
-        
-        return cancelCarSharing(
+
+        return cancelCarSharingByUser(
                 reservationId,
-                LocalDateTime
-                        .now()
-                        .truncatedTo(ChronoUnit.HOURS)
-                        .plusHours(1),
                 comment,
                 "CancelledByAdministrator");
         
     }
 
-    private boolean cancelCarSharing(
+    public boolean cancelCarSharingByUser(
             final String reservationId,
-            final LocalDateTime endOfUsage,
+            final String comment,
+            final String eventName) {
+        
+        final var carSharingFound = carSharings.findById(reservationId);
+        if (carSharingFound.isEmpty()) {
+            return false;
+        }
+        final var carSharing = carSharingFound.get();
+        
+        final var now = LocalDateTime.now();
+
+        if (carSharing.getStartsAt().isBefore(now)) {
+            
+            final var endOfUsage = now
+                    .truncatedTo(ChronoUnit.HOURS)
+                    .plusHours(1);
+            if (endOfUsage.isBefore(carSharing.getEndsAt())) {
+                carSharing.setEndsAt(endOfUsage);
+            }
+            
+        }
+        
+        return cancelCarSharing(
+                carSharing,
+                comment,
+                eventName);
+        
+    }
+
+    private boolean cancelCarSharing(
+            final CarSharing carSharing,
             final String comment,
             final String causingEvent) {
         
-        final var carSharing = carSharings.findById(reservationId);
-        if (carSharing.isEmpty()) {
-            return false;
-        }
-        
-        if ((endOfUsage != null)
-                && !endOfUsage.isBefore(carSharing.get().getEndsAt()) ){
-            carSharing.get().setEndsAt(endOfUsage);
-        }
-        
         if (comment != null) {
-            carSharing.get().setComment(comment);
+            carSharing.setComment(comment);
         }
         
         processService.correlateMessage(
-                carSharing.get(),
+                carSharing,
                 causingEvent);
         
         return true;
@@ -140,23 +166,65 @@ public class CarSharingService {
     }
     
     @WorkflowTask
-    public void remindDriverToConfirmStartOfUsage() {
+    public void remindDriverToConfirmStartOfUsage(
+            final CarSharing carSharing) throws Exception {
+
+        smsService.sendSms(
+                "car-sharing/remind-driver-to-confirm-start-of-usage",
+                CarSharingService.class.getSimpleName() + "#remindDriverToConfirmStartOfUsage",
+                properties.getPassanagerServicePhoneNumber(),
+                carSharing.getDriver().getMemberId().toString(),
+                carSharing.getDriver().getPhoneNumber(),
+                NamedObject.from(carSharing).as("carSharing"));
+                
 
     }
 
     @WorkflowTask
-    public void remindDriverToConfirmEndOfUsage() {
+    public void remindDriverToConfirmEndOfUsage(
+            final CarSharing carSharing) throws Exception {
+
+        smsService.sendSms(
+                "car-sharing/remind-driver-to-confirm-end-of-usage",
+                CarSharingService.class.getSimpleName() + "#remindDriverToConfirmEndOfUsage",
+                properties.getPassanagerServicePhoneNumber(),
+                carSharing.getDriver().getMemberId().toString(),
+                carSharing.getDriver().getPhoneNumber(),
+                NamedObject.from(carSharing).as("carSharing"));
 
     }
 
     @WorkflowTask
-    public void informDriverAboutCancellation() {
+    @WorkflowTask(taskDefinition = "informDriverAboutCancellation")  // legacy
+    public void informDriverAboutCancellationByAdministrator(
+            final CarSharing carSharing) throws Exception {
+
+        smsService.sendSms(
+                "car-sharing/inform-driver-about-cancellation-by-administrator",
+                CarSharingService.class.getSimpleName() + "#informDriverAboutCancellationByAdministrator",
+                properties.getPassanagerServicePhoneNumber(),
+                carSharing.getDriver().getMemberId().toString(),
+                carSharing.getDriver().getPhoneNumber(),
+                NamedObject.from(carSharing).as("carSharing"));
 
     }
 
     @WorkflowTask
-    public void informAboutUnconfirmedUsage() {
+    @WorkflowTask(taskDefinition = "informAboutUnconfirmedUsage")  // legacy
+    public void informAdministratorAboutUnconfirmedUsage(
+            final CarSharing carSharing) throws Exception {
 
+        final var adminMembersEmailAddresses = members
+                .findByRoles_Role(Role.ADMIN)
+                .stream()
+                .map(Member::getEmail)
+                .collect(Collectors.toList());
+        
+        emailService.sendEmail(
+                "car-sharing/inform-administrator-about-unconfirmed-usage",
+                adminMembersEmailAddresses,
+                NamedObject.from(carSharing).as("carSharing"));
+        
     }
 
     @WorkflowTask(taskDefinition = "confirmStartOfUsage")
@@ -222,6 +290,8 @@ public class CarSharingService {
                         - hoursCarReturnedEarlier);
                 
             }
+            
+            carSharing.setStatus(Status.COMPLETED);
             
         }
 

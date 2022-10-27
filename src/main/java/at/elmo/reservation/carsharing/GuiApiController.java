@@ -189,8 +189,8 @@ public class GuiApiController implements CarSharingApi {
                     carSharingReservation.getStartsAt(),
                     carSharingReservation.getEndsAt());
             if (overlappingsAfterwards.size() > 1) { // 1 ... the new created car-sharing session
-                carSharingService.cancelCarSharingDueToConflict(
-                        carSharing.getId());
+                carSharingService
+                        .cancelCarSharingDueToConflict(carSharing);
             }
             
         } catch (Exception e) {

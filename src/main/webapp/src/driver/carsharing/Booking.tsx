@@ -272,17 +272,19 @@ const SelectionBox = ({ hour, selection, mouseDownOnDrag, cancelSelection, accep
 
 const CancellationBox = ({
     carId,
-    reservationId,
+    reservation,
     cancelReservation
   }: {
     carId: string,
-    reservationId: string,
+    reservation: CarSharingReservation,
     cancelReservation: (event: ReactMouseEvent, carId: string, reservationId: string) => void
-  }) => <Box
+  }) => {
+    if (reservation.status !== 'RESERVED') return undefined;
+    return <Box
           style={ { position: 'relative' } }>
         <Box
             style={ { position: 'absolute', right: '2.5rem' } }
-            onMouseDownCapture={ (event) => cancelReservation(event, carId, reservationId) }
+            onMouseDownCapture={ (event) => cancelReservation(event, carId, reservation.id) }
             round="full"
             overflow="hidden"
             border={ { color: 'accent-3', size: '3px' } }
@@ -292,6 +294,7 @@ const CancellationBox = ({
               size="30rem" />
         </Box>
       </Box>;
+  };
 
 const CarSharingReservationBox = ({
     drivers,
@@ -304,9 +307,9 @@ const CarSharingReservationBox = ({
   }) => {
     return (
       <>
-          {
-            cancellationBox ? cancellationBox : undefined
-          }
+        {
+          cancellationBox ? cancellationBox : undefined
+        }
         <Box
             pad={ {
                 horizontal: '0rem',
@@ -353,11 +356,15 @@ const DayTable = memo<{
         property: '-not-used-but-mandatory-',
         sortable: false,
         render: (hour: CalendarHour) => {
-            const borderColor = hour.reservation?.driverMemberId === currentUser.memberId
+            const reservationIsInactive = ((hour.reservation?.status === 'COMPLETED')
+                || (hour.reservation?.status === 'CANCELLED'));
+            const borderColor = (hour.reservation?.driverMemberId === currentUser.memberId)
+                    && !reservationIsInactive
                 ? 'accent-3'
                 : 'dark-4';
             const backgroundColor: BackgroundType = hour.reservation
-                ? hour.reservation?.driverMemberId === currentUser.memberId
+                ? (hour.reservation?.driverMemberId === currentUser.memberId)
+                    && !reservationIsInactive
                 ? { color: 'accent-3', opacity: 'strong' }
                 : 'light-4'
                 : undefined;
@@ -441,7 +448,7 @@ const DayTable = memo<{
                               cancellationBox={ isLastHourOfReservation
                                   ? <CancellationBox
                                        carId={ car.id }
-                                       reservationId={ hour.reservation.id }
+                                       reservation={ hour.reservation }
                                        cancelReservation={ cancelReservation } />
                                   : undefined }
                                />
@@ -450,7 +457,7 @@ const DayTable = memo<{
                         ? isCarSharingReservation
                           ? <CancellationBox
                                carId={ car.id }
-                               reservationId={ hour.reservation.id }
+                               reservation={ hour.reservation }
                                cancelReservation={ cancelReservation } />
                           : undefined
                         : undefined
@@ -532,8 +539,8 @@ const loadData = async (
       setDays: (hours: Array<CalendarDay>) => void,
       drivers: ReservationDrivers,
       setDrivers: (drivers: ReservationDrivers) => void,
-      setCars?: (cars: Array<CarSharingCar>) => void,
       setRestrictions?: (restrictions: Restrictions) => void,
+      setCars?: (cars: Array<CarSharingCar>) => void,
     ) => {
 
   const calendar = await carSharingApi.getCarSharingCalendar({
@@ -661,7 +668,7 @@ const Booking = () => {
       if (restrictions === undefined) {
         const startsAt = currentHour(false);
         const endsAt = nextHours(startsAt, (24 - startsAt.getHours()) + 24, false);
-        loadData(carSharingApi, dayVersionsRef, updateDayVersions, setEndDate, startsAt, endsAt, days, setDays, drivers, setDrivers, setCars, setRestrictions);
+        loadData(carSharingApi, dayVersionsRef, updateDayVersions, setEndDate, startsAt, endsAt, days, setDays, drivers, setDrivers, setRestrictions, setCars);
       }
     }, [ carSharingApi, days, restrictions, setRestrictions, drivers ]);
     
@@ -962,10 +969,11 @@ const Booking = () => {
             if (!effectedDays.includes(key)) {
               effectedDays.push(nextHours(endsAt, 24 - endsAt.getHours(), false));
             }
+
             const updateStartsAt = effectedDays[0].getTime() < daysRef.current[0].startsAt.getTime() ? daysRef.current[0].startsAt : effectedDays[0];
             const updateEndsAt = effectedDays[effectedDays.length - 1];
             const updateDataAndSelection = async () => {
-                await loadData(carSharingApi, dayVersionsRef, updateDayVersions, setEndDate, updateStartsAt, updateEndsAt, daysRef.current, setDays, driversRef.current, setDrivers);
+                await loadData(carSharingApi, dayVersionsRef, updateDayVersions, setEndDate, updateStartsAt, updateEndsAt, daysRef.current, setDays, driversRef.current, setDrivers, setRestrictions);
                 setWaitingForUpdate(false);
                 // detect overlapping selection of other members:
                 if (selection.current === undefined) return;
@@ -1028,7 +1036,7 @@ const Booking = () => {
     if (!day) return;
     const startsAt = endDate;
     const endsAt = nextHours(startsAt, itemsBatchSize, false);
-    await loadData(carSharingApi, dayVersionsRef, updateDayVersions, setEndDate, startsAt, endsAt, days, setDays, drivers, setDrivers);
+    await loadData(carSharingApi, dayVersionsRef, updateDayVersions, setEndDate, startsAt, endsAt, days, setDays, drivers, setDrivers, setRestrictions);
   };
   
   const headerHeight = '3rem';

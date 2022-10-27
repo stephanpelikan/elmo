@@ -81,10 +81,18 @@ public class CarSharing extends ReservationBase {
         this.hoursPlanned = hoursPlanned;
     }
 
-    public String getFifteenMinutesBeforeStart() {
+    public String getTenMinutesBeforeStart() {
 
         return getStartsAt()
-                .minusMinutes(15)
+                .minusMinutes(10)
+                .format(DateTimeFormatter.ISO_DATE_TIME);
+
+    }
+    
+    public String getTenMinutesBeforeEnd() {
+
+        return getEndsAt()
+                .minusMinutes(10)
                 .format(DateTimeFormatter.ISO_DATE_TIME);
 
     }

@@ -45,7 +45,7 @@ public abstract class ReservationBase extends PersistenceBase<String> {
     @Column(name = "STARTS_AT", nullable = false, updatable = false, columnDefinition = "TIMESTAMP")
     private LocalDateTime startsAt;
 
-    @Column(name = "ENDS_AT", nullable = false, updatable = false, columnDefinition = "TIMESTAMP")
+    @Column(name = "ENDS_AT", nullable = false, updatable = true, columnDefinition = "TIMESTAMP")
     private LocalDateTime endsAt;
 
     @ManyToOne()

@@ -1,12 +1,8 @@
 package at.elmo.util.email;
 
-import java.io.File;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.regex.Pattern;
-
+import at.elmo.config.ElmoProperties;
+import at.elmo.config.FreemarkerConfiguration;
+import freemarker.template.Configuration;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -15,9 +11,13 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
-import at.elmo.config.ElmoProperties;
-import at.elmo.config.FreemarkerConfiguration;
-import freemarker.template.Configuration;
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.regex.Pattern;
 
 @Service
 public class EmailService {
@@ -55,9 +55,19 @@ public class EmailService {
             final String toAddress,
             final Object ...context) throws Exception {
         
+    }
+
+    public void sendEmail(
+            final String templatePath,
+            final Collection<String> toAddresses,
+            final Object ...context) throws Exception {
+        
         final var body = processTemplate(templatePath + "/body.ftlh", context);
         final var subject = processTemplate(templatePath + "/subject.ftl", context);
-        final var targetToAddress = determineToAddress(toAddress);
+        final var targetToAddresses = toAddresses
+                .stream()
+                .map(this::determineToAddress)
+                .toArray(size -> new String[size]);
         
         final var mimeMessage = mailSender.createMimeMessage();
         final var helper = new MimeMessageHelper(
@@ -66,7 +76,7 @@ public class EmailService {
                 StandardCharsets.UTF_8.name());
         
         helper.setFrom(properties.getSender());
-        helper.setTo(targetToAddress);
+        helper.setTo(targetToAddresses);
         helper.setSubject(subject);
         helper.setText(body, true);
         Arrays
@@ -83,14 +93,14 @@ public class EmailService {
                                 "Could not attach file '{}' to email '{}' sent to {}",
                                 c.getName(),
                                 templatePath,
-                                toAddress,
+                                String.join(", ", targetToAddresses),
                                 e);
                     }
                 });
 
         mailSender.send(mimeMessage);
 
-        logger.info("Sent mail to '{}'", targetToAddress);
+        logger.info("Sent mail to '{}'", String.join(", ", targetToAddresses));
 
     }
 

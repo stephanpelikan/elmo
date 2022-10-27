@@ -40,7 +40,14 @@ public abstract class GuiApiMapper extends ReservationMapperBase {
         result.setEndsAt(reservation.getEndsAt());
         result.setType(toCarSharingReservationType(reservation));
         if (result.getType() == CarSharingReservationType.CS) {
-            result.setDriverMemberId(((CarSharing) reservation).getDriver().getMemberId());
+            final var carSharing = (CarSharing) reservation;
+            result.setDriverMemberId(carSharing.getDriver().getMemberId());
+            result.setStatus(carSharing.getStatus().name());
+        } else if (result.getType() == CarSharingReservationType.PS) {
+            final var shift = (Shift) reservation;
+            if (shift.getDriver() != null) {
+                result.setDriverMemberId(shift.getDriver().getMemberId());
+            }
         }
         return result;
 
