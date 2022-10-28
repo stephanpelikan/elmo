@@ -14,9 +14,6 @@ import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-
 public class PostgreSQLNotifications {
 
     @Autowired
@@ -30,9 +27,10 @@ public class PostgreSQLNotifications {
     
     private PostgresqlConnection receiver;
 
-    @PostConstruct
-    public void initialize() throws InterruptedException {
+    public void initialize() {
 
+        logger.debug("Initialize notifications");
+        
         receiver = Mono.from(connectionFactory.create())
                 .cast(PostgresqlConnection.class)
                 .block();
@@ -70,12 +68,14 @@ public class PostgreSQLNotifications {
         
     }
 
-    @PreDestroy
     public void destroy() {
         
-        receiver
-                .close()
-                .subscribe();
+        logger.debug("Tear down notifications ({})", receiver != null);
+        if (receiver != null) {
+            receiver
+                    .close()
+                    .subscribe();
+        }
         
     }
     

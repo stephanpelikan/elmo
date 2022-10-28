@@ -74,6 +74,7 @@ spring:
   autoconfigure:
     exclude: org.springframework.boot.autoconfigure.r2dbc.R2dbcAutoConfiguration
   datasource:
+    type: com.zaxxer.hikari.HikariDataSource
     url: jdbc:h2:file:./target/devdb.h2;DB_CLOSE_ON_EXIT=FALSE
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect

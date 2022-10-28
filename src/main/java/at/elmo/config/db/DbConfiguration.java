@@ -1,9 +1,17 @@
 package at.elmo.config.db;
 
+import com.zaxxer.hikari.HikariDataSource;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.StringUtils;
+
+import javax.sql.DataSource;
 
 /**
  * Extends DataSourceAutoConfiguration because it is annotated by
@@ -13,15 +21,53 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class DbConfiguration extends DataSourceAutoConfiguration {
 
+    /**
+     * Hikari DataSource configuration.
+     * 
+     * Elmo extends behavior of connection-pool by initializing
+     * DB notifications if pool has connections and tearing down
+     * DB notifications once pool gets empty. This is for cloud
+     * installations to release all connections if app is idle
+     * to safe money in time-based charging cloud environments.
+     */
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnClass(HikariDataSource.class)
+    @ConditionalOnMissingBean(DataSource.class)
     @ConditionalOnProperty(
-            prefix = "spring.jpa",
-            name = "database-platform",
-            havingValue = "org.hibernate.dialect.PostgreSQL10Dialect")
-    @Bean
-    public Object postgresqlNotifications() {
-        
-        return new PostgreSQLNotifications();
-        
+            name = "spring.datasource.type",
+            havingValue = "at.elmo.config.db.NotificationsAwareHikariDataSource",
+            matchIfMissing = true)
+    static class NotificationsAware {
+
+        @ConditionalOnProperty(
+                prefix = "spring.jpa",
+                name = "database-platform",
+                havingValue = "org.hibernate.dialect.PostgreSQL10Dialect")
+        @Bean
+        public PostgreSQLNotifications postgresqlNotifications() {
+            
+            return new PostgreSQLNotifications();
+            
+        }
+
+        @Bean
+        @ConfigurationProperties(prefix = "spring.datasource.hikari")
+        HikariDataSource dataSource(
+                final PostgreSQLNotifications notifications,
+                final DataSourceProperties properties) {
+            
+            final var dataSource = properties
+                    .initializeDataSourceBuilder()
+                    .type(NotificationsAwareHikariDataSource.class)
+                    .build();
+            dataSource.setPostgreSQLNotifications(notifications);
+            if (StringUtils.hasText(properties.getName())) {
+                dataSource.setPoolName(properties.getName());
+            }
+            return dataSource;
+            
+        }
+
     }
 
     @ConditionalOnProperty(
@@ -29,7 +75,7 @@ public class DbConfiguration extends DataSourceAutoConfiguration {
             name = "database-platform",
             havingValue = "org.hibernate.dialect.H2Dialect")
     @Bean
-    public Object h2Notifications() {
+    public H2Notifications h2Notifications() {
         
         return new H2Notifications();
         

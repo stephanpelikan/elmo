@@ -80,14 +80,14 @@ spring:
   resources:
     # see de.mhb.commons.spa.SpaNoHandlerFoundExceptionHandler
     add-mappings: false
-#  session:
-#    store-type: none
+  session:
+    store-type: none
   liquibase:
     change-log: classpath:liquibase/master.yml
   jpa:
     open-in-view: false
   datasource:
-    type: com.zaxxer.hikari.HikariDataSource
+    type: at.elmo.config.db.NotificationsAwareHikariDataSource
     hikari:
       maximum-pool-size: 10
       auto-commit: false
@@ -103,6 +103,7 @@ camunda:
   bpm:
     default-number-of-retries: 1
     job-execution:
+      blueprint: true
       core-pool-size: 2
       max-pool-size: 2
       wait-time-in-millis: 2500
@@ -121,8 +122,11 @@ camunda:
       jdbc-batch-processing: true
     metrics:
       enabled: true
+      db-reporter-activate: false
     webapp:
       index-redirect-enabled: false
+  telemetry:
+    enabled: false
   xstream-serialization:
     allowed-types:
     - at.elmo.**

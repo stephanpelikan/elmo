@@ -259,4 +259,11 @@
       FOR EACH ROW CALL "at.elmo.config.db.H2Notifications";      
     ]]></sql>
   </changeSet>
+  <changeSet id="using-blueprint-0.0.4-job-acquisition-optimization"
+             author="stephanpelikan">
+    <createIndex tableName="ACT_RU_JOB" indexName="ACT_RU_JOB_DUEDATE">
+      <column name="TYPE_" descending="true" />
+      <column name="DUEDATE_" descending="false" />
+    </createIndex>
+  </changeSet>
 </databaseChangeLog>
