@@ -16,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
@@ -54,6 +55,8 @@ public class EmailService {
             final String templatePath,
             final String toAddress,
             final Object ...context) throws Exception {
+        
+        sendEmail(templatePath, List.of(toAddress), context);
         
     }
 
