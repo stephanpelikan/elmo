@@ -3,6 +3,9 @@ package at.elmo.util.refreshtoken;
 import at.elmo.config.ElmoProperties;
 import at.elmo.member.login.ElmoOAuth2Provider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -96,6 +99,18 @@ public class RefreshTokenService {
 
         return token.iterator().next().getCreatedAt();
 
+    }
+    
+    @EventListener(ApplicationReadyEvent.class)
+    @Scheduled(cron = "0 0 4 * * *")
+    public void cleanupOldTokens() {
+        
+        final var cleanUpBefore = LocalDateTime
+                .now()
+                .minus(properties.getRefreshTokenLifetime());
+        
+        refreshTokens.deleteByCreatedAtLessThanEqual(cleanUpBefore);
+        
     }
 
 }
