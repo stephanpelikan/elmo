@@ -25,7 +25,9 @@ export const theme: ThemeType = {
       'accent-1': '#e2e2e2',
       'accent-2': '#333333',
       'accent-3': '#348eda',
-      'placeholder': '#bbbbbb'
+      'placeholder': '#bbbbbb',
+      'light-5': '#c7c7c7',
+      'light-6': '#b4b4b4',
     },
     font: {
       family: 'Roboto',

@@ -1,4 +1,4 @@
-import { Box, ColumnConfig, DataTable, Text } from "grommet";
+import { Box, ColumnConfig, DataTable, DateInput, Text } from "grommet";
 import { useTranslation } from "react-i18next";
 import i18n from '../../i18n';
 import useDebounce from '../../utils/debounce-hook';
@@ -15,15 +15,16 @@ import { BackgroundType, BorderType } from "grommet/utils";
 import { TFunction } from "i18next";
 import styled from "styled-components";
 import { normalizeColor,  } from "grommet/utils";
-import { FormCheckmark, FormClose, FormDown, FormUp } from "grommet-icons";
+import { Contract, DocumentTime, FormCheckmark, FormClose, FormDown, FormUp, History } from "grommet-icons";
 import { useAppContext } from "../../AppContext";
 import { useEventSource, useEventSourceListener } from "react-sse-hooks";
+import { CalendarHeader } from "../../components/CalendarHeader";
 
 i18n.addResources('en', 'driver/carsharing/booking', {
       "reservation-type_BLOCK": "Unavailable",
       "reservation-type_PS": "Passanger Service",
-      "remaining": "Remaining hours",
-      "max-hours": "Largest reservation possible",
+      "remaining": "Remaining hours:",
+      "max-hours": "Largest reservation possible:",
       "no-remaining-hours_title": "Car-Sharing",
       "no-remaining-hours_msg": "The quota has been used up!",
       "max-reservations_title": "Car-Sharing",
@@ -32,12 +33,13 @@ i18n.addResources('en', 'driver/carsharing/booking', {
       "conflicting-reservation_msg": "This view is not up to date! Meanwhile there is a conflicting reservation. Please go back and reenter to refresh the view.",
       "conflicting-incoming_title": "Car-Sharing",
       "conflicting-incoming_msg": "Another driver created a conflicting reservation. Your selection was removed.",
+      "date_format": "yyyy/mm/dd",
     });
 i18n.addResources('de', 'driver/carsharing/booking', {
       "reservation-type_BLOCK": "Nicht verfügbar",
       "reservation-type_PS": "Fahrtendienst",
-      "remaining": "Verbleibende Stunden",
-      "max-hours": "Größtmögliche Reservierung",
+      "remaining": "Verbleibende Stunden:",
+      "max-hours": "Größtmögliche Reservierung:",
       "no-remaining-hours_title": "Car-Sharing",
       "no-remaining-hours_msg": "Dein Car-Sharing-Kontingent ist bereits aufgebraucht!",
       "max-reservations_title": "Car-Sharing",
@@ -46,7 +48,10 @@ i18n.addResources('de', 'driver/carsharing/booking', {
       "conflicting-reservation_msg": "Diese Ansicht ist nicht aktuell! Mittlerweile gibt es eine andere Reservierung in dieser Zeit. Bitte wechsle zur vorigen Ansicht steige neu ein, um die Ansicht zu aktualisieren.",
       "conflicting-incoming_title": "Car-Sharing",
       "conflicting-incoming_msg": "Ein(e) andere(r) Fahrer(in) hat eine Reservierung in der Zeit deiner Auswahl eingetragen, weshalb sie entfernt wurde.",
+      "date_format": "dd.mm.yyyy",
     });
+
+let now = new Date();
 
 const itemsBatchSize = 48;
 
@@ -396,6 +401,11 @@ const DayTable = memo<{
             return (
                 <Box
                     direction="row"
+                    background={
+                        hour.startsAt.getHours() % 2 === 0
+                            ? (hour.endsAt.getTime() < now.getTime() ? 'light-4' : 'white' )
+                            : (hour.endsAt.getTime() < now.getTime() ? 'light-6' : 'light-2' )
+                      }
                     fill>
                   <Box
                       align="end"
@@ -477,14 +487,13 @@ const DayTable = memo<{
               }</Text>
             </Box>),
       } ];
-    
+
     return <DataTable
         fill
         pin
         pad={ { header: 'none', body: 'none' } }
         primaryKey={ false }
         style={ { tableLayout: 'fixed' } }
-        background={ { body: ["white", "light-2"] } }
         columns={ dayColumns }
         data={ hours } />;
         
@@ -631,7 +640,7 @@ const loadData = async (
 const Booking = () => {
   
   const { t } = useTranslation('driver/carsharing/booking');
-  const { isPhone } = useResponsiveScreen();
+  const { isPhone, isNotPhone } = useResponsiveScreen();
   const carSharingApi = useCarSharingApi();
   const { state, toast } = useAppContext();
   
@@ -642,7 +651,25 @@ const Booking = () => {
       dayVersionsRef.current = newVersions;
       _setDayVersions(newVersions);
     };
-  
+  const [ startsAt, _setStartsAt ] = useState<Date>(currentHour(false));
+  const setStartsAt = (dateInput: string|Date) => {
+    let date: Date;
+    if (dateInput === undefined) {
+      date = undefined;
+    } else if (typeof dateInput === 'string') {
+      date = new Date(dateInput);
+      date = new Date(date.getTime());
+      if (date && (!(date instanceof Date) || isNaN(date.getTime()))) {
+        return;
+      }
+    } else {
+      date = dateInput;
+    }
+    _setStartsAt(nextHours(date, date.getHours(), true));
+    setDays(undefined);
+    setRestrictions(undefined);
+  };
+
   const [ endDate, setEndDate ] = useState<Date>(undefined);
   const [ days, _setDays]  = useState<Array<CalendarDay>>(undefined);
   const daysRef = useRef(days);
@@ -666,12 +693,22 @@ const Booking = () => {
 
   useEffect(() => {
       if (restrictions === undefined) {
-        const startsAt = currentHour(false);
         const endsAt = nextHours(startsAt, (24 - startsAt.getHours()) + 24, false);
         loadData(carSharingApi, dayVersionsRef, updateDayVersions, setEndDate, startsAt, endsAt, days, setDays, drivers, setDrivers, setRestrictions, setCars);
       }
-    }, [ carSharingApi, days, restrictions, setRestrictions, drivers ]);
-    
+    }, [ carSharingApi, days, restrictions, setRestrictions, drivers, startsAt ]);
+  useEffect(() => {
+      const timer = window.setInterval(() => {
+          const lastHour = now.getHours();
+          now = new Date();
+          if (now.getHours() !== lastHour) {
+            increaseDayVersions(dayVersionsRef, now, cars);
+            updateDayVersions(dayVersionsRef.current);
+          }
+        }, 60000);
+      return () => window.clearInterval(timer);
+    }, [ cars ]);
+  
   const [ _isMouseDown, setMouseIsDown ] = useState(false);
   const isMouseDown = useRef(_isMouseDown);
   const [ _selection, _setSelection ] = useState<Selection>(undefined);
@@ -1050,12 +1087,21 @@ const Booking = () => {
       <>
         <Box
             direction="row"
+            align="center"
             justify="center"
             background='dark-3'
-            gap='small'
-            pad='small'>
-          <Text>
-            <>{ t('remaining') }:</>
+            gap='large'
+            pad={ { top: 'medium', bottom: 'small', horizontal: 'medium' } }>
+          <Box
+              direction="row"
+              gap="small"
+              justify="center">
+            <DocumentTime />
+            <>{
+              isNotPhone
+                  ? t('remaining')
+                  : undefined
+            }</>
             <Text
                 weight='bold'
                 style={ {
@@ -1067,16 +1113,72 @@ const Booking = () => {
                         : currentRemainingHours < 5
                         ? 'status-warning'
                         : 'white' }>
-              &nbsp;{ currentRemainingHours } h
+              &nbsp;{ currentRemainingHours }h
             </Text>
-          </Text>
-          <Text>
-            <>{ t('max-hours') }:</>
+          </Box>
+          <Box
+              direction="row"
+              gap="small"
+              justify="center">
+            <Contract />
+            <>{
+              isNotPhone
+                  ? t('max-hours')
+                  : undefined
+            }</>
             <Text
                 weight='bold'>
-              &nbsp;{ restrictions === undefined ? '-' : restrictions.maxHours } h
+              &nbsp;{ restrictions === undefined ? '-' : restrictions.maxHours }h
             </Text>
-          </Text>
+          </Box>
+          <Box
+              style={ { minHeight: 'auto' } }
+              width={ isPhone ? "50%" : 'small' }
+              gap="medium">
+            <DateInput
+                format={ t('date_format') }
+                value={ startsAt.toISOString() }
+                onChange={ ({ value }) => setStartsAt(value as string) }
+                icon={ <History /> }
+                dropProps={ {
+                    align: { top: "bottom", right: "right" },
+                    background: 'white',
+// @ts-ignore
+                    pad: isPhone ? 'medium' : 'small',
+                    width: isPhone ? '90%' : '25rem',
+                    height: isPhone ? '50%' : '25rem',
+                    responsive: true
+                  } }
+                calendarProps={ {
+                    fill: true,
+                    animate: false,
+                    header: props => CalendarHeader({ ...props, showRange: false, setDate: setStartsAt }),
+// @ts-ignore
+                    children: ({ day, date, isSelected }) => (
+                        <Box
+                            fill
+                            background={
+                                isSelected
+                                    ? 'brand'
+                                    : date.getMonth() !== now.getMonth()
+                                    ? 'light-2'
+                                    : (date.getMonth() === now.getMonth() && date.getDate() === now.getDate())
+                                    ? { color: 'accent-3', opacity: 'medium' }
+                                    : 'white'
+                                  }>
+                          <Box
+                              align="center"
+                              justify="center"
+                              fill>
+                            <Text
+                                size="medium">
+                              { day }
+                            </Text>
+                          </Box>
+                        </Box>
+                      )
+                  } } />
+          </Box>
         </Box>
         <SnapScrollingDataTable
             fill
