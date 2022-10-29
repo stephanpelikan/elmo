@@ -6,7 +6,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.h2.tools.TriggerAdapter;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -16,11 +19,29 @@ import javax.annotation.PostConstruct;
 
 public class H2Notifications extends TriggerAdapter {
 
+    static class H2PostTxNotificationEvent extends ApplicationEvent {
+        
+        private static final long serialVersionUID = 1L;
+
+        public H2PostTxNotificationEvent(
+                final DbNotification notification) {
+            super(notification);
+        }
+        
+        public DbNotification getNotification() {
+            return (DbNotification) getSource();
+        }
+        
+    }
+    
     @Autowired
     private Logger logger;
     
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;
+    
+    @Autowired
+    private H2NotificationSender sender;
     
     private static Logger eventLogger;
     
@@ -31,6 +52,23 @@ public class H2Notifications extends TriggerAdapter {
         
         H2Notifications.eventPublisher = applicationEventPublisher;
         H2Notifications.eventLogger = logger;
+        
+    }
+    
+    /**
+     * For PostgreSQL notifications fire after the transaction. We
+     * simulated this by waiting until the end of the transaction,
+     * sending asynchronously and sleeping a little bit.
+     * 
+     * @see https://www.postgresql.org/docs/current/sql-notify.html
+     */
+    @TransactionalEventListener(
+            phase = TransactionPhase.AFTER_COMMIT,
+            fallbackExecution = true)
+    public void sendNotificationAfterTx(
+            final H2PostTxNotificationEvent event) throws Exception {
+        
+        sender.send(event.getNotification());
         
     }
     
@@ -62,7 +100,7 @@ public class H2Notifications extends TriggerAdapter {
             
             H2Notifications
                     .eventPublisher
-                    .publishEvent(notification);
+                    .publishEvent(new H2PostTxNotificationEvent(notification));
             
         } catch (Exception e) {
             
