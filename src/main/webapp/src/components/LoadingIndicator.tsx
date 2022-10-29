@@ -26,6 +26,7 @@ const LoadingIndicator = () => {
                 animation="rotateRight"
                 pad='medium'>
               <Cycle
+                  style={ { marginTop: '3px' } }
                   color="white"
                   size="large" />
             </Box>
