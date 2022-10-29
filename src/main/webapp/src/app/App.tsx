@@ -200,8 +200,7 @@ const App: React.FC<AppProps> = (props: AppProps): JSX.Element => {
   return (
     <Grommet
         theme={theme}
-        full>{/*
-// @ts-ignore */}
+        full>
       <EventSourceProvider eventSource={ PreconfiguredReconnectingEventSource }>
         {state.toast && (
           <MessageToast dispatch={dispatch} msg={state.toast} />

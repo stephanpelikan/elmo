@@ -19,8 +19,7 @@ const SmsChannelProvider = () => {
   }, [ appApi, setToken ]);
   
   return token
-      ? (<>{/*
-// @ts-ignore */}
+      ? (<>
           <EventSourceProvider eventSource={ PreconfiguredReconnectingEventSource }>
             <SmsSender token={ token } />
           </EventSourceProvider>
