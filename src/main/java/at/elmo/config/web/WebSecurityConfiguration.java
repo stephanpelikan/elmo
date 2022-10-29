@@ -96,11 +96,16 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                     .anyRequest().authenticated()
                     .and()
                 .exceptionHandling()
-                    .defaultAccessDeniedHandlerFor((request, response, exception) -> {
-                            response.sendError(HttpStatus.UNAUTHORIZED.value());
-                        },
-                        request -> request.getRequestURI().startsWith("/api/v"))
-                    .authenticationEntryPoint(null)
+                    .defaultAccessDeniedHandlerFor(  // for authenticated requests
+                            (request, response, exception) -> {
+                                response.sendError(HttpStatus.FORBIDDEN.value());
+                            },
+                            request -> request.getRequestURI().startsWith("/api/v"))
+                    .defaultAuthenticationEntryPointFor( // for unauthenticated requests
+                            (request, response, exception) -> {
+                                response.sendError(HttpStatus.UNAUTHORIZED.value());
+                            },
+                            request -> request.getRequestURI().startsWith("/api/v"))
                     .and()
                 .logout()
                     .permitAll()
