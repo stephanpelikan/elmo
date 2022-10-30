@@ -754,6 +754,7 @@ const Planner = () => {
     }, [ setMouseIsDown, setSelection ]);
   const mouseDownOnHour = useCallback((event: ReactMouseEvent, car: PlannerCar, hour: CalendarHour) => {
       if (isMouseDown.current) return;
+      if (hour.endsAt.getTime() < now.getTime()) return;
       if (restrictionsRef.current.remainingHours < 1) {
         toast({
             namespace: 'driver/car-sharing/booking',
@@ -791,6 +792,7 @@ const Planner = () => {
   const mouseEnterHour = useCallback((event: ReactMouseEvent, car: PlannerCar, days: CalendarDay[], day: CalendarDay, hour: CalendarHour) => {
       if (!isMouseDown.current) return;
       if (car.id !== selection.current.carId) return;
+      if (hour.endsAt.getTime() < now.getTime()) return;
       event.preventDefault();
       event.stopPropagation();
       const wasUpperBoundaryChanged = hour.startsAt.getTime() < selection.current.startedAtStarts.getTime();
