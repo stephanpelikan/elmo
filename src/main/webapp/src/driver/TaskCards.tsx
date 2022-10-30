@@ -21,9 +21,9 @@ const TaskCards = () => {
   return (
     <Box justify="center" pad="medium" direction="row" wrap>
       <Card
-          title={ t('card-carsharing') }
+          title={ t('card-planner') }
           icon={ ShareOption }
-          onClick={ () => navigate('.' + t('url-carsharing')) }>
+          onClick={ () => navigate('.' + t('url-planner')) }>
       </Card>
     </Box>);
 }

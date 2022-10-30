@@ -7,10 +7,10 @@ import { currentHour, nextHours, timeAsString, hoursBetween } from '../../utils/
 import { SnapScrollingDataTable } from '../../components/SnapScrollingDataTable';
 import { UserAvatar } from '../../components/UserAvatar';
 import { LoadingIndicator } from '../../components/LoadingIndicator';
-import { useCarSharingApi } from '../DriverAppContext';
-import { CarSharingApi, CarSharingCar, CarSharingDriver, CarSharingReservation, User } from "../../client/gui";
+import { useCarSharingApi, useDriverApi } from '../DriverAppContext';
+import { DriverApi, PlannerCar, PlannerDriver, PlannerReservation, User } from "../../client/gui";
 import { SSE_UPDATE_URL } from "../../client/guiClient";
-import { CSSProperties, memo, MouseEvent as ReactMouseEvent, MutableRefObject, useCallback, useEffect, useRef, useState } from "react";
+import { CSSProperties, memo, MouseEvent as ReactMouseEvent, MutableRefObject, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { BackgroundType, BorderType } from "grommet/utils";
 import { TFunction } from "i18next";
 import styled from "styled-components";
@@ -20,33 +20,37 @@ import { useAppContext } from "../../AppContext";
 import { useEventSource, useEventSourceListener } from "react-sse-hooks";
 import { CalendarHeader } from "../../components/CalendarHeader";
 
-i18n.addResources('en', 'driver/carsharing/booking', {
+i18n.addResources('en', 'driver/planner', {
+      "title.long": 'Planner',
+      "title.short": 'Planner',
       "reservation-type_BLOCK": "Unavailable",
       "reservation-type_PS": "Passanger Service",
       "remaining": "Remaining hours:",
       "max-hours": "Largest reservation possible:",
-      "no-remaining-hours_title": "Car-Sharing",
+      "no-remaining-hours_title": "Planning",
       "no-remaining-hours_msg": "The quota has been used up!",
-      "max-reservations_title": "Car-Sharing",
+      "max-reservations_title": "Planning",
       "max-reservations_msg": "The maximum number of car-sharing reservations is reached: {{maxReservations}}!",
-      "conflicting-reservation_title": "Car-Sharing",
+      "conflicting-reservation_title": "Planning",
       "conflicting-reservation_msg": "This view is not up to date! Meanwhile there is a conflicting reservation. Please go back and reenter to refresh the view.",
-      "conflicting-incoming_title": "Car-Sharing",
+      "conflicting-incoming_title": "Planning",
       "conflicting-incoming_msg": "Another driver created a conflicting reservation. Your selection was removed.",
       "date_format": "yyyy/mm/dd",
     });
-i18n.addResources('de', 'driver/carsharing/booking', {
+i18n.addResources('de', 'driver/planner', {
+      "title.long": 'Planer',
+      "title.short": 'Planer',
       "reservation-type_BLOCK": "Nicht verfügbar",
       "reservation-type_PS": "Fahrtendienst",
       "remaining": "Verbleibende Stunden:",
       "max-hours": "Größtmögliche Reservierung:",
-      "no-remaining-hours_title": "Car-Sharing",
+      "no-remaining-hours_title": "Planer",
       "no-remaining-hours_msg": "Dein Car-Sharing-Kontingent ist bereits aufgebraucht!",
-      "max-reservations_title": "Car-Sharing",
+      "max-reservations_title": "Planer",
       "max-reservations_msg": "Du hast bereits die maximale Anzahl an Car-Sharing-Reservierungen gebucht: {{maxReservations}}!",
-      "conflicting-reservation_title": "Car-Sharing",
+      "conflicting-reservation_title": "Planer",
       "conflicting-reservation_msg": "Diese Ansicht ist nicht aktuell! Mittlerweile gibt es eine andere Reservierung in dieser Zeit. Bitte wechsle zur vorigen Ansicht steige neu ein, um die Ansicht zu aktualisieren.",
-      "conflicting-incoming_title": "Car-Sharing",
+      "conflicting-incoming_title": "Planer",
       "conflicting-incoming_msg": "Ein(e) andere(r) Fahrer(in) hat eine Reservierung in der Zeit deiner Auswahl eingetragen, weshalb sie entfernt wurde.",
       "date_format": "dd.mm.yyyy",
     });
@@ -69,7 +73,7 @@ interface DayVersions {
 };
 
 interface ReservationDrivers {
-  [key: number /* member id */]: CarSharingDriver
+  [key: number /* member id */]: PlannerDriver
 };
 
 interface CalendarHours {
@@ -85,7 +89,7 @@ interface CalendarHour {
   index: number;
   startsAt: Date;
   endsAt: Date;
-  reservation: CarSharingReservation | undefined;
+  reservation: PlannerReservation | undefined;
 };
 
 interface Selection {
@@ -281,7 +285,7 @@ const CancellationBox = ({
     cancelReservation
   }: {
     carId: string,
-    reservation: CarSharingReservation,
+    reservation: PlannerReservation,
     cancelReservation: (event: ReactMouseEvent, carId: string, reservationId: string) => void
   }) => {
     if (reservation.status !== 'RESERVED') return undefined;
@@ -301,7 +305,7 @@ const CancellationBox = ({
       </Box>;
   };
 
-const CarSharingReservationBox = ({
+const PlannerReservationBox = ({
     drivers,
     hour,
     cancellationBox
@@ -343,7 +347,7 @@ const DayTable = memo<{
     currentUser: User,
     dayVersion: number,
     drivers: ReservationDrivers,
-    car: CarSharingCar,
+    car: PlannerCar,
     days: CalendarDay[],
     day: CalendarDay,
     selection: Selection,
@@ -351,8 +355,8 @@ const DayTable = memo<{
     acceptSelection: (event: ReactMouseEvent) => void,
     cancelReservation: (event: ReactMouseEvent, carId: string, reservationId: string) => void,
     mouseDownOnDrag: (event: ReactMouseEvent, top: boolean) => void,
-    mouseDownOnHour: (event: ReactMouseEvent, car: CarSharingCar, hour: CalendarHour) => void,
-    mouseEnterHour: (event: ReactMouseEvent, car: CarSharingCar, days: CalendarDay[], day: CalendarDay, hour: CalendarHour) => void }>(
+    mouseDownOnHour: (event: ReactMouseEvent, car: PlannerCar, hour: CalendarHour) => void,
+    mouseEnterHour: (event: ReactMouseEvent, car: PlannerCar, days: CalendarDay[], day: CalendarDay, hour: CalendarHour) => void }>(
   ({ t, currentUser, drivers, car, days, day, selection, cancelSelection, acceptSelection, cancelReservation, mouseDownOnHour, mouseEnterHour, mouseDownOnDrag }) => {
 
     const hours = day.hours[car.id];
@@ -397,7 +401,7 @@ const DayTable = memo<{
             const isFirstHourOfReservation = (hour.reservation?.startsAt.getTime() === hour.startsAt.getTime())
                         || (hour.reservation && (index === 0));
             const isLastHourOfReservation = hour.reservation?.endsAt.getTime() === hour.endsAt.getTime();
-            const isCarSharingReservation = hour.reservation?.type === "CS";
+            const isPlannerReservation = hour.reservation?.type === "CS";
             return (
                 <Box
                     direction="row"
@@ -451,8 +455,8 @@ const DayTable = memo<{
                                 cancelSelection={ cancelSelection }
                                 mouseDownOnDrag={ mouseDownOnDrag } />
                         : isFirstHourOfReservation
-                        ? isCarSharingReservation
-                          ? <CarSharingReservationBox
+                        ? isPlannerReservation
+                          ? <PlannerReservationBox
                               hour={ hour }
                               drivers={ drivers }
                               cancellationBox={ isLastHourOfReservation
@@ -464,7 +468,7 @@ const DayTable = memo<{
                                />
                           : <Text>{ t(`reservation-type_${hour.reservation.type}` as const) }</Text>
                         : isLastHourOfReservation
-                        ? isCarSharingReservation
+                        ? isPlannerReservation
                           ? <CancellationBox
                                carId={ car.id }
                                reservation={ hour.reservation }
@@ -518,7 +522,7 @@ const getDayVersion = (
 const increaseDayVersions = (
     dayVersions: MutableRefObject<DayVersions>,
     time: Date,
-    cars: Array<CarSharingCar>
+    cars: Array<PlannerCar>
   ) => {
     cars.forEach(car => increaseDayVersion(dayVersions, time, car.id));
   };   
@@ -538,7 +542,7 @@ const increaseDayVersion = (
   };
 
 const loadData = async (
-      carSharingApi: CarSharingApi,
+      driverApi: DriverApi,
       dayVersions: MutableRefObject<DayVersions>,
       updateDayVersions: (versions: DayVersions) => void,
       setEndDate: (endDate: Date) => void,
@@ -549,11 +553,11 @@ const loadData = async (
       drivers: ReservationDrivers,
       setDrivers: (drivers: ReservationDrivers) => void,
       setRestrictions?: (restrictions: Restrictions) => void,
-      setCars?: (cars: Array<CarSharingCar>) => void,
+      setCars?: (cars: Array<PlannerCar>) => void,
     ) => {
 
-  const calendar = await carSharingApi.getCarSharingCalendar({
-      carSharingCalendarRequest: { startsAt, endsAt }
+  const calendar = await driverApi.getPlannerCalendar({
+      plannerCalendarRequest: { startsAt, endsAt }
     });
 
   if (setRestrictions) {
@@ -637,12 +641,17 @@ const loadData = async (
 
 };
 
-const Booking = () => {
+const Planner = () => {
   
-  const { t } = useTranslation('driver/carsharing/booking');
+  const { t } = useTranslation('driver/planner');
+  const { state, toast, setAppHeaderTitle } = useAppContext();
   const { isPhone, isNotPhone } = useResponsiveScreen();
   const carSharingApi = useCarSharingApi();
-  const { state, toast } = useAppContext();
+  const driverApi = useDriverApi();
+  
+  useLayoutEffect(() => {
+    setAppHeaderTitle('driver/planner', false);
+  }, [ setAppHeaderTitle ]);
   
   const [ dayVersions, _setDayVersions ] = useState<DayVersions>({});
   const dayVersionsRef = useRef(dayVersions);
@@ -677,7 +686,7 @@ const Booking = () => {
       daysRef.current = d;
       _setDays(d);
     };
-  const [ cars, setCars ] = useState<Array<CarSharingCar>>(undefined);
+  const [ cars, setCars ] = useState<Array<PlannerCar>>(undefined);
   const [ drivers, _setDrivers ] = useState<ReservationDrivers>(undefined);
   const driversRef = useRef(drivers);
   const setDrivers = (d: ReservationDrivers) => {
@@ -694,9 +703,9 @@ const Booking = () => {
   useEffect(() => {
       if (restrictions === undefined) {
         const endsAt = nextHours(startsAt, (24 - startsAt.getHours()) + 24, false);
-        loadData(carSharingApi, dayVersionsRef, updateDayVersions, setEndDate, startsAt, endsAt, days, setDays, drivers, setDrivers, setRestrictions, setCars);
+        loadData(driverApi, dayVersionsRef, updateDayVersions, setEndDate, startsAt, endsAt, days, setDays, drivers, setDrivers, setRestrictions, setCars);
       }
-    }, [ carSharingApi, days, restrictions, setRestrictions, drivers, startsAt ]);
+    }, [ driverApi, days, restrictions, setRestrictions, drivers, startsAt ]);
   useEffect(() => {
       const timer = window.setInterval(() => {
           const lastHour = now.getHours();
@@ -705,7 +714,7 @@ const Booking = () => {
             increaseDayVersions(dayVersionsRef, now, cars);
             updateDayVersions(dayVersionsRef.current);
           }
-        }, 60000);
+        }, 1000);
       return () => window.clearInterval(timer);
     }, [ cars ]);
   
@@ -743,7 +752,7 @@ const Booking = () => {
       setMouseIsDown(true);
 
     }, [ setMouseIsDown, setSelection ]);
-  const mouseDownOnHour = useCallback((event: ReactMouseEvent, car: CarSharingCar, hour: CalendarHour) => {
+  const mouseDownOnHour = useCallback((event: ReactMouseEvent, car: PlannerCar, hour: CalendarHour) => {
       if (isMouseDown.current) return;
       if (restrictionsRef.current.remainingHours < 1) {
         toast({
@@ -779,7 +788,7 @@ const Booking = () => {
       setMouseIsDown(true);
 
     }, [ setMouseIsDown, t, toast, selection, setSelection ]);
-  const mouseEnterHour = useCallback((event: ReactMouseEvent, car: CarSharingCar, days: CalendarDay[], day: CalendarDay, hour: CalendarHour) => {
+  const mouseEnterHour = useCallback((event: ReactMouseEvent, car: PlannerCar, days: CalendarDay[], day: CalendarDay, hour: CalendarHour) => {
       if (!isMouseDown.current) return;
       if (car.id !== selection.current.carId) return;
       event.preventDefault();
@@ -915,12 +924,12 @@ const Booking = () => {
   const acceptSelection = useCallback((event: ReactMouseEvent) => {
       event.preventDefault();
       event.stopPropagation();
-      const addCarSharingReservation = async () => {
+      const addPlannerReservation = async () => {
           try {
             setWaitingForUpdate(true);
             await carSharingApi.addCarSharingReservation({
                 carId: selection.current.carId,
-                carSharingReservation: {
+                plannerReservation: {
                   driverMemberId: state.currentUser.memberId,
                   startsAt: selection.current.startsAt,
                   endsAt: selection.current.endsAt,
@@ -951,13 +960,13 @@ const Booking = () => {
             }
           } 
         };
-      addCarSharingReservation();
+      addPlannerReservation();
     }, [ carSharingApi, t, toast, selection, state.currentUser ]);
   
   const cancelReservation = useCallback((event: ReactMouseEvent, carId: string, reservationId: string) => {
       event.preventDefault();
       event.stopPropagation();
-      const removeCarSharingReservation = async () => {
+      const removePlannerReservation = async () => {
           try {
             setWaitingForUpdate(true);
             await carSharingApi.cancelCarSharingReservation({
@@ -970,7 +979,7 @@ const Booking = () => {
             setWaitingForUpdate(false);
           } 
         };
-      removeCarSharingReservation();
+      removePlannerReservation();
     }, [ carSharingApi ]);
   useEffect(() => {
       window.addEventListener('mouseup', mouseUp);
@@ -1010,7 +1019,7 @@ const Booking = () => {
             const updateStartsAt = effectedDays[0].getTime() < daysRef.current[0].startsAt.getTime() ? daysRef.current[0].startsAt : effectedDays[0];
             const updateEndsAt = effectedDays[effectedDays.length - 1];
             const updateDataAndSelection = async () => {
-                await loadData(carSharingApi, dayVersionsRef, updateDayVersions, setEndDate, updateStartsAt, updateEndsAt, daysRef.current, setDays, driversRef.current, setDrivers, setRestrictions);
+                await loadData(driverApi, dayVersionsRef, updateDayVersions, setEndDate, updateStartsAt, updateEndsAt, daysRef.current, setDays, driversRef.current, setDrivers, setRestrictions);
                 setWaitingForUpdate(false);
                 // detect overlapping selection of other members:
                 if (selection.current === undefined) return;
@@ -1073,7 +1082,7 @@ const Booking = () => {
     if (!day) return;
     const startsAt = endDate;
     const endsAt = nextHours(startsAt, itemsBatchSize, false);
-    await loadData(carSharingApi, dayVersionsRef, updateDayVersions, setEndDate, startsAt, endsAt, days, setDays, drivers, setDrivers, setRestrictions);
+    await loadData(driverApi, dayVersionsRef, updateDayVersions, setEndDate, startsAt, endsAt, days, setDays, drivers, setDrivers, setRestrictions);
   };
   
   const headerHeight = '3rem';
@@ -1199,4 +1208,4 @@ const Booking = () => {
       
 };
 
-export { Booking };
+export { Planner };

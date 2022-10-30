@@ -1,12 +1,9 @@
 package at.elmo.reservation.carsharing;
 
-import at.elmo.car.Car;
 import at.elmo.car.CarService;
 import at.elmo.gui.api.v1.CarSharingApi;
-import at.elmo.gui.api.v1.CarSharingCalendar;
-import at.elmo.gui.api.v1.CarSharingCalendarRequest;
-import at.elmo.gui.api.v1.CarSharingReservation;
-import at.elmo.gui.api.v1.CarSharingReservationType;
+import at.elmo.gui.api.v1.PlannerReservation;
+import at.elmo.gui.api.v1.PlannerReservationType;
 import at.elmo.reservation.ReservationService;
 import at.elmo.util.UserContext;
 import at.elmo.util.exceptions.ElmoValidationException;
@@ -20,9 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Duration;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController("carSharingGuiApi")
 @RequestMapping("/api/v1")
@@ -36,9 +30,6 @@ public class GuiApiController implements CarSharingApi {
     private ReservationService reservationService;
 
     @Autowired
-    private GuiApiMapper mapper;
-
-    @Autowired
     private CarService carService;
 
     @Autowired
@@ -50,54 +41,6 @@ public class GuiApiController implements CarSharingApi {
     @Autowired
     private UserContext userContext;
 
-    @Override
-    public ResponseEntity<CarSharingCalendar> getCarSharingCalendar(
-            final CarSharingCalendarRequest request) {
-
-        if ((request == null)
-                || (request.getStartsAt() == null)
-                || (request.getEndsAt() == null)) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        final var reservationsInPeriod = reservationService.findReservations(
-                request.getStartsAt(),
-                request.getEndsAt());
-
-        final var carReservations = carService
-                .getCarSharingCars()
-                .stream()
-                .collect(Collectors.toMap(
-                        Car::getId,
-                        mapper::toApi,
-                        (u, v) -> {
-                            throw new IllegalStateException(String.format("Duplicate key %s", u));
-                        },
-                        LinkedHashMap::new));
-
-        final var drivers = reservationsInPeriod
-            .stream()
-            .peek(r -> carReservations
-                    .get(r.getCar().getId())
-                    .addReservationsItem(mapper.toApi(r)))
-            .filter(r -> (r instanceof CarSharing))
-            .map(r -> ((CarSharing) r).getDriver())
-            .collect(Collectors.toSet());
-
-        final var driver = userContext.getLoggedInMember();
-
-        final var result = new CarSharingCalendar();
-        result.setDrivers(mapper.toApi(drivers));
-        result.setCars(List.copyOf(carReservations.values()));
-        result.setRemainingHours(
-                driver.getHoursServedPassangerService()
-                - driver.getHoursConsumedCarSharing());
-        result.setMaxHours(properties.getMaxHours());
-
-        return ResponseEntity.ok(result);
-
-    }
-    
     @Override
     public ResponseEntity<Void> cancelCarSharingReservation(
             final String carId,
@@ -124,10 +67,10 @@ public class GuiApiController implements CarSharingApi {
     @Override
     public ResponseEntity<Void> addCarSharingReservation(
             final String carId,
-            final CarSharingReservation carSharingReservation) {
+            final PlannerReservation carSharingReservation) {
 
         if ((carSharingReservation == null)
-                || (carSharingReservation.getType() != CarSharingReservationType.CS)) {
+                || (carSharingReservation.getType() != PlannerReservationType.CS)) {
             return ResponseEntity.badRequest().build();
         }
 

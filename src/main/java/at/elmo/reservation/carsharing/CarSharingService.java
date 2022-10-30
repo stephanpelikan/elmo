@@ -176,7 +176,6 @@ public class CarSharingService {
                 carSharing.getDriver().getMemberId().toString(),
                 carSharing.getDriver().getPhoneNumber(),
                 NamedObject.from(carSharing).as("carSharing"));
-                
 
     }
 

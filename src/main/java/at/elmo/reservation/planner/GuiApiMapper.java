@@ -1,14 +1,15 @@
-package at.elmo.reservation.carsharing;
+package at.elmo.reservation.planner;
 
 import at.elmo.car.Car;
-import at.elmo.gui.api.v1.CarSharingCar;
-import at.elmo.gui.api.v1.CarSharingDriver;
-import at.elmo.gui.api.v1.CarSharingReservation;
-import at.elmo.gui.api.v1.CarSharingReservationType;
+import at.elmo.gui.api.v1.PlannerCar;
+import at.elmo.gui.api.v1.PlannerDriver;
+import at.elmo.gui.api.v1.PlannerReservation;
+import at.elmo.gui.api.v1.PlannerReservationType;
 import at.elmo.member.Member;
 import at.elmo.reservation.ReservationBase;
 import at.elmo.reservation.ReservationMapperBase;
 import at.elmo.reservation.blocking.BlockingReservation;
+import at.elmo.reservation.carsharing.CarSharing;
 import at.elmo.reservation.passangerservice.shift.Shift;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -20,30 +21,30 @@ import java.util.List;
 public abstract class GuiApiMapper extends ReservationMapperBase {
 
     @Mapping(target = "reservations", ignore = true)
-    public abstract CarSharingCar toApi(Car car);
+    public abstract PlannerCar toApi(Car car);
 
-    public abstract List<CarSharingCar> toApi(List<Car> car);
+    public abstract List<PlannerCar> toApi(List<Car> car);
 
     @Mapping(target = "avatar", source = "timestampOfAvatar")
-    public abstract CarSharingDriver toApi(Member car);
+    public abstract PlannerDriver toApi(Member car);
 
-    public abstract List<CarSharingDriver> toApi(Collection<Member> car);
+    public abstract List<PlannerDriver> toApi(Collection<Member> car);
 
-    public CarSharingReservation toApi(ReservationBase reservation) {
+    public PlannerReservation toApi(ReservationBase reservation) {
 
         if (reservation == null) {
             return null;
         }
-        final var result = new CarSharingReservation();
+        final var result = new PlannerReservation();
         result.setId(reservation.getId());
         result.setStartsAt(reservation.getStartsAt());
         result.setEndsAt(reservation.getEndsAt());
-        result.setType(toCarSharingReservationType(reservation));
-        if (result.getType() == CarSharingReservationType.CS) {
-            final var carSharing = (CarSharing) reservation;
-            result.setDriverMemberId(carSharing.getDriver().getMemberId());
-            result.setStatus(carSharing.getStatus().name());
-        } else if (result.getType() == CarSharingReservationType.PS) {
+        result.setType(toPlannerReservationType(reservation));
+        if (result.getType() == PlannerReservationType.CS) {
+            final var Planner = (CarSharing) reservation;
+            result.setDriverMemberId(Planner.getDriver().getMemberId());
+            result.setStatus(Planner.getStatus().name());
+        } else if (result.getType() == PlannerReservationType.PS) {
             final var shift = (Shift) reservation;
             if (shift.getDriver() != null) {
                 result.setDriverMemberId(shift.getDriver().getMemberId());
@@ -53,19 +54,19 @@ public abstract class GuiApiMapper extends ReservationMapperBase {
 
     }
 
-    public CarSharingReservationType toCarSharingReservationType(final ReservationBase reservation) {
+    public PlannerReservationType toPlannerReservationType(final ReservationBase reservation) {
 
         if (reservation == null) {
             return null;
         }
         if (reservation instanceof CarSharing) {
-            return CarSharingReservationType.CS;
+            return PlannerReservationType.CS;
         }
         if (reservation instanceof BlockingReservation) {
-            return CarSharingReservationType.BLOCK;
+            return PlannerReservationType.BLOCK;
         }
         if (reservation instanceof Shift) {
-            return CarSharingReservationType.PS;
+            return PlannerReservationType.PS;
         }
         throw new RuntimeException(
                 "Unknown reservation type '"
