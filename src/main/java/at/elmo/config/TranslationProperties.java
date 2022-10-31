@@ -13,7 +13,7 @@ public class TranslationProperties {
     private Map<String, General> general;
 
     private Map<String, DownloadMembers> downloadMembers;
-
+    
     public static class DownloadMembers {
 
         private String members;
@@ -254,6 +254,6 @@ public class TranslationProperties {
 
     public void setDownloadMembers(Map<String, DownloadMembers> downloadMembers) {
         this.downloadMembers = downloadMembers;
-    };
-
+    }
+    
 }

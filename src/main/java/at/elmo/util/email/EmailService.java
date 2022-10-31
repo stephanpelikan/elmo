@@ -1,6 +1,5 @@
 package at.elmo.util.email;
 
-import at.elmo.config.ElmoProperties;
 import at.elmo.config.FreemarkerConfiguration;
 import freemarker.template.Configuration;
 import org.slf4j.Logger;
@@ -27,9 +26,6 @@ public class EmailService {
     
     @Autowired
     private Logger logger;
-
-    @Autowired
-    private ElmoProperties elmoProperties;
 
     @Autowired
     private EmailProperties properties;
@@ -142,11 +138,9 @@ public class EmailService {
             
         }
 
-        final var locale = Locale.forLanguageTag(elmoProperties.getDefaultLocale());
-
         return FreeMarkerTemplateUtils
                 .processTemplateIntoString(
-                        templating.getTemplate(template, locale),
+                        templating.getTemplate(template, Locale.getDefault()),
                         templateContext);
         
     }

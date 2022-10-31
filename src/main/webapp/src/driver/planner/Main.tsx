@@ -15,7 +15,7 @@ import { BackgroundType, BorderType } from "grommet/utils";
 import { TFunction } from "i18next";
 import styled from "styled-components";
 import { normalizeColor,  } from "grommet/utils";
-import { Contract, DocumentTime, FormCheckmark, FormClose, FormDown, FormUp, History } from "grommet-icons";
+import { Contract, Cycle, DocumentTime, FormCheckmark, FormClose, FormDown, FormUp, History } from "grommet-icons";
 import { useAppContext } from "../../AppContext";
 import { useEventSource, useEventSourceListener } from "react-sse-hooks";
 import { CalendarHeader } from "../../components/CalendarHeader";
@@ -404,6 +404,12 @@ const DayTable = memo<{
             const isPlannerReservation = hour.reservation?.type === "CS";
             return (
                 <Box
+                    id={ `${day.startsAt.toISOString().substring(0,10)}_${car.id}_${hour.startsAt.getHours() + 1}` }
+                    ref={ element => {
+                         if (element?.id === document.location.search.substring(1)) {
+                           element.scrollIntoView({ behavior: 'smooth' });
+                         }
+                       } }
                     direction="row"
                     background={
                         hour.startsAt.getHours() % 2 === 0
@@ -492,14 +498,23 @@ const DayTable = memo<{
             </Box>),
       } ];
 
-    return <DataTable
-        fill
-        pin
-        pad={ { header: 'none', body: 'none' } }
-        primaryKey={ false }
-        style={ { tableLayout: 'fixed' } }
-        columns={ dayColumns }
-        data={ hours } />;
+    return (
+        <Box
+            id={ `${day.startsAt.toISOString().substring(0,10)}_${car.id}_0` }
+            ref={ element => {
+                 if (element?.id === document.location.search.substring(1)) {
+                   element.scrollIntoView({ behavior: 'smooth' });
+                 }
+               } }>
+        <DataTable
+            fill
+            pin
+            pad={ { header: 'none', body: 'none' } }
+            primaryKey={ false }
+            style={ { tableLayout: 'fixed' } }
+            columns={ dayColumns }
+            data={ hours } />
+        </Box>);
         
   }, (prev, next) => {
     return prev.dayVersion === next.dayVersion;
@@ -648,7 +663,7 @@ const Planner = () => {
   const { isPhone, isNotPhone } = useResponsiveScreen();
   const carSharingApi = useCarSharingApi();
   const driverApi = useDriverApi();
-  
+
   useLayoutEffect(() => {
     setAppHeaderTitle('driver/planner', false);
   }, [ setAppHeaderTitle ]);
@@ -660,7 +675,13 @@ const Planner = () => {
       dayVersionsRef.current = newVersions;
       _setDayVersions(newVersions);
     };
-  const [ startsAt, _setStartsAt ] = useState<Date>(currentHour(false));
+  
+  const daySearchParam = document.location.search?.indexOf('_') || -1;
+  const [ startsAt, _setStartsAt ] = useState<Date>(
+      daySearchParam > 0
+          ? new Date(document.location.search.substring(0, daySearchParam))
+          : currentHour(false)
+    );
   const setStartsAt = (dateInput: string|Date) => {
     let date: Date;
     if (dateInput === undefined) {
@@ -1199,6 +1220,25 @@ const Planner = () => {
             columns={ carColumns }
             step={ 2 }
             onMore={ loadMore }
+            placeholder= {
+                <Box
+                    direction="row"
+                    justify="center">
+                  <Box
+                      round='medium'
+                      background={ { color: 'rgba(0, 0, 0, 0.3)' } }>
+                    <Box
+                        background=""
+                        animation="rotateRight"
+                        pad='medium'>
+                      <Cycle
+                          style={ { marginTop: '3px' } }
+                          color="white"
+                          size="large" />
+                    </Box>
+                  </Box>
+                </Box>
+              }
             data={ days }
             replace={ true } />
         {

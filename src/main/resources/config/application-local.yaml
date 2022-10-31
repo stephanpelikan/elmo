@@ -7,7 +7,7 @@ elmo:
   passanger-agreement-pdf-directory: src/test/attachments/agreement  
   driver-agreement-pdf-directory: src/test/attachments/agreement  
   gateway-url: http://localhost:3000
-  default-locale: de
+  default-locale: de_AT
   sms:
     supported: false
   passanagerServicePhoneNumber: "+431234567890"

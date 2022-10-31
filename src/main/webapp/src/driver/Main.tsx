@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Route, Routes } from "react-router-dom";
-import { TaskCards } from './TaskCards';
+import { Dashboard } from './Dashboard';
 import { Planner } from './planner/Main';
 import i18n from '../i18n';
 
@@ -23,8 +23,12 @@ const Main = () => {
 
   return (
     <Routes>
-      <Route path={t('url-planner') + '/*'} element={<Planner />} />
-      <Route path='/' element={<TaskCards />} />
+      <Route
+          path={t('url-planner') + '/*'}
+          element={<Planner />} />
+      <Route
+          path='/'
+          element={<Dashboard />} />
     </Routes>);
 }
 

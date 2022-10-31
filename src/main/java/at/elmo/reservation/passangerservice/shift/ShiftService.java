@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
@@ -33,6 +34,14 @@ public class ShiftService {
 
     public List<Shift> getShifts(){
         return shifts.findAll();
+    }
+
+    public List<Shift> getShifts(
+            final LocalDateTime startsAt,
+            final LocalDateTime endsAt) {
+        
+        return shifts.findInPeriod(startsAt, endsAt);
+
     }
 
     public boolean hasShifts(

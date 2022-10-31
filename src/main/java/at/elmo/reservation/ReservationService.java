@@ -9,8 +9,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Direction;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -106,8 +104,7 @@ public class ReservationService {
 
         return reservations.findInPeriod(
                 startsAt,
-                endsAt,
-                Sort.by(Direction.ASC, "startsAt"));
+                endsAt);
 
     }
     

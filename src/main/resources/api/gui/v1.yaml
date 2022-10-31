@@ -304,6 +304,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PlannerCalendar'
+  /gui/driver/shift-overview:
+    get:
+      tags:
+        - driver
+      summary: The shifts within the next two weeks
+      operationId: getShiftOverview
+      responses:
+        200:
+          description: The shift-overview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShiftOverview'
   /gui/car-sharing/{carId}/reservation:
     post:
       tags:
@@ -388,6 +401,13 @@ components:
         - CS # shortcut of CarSharing
         - BLOCK
         - PS # shortcut of PassanagerService
+    ShiftStatus:
+      type: string
+      enum:
+        - NO_SHIFT # hour has no passanger-service shift
+        - FREE     # no car drivers set to shift
+        - PARTIAL  # in case of more cars for passanger-service if one car driver is set and the other not
+        - COMPLETE # all car drivers set to shift
     AppInformation:
       type: object
       properties:
@@ -593,3 +613,46 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/PlannerCar'
+    ShiftOverviewWeek:
+      type: object
+      properties:
+        description:
+          type: string
+        startsAt:
+          type: string
+        endsAt:
+          type: string
+        days:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShiftOverviewDay'
+    ShiftOverviewDay:
+      type: object
+      properties:
+        description:
+          type: string
+        date:
+          type: string
+        hours:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShiftOverviewHour'
+    ShiftOverviewHour:
+      type: object
+      properties:
+        description:
+          type: string
+        carId:
+          type: string
+        status:
+          $ref: '#/components/schemas/ShiftStatus'
+    ShiftOverview:
+      type: object
+      properties:
+        numberOfCars:
+          type: integer
+          format: int32
+        weeks:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShiftOverviewWeek'

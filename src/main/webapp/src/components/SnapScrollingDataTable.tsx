@@ -31,6 +31,7 @@ const SnapScrollingDataTable = forwardRef(({
   return (columns
     ? <SnapScrollingGrid
           fill
+          rows={ [ 'max-content', 'auto' ]}
           snapDirection='horizontal'>
         <Box
             fill={ isNotPhone ? 'horizontal' : undefined }
