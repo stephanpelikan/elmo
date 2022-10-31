@@ -25,13 +25,13 @@ const Dashboard = () => {
         direction="row-reverse"
         wrap>
       <Overview />
-      <Box>
+      { /* <Box>
         <Box
             title={ t('card-planner') }
             onClick={ () => navigate('.' + t('url-planner')) }>
           <ShareOption />
         </Box>
-      </Box>
+      </Box> */ }
     </Box>);
 }
 
