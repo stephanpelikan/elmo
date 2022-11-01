@@ -341,7 +341,7 @@ public class MemberService {
         final var now = OffsetDateTime.now();
         final var timestamp = (int)
                 (now.toEpochSecond()
-                - OffsetDateTime.of(2020, 0, 1, 0, 0, 0, 0, now.getOffset()).toEpochSecond());
+                - OffsetDateTime.of(2020, 1, 1, 0, 0, 0, 0, now.getOffset()).toEpochSecond());
 
         if (avatar.isPresent()) {
 

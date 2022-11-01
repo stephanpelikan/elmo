@@ -380,10 +380,10 @@ const Profile = () => {
       <Collapsible open={ avatarEditMode }>
         <Content
             gap='medium'
-            direction='row'>
+            direction='row-responsive'>
           <AvatarUpload
-              width={ isPhone ? 200 : 400 }
-              height={ isPhone ? 150 : 300 }
+              width={ isPhone ? 320 : 400 }
+              height={ isPhone ? 240 : 300 }
               exportAsSquare={ true }
               exportSize={ 300 }
               label={ t('avatar_hint') }
