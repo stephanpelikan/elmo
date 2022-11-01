@@ -12,6 +12,7 @@ import { FormEdit } from 'grommet-icons';
 import useResponsiveScreen from '../utils/responsiveUtils';
 import { Member, MemberApi } from '../client/gui';
 import { parseLocalDate } from '../utils/timeUtils';
+import { LoadingIndicator } from '../components/LoadingIndicator';
 
 i18n.addResources('en', 'passanger/profile', {
     "title.short": "Profile",
@@ -345,6 +346,7 @@ const Profile = () => {
   }, [ setAppHeaderTitle ]);
   
   return (
+  <>
     <MainLayout>
       <Heading>{ t('avatar_title') }</Heading>
       <Collapsible open={ !avatarEditMode }>
@@ -617,7 +619,12 @@ const Profile = () => {
         </Anchor>
       </Content>
     </MainLayout>
-  );
+    {
+      sending
+          ? <LoadingIndicator />
+          : undefined
+    }
+  </>);
 };
 
 export default Profile;

@@ -350,6 +350,7 @@ const DayTable = memo<{
     car: PlannerCar,
     days: CalendarDay[],
     day: CalendarDay,
+    useSearch: boolean,
     selection: Selection,
     cancelSelection: (event: ReactMouseEvent) => void,
     acceptSelection: (event: ReactMouseEvent) => void,
@@ -357,7 +358,7 @@ const DayTable = memo<{
     mouseDownOnDrag: (event: ReactMouseEvent, top: boolean) => void,
     mouseDownOnHour: (event: ReactMouseEvent, car: PlannerCar, hour: CalendarHour) => void,
     mouseEnterHour: (event: ReactMouseEvent, car: PlannerCar, days: CalendarDay[], day: CalendarDay, hour: CalendarHour) => void }>(
-  ({ t, currentUser, drivers, car, days, day, selection, cancelSelection, acceptSelection, cancelReservation, mouseDownOnHour, mouseEnterHour, mouseDownOnDrag }) => {
+  ({ t, currentUser, drivers, car, days, day, useSearch, selection, cancelSelection, acceptSelection, cancelReservation, mouseDownOnHour, mouseEnterHour, mouseDownOnDrag }) => {
 
     const hours = day.hours[car.id];
 
@@ -406,7 +407,7 @@ const DayTable = memo<{
                 <Box
                     id={ `${day.startsAt.toISOString().substring(0,10)}_${car.id}_${hour.startsAt.getHours() + 1}` }
                     ref={ element => {
-                         if (element?.id === document.location.search.substring(1)) {
+                         if (useSearch && (element?.id === document.location.search.substring(1))) {
                            element.scrollIntoView({ behavior: 'smooth' });
                          }
                        } }
@@ -502,7 +503,7 @@ const DayTable = memo<{
         <Box
             id={ `${day.startsAt.toISOString().substring(0,10)}_${car.id}_0` }
             ref={ element => {
-                 if (element?.id === document.location.search.substring(1)) {
+                 if (useSearch && (element?.id === document.location.search.substring(1))) {
                    element.scrollIntoView({ behavior: 'smooth' });
                  }
                } }>
@@ -677,6 +678,7 @@ const Planner = () => {
     };
   
   const daySearchParam = document.location.search?.indexOf('_') || -1;
+  const [ useSearch, setUseSearch ] = useState(true);
   const [ startsAt, _setStartsAt ] = useState<Date>(
       daySearchParam > 0
           ? new Date(document.location.search.substring(1, daySearchParam))
@@ -695,6 +697,7 @@ const Planner = () => {
     } else {
       date = dateInput;
     }
+    setUseSearch(false);
     _setStartsAt(nextHours(date, date.getHours(), true));
     setDays(undefined);
     setRestrictions(undefined);
@@ -1088,6 +1091,7 @@ const Planner = () => {
                   days={ days }
                   day={ day }
                   car={ car }
+                  useSearch={ useSearch }
                   selection={ selection.current }
                   cancelSelection={ cancelSelection }
                   acceptSelection={ acceptSelection }
