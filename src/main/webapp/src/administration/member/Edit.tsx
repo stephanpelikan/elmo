@@ -436,16 +436,24 @@ const EditMember = () => {
               primary
               disabled={ loading }
               label={ t('save') } />
-          <Button
-              secondary
-              disabled={ loading }
-              label={ t('delete') }
-              onClick={ value => setConfirmDelete(true) } />
-          <Button
-              secondary
-              disabled={ loading }
-              label={ t(isInactive() ? 'enable' : 'disable') }
-              onClick={ saveMemberAndActivate } />
+          {
+            isNewMember
+                ? undefined
+                : <Button
+                      secondary
+                      disabled={ loading }
+                      label={ t('delete') }
+                      onClick={ value => setConfirmDelete(true) } />
+          }
+          {
+            isNewMember
+                ? undefined
+                : <Button
+                      secondary
+                      disabled={ loading }
+                      label={ t(isInactive() ? 'enable' : 'disable') }
+                      onClick={ saveMemberAndActivate } />
+          }
           <Button
               type="reset"
               disabled={ loading }

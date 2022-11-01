@@ -248,7 +248,20 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
         } catch (UnsupportedJwtException | MalformedJwtException | SignatureException e) {
 
             logger.warn("JWT-error", e);
-            response.sendError(HttpStatus.UNAUTHORIZED.value());
+
+            // delete access token
+            final var authCookie = new Cookie(COOKIE_AUTH, "");
+            authCookie.setHttpOnly(true);
+            authCookie.setPath("/");
+            authCookie.setMaxAge(0);
+            response.addCookie(authCookie);
+            final var isAuthCookie = new Cookie(COOKIE_HAS_TOKEN, "");
+            isAuthCookie.setHttpOnly(false);
+            isAuthCookie.setPath("/");
+            isAuthCookie.setMaxAge(0);
+            response.addCookie(isAuthCookie);
+
+            doFilterOrSendUnauthorizedIfProtected(request, response, filterChain);
 
         } finally {
 

@@ -679,7 +679,7 @@ const Planner = () => {
   const daySearchParam = document.location.search?.indexOf('_') || -1;
   const [ startsAt, _setStartsAt ] = useState<Date>(
       daySearchParam > 0
-          ? new Date(document.location.search.substring(0, daySearchParam))
+          ? new Date(document.location.search.substring(1, daySearchParam))
           : currentHour(false)
     );
   const setStartsAt = (dateInput: string|Date) => {
@@ -1220,29 +1220,10 @@ const Planner = () => {
             columns={ carColumns }
             step={ 2 }
             onMore={ loadMore }
-            placeholder= {
-                <Box
-                    direction="row"
-                    justify="center">
-                  <Box
-                      round='medium'
-                      background={ { color: 'rgba(0, 0, 0, 0.3)' } }>
-                    <Box
-                        background=""
-                        animation="rotateRight"
-                        pad='medium'>
-                      <Cycle
-                          style={ { marginTop: '3px' } }
-                          color="white"
-                          size="large" />
-                    </Box>
-                  </Box>
-                </Box>
-              }
             data={ days }
             replace={ true } />
         {
-          waitingForUpdate
+          waitingForUpdate || (days === undefined)
               ? <LoadingIndicator />
               : undefined
         }

@@ -17,7 +17,7 @@ i18n.addResources('en', 'passanger/profile', {
     "title.short": "Profile",
     "title.long": "User profile",
     "avatar_title": "Avatar:",
-    "avatar_upload_toobig": "The file is too big! Pleaes use a picture having a file size of less than 4MB.",
+    "avatar_upload_toobig": "The file is too big! Pleaes use a picture having a file size of less than 12MB.",
     "avatar_hint": "Click here...",
     "change": "Change",
     "save": "Save",
@@ -147,7 +147,7 @@ const Profile = () => {
   const [ violations, setViolations ] = useState({});
   
   const onBeforeAvatarLoad = (elem) => {
-    if(elem.target.files[0].size > 4 * 1024 * 1024){
+    if(elem.target.files[0].size > 12 * 1024 * 1024){
       elem.target.value = "";
       toast({
         namespace: 'passanger/profile',

@@ -20,9 +20,9 @@ const Dashboard = () => {
 
   return (
     <Box
+        direction="row-reverse"
         justify="center"
         pad="medium"
-        direction="row-reverse"
         wrap>
       <Overview />
       { /* <Box>
