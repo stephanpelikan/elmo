@@ -25,6 +25,7 @@ import io.jsonwebtoken.io.Encoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import org.camunda.bpm.engine.impl.util.StringUtil;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -81,6 +82,9 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
     private static final Authentication ANONYMOUS = new AnonymousAuthenticationToken(
             "anonymous", "anonymousUser", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
 
+    @Autowired
+    private Logger logger;
+    
     @Autowired
     private ElmoProperties properties;
 
@@ -243,8 +247,16 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
 
             SecurityContextHolder.getContext().setAuthentication(auth);
 
-            filterChain.doFilter(request, response);
-
+            try {
+                
+                filterChain.doFilter(request, response);
+                
+            } catch (Exception ie) {
+                
+                response.sendError(500);
+                
+            }
+            
         } catch (UnsupportedJwtException | MalformedJwtException | SignatureException e) {
 
             logger.warn("JWT-error", e);
