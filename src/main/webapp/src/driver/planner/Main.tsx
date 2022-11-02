@@ -15,7 +15,7 @@ import { BackgroundType, BorderType } from "grommet/utils";
 import { TFunction } from "i18next";
 import styled from "styled-components";
 import { normalizeColor,  } from "grommet/utils";
-import { Contract, Cycle, DocumentTime, FormCheckmark, FormClose, FormDown, FormUp, History } from "grommet-icons";
+import { Contract, DocumentTime, FormCheckmark, FormClose, FormDown, FormUp, History } from "grommet-icons";
 import { useAppContext } from "../../AppContext";
 import { useEventSource, useEventSourceListener } from "react-sse-hooks";
 import { CalendarHeader } from "../../components/CalendarHeader";
@@ -128,7 +128,6 @@ const DragBox = styled(Box)<{
 const StyledSelectionBox = styled(Box)<{
     selectionBorderRadius: CSSProperties,
     isFirstHourOfSelection: boolean,
-    numberOfHours: number,
     currentHour: number,
   }>`
     border-top-left-radius: ${props => props.selectionBorderRadius.borderTopLeftRadius};
@@ -143,12 +142,14 @@ const StyledSelectionBox = styled(Box)<{
     z-index: ${props => props.currentHour === 0 ? 2 : 1};
   `;
 
-const SelectionBox = ({ hour, selection, mouseDownOnDrag, cancelSelection, acceptSelection }: {
+const SelectionBox = ({ hour, selection, mouseDownOnDrag, cancelSelection, acceptSelection, touchMove, touchEnd }: {
     hour: CalendarHour,
     selection: Selection,
     cancelSelection: (event: ReactMouseEvent) => void,
     acceptSelection: (event: ReactMouseEvent) => void,
-    mouseDownOnDrag: (event: ReactMouseEvent, top: boolean) => void,
+    mouseDownOnDrag: (event: ReactMouseEvent | TouchEvent, top: boolean) => void,
+    touchMove: (event: TouchEvent) => void,
+    touchEnd: (event: TouchEvent) => void,
   }) => {
 
     const { state } = useAppContext();
@@ -182,7 +183,7 @@ const SelectionBox = ({ hour, selection, mouseDownOnDrag, cancelSelection, accep
       selectionBorderRadius.borderBottomLeftRadius = '7px';
       selectionBorderRadius.borderBottomRightRadius = '7px';
     }
-    const numberOfHours = hoursBetween(selection.endsAt, selection.startsAt);
+    const numberOfHours = hoursBetween(selection.startsAt, selection.endsAt);
     const currentHour = hoursBetween(hour.startsAt, selection.startsAt);
 
     return <StyledSelectionBox
@@ -193,7 +194,6 @@ const SelectionBox = ({ hour, selection, mouseDownOnDrag, cancelSelection, accep
                   opacity: "medium",
                 } }
               border={ selectionBorders }
-              numberOfHours={ numberOfHours }
               currentHour={ currentHour }
               direction="row"
               align="center"
@@ -234,7 +234,24 @@ const SelectionBox = ({ hour, selection, mouseDownOnDrag, cancelSelection, accep
                         </Box>
                       </Box>
                       <DragBox
+                          id="dragbox-top"
                           top
+                          ref={ element => {
+                              if (!element) return;
+                              element.addEventListener(
+                                  'touchstart',
+                                  event => mouseDownOnDrag(event, true),
+                                  { passive: false, capture: true });
+                              // https://stackoverflow.com/questions/56653453/why-touchmove-event-is-not-fired-after-dom-changes
+                              element.addEventListener(
+                                  'touchmove',
+                                  touchMove,
+                                  { passive: false, capture: true });
+                              element.addEventListener(
+                                  'touchend',
+                                  touchEnd,
+                                  { passive: false, capture: true });
+                            } }
                           onMouseDownCapture={ event => mouseDownOnDrag(event, true) }>
                         <FormUp color="white" />
                       </DragBox>
@@ -270,6 +287,23 @@ const SelectionBox = ({ hour, selection, mouseDownOnDrag, cancelSelection, accep
                         </Box>
                       </ButtonBox>
                       <DragBox
+                          id="dragbox-bottom"
+                          ref={ element => {
+                              if (!element) return;
+                              element.addEventListener(
+                                  'touchstart',
+                                  event => mouseDownOnDrag(event, false),
+                                  { passive: false, capture: true });
+                              // https://stackoverflow.com/questions/56653453/why-touchmove-event-is-not-fired-after-dom-changes
+                              element.addEventListener(
+                                  'touchmove',
+                                  touchMove,
+                                  { passive: false, capture: true });
+                              element.addEventListener(
+                                  'touchend',
+                                  touchEnd,
+                                  { passive: false, capture: true });
+                            } }
                           onMouseDownCapture={ event => mouseDownOnDrag(event, false) }>
                         <FormDown color="white" />
                       </DragBox>
@@ -355,10 +389,12 @@ const DayTable = memo<{
     cancelSelection: (event: ReactMouseEvent) => void,
     acceptSelection: (event: ReactMouseEvent) => void,
     cancelReservation: (event: ReactMouseEvent, carId: string, reservationId: string) => void,
-    mouseDownOnDrag: (event: ReactMouseEvent, top: boolean) => void,
+    mouseDownOnDrag: (event: ReactMouseEvent | TouchEvent, top: boolean) => void,
     mouseDownOnHour: (event: ReactMouseEvent, car: PlannerCar, hour: CalendarHour) => void,
-    mouseEnterHour: (event: ReactMouseEvent, car: PlannerCar, days: CalendarDay[], day: CalendarDay, hour: CalendarHour) => void }>(
-  ({ t, currentUser, drivers, car, days, day, useSearch, selection, cancelSelection, acceptSelection, cancelReservation, mouseDownOnHour, mouseEnterHour, mouseDownOnDrag }) => {
+    mouseEnterHour: (event: ReactMouseEvent | Event, car: PlannerCar, days: CalendarDay[], day: CalendarDay, hour: CalendarHour) => void,
+    touchMove: (event: TouchEvent) => void,
+    touchEnd: (event: TouchEvent) => void }>(
+  ({ t, currentUser, drivers, car, days, day, useSearch, selection, cancelSelection, acceptSelection, cancelReservation, mouseDownOnHour, mouseEnterHour, mouseDownOnDrag, touchMove, touchEnd }) => {
 
     const hours = day.hours[car.id];
 
@@ -406,18 +442,33 @@ const DayTable = memo<{
             return (
                 <Box
                     id={ `${day.startsAt.toISOString().substring(0,10)}_${car.id}_${hour.startsAt.getHours() + 1}` }
-                    ref={ element => {
-                         if (useSearch && (element?.id === document.location.search.substring(1))) {
-                           element.scrollIntoView({ behavior: 'smooth' });
-                         }
-                       } }
                     direction="row"
+                    fill
                     background={
                         hour.startsAt.getHours() % 2 === 0
                             ? (hour.endsAt.getTime() < now.getTime() ? 'light-4' : 'white' )
                             : (hour.endsAt.getTime() < now.getTime() ? 'light-6' : 'light-2' )
                       }
-                    fill>
+                    ref={ element => {
+                        if (useSearch && (element?.id === document.location.search.substring(1))) {
+                          element.scrollIntoView({ behavior: 'smooth' });
+                        }
+                        const handler = (event: Event) => {
+                            if (hour.reservation) {
+                              return;
+                            }
+                            mouseEnterHour(event, car, days, day, hour);
+                          };
+                        element?.addEventListener('custommouseover', handler);
+                      } }
+                    onMouseOver={ event => {
+                        if (hour.reservation) {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          return;
+                        }
+                        mouseEnterHour(event, car, days, day, hour);
+                      } }>
                   <Box
                       align="end"
                       pad='4px'
@@ -432,14 +483,6 @@ const DayTable = memo<{
                             return;
                           }
                           mouseDownOnHour(event, car, hour);
-                        } }
-                      onMouseOver={ event => {
-                          if (hour.reservation) {
-                            event.preventDefault();
-                            event.stopPropagation();
-                            return;
-                          }
-                          mouseEnterHour(event, car, days, day, hour);
                         } }
                       pad={ {
                           horizontal: 'xsmall',
@@ -460,7 +503,9 @@ const DayTable = memo<{
                                 selection={ selection }
                                 acceptSelection={ acceptSelection }
                                 cancelSelection={ cancelSelection }
-                                mouseDownOnDrag={ mouseDownOnDrag } />
+                                mouseDownOnDrag={ mouseDownOnDrag }
+                                touchMove={ touchMove }
+                                touchEnd={ touchEnd } />
                         : isFirstHourOfReservation
                         ? isPlannerReservation
                           ? <PlannerReservationBox
@@ -759,11 +804,10 @@ const Planner = () => {
       _setWaitingForUpdate(w);
     }
   
-  const mouseDownOnDrag = useCallback((event: ReactMouseEvent, top: boolean) => {
+  const mouseDownOnDrag = useCallback((event: ReactMouseEvent | TouchEvent, top: boolean) => {
       if (isMouseDown.current) return;
       event.preventDefault();
       event.stopPropagation();
-
       const s = {
           startedAtStarts: top ? selection.current.endsAt : selection.current.startsAt,
           startedAtEnds: top ? selection.current.endsAt : selection.current.startsAt,
@@ -774,7 +818,6 @@ const Planner = () => {
       setSelection(s);
       isMouseDown.current = true;
       setMouseIsDown(true);
-
     }, [ setMouseIsDown, setSelection ]);
   const mouseDownOnHour = useCallback((event: ReactMouseEvent, car: PlannerCar, hour: CalendarHour) => {
       if (isMouseDown.current) return;
@@ -906,11 +949,9 @@ const Planner = () => {
         increaseDayVersion(dayVersionsRef, new Date(selection.current.endsAt.getTime() - 3600000), car.id);
         increaseDayVersion(dayVersionsRef, endsAt, car.id);
       }
-      // minimize selection to start-hour
-      if (!wasUpperBoundaryChanged && !wasLowerBoundaryChanged) {
-        increaseDayVersion(dayVersionsRef, selection.current.startsAt, car.id);
-        increaseDayVersion(dayVersionsRef, new Date(selection.current.endsAt.getTime() - 3600000), car.id);
-      }
+      // minimize selection to start-hour or selection accross different days
+      increaseDayVersion(dayVersionsRef, selection.current.startsAt, car.id);
+      increaseDayVersion(dayVersionsRef, new Date(selection.current.endsAt.getTime() - 3600000), car.id);
 
       updateDayVersions(dayVersionsRef.current);
       const s = {
@@ -923,16 +964,43 @@ const Planner = () => {
       setSelection(s);
       
     }, [ isMouseDown, setSelection, selection ]);
+  const lastMoveElement = useRef<Element>(undefined);
   const mouseMove = useCallback((event: MouseEvent) => {
       if (!isMouseDown.current) return;
       event.preventDefault();
       event.stopPropagation();
     }, [ isMouseDown ]);
+  const touchMove = useCallback((event: TouchEvent) => {
+      if (!isMouseDown.current) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const moveEvent = event as TouchEvent;
+      const touch = moveEvent.touches[0];
+      if (lastMoveElement.current !== undefined) {
+        const elements = document
+            .elementsFromPoint(touch.pageX, touch.pageY)
+            .filter(e => Boolean(e.id));
+        const element = elements.length > 0 ? elements[0] : undefined;
+        if ((element !== undefined) && (lastMoveElement.current !== element)) {
+          lastMoveElement.current = element;
+          const mouseOverEvent = new CustomEvent('custommouseover', {
+                bubbles: true,
+                cancelable: false,
+                detail: moveEvent,
+              });
+          element.dispatchEvent(mouseOverEvent);
+        }
+      } else {
+        lastMoveElement.current = document.elementFromPoint(touch.pageX, touch.pageY);
+      }
+    }, [ isMouseDown ]);
   const mouseUp = useCallback(() => {
       isMouseDown.current = false;
       setMouseIsDown(false);
     }, [ setMouseIsDown ]);
-  
+  const touchEnd = useCallback(() => {
+      mouseUp();
+    }, [ mouseUp ]);
   const cancelSelection = useCallback((event: ReactMouseEvent) => {
       event.preventDefault();
       event.stopPropagation();
@@ -1084,6 +1152,7 @@ const Planner = () => {
           render: (day: CalendarDay) => {
               const dayVersion = getDayVersion(dayVersions, day.startsAt, car.id);
               return <DayTable
+                  key={ day.startsAt.toISOString() }
                   t={ t }
                   currentUser={ state.currentUser }
                   dayVersion={ dayVersion }
@@ -1098,7 +1167,9 @@ const Planner = () => {
                   cancelReservation={ cancelReservation }
                   mouseDownOnDrag={ mouseDownOnDrag }
                   mouseDownOnHour={ mouseDownOnHour }
-                  mouseEnterHour={ mouseEnterHour } />;
+                  mouseEnterHour={ mouseEnterHour }
+                  touchMove={ touchMove }
+                  touchEnd={ touchEnd } />;
             },
           header: car.name,
         }));
