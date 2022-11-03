@@ -7,26 +7,27 @@ import { Anchor, Avatar, Box, Button, CheckBox, Collapsible, Paragraph, Stack, T
 import { useEffect, useLayoutEffect, useState } from 'react';
 import { useAppContext, useMemberGuiApi } from '../AppContext';
 import { ViolationsAwareFormField } from "../components/ViolationsAwareFormField";
-import styled from 'styled-components';
-import { FormEdit } from 'grommet-icons';
+import { CoatCheck, Contact, FormEdit, Home, User } from 'grommet-icons';
 import useResponsiveScreen from '../utils/responsiveUtils';
 import { Member, MemberApi } from '../client/gui';
 import { parseLocalDate } from '../utils/timeUtils';
 import { LoadingIndicator } from '../components/LoadingIndicator';
+import { CodeButton } from "../components/CodeButton";
 
 i18n.addResources('en', 'passanger/profile', {
     "title.short": "Profile",
     "title.long": "User profile",
-    "avatar_title": "Avatar:",
+    "avatar_title": "Avatar",
     "avatar_upload_toobig": "The file is too big! Pleaes use a picture having a file size of less than 12MB.",
     "avatar_hint": "Click here...",
+    "avatar-preview": "Preview:",
     "change": "Change",
     "save": "Save",
     "abort": "Abort",
     "ask_management_board": "To change this data, please send an email to",
-    "contact_data": "Contact information:",
-    "personal_data": "Personal data:",
-    "address_data": "Address data:",
+    "contact_data": "Contact information",
+    "personal_data": "Personal data",
+    "address_data": "Address data",
     "email": "Email-address:",
     "email_none": "None stored",
     "email_missing": "Please enter the email address!",
@@ -63,15 +64,16 @@ i18n.addResources('en', 'passanger/profile', {
 i18n.addResources('de', 'passanger/profile', {
     "title.short": "Profil",
     "title.long": "Benutzerprofil",
-    "avatar_title": "Avatar:",
+    "avatar_title": "Avatar",
     "avatar_upload_toobig": "Das Bild ist zu groß! Bitte verwende ein Bild mit einer maximalen Dateigröße von 4MB.",
     "avatar_hint": "Klicke hier...",
+    "avatar-preview": "Vorschau:",
     "change": "Ändern",
     "save": "Speichern",
     "abort": "Verwerfen",
-    "contact_data": "Kontaktdaten:",
-    "personal_data": "Persönliche Daten:",
-    "address_data": "Adressdaten:",
+    "contact_data": "Kontaktdaten",
+    "personal_data": "Persönliche Daten",
+    "address_data": "Adressdaten",
     "ask_management_board": "Um diese Daten zu ändern, sende bitte eine Email an",
     "email": "Email-Adresse:",
     "email_none": "Keine gespeichert",
@@ -106,19 +108,6 @@ i18n.addResources('de', 'passanger/profile', {
     "birthday": "Geboren:",
     "birthdate_format": "d.m.yyyy",
   });
-
-const CodeButton = styled(Button)`
-  position: relative;
-  &:after {
-    content: '';
-    width: 110%;
-    height: 1px;
-    background: white;
-    position: absolute;
-    bottom: calc(${(props) => props.theme.button.secondary.border.width} * -1 - 1px);
-    left: -5%;
-  }
-`;
 
 const loadMember = async (memberApi: MemberApi, memberId: number, setMember: (member: Member) => void) => {
   const details = await memberApi.getMemberDetails({ memberId });
@@ -348,8 +337,9 @@ const Profile = () => {
   return (
   <>
     <MainLayout>
-      <Heading>{ t('avatar_title') }</Heading>
-      <Collapsible open={ !avatarEditMode }>
+      <Heading icon={ <User /> }>{ t('avatar_title') }</Heading>
+      <Collapsible
+          open={ !avatarEditMode }>
         <Content
             gap='medium'
             direction='row'>
@@ -395,7 +385,7 @@ const Profile = () => {
           <Box
               justify='center'
               gap='small'>
-            Vorschau:
+            { t('avatar-preview') }
             <Avatar
                 size='large'
                 border={ uploadedAvatar == null }
@@ -412,7 +402,7 @@ const Profile = () => {
           </Box>
         </Content>
       </Collapsible>
-      <Heading>{ t('contact_data') }</Heading>
+      <Heading icon={ <Contact /> }>{ t('contact_data') }</Heading>
       <SubHeading>{ t('email') }</SubHeading>
       <Collapsible open={ !emailEditMode }>
         <Content
@@ -463,7 +453,6 @@ const Profile = () => {
                   plain />
               <CodeButton
                   secondary
-                  fill={false}
                   disabled={ sending }
                   onClick={ value => { requestEmailCode(); value.target.blur(); } }
                   label={ t('request-email-confirmation-code') } />
@@ -529,7 +518,6 @@ const Profile = () => {
                   plain />
               <CodeButton
                   secondary
-                  fill={false}
                   disabled={ sending }
                   onClick={ value => { requestPhoneCode(); value.target.blur(); } }
                   label={ t('request-phone-confirmation-code') } />
@@ -584,7 +572,7 @@ const Profile = () => {
                 label={ t('abort') } />
           </Box>
       </Collapsible>
-      <Heading>{ t('personal_data') }</Heading>
+      <Heading icon={ <CoatCheck /> }>{ t('personal_data') }</Heading>
       <Content>
         <Paragraph>
           { t(`salutation_${member?.sex}`) }
@@ -602,7 +590,7 @@ const Profile = () => {
           { state.appInformation.contactEmailAddress }
         </Anchor>
       </Content>
-      <Heading>{ t('address_data') }</Heading>
+      <Heading icon={ <Home /> }>{ t('address_data') }</Heading>
       <Content>
         <Paragraph>
           { member?.street }&nbsp;

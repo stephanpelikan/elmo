@@ -1,13 +1,13 @@
-import { Anchor, Box, Button, Collapsible, Grid, Heading, Paragraph, Text } from "grommet";
-import { Google, Amazon, CaretDown, CaretUp, Compliance } from "grommet-icons";
+import { Anchor, Box, Button, Collapsible, Paragraph, Text } from "grommet";
+import { Google, Amazon, CaretDown, CaretUp, Compliance, Group, Like } from "grommet-icons";
 import React, { useEffect, useState } from "react";
 import { useAppContext } from '../AppContext';
-import TextHeading from '../components/TextHeading';
 import { LinkedBox } from './LinkedBox';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import { useCookies } from "react-cookie";
 import { Oauth2Client } from "../client/gui";
+import { MainLayout, Heading, Content, TextHeading } from '../components/MainLayout';
 
 i18n.addResources('en', 'login', {
       "climate-friendly": "The climate-friendly transport service",
@@ -116,69 +116,74 @@ const Login = () => {
   }, [ fetchOauth2Clients, setOauth2Clients ]);
   
   return (
-    <Grid>
-    <Box
-        direction='column'
-        fill='horizontal'
-        flex='shrink'
-        align='center'
-        gap='medium'
-        pad='medium'
-        width='medium'>
-      <Box>
-        <Heading size='small' level='2'>{t('climate-friendly')}</Heading>
-        <TextHeading>{t('already a part of?')}</TextHeading>
-        <Paragraph>{t('login to book a ride')}</Paragraph>
+    <MainLayout>
+      <Heading
+          fill
+          textAlign="center">{ t('climate-friendly') }</Heading>
+      <Box
+          gap="large"
+          justify="around"
+          direction="row-responsive">
+        <Content>
+          <TextHeading icon={ <Group /> }>{t('wanna be a part of?')}</TextHeading>
+          <Paragraph>{t('login to become a member')}</Paragraph>
+          <Paragraph>{t('visit the homepage')}</Paragraph>
+          <Anchor target='_blank' href={ state.appInformation?.homepageUrl }>{ state.appInformation?.homepageUrl }</Anchor>
+        </Content>
+        <Content>
+          <TextHeading icon={ <Like /> }>{t('already a part of?')}</TextHeading>
+          <Paragraph>{t('login to book a ride')}</Paragraph>
+          <Box width={{ max: 'medium' }}>
+            <Text size='small' textAlign="center">
+              <i>{ t('security hints') }</i> {
+                  showHint
+                      ? <CaretUp size="small" onClick={ () => setShowHint(false) } cursor='pointer' />
+                      : <CaretDown size="small" onClick={ () => setShowHint(true) } cursor='pointer' />
+              }
+            </Text>
+            <Collapsible open={ showHint }>
+              <Text size='small'>{ t('security hints details', { name: state.appInformation?.titleLong }) }</Text>
+              <Button secondary label='Verstanden' icon={<Compliance />} onClick={ () => confirmCookies() } />
+            </Collapsible>
+          </Box>
+          <Box
+              margin={ { vertical: 'medium' } }
+              gap='medium'
+              fill='horizontal'>
+            {
+              oauth2Clients === undefined ? '' : Object.keys(icons).map(clientId => {
+                const oauth2Client = oauth2Clients.find(client => client.id === clientId);
+                if (oauth2Client === undefined) return '';
+                const Icon = icons[clientId];
+                return (
+                  <LinkedBox
+                      href={ oauth2Client.url === 'native' ? undefined : oauth2Client.url }
+                      onClick={ oauth2Client.url === 'native' ? () => doNativeLogin(oauth2Client.id) : undefined }
+                      key={ oauth2Client.id }
+                      height={ { max: 'xsmall' } }
+                      width={ { max: 'medium' } }
+                      fill='horizontal'
+                      direction='row'
+                      gap='medium'
+                      align="center"
+                      flex='grow'
+                      background='light-1'
+                      pad='small'
+                      border='all'>
+                    <Icon
+                      color='plain'
+                      size='large' />
+                    <Heading
+                        margin="none"
+                        level='3'>{t('login with')} { oauth2Client.name }</Heading>
+                  </LinkedBox>);
+              })
+            }
+          </Box>
+        </Content>
       </Box>
-      <Box width={{ max: 'medium' }}>
-        <Text size='small' textAlign="center">
-          <i>{ t('security hints') }</i> {
-              showHint
-                  ? <CaretUp size="small" onClick={ () => setShowHint(false) } cursor='pointer' />
-                  : <CaretDown size="small" onClick={ () => setShowHint(true) } cursor='pointer' />
-          }
-        </Text>
-        <Collapsible open={ showHint }>
-          <Text size='small'>{ t('security hints details', { name: state.appInformation?.titleLong }) }</Text>
-          <Button secondary label='Verstanden' icon={<Compliance />} onClick={ () => confirmCookies() } />
-        </Collapsible>
-      </Box>
-      {
-        oauth2Clients === undefined ? '' : Object.keys(icons).map(clientId => {
-          const oauth2Client = oauth2Clients.find(client => client.id === clientId);
-          if (oauth2Client === undefined) return '';
-          const Icon = icons[clientId];
-          return (
-            <LinkedBox
-                href={ oauth2Client.url === 'native' ? undefined : oauth2Client.url }
-                onClick={ oauth2Client.url === 'native' ? () => doNativeLogin(oauth2Client.id) : undefined }
-                key={ oauth2Client.id }
-                height={{ max: 'xsmall' }}
-                width={{ max: 'medium' }}
-                fill='horizontal'
-                direction='row'
-                align='center'
-                flex='grow'
-                gap='small'
-                background='light-1'
-                pad='small'
-                border='all'>
-                <Icon
-                  color='plain'
-                  size='large' />
-              <Heading
-                  level='3'>{t('login with')} { oauth2Client.name }</Heading>
-            </LinkedBox>);
-        })
-      }
-      <Box>
-        <TextHeading>{t('wanna be a part of?')}</TextHeading>
-        <Paragraph>{t('login to become a member')}</Paragraph>
-        <Paragraph>{t('visit the homepage')}</Paragraph>
-        <Anchor target='_blank' href={ state.appInformation?.homepageUrl }>{ state.appInformation?.homepageUrl }</Anchor>
-      </Box>
-    </Box>
-    </Grid>);
+    </MainLayout>);
+    
 }
 
 export { Login };

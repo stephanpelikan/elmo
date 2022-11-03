@@ -3,7 +3,7 @@ import { useMemberApi } from '../AdminAppContext';
 import i18n from '../../i18n';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Box, Button, CheckBox, DateInput, Form, FormField, Heading, Paragraph, Select, Table, TableBody, TableCell, TableRow, Text, TextArea } from 'grommet';
+import { Box, Button, CheckBox, DateInput, Form, FormField, Paragraph, Select, Table, TableBody, TableCell, TableRow, TextArea } from 'grommet';
 import { useTranslation } from 'react-i18next';
 import { ViolationsAwareFormField } from "../../components/ViolationsAwareFormField";
 import { parseLocalDateToIsoString, toLocalDateString } from '../../utils/timeUtils';
@@ -12,6 +12,7 @@ import { CalendarHeader } from '../../components/CalendarHeader';
 import { Modal } from '../../components/Modal';
 import { useAppContext } from '../../AppContext';
 import { LoadingIndicator } from '../../components/LoadingIndicator';
+import { MainLayout, Heading, Content, SubHeading } from '../../components/MainLayout';
 
 i18n.addResources('en', 'administration/member-details', {
     "new": "new",
@@ -247,8 +248,7 @@ const EditMember = () => {
   };
   
   return (
-    <Box
-        pad='small'>
+    <MainLayout>
       <Heading
           size='small'
           level='2'>
@@ -269,6 +269,7 @@ const EditMember = () => {
               : <></>
         }
       </Heading>
+      <Content>
       {
           formValue?.roles?.includes(Role.Driver)
               ? <Table style={ { maxWidth: '23rem' } }>
@@ -460,6 +461,7 @@ const EditMember = () => {
               label={ t('reset') } />
         </Box>
       </Form>
+      </Content>
       <Modal
           show={ confirmDelete }
           action={ deleteMember }
@@ -467,16 +469,13 @@ const EditMember = () => {
           abort={ () => setConfirmDelete(false) }
           header='delete_header'
           t={ t }>
-        <Paragraph>
-          <Text>{ t('delete_question') }</Text>
-          <br />
-          <Text><i>{ t('delete_hint_header') }</i> { t('delete_hint') }</Text>
-        </Paragraph>
+        <SubHeading>{ t('delete_question') }</SubHeading>
+        <Paragraph><i>{ t('delete_hint_header') }</i> { t('delete_hint') }</Paragraph>
       </Modal>
       {
         loading ? <LoadingIndicator /> : undefined
       }
-    </Box>);
+    </MainLayout>);
     
 }
 

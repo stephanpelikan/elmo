@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useAppContext } from '../../AppContext';
 import useResponsiveScreen from '../../utils/responsiveUtils';
+import { ResponsiveMenu } from "./ResponsiveMenu";
 
 const AppHeader = () => {
   
@@ -45,11 +46,11 @@ const AppHeader = () => {
         {
           isPhone ? (
               <Heading
-                  margin='small'
+                  margin={ { horizontal: 'small', vertical: 'none' } }
                   level='2'>{t('title.short')}</Heading>
             ) : (
               <Heading
-                  margin='small'
+                  margin={ { horizontal: 'small', vertical: 'none' } }
                   level='3'>{t('title.long')}</Heading>
             )
         }
@@ -62,7 +63,9 @@ const AppHeader = () => {
                     focusIndicator={false}
                     margin='small'
                     icon={<MenuIcon />}
-                    onMouseDown={toggleMenu} />
+                    onMouseDown={toggleMenu}
+                    style={ { position: 'relative' } } />
+                <ResponsiveMenu />
               </Box>
             : <></>
       }

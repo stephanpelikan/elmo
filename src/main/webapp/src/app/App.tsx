@@ -3,7 +3,6 @@ import { Box, Grommet, Heading, Text, ThemeType } from 'grommet';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { useAppContext } from '../AppContext';
 import { AppHeader } from './menu/AppHeader';
-import { ResponsiveMenu } from './menu/ResponsiveMenu';
 import { Main } from './Main';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
@@ -54,7 +53,10 @@ export const theme: ThemeType = {
     },
   },
   heading: {
-    color: '#444444'
+    color: '#444444',
+    extend: css`
+      margin-top: 0;
+    `
   },
   formField: {
     label: {
@@ -143,7 +145,12 @@ export const theme: ThemeType = {
         max: 'xlarge'
       }
     }
-  }
+  },
+  paragraph: {
+    extend: css`
+      margin-top: 0;
+    `
+  },
 };
 
 const appNs = 'app';
@@ -208,47 +215,45 @@ const App: React.FC<AppProps> = (props: AppProps): JSX.Element => {
           <MessageToast dispatch={dispatch} msg={state.toast} />
         )}
         <Router>
-          <Box fill>
+          <Box
+              fill>
             <AppHeader />
             <Box
                 direction='row'
-                flex
-                overflow={{ horizontal: 'hidden' }}>
-              <Box flex>
-                <Suspense fallback={<LoadingIndicator />}>
-                  <CurrentUser>
-                    <Routes>
-                      <Route element={<ProtectedRoute roles={[ Role.Admin ]} />}>
-                        <Route path={t('url-administration') + '/*'} element={<Administration />} />
-                      </Route>
-                      <Route element={<ProtectedRoute roles={[ Role.Driver ]} />}>
-                        <Route path={t('url-driver') + '/*'} element={<Driver />} />
-                      </Route>
-                      <Route element={<ProtectedRoute />}>
-                        <Route path={t('url-user-profile') + '/*'} element={<UserProfile />} />
-                      </Route>
-                      <Route path='/login' element={<Login />} />
-                      <Route element={<ProtectedRoute />}>
-                        <Route path='/' element={<Main />} />
-                      </Route>
-                      <Route path='*' element={
-                        <Box
-                            direction='column'
-                            fill='horizontal'
-                            flex='shrink'
-                            align='center'
-                            gap='medium'
-                            pad='medium'
-                            width='medium'>
-                          <Heading level='3'>{t('not-found')}</Heading>
-                          <Text>{t('not-found hint')}</Text>
-                        </Box>
-                      } />
-                    </Routes>
-                  </CurrentUser>
-                </Suspense>
-              </Box>
-              <ResponsiveMenu />
+                style={ { display: 'unset' } } /* to avoid removing bottom margin of inner boxes */
+                overflow={ { horizontal: 'hidden' } }>
+              <Suspense fallback={<LoadingIndicator />}>
+                <CurrentUser>
+                  <Routes>
+                    <Route element={<ProtectedRoute roles={[ Role.Admin ]} />}>
+                      <Route path={t('url-administration') + '/*'} element={<Administration />} />
+                    </Route>
+                    <Route element={<ProtectedRoute roles={[ Role.Driver ]} />}>
+                      <Route path={t('url-driver') + '/*'} element={<Driver />} />
+                    </Route>
+                    <Route element={<ProtectedRoute />}>
+                      <Route path={t('url-user-profile') + '/*'} element={<UserProfile />} />
+                    </Route>
+                    <Route path='/login' element={<Login />} />
+                    <Route element={<ProtectedRoute />}>
+                      <Route path='/' element={<Main />} />
+                    </Route>
+                    <Route path='*' element={
+                      <Box
+                          direction='column'
+                          fill='horizontal'
+                          flex='shrink'
+                          align='center'
+                          gap='medium'
+                          pad='medium'
+                          width='medium'>
+                        <Heading level='3'>{t('not-found')}</Heading>
+                        <Text>{t('not-found hint')}</Text>
+                      </Box>
+                    } />
+                  </Routes>
+                </CurrentUser>
+              </Suspense>
             </Box>
           </Box>
         </Router>

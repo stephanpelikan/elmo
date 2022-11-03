@@ -1191,7 +1191,8 @@ const Planner = () => {
       : (restrictions.remainingHours - (selection.current !== undefined ? hoursBetween(selection.current.endsAt, selection.current.startsAt) : 0));
   
   return (
-      <>
+      <Box
+          fill>
         <Box
             direction="row"
             align="center"
@@ -1288,7 +1289,6 @@ const Planner = () => {
           </Box>
         </Box>
         <SnapScrollingDataTable
-            fill
             headerHeight={ headerHeight }
             phoneMargin={ phoneMargin }
             primaryKey={ false }
@@ -1302,7 +1302,7 @@ const Planner = () => {
               ? <LoadingIndicator />
               : undefined
         }
-      </>);
+      </Box>);
       
 };
 

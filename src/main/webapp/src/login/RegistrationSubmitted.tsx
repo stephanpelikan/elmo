@@ -1,4 +1,4 @@
-import { Box, Button, Grid, Heading, Markdown, Paragraph } from 'grommet';
+import { Box, Button, Markdown, Paragraph } from 'grommet';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import { useAppContext, useOnboardingGuiApi } from "../AppContext";
@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { parseLocalDate } from '../utils/timeUtils';
 import { Emoji } from 'grommet-icons';
 import { LoadingIndicator } from '../components/LoadingIndicator';
+import { MainLayout, Heading, Content } from '../components/MainLayout';
 
 i18n.addResources('en', 'login/registration/submitted', {
       "title_REJECTED": "Sorry...",
@@ -108,46 +109,54 @@ const RegistrationSubmitted = () => {
     return <LoadingIndicator />
   }
   
-  switch (state.currentUser.status) {
-    case UserStatus.Rejected:
-      return (
-        <Box
-            pad='medium'>
-          <Heading
-              size='small'
-              level='2'>{ t(`title_${state.currentUser.status}`) }</Heading>
-          <Paragraph>{ t(`text_${state.currentUser.status}`) }</Paragraph>
-          <Markdown>{ memberApplicationForm?.comment }</Markdown>
-        </Box>);
-    default:
-      return (
-        <Grid
-            pad={ { horizontal: 'medium' } }>
-          <Heading
-              size='small'
-              level='2'>
-            <Box
-                direction='row'>
-              <Emoji
-                  color='brand'
-                  size='large'
-                  style={ { marginRight: '0.5rem' } } />
-              <Box justify='center'>{ t(`title_${state.currentUser.status}`) }</Box>
-            </Box>
-          </Heading>
-          <Markdown options={ { forceBlock: true } }>{ t(`text_${state.currentUser.status}`, {
+  if (state.currentUser.status ===  UserStatus.Rejected) {
+    return (
+      <Box
+          pad='medium'>
+        <Heading
+            size='small'
+            level='2'>{ t(`title_${state.currentUser.status}`) }</Heading>
+        <Paragraph>{ t(`text_${state.currentUser.status}`) }</Paragraph>
+        <Markdown>{ memberApplicationForm?.comment }</Markdown>
+      </Box>);
+  }
+  
+  return (
+    <MainLayout>
+      <Heading icon={
+            <Emoji
+                color='brand'
+                size='large'
+                style={ { marginRight: '0.5rem' } } />
+          }>
+        { t(`title_${state.currentUser.status}`) }
+      </Heading>
+      <Content>
+        <Markdown
+            options={ {
+                forceBlock: true,
+              } }>
+          { t(`text_${state.currentUser.status}`, {
               memberApplicationForm,
               title: memberApplicationForm?.title ? memberApplicationForm.title : '',
               salutation: t(`salutation_${memberApplicationForm.sex}`),
               birthdate: parseLocalDate(memberApplicationForm.birthdate)?.toLocaleDateString(),
               applicationComment: Boolean(memberApplicationForm.applicationComment) ? memberApplicationForm.applicationComment : t('no_comments'),
-              notificationChannel: memberApplicationForm.preferNotificationsPerSms ? t('label_notification_sms') : t('label_notification_email') }
-          )}</Markdown>
-          <Box align='center' pad={{ bottom: 'medium' }}>
-            <Button secondary onClick={takeOver} label={ t('button_changedata') } />
-          </Box>
-        </Grid>);
-  }
+              notificationChannel: memberApplicationForm.preferNotificationsPerSms ? t('label_notification_sms') : t('label_notification_email')
+            } )
+          }
+        </Markdown>
+        <Box
+            align='center'
+            pad={{ bottom: 'medium' }}>
+          <Button
+              secondary
+              onClick={takeOver}
+              label={ t('button_changedata') } />
+        </Box>
+      </Content>
+    </MainLayout>);
+  
 }
 
 export { RegistrationSubmitted };

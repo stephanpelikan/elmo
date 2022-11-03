@@ -1,56 +1,135 @@
-import { Box, BoxExtendedProps, BoxTypes, Grid, Heading as GrommetHeading, Page, PageContent } from "grommet";
+import { Box, BoxExtendedProps, BoxTypes, Heading as GrommetHeading, HeadingProps, Page, PageContent, Paragraph } from "grommet";
 import { PropsWithChildren } from "react";
 import useResponsiveScreen from '../utils/responsiveUtils';
 
 const MainLayout = ({ children, ...props }: PropsWithChildren<BoxExtendedProps>) => {
 
-  const { isPhone } = useResponsiveScreen();
-  
   return (
       <Page
           kind='wide'>
         <PageContent
-            pad={ isPhone ? 'small' : 'medium' }
+            responsive
+            margin={ {
+                horizontal: 'large',
+                vertical: 'medium'
+              } }
             { ...props }>
-            <Grid>{
-              children
-            }</Grid></PageContent>
+          {
+            children
+          }
+        </PageContent>
       </Page>);
       
 }
+
+const SubHeading = ({ icon, children, ...props }: PropsWithChildren<IconHeadingProps>) => {
   
-const SubHeading = ({ children }: PropsWithChildren<{}>) => {
-  
-  const { isPhone } = useResponsiveScreen();
-  
-  return (
-    <GrommetHeading
-        level='4'
-        color='accent-3'
-        margin={ {
-            top: isPhone ? 'medium' : 'small',
-            bottom: 'small',
-          } }>{
+  return icon === undefined
+      ? <GrommetHeading
+            level='4'
+            color='accent-3'
+            margin={ {
+                top: 'xsmall',
+                bottom: 'small',
+              } }
+            {...props}>
+          {
             children
-          }</GrommetHeading>
-  );
-   
+          }
+        </GrommetHeading>
+      : <Box
+            margin={ {
+                top: 'xsmall',
+                bottom: 'small',
+              } }
+            direction="row"
+            align="center"
+            gap="small">
+          { icon }
+          <GrommetHeading
+              level='4'
+              color='accent-3'
+              margin="0"
+              {...props}>
+            {
+              children
+            }
+          </GrommetHeading>
+        </Box>;
+
 }
 
-const Heading = ({ children }: PropsWithChildren<{}>) => {
+const TextHeading = ({ icon, children, ...props }: PropsWithChildren<IconHeadingProps>) => {
   
-  const { isPhone } = useResponsiveScreen();
-  
-  return (
-    <GrommetHeading
-        level='2'
-        margin={ {
-            top: isPhone ? 'medium' : 'small',
-            bottom: 'small',
-          } }>{
+  return icon === undefined
+      ? <Paragraph
+            style={ { fontStyle: 'italic' } }
+            margin={ {
+                top: 'xsmall',
+                bottom: 'small',
+              } }
+            {...props}>
+          {
             children
-          }</GrommetHeading>
-  );
+          }
+        </Paragraph>
+      : <Box
+            margin={ {
+                top: 'xsmall',
+                bottom: 'small',
+              } }
+            style={ { fontStyle: 'italic' } }
+            direction="row"
+            align="center"
+            gap="small">
+          { icon }
+          <Paragraph
+              margin="0"
+              {...props}>
+            {
+              children
+            }
+          </Paragraph>
+        </Box>;
+
+}
+
+interface IconHeadingProps extends HeadingProps {
+  icon?: JSX.Element;
+};
+
+const Heading = ({ icon, children, ...props }: PropsWithChildren<IconHeadingProps>) => {
+  
+  return icon === undefined
+      ? <GrommetHeading
+            level='2'
+            margin={ {
+                top: 'small',
+                bottom: 'medium',
+              } }
+            {...props}>
+          {
+            children
+          }
+        </GrommetHeading>
+      : <Box
+            margin={ {
+                top: 'small',
+                bottom: 'medium',
+              } }
+            direction="row"
+            align="center"
+            gap="small">
+          { icon }
+          <GrommetHeading
+              level="2"
+              margin="0"
+              {...props}>
+            {
+              children
+            }
+          </GrommetHeading>
+        </Box>;
    
 }
 
@@ -68,4 +147,4 @@ const Content = ({ children, ...props }: PropsWithChildren<BoxTypes>) => {
   
 }
 
-export { MainLayout, Heading, SubHeading, Content };
+export { MainLayout, Heading, SubHeading, Content, TextHeading };

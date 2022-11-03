@@ -30,23 +30,23 @@ const ResponsiveMenu = () => {
             responsive={ true }
             modal={ true }>
           <Box
-            background='light-2'
-            tag='header'
-            justify='end'
-            align='center'
-            direction='row'
-            pad='small'>
+              background='light-2'
+              tag='header'
+              justify='end'
+              align='center'
+              direction='row'
+              pad='small'>
             <Button
-              plain
-              focusIndicator={ false }
-              icon={ <FormClose /> }
-              onClick={ hideMenu }
+                plain
+                focusIndicator={ false }
+                icon={ <FormClose /> }
+                onClick={ hideMenu }
             />
           </Box>
           <Box
-            fill
-            pad="small"
-            background='light-2'>
+              fill
+              pad="small"
+              background='light-2'>
             <Menu />
           </Box>
         </Layer>
@@ -57,17 +57,19 @@ const ResponsiveMenu = () => {
                 } }
             target='document'>
           <Box
-              ref={ ref }
-              style={ { position: 'absolute', right: '0', zIndex: 20 } }
-              flex
-              basis='medium'
-              width='medium'
-              background='light-2'
-              elevation='small'>
+              style={ { position: 'absolute', top: 0, right: '0', zIndex: 20 } }>
+            <Box
+                height="xxsmall"></Box>
             <Collapsible
-              direction="vertical"
-              open={ state.showMenu }>
-              <Menu />
+                direction="vertical"
+                open={ state.showMenu }>
+              <Box
+                  ref={ ref }
+                  width='medium'
+                  background='light-2'
+                  elevation='small'>
+                <Menu />
+              </Box>
             </Collapsible>
           </Box>
         </Keyboard>;

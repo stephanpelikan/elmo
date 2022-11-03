@@ -22,7 +22,7 @@ const Dashboard = () => {
     <Box
         direction="row-reverse"
         justify="center"
-        pad="medium"
+        margin="medium"
         wrap>
       <Overview />
       { /* <Box>

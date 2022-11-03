@@ -1,16 +1,17 @@
-import { Box, Button, CheckBox, Grid, Heading, Layer, Paragraph, Text, TextInput } from "grommet";
+import { Box, Button, CheckBox, Layer, Paragraph, Text, TextInput } from "grommet";
 import { useEffect, useState } from "react";
 import { ViolationsAwareFormField } from "../../components/ViolationsAwareFormField";
 import { useTranslation } from "react-i18next";
 import QRCode from "react-qr-code";
 import { useNavigate, useParams } from "react-router-dom";
-import styled from "styled-components";
 import { useAppContext } from "../../AppContext";
 import { Car, CarApi } from "../../client/administration";
 import i18n from '../../i18n';
 import { useCarAdministrationApi } from "../AdminAppContext";
 import useResponsiveScreen from '../../utils/responsiveUtils';
 import { LoadingIndicator } from '../../components/LoadingIndicator';
+import { MainLayout, Heading } from "../../components/MainLayout";
+import { CodeButton } from "../../components/CodeButton";
 
 i18n.addResources('en', 'administration/car-details', {
       "shortcut": "Shortcut:",
@@ -89,21 +90,6 @@ i18n.addResources('de', 'administration/car-details', {
  Es kann jedoch für den Fahrtendienst und das Car-Sharing verboten werden.`,
       "new": "Neu",
   });
-
-const SmsTestButton = styled(Button)`
-  position: relative;
-  white-space: nowrap;
-  &:after {
-    content: '';
-    width: 110%;
-    height: 1px;
-    background: white;
-    position: absolute;
-    opacity: 1;
-    bottom: calc(${(props) => props.theme.button.secondary.border.width} * -1 - 1px);
-    left: -5%;
-  }
-`;
 
 const loadData = async (carApi: CarApi, carId: string, setCar: (car: Car) => void) => {
     const car = await carApi.getCar({ carId });
@@ -264,11 +250,8 @@ const Details = () => {
   }
   
   return (
-    <Grid
-        pad={ { horizontal: 'medium' } }>
-      <Heading
-          size='small'
-          level='2'>
+    <MainLayout>
+      <Heading>
         { Boolean(car.name) ? car.name : t('new') }
       </Heading>
       <CheckBox
@@ -321,9 +304,8 @@ const Details = () => {
               onChange={ event => setCarValue({ phoneNumber: event.target.value }) }
               focusIndicator={false}
               plain />
-          <SmsTestButton
+          <CodeButton
               secondary
-              fill={false}
               disabled={ !car.appActive }
               onClick={ value => testSms() }
               label={ t('test-sms') } />
@@ -409,7 +391,7 @@ const Details = () => {
               </Box>
             </Layer>)
           : '' }
-    </Grid>);
+    </MainLayout>);
   
 };
 

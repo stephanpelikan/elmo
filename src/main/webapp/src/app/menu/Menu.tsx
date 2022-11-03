@@ -59,70 +59,70 @@ const Menu = () => {
   };
   
   return (
-    <Grid
-        pad="small"
-        gap="small">
-      {
-        state.currentUser === null ? '' :
-        <>
-          <User
-              user={ state.currentUser } />
-          {
-            !isPassangerOnly && !isInRegistration
-                ? <Box
-                      align="center"
-                      gap='small'
-                      direction='row'>
-                    <Stakeholder />
-                    <Box>{
-                      state.currentUser.roles.map(role => t(role)).join(', ')
-                    }</Box>
-                  </Box>
-                : <></>
-          }
-          <MenuItem
-              roles={null}
-              onClick={ logout }>
-            <Logout />
-            <Text>{t('logout')}</Text>
-          </MenuItem>
-          <MenuItem
-              onClick={() => {
-                hideMenu();
-                navigate(tApp('url-user-profile'));
-              }}>
-            <UserSettings />
-            <Text>{t('user profile')}</Text>
-          </MenuItem>
-          <MenuItem
-              roles={[ Role.Driver ]}
-              onClick={() => {
-                hideMenu();
-                navigate(tApp('url-driver'));
-              }}>
+      <Grid
+          pad="small"
+          gap="small">
+        {
+          state.currentUser === null ? '' :
+          <>
+            <User
+                user={ state.currentUser } />
             {
-              state.currentUser.sex === Sex.Female
-                  ? <UserFemale />
-                  : <UserMale />
+              !isPassangerOnly && !isInRegistration
+                  ? <Box
+                        align="center"
+                        gap='small'
+                        direction='row'>
+                      <Stakeholder />
+                      <Box>{
+                        state.currentUser.roles.map(role => t(role)).join(', ')
+                      }</Box>
+                    </Box>
+                  : <></>
             }
-            <Text>{t('driver')}</Text>
-          </MenuItem>
-          <MenuItem
-              roles={[ Role.Admin ]}
-              background='accent-3'
-              onClick={() => {
-                hideMenu();
-                navigate(tApp('url-administration'));
-              }}>
-            <UserAdmin />
-            <Text>{t('administration')}</Text>
-          </MenuItem>
-        </>
-      }
-      <Text margin={ { top: 'medium' } }>{tApp('title.long')}</Text>
-      <Anchor target='_blank' href={ state.appInformation?.homepageUrl }>{ state.appInformation?.homepageUrl }</Anchor>
-      <Text margin={ { top: 'medium' } }>Version { state.appInformation.version }</Text>
-    </Grid>);
+            <MenuItem
+                roles={null}
+                onClick={ logout }>
+              <Logout />
+              <Text>{t('logout')}</Text>
+            </MenuItem>
+            <MenuItem
+                onClick={() => {
+                  hideMenu();
+                  navigate(tApp('url-user-profile'));
+                }}>
+              <UserSettings />
+              <Text>{t('user profile')}</Text>
+            </MenuItem>
+            <MenuItem
+                roles={[ Role.Driver ]}
+                onClick={() => {
+                  hideMenu();
+                  navigate(tApp('url-driver'));
+                }}>
+              {
+                state.currentUser.sex === Sex.Female
+                    ? <UserFemale />
+                    : <UserMale />
+              }
+              <Text>{t('driver')}</Text>
+            </MenuItem>
+            <MenuItem
+                roles={[ Role.Admin ]}
+                background='accent-3'
+                onClick={() => {
+                  hideMenu();
+                  navigate(tApp('url-administration'));
+                }}>
+              <UserAdmin />
+              <Text>{t('administration')}</Text>
+            </MenuItem>
+          </>
+        }
+        <Text margin={ { top: 'medium' } }>{tApp('title.long')}</Text>
+        <Anchor target='_blank' href={ state.appInformation?.homepageUrl }>{ state.appInformation?.homepageUrl }</Anchor>
+        <Text margin={ { top: 'medium' } }>Version { state.appInformation.version }</Text>
+      </Grid>);
     
 }
 
