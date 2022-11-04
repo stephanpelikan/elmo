@@ -1,8 +1,10 @@
 package at.elmo.reservation;
 
+import at.elmo.member.Role;
 import at.elmo.util.spring.NotificationEvent;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class ReservationNotification extends NotificationEvent {
 
@@ -27,7 +29,7 @@ public class ReservationNotification extends NotificationEvent {
             final LocalDateTime endsAt,
             final String carId) {
         
-        super(source, type);
+        super(source, type, List.of(Role.ADMIN, Role.MANAGER, Role.DRIVER));
         this.id = id;
         this.driverMemberId = driverMemberId;
         this.carId = carId;

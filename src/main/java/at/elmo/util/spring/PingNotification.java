@@ -9,11 +9,11 @@ public class PingNotification extends NotificationEvent {
     private static final String SOURCE = "Ping";
     
     public PingNotification(Clock clock) {
-        super(SOURCE, clock, NotificationEvent.Type.NEW);
+        super(SOURCE, clock, NotificationEvent.Type.NEW, null);
     }
 
     public PingNotification() {
-        super(SOURCE, NotificationEvent.Type.NEW);
+        super(SOURCE, NotificationEvent.Type.NEW, null);
     }
     
 }

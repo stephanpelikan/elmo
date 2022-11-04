@@ -7,6 +7,8 @@ import at.elmo.gui.api.v1.LoginApi;
 import at.elmo.gui.api.v1.NativeLogin;
 import at.elmo.gui.api.v1.Oauth2Client;
 import at.elmo.gui.api.v1.User;
+import at.elmo.member.Member;
+import at.elmo.member.Role;
 import at.elmo.member.onboarding.MemberOnboarding;
 import at.elmo.util.UserContext;
 import at.elmo.util.exceptions.ElmoException;
@@ -50,6 +52,45 @@ public class GuiApiController implements LoginApi {
 
     public static final String FLUTTER_USER_AGENT_PREFIX = "native-";
 
+    public static final class UpdateEmitter {
+        
+        private SseEmitter emitter;
+        
+        private Integer memberId;
+        
+        private List<Role> roles;
+        
+        private UpdateEmitter() { }
+        
+        public static UpdateEmitter withEmitter(final SseEmitter emitter) {
+            final var result = new UpdateEmitter();
+            result.emitter = emitter;
+            return result;
+        }
+        
+        public UpdateEmitter withMember(final Member member) {
+            this.memberId = member.getMemberId();
+            this.roles = member
+                    .getRoles()
+                    .stream()
+                    .map(rms -> rms.getId())
+                    .toList();
+            return this;
+        }
+        
+        public SseEmitter getEmitter() {
+            return emitter;
+        }
+        
+        public Integer getMemberId() {
+            return memberId;
+        }
+        
+        public List<Role> getRoles() {
+            return roles;
+        }
+    };
+    
     @Autowired
     private Logger logger;
 
@@ -74,7 +115,7 @@ public class GuiApiController implements LoginApi {
     @Autowired
     private OAuth2UserService oauth2UserService;
 
-    private Map<String, SseEmitter> updateEmitters = new HashMap<>();
+    private Map<String, UpdateEmitter> updateEmitters = new HashMap<>();
     
     @RequestMapping(
             method = RequestMethod.GET,
@@ -84,8 +125,12 @@ public class GuiApiController implements LoginApi {
         
         final var id = UUID.randomUUID().toString();
         
+        final var member = userContext.getLoggedInMember();
+        
         final var updateEmitter = new SseEmitter(-1l);
-        updateEmitters.put(id, updateEmitter);
+        updateEmitters.put(id, UpdateEmitter
+                .withEmitter(updateEmitter)
+                .withMember(member));
 
         return updateEmitter;
 
@@ -97,15 +142,19 @@ public class GuiApiController implements LoginApi {
         
         updateEmitters
                 .values()
+                .stream()
+                .filter(emitter -> notification.matchesTargetRoles(emitter.getRoles()))
                 .forEach(emitter -> {
                     try {
-                        emitter.send(
-                                SseEmitter
-                                        .event()
-                                        .id(UUID.randomUUID().toString())
-                                        .data(notification, MediaType.APPLICATION_JSON)
-                                        .name(notification.getSource().toString())
-                                        .reconnectTime(30000));
+                        emitter
+                                .getEmitter()
+                                .send(
+                                        SseEmitter
+                                                .event()
+                                                .id(UUID.randomUUID().toString())
+                                                .data(notification, MediaType.APPLICATION_JSON)
+                                                .name(notification.getSource().toString())
+                                                .reconnectTime(30000));
                     } catch (Exception e) {
                         logger.warn("Could not send update event", e);
                     }
@@ -130,12 +179,14 @@ public class GuiApiController implements LoginApi {
                 .forEach(entry -> {
                     try {
                         final var emitter = entry.getValue();
-                        emitter.send(
-                                SseEmitter
-                                        .event()
-                                        .id(UUID.randomUUID().toString())
-                                        .data(ping, MediaType.APPLICATION_JSON)
-                                        .name(ping.getSource().toString()));
+                        emitter
+                                .getEmitter()
+                                .send(
+                                        SseEmitter
+                                                .event()
+                                                .id(UUID.randomUUID().toString())
+                                                .data(ping, MediaType.APPLICATION_JSON)
+                                                .name(ping.getSource().toString()));
                     } catch (Exception e) {
                         toBeDeleted.add(entry.getKey());
                     }
