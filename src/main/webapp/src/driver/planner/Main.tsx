@@ -446,8 +446,8 @@ const DayTable = memo<{
                     fill
                     background={
                         hour.startsAt.getHours() % 2 === 0
-                            ? (hour.endsAt.getTime() < now.getTime() ? 'light-4' : 'white' )
-                            : (hour.endsAt.getTime() < now.getTime() ? 'light-6' : 'light-2' )
+                            ? (hour.endsAt.getTime() < now.getTime() ? 'dark-3' : 'white' )
+                            : (hour.endsAt.getTime() < now.getTime() ? 'dark-2' : 'light-2' )
                       }
                     ref={ element => {
                         if (useSearch && (element?.id === document.location.search.substring(1))) {
