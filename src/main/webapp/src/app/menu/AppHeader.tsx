@@ -28,8 +28,7 @@ const AppHeader = () => {
         background={ state.intern ? 'accent-3' : 'brand' }
         elevation='medium'
         height='xxsmall'
-        pad='xxsmall'
-        style={{ zIndex: '1' }}>
+        pad='xxsmall'>
       <Box
           onClick={() => navigate('/')}
           focusIndicator={false}
