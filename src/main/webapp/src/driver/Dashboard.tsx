@@ -1,18 +1,17 @@
 import { useLayoutEffect } from 'react';
 import { Box } from 'grommet';
-import { ShareOption } from 'grommet-icons';
-import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { useAppContext } from '../AppContext';
 import { useCurrentUserRoles } from '../utils/roleUtils';
 import { Overview } from './overview/Main';
+import { CarSharings } from './car-sharing/Main';
+import { Shifts } from './passanger-service/Main';
+import useResponsiveScreen from '../utils/responsiveUtils';
 
 const Dashboard = () => {
   
   const { setAppHeaderTitle } = useAppContext();
-  const { t } = useTranslation('driver');
-  const navigate = useNavigate();
   const { isDriverOnly } = useCurrentUserRoles();
+  const { isPhone } = useResponsiveScreen();
 
   useLayoutEffect(() => {
       setAppHeaderTitle(isDriverOnly ? 'app' : 'driver', false);
@@ -20,18 +19,17 @@ const Dashboard = () => {
 
   return (
     <Box
-        direction="row-reverse"
+        fill='horizontal'
+        direction={ isPhone ? "row" : "row-reverse" }
         justify="center"
-        margin="medium"
+        gap={ isPhone ? undefined : "xlarge" }
+        margin={ { vertical: 'medium' } }
         wrap>
       <Overview />
-      { /* <Box>
-        <Box
-            title={ t('card-planner') }
-            onClick={ () => navigate('.' + t('url-planner')) }>
-          <ShareOption />
-        </Box>
-      </Box> */ }
+      <Box>
+        <Shifts />
+        <CarSharings />
+      </Box>
     </Box>);
 }
 

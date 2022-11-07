@@ -317,6 +317,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ShiftOverview'
+  /gui/car-sharing/reservations:
+    get:
+      tags:
+        - car-sharing
+      summary: The reservations of the member currently logged in
+      operationId: getCarSharingReservations
+      responses: 
+        200:
+          description: The shift-overview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CarSharingReservations'
   /gui/car-sharing/{carId}/reservation:
     post:
       tags:
@@ -344,6 +357,38 @@ paths:
         409:
           description: Reservation declined due to other reservations
   /gui/car-sharing/{carId}/reservation/{reservationId}:
+    put:
+      tags:
+        - car-sharing
+      summary: Confirm start or end of car-sharing
+      operationId: confirmStartOrStopOfCarSharing
+      parameters:
+        - in: path
+          name: carId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: reservationId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CarSharingStarStopRequest'
+      responses:
+        200:
+          description: Reservation confirmed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CarSharingReservation'
+        400:
+          description: Wrong parameters
+        404:
+          description: Reservation not found
     delete:
       tags:
         - car-sharing
@@ -408,6 +453,13 @@ components:
         - FREE     # no car drivers set to shift
         - PARTIAL  # in case of more cars for passanger-service if one car driver is set and the other not
         - COMPLETE # all car drivers set to shift
+    CarSharingStatus:
+      type: string
+      enum:
+        - RESERVED
+        - ONGOING
+        - COMPLETED
+        - CANCELLED
     AppInformation:
       type: object
       properties:
@@ -656,3 +708,59 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ShiftOverviewWeek'
+    CarSharingReservation:
+      type: object
+      properties:
+        id:
+          type: string
+        driverMemberId:
+          type: integer
+          format: int32
+        startsAt:
+          type: string
+          format: date-time
+        start:
+          type: string
+          format: date-time
+        kmAtStart:
+          type: integer
+          format: int32
+        endsAt:
+          type: string
+          format: date-time
+        end:
+          type: string
+          format: date-time
+        kmAtEnd:
+          type: integer
+          format: int32
+        hoursPlanned:
+          type: integer
+          format: int32
+        carId:
+          type: string
+        carName:
+          type: string
+        carKm:
+          type: integer
+          format: int32
+        status:
+          $ref: '#/components/schemas/CarSharingStatus'
+        userTaskId:
+          type: string
+    CarSharingReservations:
+      type: object
+      properties:
+        reservations:
+          type: array
+          items:
+            $ref: '#/components/schemas/CarSharingReservation'
+    CarSharingStarStopRequest:
+      type: object
+      properties:
+        km:
+          type: string
+        comment:
+          type: string
+        userTaskId:
+          type: string

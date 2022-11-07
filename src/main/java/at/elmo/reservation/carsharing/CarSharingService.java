@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -58,6 +59,15 @@ public class CarSharingService {
                 LocalDateTime.now(),
                 driver.getId());
 
+    }
+    
+    public List<CarSharing> getOutstandingReservations(
+            final Member driver) {
+        
+        return carSharings.findByDriver_IdAndStatusNotInOrderByStartsAtAsc(
+                driver.getId(),
+                List.of(Status.COMPLETED, Status.CANCELLED));
+        
     }
     
     public CarSharing addCarSharing(
@@ -239,7 +249,7 @@ public class CarSharingService {
         }
 
     }
-
+    
     @WorkflowTask(taskDefinition = "confirmEndOfUsage")
     public void confirmEndOfUsageForm(
             final CarSharing carSharing,
@@ -252,6 +262,51 @@ public class CarSharingService {
             carSharing.setUserTaskId(null);
         }
 
+    }
+    
+    public CarSharing startOrStopCarSharing(
+            final String carId,
+            final String reservationId,
+            final String userTaskId,
+            final Integer km,
+            final String comment) {
+        
+        final var carSharingFound = carSharings.findById(reservationId);
+        if (carSharingFound.isEmpty()) {
+            return null;
+        }
+        final var carSharing = carSharingFound.get();
+        final var car = carSharing.getCar();
+        if (!car.getId().equals(carId)) {
+            return null;
+        }
+        
+        final var now = LocalDateTime.now();
+        
+        if (carSharing.getKmAtStart() == null) {
+            
+            carSharing.setStart(now);
+            carSharing.setKmAtStart(km);
+            carSharing.setStatus(Status.ONGOING);
+            carSharing.setUserTaskId(null);
+            
+        } else {
+            
+            carSharing.setEnd(now);
+            carSharing.setKmAtEnd(km);
+            carSharing.setStatus(Status.COMPLETED);
+            carSharing.setUserTaskId(null);
+            
+        }
+        
+        car.setKm(km);
+        car.setKmConfirmed(true);
+        car.setKmConfirmedAt(LocalDateTime.now());
+        
+        processService.completeUserTask(carSharing, userTaskId);
+        
+        return carSharing;
+        
     }
 
     @WorkflowTask

@@ -2,6 +2,9 @@ package at.elmo.reservation.carsharing;
 
 import at.elmo.car.CarService;
 import at.elmo.gui.api.v1.CarSharingApi;
+import at.elmo.gui.api.v1.CarSharingReservation;
+import at.elmo.gui.api.v1.CarSharingReservations;
+import at.elmo.gui.api.v1.CarSharingStarStopRequest;
 import at.elmo.gui.api.v1.PlannerReservation;
 import at.elmo.gui.api.v1.PlannerReservationType;
 import at.elmo.reservation.ReservationService;
@@ -17,15 +20,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Duration;
+import java.util.regex.Pattern;
 
 @RestController("carSharingGuiApi")
 @RequestMapping("/api/v1")
 @Secured("DRIVER")
 public class GuiApiController implements CarSharingApi {
 
+    private static final Pattern NON_INT_CHARACTERS = Pattern.compile("[^0-9]");
+
+    private static final Pattern INVALID_KM_CHARACTERS = Pattern.compile("[^0-9\\.,]");
+    
     @Autowired
     private Logger logger;
 
+    @Autowired
+    private GuiApiMapper mapper;
+    
     @Autowired
     private ReservationService reservationService;
 
@@ -145,4 +156,68 @@ public class GuiApiController implements CarSharingApi {
 
     }
 
+    @Override
+    public ResponseEntity<CarSharingReservations> getCarSharingReservations() {
+        
+        final var driver = userContext.getLoggedInMember();
+        
+        final var carSharings = carSharingService.getOutstandingReservations(driver);
+        
+        final var result = new CarSharingReservations()
+                .reservations(mapper.toApi(carSharings));
+        
+        return ResponseEntity.ok(result);
+        
+    }
+    
+    @Override
+    public ResponseEntity<CarSharingReservation> confirmStartOrStopOfCarSharing(
+            final String carId,
+            final String reservationId,
+            final CarSharingStarStopRequest body) {
+        
+        if (body == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        if (!StringUtils.hasText(body.getUserTaskId())) {
+            return ResponseEntity.badRequest().build();
+        }
+        if (!StringUtils.hasText(body.getKm())) {
+            return ResponseEntity.badRequest().build();
+        }
+        if (INVALID_KM_CHARACTERS.matcher(body.getKm()).find()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        if (!StringUtils.hasText(carId)) {
+            return ResponseEntity.badRequest().build();
+        }
+        final var carFound = carService.getCar(carId);
+        if (carFound.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        final var car = carFound.get();
+
+        final var km = Integer.parseInt(
+                NON_INT_CHARACTERS.matcher(body.getKm()).replaceAll(""));
+        
+        if (km < car.getKm()) {
+            throw new ElmoValidationException("km", "lower-than-car");
+        }
+        
+        final var reservation = carSharingService.startOrStopCarSharing(
+                carId,
+                reservationId,
+                body.getUserTaskId(),
+                km,
+                body.getComment());
+        
+        if (reservation == null) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        return ResponseEntity.ok(mapper.toApi(reservation));
+        
+    }
+    
 }

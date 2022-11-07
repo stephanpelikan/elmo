@@ -1,13 +1,9 @@
 package at.elmo.util.sms;
 
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
-import java.util.regex.Pattern;
-
+import at.elmo.config.FreemarkerConfiguration;
+import at.elmo.util.email.NamedObject;
+import at.elmo.util.sms.Sms.Status;
+import freemarker.template.Configuration;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -17,11 +13,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
-import at.elmo.config.ElmoProperties;
-import at.elmo.config.FreemarkerConfiguration;
-import at.elmo.util.email.NamedObject;
-import at.elmo.util.sms.Sms.Status;
-import freemarker.template.Configuration;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
+import java.util.regex.Pattern;
 
 @Service
 public class SmsService {
@@ -33,9 +31,6 @@ public class SmsService {
 
     @Autowired
     private SmsProperties properties;
-
-    @Autowired
-    private ElmoProperties elmoProperties;
 
     @Autowired
     @Qualifier(FreemarkerConfiguration.SMS_TEMPLATES)
@@ -136,15 +131,16 @@ public class SmsService {
             // build context with e.g. 'member' -> Member
             Arrays
                     .stream(context)
+                    .filter(c -> c != null)
                     .map(c -> NamedObject.from(c))
                     .forEach(c -> templateContext.put(c.getName(), c.getObject()));
             
         }
 
-        final var locale = Locale.forLanguageTag(elmoProperties.getDefaultLocale());
-
-        return FreeMarkerTemplateUtils.processTemplateIntoString(templating.getTemplate(template, locale),
-                templateContext);
+        return FreeMarkerTemplateUtils
+                .processTemplateIntoString(
+                        templating.getTemplate(template, Locale.getDefault()),
+                        templateContext);
 
     }
 

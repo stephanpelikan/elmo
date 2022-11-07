@@ -68,6 +68,7 @@ const Day = ({
                     <Box
                         key={ `${day.description}#${hourIndex}` }
                         onClick={ clickTarget }
+                        focusIndicator={ false }
                         style={ { zIndex: `calc(24 - ${hour.description})` } }
                         pad={ { top: 'xxxsmall' } }
                         width="100%"

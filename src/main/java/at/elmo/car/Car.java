@@ -36,7 +36,16 @@ public class Car extends PersistenceBase<String> {
 
     @Column(name = "APP_ACTIVE")
     private boolean appActive;
-
+    
+    @Column(name = "KM")
+    private int km;
+    
+    @Column(name = "KM_CONFIRMED")
+    private boolean kmConfirmed;
+    
+    @Column(name = "KM_CONFIRMED_AT")
+    private LocalDateTime kmConfirmedAt;
+    
     @CreationTimestamp
     @Column(name = "CREATED_AT", nullable = false, updatable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private LocalDateTime createdAt;
@@ -116,6 +125,30 @@ public class Car extends PersistenceBase<String> {
 
     public void setAppActive(boolean appActive) {
         this.appActive = appActive;
+    }
+
+    public int getKm() {
+        return km;
+    }
+
+    public void setKm(int km) {
+        this.km = km;
+    }
+
+    public boolean isKmConfirmed() {
+        return kmConfirmed;
+    }
+
+    public void setKmConfirmed(boolean kmConfirmed) {
+        this.kmConfirmed = kmConfirmed;
+    }
+
+    public LocalDateTime getKmConfirmedAt() {
+        return kmConfirmedAt;
+    }
+
+    public void setKmConfirmedAt(LocalDateTime kmConfirmedAt) {
+        this.kmConfirmedAt = kmConfirmedAt;
     }
 
 }

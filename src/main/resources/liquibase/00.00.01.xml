@@ -266,4 +266,18 @@
       <column name="DUEDATE_" descending="false" />
     </createIndex>
   </changeSet>
+  <changeSet id="car-sharing-usage"
+             author="stephanpelikan">
+    <addColumn tableName="ELMO_RESERVATION">
+      <column name="START" type="timestamp" />
+      <column name="START_KM" type="int" />
+      <column name="END" type="timestamp" />
+      <column name="END_KM" type="int" />
+    </addColumn> 
+    <addColumn tableName="ELMO_CAR">
+      <column name="KM_CONFIRMED_AT" type="timestamp" />
+      <column name="KM_CONFIRMED" type="boolean" />
+      <column name="KM" type="int" defaultValueNumeric="0" />
+    </addColumn> 
+  </changeSet>
 </databaseChangeLog>

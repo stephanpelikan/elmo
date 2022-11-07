@@ -98,33 +98,41 @@ interface IconHeadingProps extends HeadingProps {
   icon?: JSX.Element;
 };
 
-const Heading = ({ icon, children, ...props }: PropsWithChildren<IconHeadingProps>) => {
+const Heading = ({ icon, margin, children, ...props }: PropsWithChildren<IconHeadingProps>) => {
   
   return icon === undefined
       ? <GrommetHeading
             level='2'
-            margin={ {
-                top: 'small',
-                bottom: 'medium',
-              } }
-            {...props}>
+            {...props}
+            margin={
+              margin
+                  ? margin
+                  : {
+                      top: 'small',
+                      bottom: 'medium',
+                    }
+            }>
           {
             children
           }
         </GrommetHeading>
       : <Box
-            margin={ {
-                top: 'small',
-                bottom: 'medium',
-              } }
             direction="row"
             align="center"
-            gap="small">
+            gap="small"
+            margin={
+              margin
+                  ? margin
+                  : {
+                      top: 'small',
+                      bottom: 'medium',
+                    }
+            }>
           { icon }
           <GrommetHeading
               level="2"
-              margin="0"
-              {...props}>
+              {...props}
+              margin="0">
             {
               children
             }

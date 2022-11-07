@@ -154,6 +154,7 @@
                 <withInterfaces>true</withInterfaces>
                 <supportsES6>false</supportsES6>
               </configOptions>
+              <addCompileSourceRoot>false</addCompileSourceRoot>
             </configuration>
           </execution>
           <execution>
@@ -170,6 +171,7 @@
                 <withInterfaces>true</withInterfaces>
                 <supportsES6>false</supportsES6>
               </configOptions>
+              <addCompileSourceRoot>false</addCompileSourceRoot>
             </configuration>
           </execution>
           <execution>
@@ -186,6 +188,7 @@
                 <withInterfaces>true</withInterfaces>
                 <supportsES6>false</supportsES6>
               </configOptions>
+              <addCompileSourceRoot>false</addCompileSourceRoot>
             </configuration>
           </execution>
         </executions>

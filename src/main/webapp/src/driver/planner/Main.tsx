@@ -19,6 +19,7 @@ import { Contract, DocumentTime, FormCheckmark, FormClose, FormDown, FormUp, His
 import { useAppContext } from "../../AppContext";
 import { useEventSource, useEventSourceListener } from "react-sse-hooks";
 import { CalendarHeader } from "../../components/CalendarHeader";
+import { now, useKeepNowUpToDate } from '../../utils/now-hook';
 
 i18n.addResources('en', 'driver/planner', {
       "title.long": 'Planner',
@@ -54,8 +55,6 @@ i18n.addResources('de', 'driver/planner', {
       "conflicting-incoming_msg": "Ein(e) andere(r) Fahrer(in) hat eine Reservierung in der Zeit deiner Auswahl eingetragen, weshalb sie entfernt wurde.",
       "date_format": "dd.mm.yyyy",
     });
-
-let now = new Date();
 
 const itemsBatchSize = 48;
 
@@ -775,18 +774,14 @@ const Planner = () => {
         loadData(driverApi, dayVersionsRef, updateDayVersions, setEndDate, startsAt, endsAt, days, setDays, drivers, setDrivers, setRestrictions, setCars);
       }
     }, [ driverApi, days, restrictions, setRestrictions, drivers, startsAt ]);
-  useEffect(() => {
-      const timer = window.setInterval(() => {
-          const lastHour = now.getHours();
-          now = new Date();
-          if (now.getHours() !== lastHour) {
-            increaseDayVersions(dayVersionsRef, now, cars);
-            updateDayVersions(dayVersionsRef.current);
-          }
-        }, 1000);
-      return () => window.clearInterval(timer);
-    }, [ cars ]);
   
+  useKeepNowUpToDate([ cars ], (lastNow) => {
+      if (now.getHours() !== lastNow.getHours()) {
+        increaseDayVersions(dayVersionsRef, now, cars);
+        updateDayVersions(dayVersionsRef.current);
+      }
+    });
+
   const [ _isMouseDown, setMouseIsDown ] = useState(false);
   const isMouseDown = useRef(_isMouseDown);
   const [ _selection, _setSelection ] = useState<Selection>(undefined);

@@ -126,11 +126,16 @@ public class H2Notifications extends TriggerAdapter {
             final var type = row.getMetaData().getColumnType(i);
             switch (type) {
             case java.sql.Types.ARRAY: {
-                final var items = row.getArray(i).getResultSet();
-                final var array = result.putArray(name);
-                while (items.next()) {
-                    final var item = toTreeNode(items);
-                    array.add(item);
+                final var value = row.getArray(i);
+                if (value == null) {
+                    result.put(name, (String) null);
+                } else {
+                    final var items = value.getResultSet();
+                    final var array = result.putArray(name);
+                    while (items.next()) {
+                        final var item = toTreeNode(items);
+                        array.add(item);
+                    }
                 }
                 break;
             }
@@ -168,17 +173,32 @@ public class H2Notifications extends TriggerAdapter {
                 break;
             }
             case java.sql.Types.DATE: {
-                result.put(name, row.getDate(i).toString());
+                final var value = row.getDate(i);
+                if (value == null) {
+                    result.put(name, (String) null);
+                } else {
+                    result.put(name, value.toLocalDate().toString());
+                }
                 break;
             }
             case java.sql.Types.TIME:
             case java.sql.Types.TIME_WITH_TIMEZONE: {
-                result.put(name, row.getTime(i).toString());
+                final var value = row.getTime(i);
+                if (value == null) {
+                    result.put(name, (String) null);
+                } else {
+                    result.put(name, value.toLocalTime().toString());
+                }
                 break;
             }
             case java.sql.Types.TIMESTAMP:
             case java.sql.Types.TIMESTAMP_WITH_TIMEZONE: {
-                result.put(name, row.getTimestamp(i).toLocalDateTime().toString());
+                final var value = row.getTimestamp(i);
+                if (value == null) {
+                    result.put(name, (String) null);
+                } else {
+                    result.put(name, value.toLocalDateTime().toString());
+                }
                 break;
             }
             default: result.put(name, row.getString(i));

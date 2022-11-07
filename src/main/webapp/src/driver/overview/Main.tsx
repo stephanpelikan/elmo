@@ -1,5 +1,5 @@
-import { Box, Heading, Text } from 'grommet';
-import { Cycle } from 'grommet-icons';
+import { Box, Text } from 'grommet';
+import { Cycle, MapLocation } from 'grommet-icons';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ShiftOverview, ShiftOverviewWeek } from '../../client/gui';
@@ -7,6 +7,7 @@ import useResponsiveScreen from '../../utils/responsiveUtils';
 import { useDriverApi } from '../DriverAppContext';
 import { Day } from './Day';
 import i18n from '../../i18n';
+import { Heading } from '../../components/MainLayout';
 
 i18n.addResources('en', 'driver/overview', {
       "title": "Overview Passanger-Service",
@@ -77,11 +78,13 @@ const Overview = () => {
     
   return <Box
              width={ isPhone ? '17.5rem' : '21rem'}
-             gap="medium">
+             gap="medium"
+             margin={ { bottom: 'large' } }>
            <Heading
+               icon={ <MapLocation /> }
                margin={ { vertical: 'xxsmall' } }
                level='3'>
-             <>{ t('title') }</>
+             { t('title') }
            </Heading>
            <Box
                 justify='between'

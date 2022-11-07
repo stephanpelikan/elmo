@@ -3,6 +3,7 @@ package at.elmo.reservation.carsharing;
 import at.elmo.member.Member;
 import at.elmo.reservation.ReservationBase;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import javax.persistence.Column;
@@ -40,6 +41,18 @@ public class CarSharing extends ReservationBase {
     
     @Column(name = "HOURS_PLANNED")
     private int hoursPlanned;
+
+    @Column(name = "START", columnDefinition = "TIMESTAMP")
+    private LocalDateTime start;
+    
+    @Column(name = "START_KM")
+    private Integer kmAtStart;
+
+    @Column(name = "END", columnDefinition = "TIMESTAMP")
+    private LocalDateTime end;
+
+    @Column(name = "END_KM")
+    private Integer kmAtEnd;
 
     public Member getDriver() {
         return driver;
@@ -79,6 +92,38 @@ public class CarSharing extends ReservationBase {
     
     public void setHoursPlanned(int hoursPlanned) {
         this.hoursPlanned = hoursPlanned;
+    }
+
+    public LocalDateTime getStart() {
+        return start;
+    }
+
+    public void setStart(LocalDateTime start) {
+        this.start = start;
+    }
+
+    public Integer getKmAtStart() {
+        return kmAtStart;
+    }
+
+    public void setKmAtStart(Integer kmAtStart) {
+        this.kmAtStart = kmAtStart;
+    }
+
+    public LocalDateTime getEnd() {
+        return end;
+    }
+
+    public void setEnd(LocalDateTime end) {
+        this.end = end;
+    }
+
+    public Integer getKmAtEnd() {
+        return kmAtEnd;
+    }
+
+    public void setKmAtEnd(Integer kmAtEnd) {
+        this.kmAtEnd = kmAtEnd;
     }
 
     public String getTenMinutesBeforeStart() {
