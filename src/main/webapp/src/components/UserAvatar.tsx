@@ -1,10 +1,13 @@
-import { User as UserDto, Sex, CarSharingDriver } from '../client/gui';
+import { User as UserDto, Sex, PlannerDriver } from '../client/gui';
 import { User as UserMale, UserFemale } from 'grommet-icons';
-import { Avatar } from 'grommet';
+import { Avatar, Box, Paragraph, Text } from 'grommet';
 import { BorderType } from 'grommet/utils';
+import { useRef, useState } from 'react';
+import useOnClickOutside from '../utils/clickOutside';
+import { useAppContext } from '../AppContext';
 
 type UserAvatarProps = {
-  user: UserDto | CarSharingDriver;
+  user: UserDto | PlannerDriver;
   border?: BorderType;
   size?: 'xsmall' | 'small' | 'medium' | 'large' | 'xlarge' | string;
 };
@@ -12,8 +15,10 @@ type UserAvatarProps = {
 const UserAvatar = ({
   user,
   border,
-  size = 'medium'
+  size = 'medium',
 }: UserAvatarProps) => {
+
+  const { state } = useAppContext();
 
   const backgroundColor = user.memberId
       ? `hsl(${ (user.memberId * 207) % 360 }, 70%, 45%)`
@@ -27,10 +32,10 @@ const UserAvatar = ({
         symbolSize = '10rem';
         break;
       case 'small':
-        symbolSize = '15rem';
+        symbolSize = '16rem';
         break;
       case 'medium':
-        symbolSize = '27rem';
+        symbolSize = '28rem';
         break;
       case 'large':
         symbolSize = '40rem';
@@ -44,20 +49,61 @@ const UserAvatar = ({
   } else {
     symbolSize = `${ intSize * 0.65 }px`;
   }
-      
+  
+  const [ showDetails, setShowDetails ] = useState(false);
+  const ref = useRef(null);
+  useOnClickOutside(ref, event => {
+      if (!showDetails) return;
+      event.preventDefault();
+      event.stopPropagation();
+      setShowDetails(false);
+    });
+  
   return (
-      <Avatar
-          background={ backgroundColor }
-          size={ size }
-          border={ border }
-          src={ user.avatar ? `/api/v1/gui/member/${ user.memberId }/avatar?ts=${ user.avatar }` : undefined }>
+      <Box
+          style={ { position: 'relative' } }
+          onMouseDown={ () => setShowDetails(true) }>
         {
-          user.sex === Sex.Female
-              ? <UserFemale color='accent-1' size={ symbolSize } />
-              : <UserMale color='accent-1' size={ symbolSize } />
+          (state.currentUser.memberId !== user.memberId) && showDetails
+              ? <Box
+                    ref={ ref }
+                    background='white'
+                    style={ {
+                        position: 'absolute',
+                        maxWidth: 'unset',
+                        margin: '-0.3rem',
+                        zIndex: 20,
+                        boxShadow: '5px 5px 10px rgba(0, 0, 0, 0.5)'
+                    } }
+                    height="xsmall"
+                    width="small"
+                    round="small"
+                    border
+                    pad={ {
+                        left: `calc(${symbolSize} * 0.15)`,
+                        top: '0.3rem'
+                      } }>
+                  <Text
+                      weight="bold">{ user.memberId }</Text>
+                  <Paragraph>
+                      { user.firstName } { user.lastName }
+                  </Paragraph>
+                </Box>
+              : undefined
         }
-      </Avatar>
-    );
+        <Avatar
+            style={ { zIndex: (state.currentUser.memberId !== user.memberId) && showDetails ? 20 : undefined } }
+            background={ backgroundColor }
+            size={ size }
+            border={ border }
+            src={ user.avatar ? `/api/v1/gui/member/${ user.memberId }/avatar?ts=${ user.avatar }` : undefined }>
+          {
+            user.sex === Sex.Female
+                ? <UserFemale color='accent-1' size={ symbolSize } />
+                : <UserMale color='accent-1' size={ symbolSize } />
+          }
+        </Avatar>
+      </Box>);
     
 }
 

@@ -13,13 +13,11 @@ import java.util.List;
 @Mapper
 public abstract class GuiMapper {
 
-    @Mapping(target = "name", source = "lastName")
     @Mapping(target = "roles", expression = "java(toRoles(member))")
     @Mapping(target = "status", expression = "java(toUserStatus(member))")
     @Mapping(target = "avatar", source = "timestampOfAvatar")
     public abstract User toApi(at.elmo.member.Member member);
 
-    @Mapping(target = "name", source = "lastName")
     @Mapping(target = "roles", expression = "java(java.util.List.of())")
     @Mapping(target = "status", expression = "java(toUserStatus(application))")
     @Mapping(target = "avatar", ignore = true)

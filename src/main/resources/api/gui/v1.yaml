@@ -511,7 +511,7 @@ components:
           type: int
         email:
           type: string
-        name:
+        lastName:
           type: string
         firstName:
           type: string
