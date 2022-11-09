@@ -758,6 +758,9 @@ components:
     CarSharingStarStopRequest:
       type: object
       properties:
+        timestamp:
+          type: string
+          format: date-time
         km:
           type: string
         comment:

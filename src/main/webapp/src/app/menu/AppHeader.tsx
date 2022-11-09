@@ -1,5 +1,5 @@
 import { Box, Button, Header, Heading, Image } from "grommet";
-import { Menu as MenuIcon } from 'grommet-icons';
+import { Login, Menu as MenuIcon } from 'grommet-icons';
 import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -20,6 +20,10 @@ const AppHeader = () => {
   const toggleMenu = () => {
       if (stateShowMenuRef.current) return;
       showMenu(!state.showMenu);
+    };
+    
+  const goToLogin = () => {
+      document.getElementById('login').scrollIntoView({ behavior: 'smooth' })
     };
   
   return (
@@ -54,20 +58,20 @@ const AppHeader = () => {
             )
         }
       </Box>
-      {
-        state.currentUser
-            ? <Box>
-                <Button
-                    plain
-                    focusIndicator={false}
-                    margin='small'
-                    icon={<MenuIcon />}
-                    onMouseDown={toggleMenu}
-                    style={ { position: 'relative' } } />
-                <ResponsiveMenu />
-              </Box>
-            : <></>
-      }
+      <Box>
+        <Button
+            plain
+            focusIndicator={ false }
+            margin='small'
+            icon={ state.currentUser
+                ? <MenuIcon />
+                : <Login /> }
+            onMouseDown={ state.currentUser
+                ? toggleMenu
+                : goToLogin }
+            style={ { position: 'relative' } } />
+        <ResponsiveMenu />
+      </Box>
     </Header>
   );
         

@@ -3,9 +3,9 @@ import { useEffect } from "react";
 let now = new Date();
 
 const useKeepNowUpToDate = (
-    dependencies: Array<any>,
+    dependencies: Array<any> = [],
     eachSecondHook?: (lastNow?: Date) => void) => {
-  
+      
   useEffect(() => {
       const timer = window.setInterval(() => {
           const lastNow = now;
@@ -15,7 +15,7 @@ const useKeepNowUpToDate = (
           }
         }, 1000);
       return () => window.clearInterval(timer);
-    }, dependencies);
+    }, [ eachSecondHook, ...dependencies ]);  // eslint-disable-line react-hooks/exhaustive-deps
   
 };
 

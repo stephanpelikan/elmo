@@ -268,6 +268,7 @@ public class CarSharingService {
             final String carId,
             final String reservationId,
             final String userTaskId,
+            final LocalDateTime timestamp,
             final Integer km,
             final String comment) {
         
@@ -292,6 +293,12 @@ public class CarSharingService {
             
         } else {
             
+            final var endOfUsage = timestamp == null
+                    ? carSharing.getEndsAt()
+                    : timestamp
+                            .truncatedTo(ChronoUnit.HOURS)
+                            .plusHours(timestamp.getMinute() == 0 ? 0 : 1);
+            carSharing.setEndsAt(endOfUsage);
             carSharing.setEnd(now);
             carSharing.setKmAtEnd(km);
             carSharing.setStatus(Status.COMPLETED);

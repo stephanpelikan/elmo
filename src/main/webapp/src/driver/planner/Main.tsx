@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import i18n from '../../i18n';
 import useDebounce from '../../utils/debounce-hook';
 import useResponsiveScreen from '../../utils/responsiveUtils';
-import { currentHour, nextHours, timeAsString, hoursBetween } from '../../utils/timeUtils';
+import { currentHour, nextHours, timeAsString, numberOfHoursBetween } from '../../utils/timeUtils';
 import { SnapScrollingDataTable } from '../../components/SnapScrollingDataTable';
 import { UserAvatar } from '../../components/UserAvatar';
 import { LoadingIndicator } from '../../components/LoadingIndicator';
@@ -182,8 +182,8 @@ const SelectionBox = ({ hour, selection, mouseDownOnDrag, cancelSelection, accep
       selectionBorderRadius.borderBottomLeftRadius = '7px';
       selectionBorderRadius.borderBottomRightRadius = '7px';
     }
-    const numberOfHours = hoursBetween(selection.startsAt, selection.endsAt);
-    const currentHour = hoursBetween(hour.startsAt, selection.startsAt);
+    const numberOfHours = numberOfHoursBetween(selection.startsAt, selection.endsAt);
+    const currentHour = numberOfHoursBetween(hour.startsAt, selection.startsAt);
 
     return <StyledSelectionBox
               selectionBorderRadius={ selectionBorderRadius }
@@ -874,7 +874,7 @@ const Planner = () => {
               Math.min(restrictionsRef.current.remainingHours, restrictionsRef.current.maxHours),
               true);
           const indexOfStartsAt = indexOfHour
-              + hoursBetween(selection.current.startsAt, hour.startsAt);
+              + numberOfHoursBetween(selection.current.startsAt, hour.startsAt);
           // test each hour beginning at last selection start:
           startsAt = selection.current.startsAt;
           for (let i = 1; startsAt.getTime() !== hour.startsAt.getTime(); ++i) {
@@ -915,7 +915,7 @@ const Planner = () => {
               Math.min(restrictionsRef.current.remainingHours, restrictionsRef.current.maxHours),
               false);
           const indexOfEndsAt = indexOfHour
-              - hoursBetween(selection.current.endsAt, hour.endsAt);
+              - numberOfHoursBetween(selection.current.endsAt, hour.endsAt);
           // test each hour beginning at last selection end:
           endsAt = selection.current.endsAt;
           for (let i = 1; endsAt.getTime() !== hour.endsAt.getTime(); ++i) {
@@ -1183,7 +1183,7 @@ const Planner = () => {
   
   const currentRemainingHours = restrictions === undefined
       ? '-'
-      : (restrictions.remainingHours - (selection.current !== undefined ? hoursBetween(selection.current.endsAt, selection.current.startsAt) : 0));
+      : (restrictions.remainingHours - (selection.current !== undefined ? numberOfHoursBetween(selection.current.endsAt, selection.current.startsAt) : 0));
   
   return (
       <Box

@@ -1,12 +1,14 @@
 import { Alert, Car, Cycle, FormNext, Schedules } from 'grommet-icons';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Accordion, AccordionPanel, Box, Button, MaskedInput, Paragraph, Table, TableBody, TableCell, TableRow, Text } from 'grommet';
+import { Accordion, AccordionPanel, Box, Button, MaskedInput, Paragraph, Select, Table, TableBody, TableCell, TableRow, Text } from 'grommet';
 import { useCarSharingApi } from '../DriverAppContext';
 import { useEffect, useRef, useState } from 'react';
 import { CarSharingReservation } from '../../client/gui';
 import useResponsiveScreen from '../../utils/responsiveUtils';
 import { Content, Heading, TextHeading } from '../../components/MainLayout';
+import { hoursBetween, nextHours } from '../../utils/timeUtils';
+import { now, useKeepNowUpToDate } from '../../utils/now-hook';
 
 import i18n from '../../i18n';
 import styled, { keyframes } from 'styled-components';
@@ -59,6 +61,9 @@ const CarSharings = () => {
 
   const kmFocus = useRef(undefined);
   const [ km, setKm ] = useState<string>('');
+  const [ timestamp, setTimestamp ] = useState<Date>(undefined);
+  
+  useKeepNowUpToDate();
   
   useEffect(() => {
       const loadCarSharings = async () => {
@@ -94,7 +99,6 @@ const CarSharings = () => {
       carId: string,
       reservationId: string,
       userTaskId: string,
-      km: string,
       comment?: string) => {
     
     try {
@@ -106,10 +110,13 @@ const CarSharings = () => {
             km,
             comment,
             userTaskId,
+            timestamp
           }
         });
       reservations[index] = reservation;
       setReservations([ ...reservations ]);
+      setKm(undefined);
+      setTimestamp(undefined);
         
     } catch (error) {
 
@@ -346,8 +353,7 @@ const CarSharings = () => {
                                                           index,
                                                           reservation.carId,
                                                           reservation.id,
-                                                          reservation.userTaskId,
-                                                          km) }
+                                                          reservation.userTaskId) }
                                                       label="Starten" /></TableCell>
                                                 : <TableCell>
                                                     { reservation.start.toLocaleDateString() }
@@ -367,12 +373,33 @@ const CarSharings = () => {
                                         <TableCell
                                             verticalAlign='top'>
                                           Nutzung bis:
+                                          <br/>
+                                          (inkl. Laden)
                                         </TableCell>
                                         {
                                           !Boolean(reservation.kmAtEnd)
                                               ? <TableCell
                                                     pad={ { horizontal: 'xsmall' } }
                                                     gap="small">
+                                                  <Select
+                                                      options={ hoursBetween(now, nextHours(reservation.endsAt, 5, false)) }
+                                                      labelKey={ o => o }
+                                                      valueLabel={ v => (
+                                                          <Box
+                                                              pad="xsmall">
+                                                            { v.toLocaleTimeString().replace(/:[0-9]+$/, '') }
+                                                          </Box>)
+                                                        }
+                                                      children={ v => (
+                                                          <Box
+                                                              background={ v.getTime() !== timestamp?.getTime() ? undefined : 'brand' }
+                                                              pad="xsmall">
+                                                            { v.toLocaleTimeString().replace(/:[0-9]+$/, '') }
+                                                          </Box>)
+                                                        }
+                                                      value={ timestamp || nextHours(now, 1, false) }
+                                                      onChange={ ({ option }) => setTimestamp(option) }
+                                                       />
                                                   <Box
                                                       border={
                                                         kmFocus.current === reservation.id
@@ -446,8 +473,7 @@ const CarSharings = () => {
                                                           index,
                                                           reservation.carId,
                                                           reservation.id,
-                                                          reservation.userTaskId,
-                                                          km) }
+                                                          reservation.userTaskId) }
                                                       label="Beenden" /></TableCell>
                                                 : <TableCell>
                                                     { reservation.end.toLocaleDateString() }

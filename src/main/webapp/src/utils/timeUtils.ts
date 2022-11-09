@@ -78,13 +78,44 @@ const nextHours = (from: Date, hours: number, history: boolean): Date => {
   
 }
 
-const hoursBetween = (from: Date, to: Date) => {
+const hoursBetween = (from: Date, to: Date): Array<Date> => {
+  
+  const result: Array<Date> = [];
+  
+  let current = new Date(
+      from.getFullYear(),
+      from.getMonth(),
+      from.getDate(),
+      from.getHours());
+
+  while (current.getTime() < to.getTime()) {
+    
+    if (current.getTime() < from.getTime()) {
+      current = new Date(current.getTime() + 3600000);
+    }
+    
+    const item = new Date(
+        current.getFullYear(),
+        current.getMonth(),
+        current.getDate(),
+        current.getHours());
+    result.push(item);
+      
+    current = new Date(current.getTime() + 3600000);
+    
+  }
+  
+  return result;
+  
+};
+
+const numberOfHoursBetween = (from: Date, to: Date): number => {
   
   return Math.abs(from.getTime() - to.getTime()) / 3600000;
   
 };
 
-const timeAsString = (date: Date) => {
+const timeAsString = (date: Date): string => {
   
   return String(date.getHours()).padStart(2, '0')
       + ':'
@@ -101,4 +132,5 @@ export {
   nextHours,
   timeAsString,
   hoursBetween,
+  numberOfHoursBetween,
 };

@@ -36,7 +36,7 @@ i18n.addResources('de', 'login', {
             + "Eine Nutzung der Online-Dienste von {{ name }} ohne einer dieser Anmeldungen oder "
             + "ohne der Verwendung von Cookies ist nicht möglich.",
       "wanna be a part of?": "Du möchtest Mitglied in unserem Verein werden?",
-      "login to become a member": "Melde dich dafür mit einem der oben verfügbaren Anmeldemöglichkeiten an. "
+      "login to become a member": "Melde dich dafür mit einer der verfügbaren Anmeldemöglichkeiten an. "
                                   + "Nach der Anmeldung wirst du durch den Registrierungsprozess geführt.",
       "visit the homepage": "Besuche für nähere Informationen zu unserem Verein unsere Vereinshomepage:",
       "login with": "Anmelden mit",
@@ -147,6 +147,7 @@ const Login = () => {
             </Collapsible>
           </Box>
           <Box
+              id="login"
               margin={ { vertical: 'medium' } }
               gap='medium'
               fill='horizontal'>

@@ -209,6 +209,7 @@ public class GuiApiController implements CarSharingApi {
                 carId,
                 reservationId,
                 body.getUserTaskId(),
+                body.getTimestamp(),
                 km,
                 body.getComment());
         
