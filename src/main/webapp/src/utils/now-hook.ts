@@ -2,21 +2,35 @@ import { useEffect } from "react";
 
 let now = new Date();
 
-const useKeepNowUpToDate = (
-    dependencies: Array<any> = [],
-    eachSecondHook?: (lastNow?: Date) => void) => {
+type EachSecondHook = (lastNow?: Date) => void;
+
+const hooks = new Array<EachSecondHook>();
+
+const useKeepNowUpToDate = () => {
       
   useEffect(() => {
       const timer = window.setInterval(() => {
           const lastNow = now;
           now = new Date();
-          if (eachSecondHook !== undefined) {
-            eachSecondHook(lastNow);
-          }
+          hooks.forEach(hook => hook(lastNow));
         }, 1000);
       return () => window.clearInterval(timer);
-    }, [ eachSecondHook, ...dependencies ]);  // eslint-disable-line react-hooks/exhaustive-deps
+    }, [ ]);  // eslint-disable-line react-hooks/exhaustive-deps
   
 };
 
-export { now, useKeepNowUpToDate };
+const registerEachSecondHook = (eachSecondHook: EachSecondHook) => {
+  hooks.push(eachSecondHook);
+};
+
+const unregisterEachSecondHook = (eachSecondHook: EachSecondHook) => {
+  const hookIndex = hooks.findIndex(hook => hook === eachSecondHook);
+  hooks.splice(hookIndex, 1);
+};
+
+export {
+  now,
+  useKeepNowUpToDate,
+  registerEachSecondHook,
+  unregisterEachSecondHook
+};

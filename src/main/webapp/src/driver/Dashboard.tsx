@@ -5,13 +5,11 @@ import { useCurrentUserRoles } from '../utils/roleUtils';
 import { Overview } from './overview/Main';
 import { CarSharings } from './car-sharing/Main';
 import { Shifts } from './passanger-service/Main';
-import useResponsiveScreen from '../utils/responsiveUtils';
 
 const Dashboard = () => {
   
   const { setAppHeaderTitle } = useAppContext();
   const { isDriverOnly } = useCurrentUserRoles();
-  const { isPhone } = useResponsiveScreen();
 
   useLayoutEffect(() => {
       setAppHeaderTitle(isDriverOnly ? 'app' : 'driver', false);
@@ -20,9 +18,9 @@ const Dashboard = () => {
   return (
     <Box
         fill='horizontal'
-        direction={ isPhone ? "row" : "row-reverse" }
+        direction="row-reverse"
         justify="center"
-        gap={ isPhone ? undefined : "xlarge" }
+        gap="large"
         margin={ { vertical: 'medium' } }
         wrap>
       <Overview />

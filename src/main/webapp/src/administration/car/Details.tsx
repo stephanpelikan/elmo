@@ -1,4 +1,4 @@
-import { Box, Button, CheckBox, Layer, Paragraph, Text, TextInput } from "grommet";
+import { Box, Button, CheckBox, Paragraph, Text, TextInput } from "grommet";
 import { useEffect, useState } from "react";
 import { ViolationsAwareFormField } from "../../components/ViolationsAwareFormField";
 import { useTranslation } from "react-i18next";
@@ -12,6 +12,7 @@ import useResponsiveScreen from '../../utils/responsiveUtils';
 import { LoadingIndicator } from '../../components/LoadingIndicator';
 import { MainLayout, Heading } from "../../components/MainLayout";
 import { CodeButton } from "../../components/CodeButton";
+import { Modal } from "../../components/Modal";
 
 i18n.addResources('en', 'administration/car-details', {
       "shortcut": "Shortcut:",
@@ -357,40 +358,31 @@ const Details = () => {
                 onClick={ activateApp }
                 label={ t('activate') } /> }
       </Box>
-      { activationCode
-          ? (<Layer
-                onEsc={ dismissQrCode }
-                responsive={true}
-                modal={true}>
-              <Box
-                  direction="column"
-                  pad="medium">
-                <Heading
-                    size='small'
-                    alignSelf="center"
-                    level='2'>
-                  {  car.name }
-                </Heading>
-                <Paragraph
-                    alignSelf="center"
-                    >{ t('scan-qr-code') }</Paragraph>
-                <Box
-                    fill
-                    align='center'
-                    width='100%'
-                    height='100%'>
-                  <QRCode value={ activationCode } />
-                </Box>
-                <Button
-                    onClick={ dismissQrCode }
-                    margin='large'
-                    secondary
-                    alignSelf="center"
-                    label={ t('dismiss') }
-                    />
-              </Box>
-            </Layer>)
-          : '' }
+      <Modal
+          show={ activationCode !== undefined }
+          abort={ dismissQrCode }
+          abortLabel='dismiss'
+          header={
+              <Heading
+                  size='small'
+                  alignSelf="center"
+                  level='2'>
+                {  car.name }
+              </Heading>
+            }
+          t={ t }>
+        <Paragraph
+            alignSelf="center"
+            >{ t('scan-qr-code') }</Paragraph>
+        <Box
+            fill
+            pad={ { horizontal: 'medium', top: 'medium', vertical: 'large' } }
+            align='center'
+            width='100%'
+            height='100%'>
+          <QRCode value={ activationCode } />
+        </Box>
+      </Modal>
     </MainLayout>);
   
 };

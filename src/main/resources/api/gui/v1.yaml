@@ -719,7 +719,7 @@ components:
         startsAt:
           type: string
           format: date-time
-        start:
+        startUsage:
           type: string
           format: date-time
         kmAtStart:
@@ -728,7 +728,7 @@ components:
         endsAt:
           type: string
           format: date-time
-        end:
+        endUsage:
           type: string
           format: date-time
         kmAtEnd:
@@ -746,6 +746,8 @@ components:
           format: int32
         status:
           $ref: '#/components/schemas/CarSharingStatus'
+        userTaskType:
+          type: string
         userTaskId:
           type: string
     CarSharingReservations:
@@ -762,7 +764,8 @@ components:
           type: string
           format: date-time
         km:
-          type: string
+          type: integer
+          format: int32
         comment:
           type: string
         userTaskId:

@@ -244,8 +244,10 @@ public class CarSharingService {
 
         if (event == Event.CREATED) {
             carSharing.setUserTaskId(taskId);
+            carSharing.setUserTaskType("confirmStartOfUsage");
         } else {
             carSharing.setUserTaskId(null);
+            carSharing.setUserTaskType(null);
         }
 
     }
@@ -258,8 +260,10 @@ public class CarSharingService {
 
         if (event == Event.CREATED) {
             carSharing.setUserTaskId(taskId);
+            carSharing.setUserTaskType("confirmEndOfUsage");
         } else {
             carSharing.setUserTaskId(null);
+            carSharing.setUserTaskType(null);
         }
 
     }
@@ -286,10 +290,11 @@ public class CarSharingService {
         
         if (carSharing.getKmAtStart() == null) {
             
-            carSharing.setStart(now);
+            carSharing.setStartUsage(now);
             carSharing.setKmAtStart(km);
             carSharing.setStatus(Status.ONGOING);
             carSharing.setUserTaskId(null);
+            carSharing.setUserTaskType(null);
             
         } else {
             
@@ -299,10 +304,11 @@ public class CarSharingService {
                             .truncatedTo(ChronoUnit.HOURS)
                             .plusHours(timestamp.getMinute() == 0 ? 0 : 1);
             carSharing.setEndsAt(endOfUsage);
-            carSharing.setEnd(now);
+            carSharing.setEndUsage(now);
             carSharing.setKmAtEnd(km);
             carSharing.setStatus(Status.COMPLETED);
             carSharing.setUserTaskId(null);
+            carSharing.setUserTaskType(null);
             
         }
         

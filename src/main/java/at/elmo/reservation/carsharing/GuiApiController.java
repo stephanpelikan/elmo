@@ -20,16 +20,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Duration;
-import java.util.regex.Pattern;
 
 @RestController("carSharingGuiApi")
 @RequestMapping("/api/v1")
 @Secured("DRIVER")
 public class GuiApiController implements CarSharingApi {
-
-    private static final Pattern NON_INT_CHARACTERS = Pattern.compile("[^0-9]");
-
-    private static final Pattern INVALID_KM_CHARACTERS = Pattern.compile("[^0-9\\.,]");
     
     @Autowired
     private Logger logger;
@@ -182,11 +177,8 @@ public class GuiApiController implements CarSharingApi {
         if (!StringUtils.hasText(body.getUserTaskId())) {
             return ResponseEntity.badRequest().build();
         }
-        if (!StringUtils.hasText(body.getKm())) {
-            return ResponseEntity.badRequest().build();
-        }
-        if (INVALID_KM_CHARACTERS.matcher(body.getKm()).find()) {
-            return ResponseEntity.badRequest().build();
+        if (body.getKm() == null) {
+            throw new ElmoValidationException("km", "missing");
         }
 
         if (!StringUtils.hasText(carId)) {
@@ -198,10 +190,7 @@ public class GuiApiController implements CarSharingApi {
         }
         final var car = carFound.get();
 
-        final var km = Integer.parseInt(
-                NON_INT_CHARACTERS.matcher(body.getKm()).replaceAll(""));
-        
-        if (km < car.getKm()) {
+        if (body.getKm() < car.getKm()) {
             throw new ElmoValidationException("km", "lower-than-car");
         }
         
@@ -210,7 +199,7 @@ public class GuiApiController implements CarSharingApi {
                 reservationId,
                 body.getUserTaskId(),
                 body.getTimestamp(),
-                km,
+                body.getKm(),
                 body.getComment());
         
         if (reservation == null) {

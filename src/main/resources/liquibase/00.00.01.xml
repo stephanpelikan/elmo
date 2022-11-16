@@ -209,7 +209,8 @@
     <addColumn tableName="ELMO_RESERVATION">
       <column name="CANCELLED" type="boolean" defaultValueBoolean="false" />
       <column name="COMMENT" type="text" />
-      <column name="CONFIRM_USERTASK" type="varchar(40)" />
+      <column name="USERTASK_ID" type="varchar(40)" />
+      <column name="USERTASK_TYPE" type="varchar(40)" />
       <column name="STATUS" type="varchar(30)" />
       <column name="HOURS_PLANNED" type="int" />
     </addColumn>
@@ -269,9 +270,9 @@
   <changeSet id="car-sharing-usage"
              author="stephanpelikan">
     <addColumn tableName="ELMO_RESERVATION">
-      <column name="START" type="timestamp" />
+      <column name="START_USAGE" type="timestamp" />
       <column name="START_KM" type="int" />
-      <column name="END" type="timestamp" />
+      <column name="END_USAGE" type="timestamp" />
       <column name="END_KM" type="int" />
     </addColumn> 
     <addColumn tableName="ELMO_CAR">

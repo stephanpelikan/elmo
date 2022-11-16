@@ -1,24 +1,27 @@
-import { Box, Button, Heading, Layer } from "grommet";
+import { Box, BoxProps, Button, Heading, Layer } from "grommet";
 import { TFunction } from "i18next";
 import { PropsWithChildren } from "react";
 
-interface ModalProperties {
+interface ModalProperties extends BoxProps {
   show: boolean;
-  header?: string;
+  header?: string | JSX.Element;
   abort?: () => void;
   action?: () => void;
-  actionLabel?: string;
   t: TFunction;
+  actionLabel?: string;
+  abortLabel?: string;
 };
 
 const Modal = ({
     show,
     header,
     abort,
+    abortLabel = 'abort',
     action,
     actionLabel,
     t,
-    children
+    children,
+    ...props
   }: PropsWithChildren<ModalProperties>) => {
     
   if (!show) return <></>;
@@ -40,40 +43,52 @@ const Modal = ({
             direction='row'
             pad='medium'>
           <Box
-              pad='medium'
-              background='white'>
-            {
-              header
-                ? <Heading
-                      margin={ { vertical: 'xsmall' } }
-                      level='2'>
-                    { t(header) }
-                  </Heading>
-                : <></>
-            }
-            {
-              children
-            }
-            {
-              action
-                ? <Box
-                      direction='row'
-                      justify='between'>
-                    <Button
-                        label={ t(actionLabel) }
-                        onClick={ action }
-                        primary />
-                    {
-                      abort
-                        ? <Button
-                        label={ t('abort') }
-                        onClick={ abort }
-                        secondary />
-                      : <></>
-                    }
-                  </Box>
-                : <></>
-            }
+              pad='large'
+              background='white'
+              { ...props }>
+            <>
+              {
+                header === undefined
+                  ? undefined
+                  : typeof header === 'string' 
+                  ? <Heading
+                        margin={ { vertical: 'xsmall' } }
+                        level='2'>
+                      { t(header as string) }
+                    </Heading>
+                  : header
+              }
+              {
+                children
+              }
+              {
+                action || abort
+                  ? <Box
+                        direction='row'
+                        gap='small'
+                        margin={ { bottom: 'medium' } }
+                        align='center'
+                        justify='around'>
+                      {
+                        action
+                          ? <Button
+                                label={ t(actionLabel) }
+                                onClick={ action }
+                                primary />
+                          : undefined
+                      }
+                      {
+                        abort
+                          ? <Button
+                                label={ t(abortLabel) }
+                                onClick={ abort }
+                                secondary />
+                          : undefined
+                      }
+                    </Box>
+                  : <></>
+              }
+            </>
           </Box>
         </Box>
       </Box>

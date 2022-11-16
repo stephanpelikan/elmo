@@ -19,7 +19,7 @@ import { Contract, DocumentTime, FormCheckmark, FormClose, FormDown, FormUp, His
 import { useAppContext } from "../../AppContext";
 import { useEventSource, useEventSourceListener } from "react-sse-hooks";
 import { CalendarHeader } from "../../components/CalendarHeader";
-import { now, useKeepNowUpToDate } from '../../utils/now-hook';
+import { now, registerEachSecondHook, unregisterEachSecondHook } from '../../utils/now-hook';
 
 i18n.addResources('en', 'driver/planner', {
       "title.long": 'Planner',
@@ -775,12 +775,16 @@ const Planner = () => {
       }
     }, [ driverApi, days, restrictions, setRestrictions, drivers, startsAt ]);
   
-  useKeepNowUpToDate([ cars ], (lastNow) => {
-      if (now.getHours() !== lastNow.getHours()) {
-        increaseDayVersions(dayVersionsRef, now, cars);
-        updateDayVersions(dayVersionsRef.current);
-      }
-    });
+  useEffect(() => {
+      const rerenderPastHoursHook = (lastNow) => {
+          if (now.getHours() !== lastNow.getHours()) {
+            increaseDayVersions(dayVersionsRef, now, cars);
+            updateDayVersions(dayVersionsRef.current);
+          }
+        };
+      registerEachSecondHook(rerenderPastHoursHook);
+      return () => unregisterEachSecondHook(rerenderPastHoursHook);
+    }, [ cars ]);
 
   const [ _isMouseDown, setMouseIsDown ] = useState(false);
   const isMouseDown = useRef(_isMouseDown);
@@ -1246,7 +1250,6 @@ const Planner = () => {
                 dropProps={ {
                     align: { top: "bottom", right: "right" },
                     background: 'white',
-// @ts-ignore
                     pad: isPhone ? 'medium' : 'small',
                     width: isPhone ? '90%' : '25rem',
                     height: isPhone ? '50%' : '25rem',

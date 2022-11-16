@@ -16,6 +16,7 @@ import { MessageToast } from '../components/Toast';
 import { PreconfiguredReconnectingEventSource } from "../utils/sseUtils";
 import { EventSourceProvider } from 'react-sse-hooks';
 import { LoadingIndicator } from '../components/LoadingIndicator';
+import { useKeepNowUpToDate } from '../utils/now-hook';
 
 export const theme: ThemeType = {
   global: {
@@ -65,6 +66,7 @@ export const theme: ThemeType = {
   },
   textArea: {
     extend: css`
+      font-weight: normal;
       ::placeholder {
         font-weight: normal;
         color: ${props => props.theme.global.colors.placeholder};
@@ -192,6 +194,8 @@ const App: React.FC<AppProps> = (props: AppProps): JSX.Element => {
 
   const { state, fetchAppInformation, dispatch } = useAppContext();
   
+  useKeepNowUpToDate();
+
   useEffect(() => {
     fetchAppInformation();
   }, [ fetchAppInformation ]);

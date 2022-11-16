@@ -33,7 +33,10 @@ public class CarSharing extends ReservationBase {
     @Column(name = "STATUS")
     private Status status;
 
-    @Column(name = "CONFIRM_USERTASK")
+    @Column(name = "USERTASK_TYPE")
+    private String userTaskType;
+
+    @Column(name = "USERTASK_ID")
     private String userTaskId;
 
     @Column(name = "COMMENT")
@@ -42,14 +45,14 @@ public class CarSharing extends ReservationBase {
     @Column(name = "HOURS_PLANNED")
     private int hoursPlanned;
 
-    @Column(name = "START", columnDefinition = "TIMESTAMP")
-    private LocalDateTime start;
+    @Column(name = "START_USAGE")
+    private LocalDateTime startUsage;
     
     @Column(name = "START_KM")
     private Integer kmAtStart;
 
-    @Column(name = "END", columnDefinition = "TIMESTAMP")
-    private LocalDateTime end;
+    @Column(name = "END_USAGE")
+    private LocalDateTime endUsage;
 
     @Column(name = "END_KM")
     private Integer kmAtEnd;
@@ -78,6 +81,14 @@ public class CarSharing extends ReservationBase {
         this.userTaskId = userTaskId;
     }
 
+    public String getUserTaskType() {
+        return userTaskType;
+    }
+    
+    public void setUserTaskType(String userTaskType) {
+        this.userTaskType = userTaskType;
+    }
+    
     public String getComment() {
         return comment;
     }
@@ -94,14 +105,6 @@ public class CarSharing extends ReservationBase {
         this.hoursPlanned = hoursPlanned;
     }
 
-    public LocalDateTime getStart() {
-        return start;
-    }
-
-    public void setStart(LocalDateTime start) {
-        this.start = start;
-    }
-
     public Integer getKmAtStart() {
         return kmAtStart;
     }
@@ -109,13 +112,21 @@ public class CarSharing extends ReservationBase {
     public void setKmAtStart(Integer kmAtStart) {
         this.kmAtStart = kmAtStart;
     }
-
-    public LocalDateTime getEnd() {
-        return end;
+    
+    public LocalDateTime getStartUsage() {
+        return startUsage;
     }
 
-    public void setEnd(LocalDateTime end) {
-        this.end = end;
+    public void setStartUsage(LocalDateTime startUsage) {
+        this.startUsage = startUsage;
+    }
+
+    public LocalDateTime getEndUsage() {
+        return endUsage;
+    }
+
+    public void setEndUsage(LocalDateTime endUsage) {
+        this.endUsage = endUsage;
     }
 
     public Integer getKmAtEnd() {
