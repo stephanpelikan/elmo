@@ -16,6 +16,7 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
 
 @Service
@@ -106,6 +107,15 @@ public class ReservationService {
                 startsAt,
                 endsAt);
 
+    }
+    
+    public ReservationBase getReservation(
+            final String id) {
+        
+        return reservations
+                .findById(id)
+                .orElseThrow(() -> new EntityNotFoundException());
+        
     }
     
 }

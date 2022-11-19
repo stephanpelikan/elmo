@@ -55,6 +55,15 @@ const toLocalDateString = (date: Date): string | undefined => {
   
 }
 
+const toLocaleTimeStringWithoutSeconds = (date: Date): string | undefined => {
+  
+  if (!Boolean(date)) {
+    return undefined;
+  }
+  return date.toLocaleTimeString().replace(/:[0-9]{2}(?: |$)/, '');
+  
+}
+
 const currentHour = (history: boolean): Date => {
   
   const now = new Date();
@@ -126,6 +135,7 @@ const timeAsString = (date: Date): string => {
 export {
   parseLocalDate,
   toLocalDateString,
+  toLocaleTimeStringWithoutSeconds,
   parseLocalDateToIsoString,
   isValidLocalDate,
   currentHour,

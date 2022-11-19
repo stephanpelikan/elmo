@@ -734,6 +734,8 @@ components:
         kmAtEnd:
           type: integer
           format: int32
+        comment:
+          type: string
         hoursPlanned:
           type: integer
           format: int32

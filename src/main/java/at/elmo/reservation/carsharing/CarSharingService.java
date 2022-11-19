@@ -5,7 +5,10 @@ import at.elmo.config.ElmoProperties;
 import at.elmo.member.Member;
 import at.elmo.member.MemberRepository;
 import at.elmo.member.Role;
+import at.elmo.reservation.ReservationService;
+import at.elmo.reservation.blocking.BlockingReservation;
 import at.elmo.reservation.carsharing.CarSharing.Status;
+import at.elmo.reservation.passangerservice.shift.Shift;
 import at.elmo.util.email.EmailService;
 import at.elmo.util.email.NamedObject;
 import at.elmo.util.sms.SmsService;
@@ -16,6 +19,7 @@ import at.phactum.bp.blueprint.service.TaskEvent.Event;
 import at.phactum.bp.blueprint.service.TaskId;
 import at.phactum.bp.blueprint.service.WorkflowService;
 import at.phactum.bp.blueprint.service.WorkflowTask;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +38,9 @@ import java.util.stream.Collectors;
 public class CarSharingService {
 
     @Autowired
+    private Logger logger;
+    
+    @Autowired
     private CarSharingRepository carSharings;
     
     @Autowired
@@ -50,6 +57,9 @@ public class CarSharingService {
     
     @Autowired
     private ElmoProperties properties;
+    
+    @Autowired
+    private ReservationService reservationService;
     
     public long numberOfFutureCarSharings(
             final Member driver) {
@@ -235,6 +245,51 @@ public class CarSharingService {
                 NamedObject.from(carSharing).as("carSharing"));
         
     }
+    
+    @WorkflowTask
+    public void informNextDriverAboutDelay(
+            final CarSharing carSharing) throws Exception {
+        
+        final var overlappings = reservationService.checkForOverlappings(
+                carSharing.getCar(),
+                carSharing.getEndsAt(),
+                LocalDateTime.now().truncatedTo(ChronoUnit.HOURS).plusHours(1));
+        
+        overlappings
+                .stream()
+                .map(id -> {
+                    final var reservation = reservationService.getReservation(id);
+                    if (reservation instanceof BlockingReservation) {
+                        return null;
+                    } else if (reservation instanceof Shift) {
+                        return ((Shift) reservation).getDriver();
+                    } else if (reservation instanceof CarSharing) {
+                        return ((CarSharing) reservation).getDriver();
+                    }
+                    throw new RuntimeException(
+                            "Unexpected typo of reservation '"
+                            + reservation.getClass().getName()
+                            + "'. Did you forget to extend this if-statement?");
+                })
+                .filter(driver -> driver != null)
+                .forEach(driver -> {
+                    try {
+                        smsService.sendSms(
+                                "car-sharing/inform-next-driver-about-delay",
+                                CarSharingService.class.getSimpleName() + "#informNextDriverAboutDelay",
+                                properties.getPassanagerServicePhoneNumber(),
+                                driver.getMemberId().toString(),
+                                driver.getPhoneNumber(),
+                                NamedObject.from(carSharing).as("carSharing"));
+                    } catch (Exception e) {
+                        logger.error("Could not inform next driver ({}) about delay due to longer usage of car-sharing {}!",
+                                driver.getMemberId(),
+                                carSharing.getId(),
+                                e);
+                    }
+                });
+        
+    }
 
     @WorkflowTask(taskDefinition = "confirmStartOfUsage")
     public void confirmStartOfUsageForm(
@@ -293,8 +348,6 @@ public class CarSharingService {
             carSharing.setStartUsage(now);
             carSharing.setKmAtStart(km);
             carSharing.setStatus(Status.ONGOING);
-            carSharing.setUserTaskId(null);
-            carSharing.setUserTaskType(null);
             
         } else {
             
@@ -307,10 +360,12 @@ public class CarSharingService {
             carSharing.setEndUsage(now);
             carSharing.setKmAtEnd(km);
             carSharing.setStatus(Status.COMPLETED);
-            carSharing.setUserTaskId(null);
-            carSharing.setUserTaskType(null);
             
         }
+        
+        carSharing.setUserTaskId(null);
+        carSharing.setUserTaskType(null);
+        carSharing.setComment(comment);
         
         car.setKm(km);
         car.setKmConfirmed(true);

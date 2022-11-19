@@ -1,15 +1,16 @@
 import { CarSharingReservation } from '../../client/gui';
 import { AccordionPanel, Box, Button, Select, Table, TableBody, TableCell, TableRow, Text, TextArea } from 'grommet';
-import { Alert, Car, Schedules } from 'grommet-icons';
+import { Car, Schedules } from 'grommet-icons';
 import styled, { keyframes } from 'styled-components';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
 import { useState } from 'react';
 import { Modal } from '../../components/Modal';
-import { hoursBetween, nextHours } from '../../utils/timeUtils';
+import { hoursBetween, nextHours, toLocaleTimeStringWithoutSeconds } from '../../utils/timeUtils';
 import { now } from '../../utils/now-hook';
 import { SubHeading } from '../../components/MainLayout';
 import { KmInput } from '../../components/KmInput';
+import { normalizeColor } from 'grommet/utils';
 
 type Confirmation = 'start' | 'stop' | undefined;
 
@@ -18,6 +19,7 @@ i18n.addResources('en', 'driver/car-sharings/reservation', {
       "to": "To",
       "hours": "Hours",
       "car": "Car",
+      "comment": "Comment",
       "usage-from": "Usage from",
       "usage-until": "Usage until",
       "including-charging": "incl. Charging",
@@ -27,7 +29,7 @@ i18n.addResources('en', 'driver/car-sharings/reservation', {
       "stop-button": "Stop",
       "dismiss-button": "Dismiss",
       "comment-placeholder": "Leave blank unless charge level is not 100%, noticed damages to vehicle, etc.",
-      "comment-title": "Comments",
+      "comment-title": "Comment",
       "km-title": "Current Mileage",
     });
 i18n.addResources('de', 'driver/car-sharings/reservation', {
@@ -35,6 +37,7 @@ i18n.addResources('de', 'driver/car-sharings/reservation', {
       "to": "Bis",
       "hours": "Stunden",
       "car": "Fahrzeug",
+      "comment": "Kommentar",
       "usage-from": "Nutzung ab",
       "usage-until": "Nutzung bis",
       "including-charging": "inkl. Laden",
@@ -44,17 +47,16 @@ i18n.addResources('de', 'driver/car-sharings/reservation', {
       "stop-button": "Beenden",
       "dismiss-button": "Doch nicht",
       "comment-placeholder": "Leer lassen, außer wenn Ladestand nicht 100%, aufgefallene Schäden am Fahrzeug, etc.",
-      "comment-title": "Kommentare",
+      "comment-title": "Kommentar",
       "km-title": "Aktueller Kilometerstand",
     });
 
-const blinkAnimation = keyframes`
-  0% { opacity: 1 }
-  50% { opacity: 0.5 }
-  100% { opacity: 1 }
+const blinkAnimation = (props) => keyframes`
+  50% {
+    background-color: ${normalizeColor('brand', props.theme)};
+  }
 `
-const BlinkingAlert = styled(Alert)`
-  color: ${ props => props.color };
+const BlinkingButton = styled(Button)`
   animation-name: ${ blinkAnimation };
   animation-duration: 1s;
   animation-iteration-count: infinite;
@@ -69,7 +71,7 @@ const ReservationAccordionPanel = ({
     reservation: CarSharingReservation,
     index: number,
     goToPlanner: (reservation: CarSharingReservation) => void,
-    confirmStartOrStopOfCarSharing: (timestamp: Date, km: number, comment: string) => Promise<void>,
+    confirmStartOrStopOfCarSharing: (timestamp: Date, km: number, comment: string) => Promise<boolean>,
   }) => {
 
   const { t } = useTranslation('driver/car-sharings/reservation');
@@ -77,14 +79,19 @@ const ReservationAccordionPanel = ({
   const [ confirmation, setConfirmation ] = useState<Confirmation>(undefined);
   const [ timestamp, setTimestamp ] = useState<Date>(undefined);
   const [ km, setKm ] = useState<number>(reservation.carKm);
-  const [ comment, setComment ] = useState<string>(undefined);
+  const [ comment, setComment ] = useState<string>(reservation.comment);
+  
+  const showConfirmationModal = (type: Confirmation, km: number | undefined) => {
+    setKm(km);
+    setComment(reservation.comment);
+    setConfirmation(type);
+    setTimestamp(nextHours(now, 1, false));
+  };
   
   const confirm = async () => {
-      await confirmStartOrStopOfCarSharing(timestamp, km, comment);
+      const success = await confirmStartOrStopOfCarSharing(timestamp, km, comment);
+      if (!success) return;
       setConfirmation(undefined);
-      setTimestamp(undefined);
-      setKm(reservation.carKm);
-      setComment(undefined);
     };
 
   return (
@@ -127,7 +134,7 @@ const ReservationAccordionPanel = ({
                     truncate='tip'>
                   { reservation.startsAt.toLocaleDateString() }
                   &nbsp;
-                  { reservation.startsAt.toLocaleTimeString().replace(':00', '') }
+                  { toLocaleTimeStringWithoutSeconds(reservation.startsAt) }
                   &nbsp;
                   { reservation.hoursPlanned }h
                 </Text>
@@ -135,16 +142,6 @@ const ReservationAccordionPanel = ({
               <Box
                   direction="row"
                   gap="small">
-                {
-                  reservation.userTaskId !== undefined
-                      ? <BlinkingAlert
-                          color={
-                             reservation.status === 'RESERVED'
-                                ? 'status-critical'
-                                : 'status-warning'
-                            } />
-                      : undefined
-                }
                 <Box
                     onClick={ () => goToPlanner(reservation) }
                     focusIndicator={ false }>
@@ -157,7 +154,7 @@ const ReservationAccordionPanel = ({
             margin={ { vertical: 'small' } }>
           <TableBody>
             <TableRow>
-              <TableCell size="45%">{ t('car') }:</TableCell>
+              <TableCell size="40%">{ t('car') }:</TableCell>
               <TableCell>
                 { reservation.carName }
               </TableCell>
@@ -167,7 +164,7 @@ const ReservationAccordionPanel = ({
               <TableCell>
                 { reservation.startsAt.toLocaleDateString() }
                 &nbsp;
-                { reservation.startsAt.toLocaleTimeString().replace(':00', '') }
+                { toLocaleTimeStringWithoutSeconds(reservation.startsAt) }
               </TableCell>
             </TableRow>
             <TableRow>
@@ -175,7 +172,7 @@ const ReservationAccordionPanel = ({
               <TableCell>
                 { reservation.endsAt.toLocaleDateString() }
                 &nbsp;
-                { reservation.endsAt.toLocaleTimeString().replace(':00', '') }
+                { toLocaleTimeStringWithoutSeconds(reservation.endsAt) }
               </TableCell>
             </TableRow>
             <TableRow>
@@ -185,16 +182,7 @@ const ReservationAccordionPanel = ({
               </TableCell>
             </TableRow>
             {
-              Boolean(reservation.userTaskId) && Boolean(reservation.userTaskType === 'confirmStartOfUsage')
-                  ? <TableRow>
-                      <TableCell colSpan={ 2 }>
-                        <Button
-                            primary
-                            onClick={ () => setConfirmation('start') }
-                            label={ t('start-usage') } />
-                      </TableCell>
-                    </TableRow>
-                  : Boolean(reservation.kmAtStart)
+              Boolean(reservation.kmAtStart)
                   ? <TableRow>
                       <TableCell
                           verticalAlign='top'>
@@ -203,7 +191,7 @@ const ReservationAccordionPanel = ({
                       <TableCell>
                         { reservation.startUsage.toLocaleDateString() }
                         &nbsp;
-                        { reservation.startUsage.toLocaleTimeString().replace(/:[0-9]+$/, '') }
+                        { toLocaleTimeStringWithoutSeconds(reservation.startUsage) }
                         <br/>
                         { reservation.kmAtStart.toLocaleString() }
                         &nbsp;km
@@ -212,16 +200,7 @@ const ReservationAccordionPanel = ({
                   : undefined
             }
             {
-              Boolean(reservation.userTaskId) && Boolean(reservation.userTaskType === 'confirmEndOfUsage')
-                  ? <TableRow>
-                      <TableCell colSpan={ 2 }>
-                        <Button
-                            primary
-                            onClick={ () => setConfirmation('stop') }
-                            label={ t('stop-button') } />
-                      </TableCell>
-                    </TableRow>
-                  : Boolean(reservation.kmAtEnd)
+              Boolean(reservation.kmAtEnd)
                   ? <TableRow>
                       <TableCell
                           verticalAlign='top'>
@@ -230,10 +209,41 @@ const ReservationAccordionPanel = ({
                       <TableCell>
                         { reservation.endUsage.toLocaleDateString() }
                         &nbsp;
-                        { reservation.endUsage.toLocaleTimeString().replace(/:[0-9]+$/, '') }
+                        { toLocaleTimeStringWithoutSeconds(reservation.endUsage) }
                         <br/>
                         { reservation.kmAtEnd.toLocaleString() }
                         &nbsp;km
+                      </TableCell>
+                    </TableRow>
+                  : undefined
+            }
+            {
+              Boolean(reservation.comment)
+                  ? <TableRow>
+                      <TableCell>{ t('comment') }:</TableCell>
+                      <TableCell>
+                        { reservation.comment }
+                      </TableCell>
+                    </TableRow>
+                  : undefined
+            }
+            {
+              Boolean(reservation.userTaskId) && Boolean(reservation.userTaskType === 'confirmStartOfUsage')
+                  ? <TableRow>
+                      <TableCell colSpan={ 2 }>
+                        <BlinkingButton
+                            primary
+                            onClick={ () => showConfirmationModal('start', reservation.carKm) }
+                            label={ t('start-usage') } />
+                      </TableCell>
+                    </TableRow>
+                  : Boolean(reservation.userTaskId) && Boolean(reservation.userTaskType === 'confirmEndOfUsage')
+                  ? <TableRow>
+                      <TableCell colSpan={ 2 }>
+                        <BlinkingButton
+                            primary
+                            onClick={ () => showConfirmationModal('stop', undefined) }
+                            label={ t('stop-button') } />
                       </TableCell>
                     </TableRow>
                   : undefined
@@ -284,19 +294,18 @@ const ReservationAccordionPanel = ({
                         valueLabel={ v => (
                             <Box
                                 pad="xsmall">
-                              { v.toLocaleTimeString().replace(/:[0-9]+$/, '') }
+                              { toLocaleTimeStringWithoutSeconds(v) }
                             </Box>)
                           }
                         children={ v => (
                             <Box
                                 background={ v.getTime() !== timestamp?.getTime() ? undefined : 'brand' }
                                 pad="xsmall">
-                              { v.toLocaleTimeString().replace(/:[0-9]+$/, '') }
+                              { toLocaleTimeStringWithoutSeconds(v) }
                             </Box>)
                           }
-                        value={ timestamp || nextHours(now, 1, false) }
-                        onChange={ ({ option }) => setTimestamp(option) }
-                         />
+                        value={ timestamp }
+                        onChange={ ({ option }) => setTimestamp(option) } />
                     <SubHeading>{ t('km-title') }:</SubHeading>
                     <KmInput
                         km={ km }

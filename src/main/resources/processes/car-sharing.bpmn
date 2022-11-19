@@ -8,7 +8,6 @@
     <bpmn:sequenceFlow id="Flow_16tomnj" name="regular end of usage" sourceRef="Activity_1vsbnwj" targetRef="Activity_1qbm914" />
     <bpmn:sequenceFlow id="Flow_1spxycx" sourceRef="Event_0l14mx9" targetRef="Activity_1ifav8b" />
     <bpmn:sequenceFlow id="Flow_1ysv7e7" sourceRef="Event_0g24ov8" targetRef="Activity_1cp3vsj" />
-    <bpmn:sequenceFlow id="Flow_1x29dnp" sourceRef="Activity_1qbm914" targetRef="Event_09q5f5a" />
     <bpmn:subProcess id="Activity_1vsbnwj">
       <bpmn:incoming>Flow_08m2v9o</bpmn:incoming>
       <bpmn:outgoing>Flow_16tomnj</bpmn:outgoing>
@@ -124,11 +123,8 @@
       <bpmn:incoming>Flow_1uhhnvn</bpmn:incoming>
       <bpmn:incoming>Flow_0vpvual</bpmn:incoming>
       <bpmn:incoming>Flow_0wjrgq5</bpmn:incoming>
-      <bpmn:outgoing>Flow_1x29dnp</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0ucze8h</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:endEvent id="Event_09q5f5a" name="car sharing completed">
-      <bpmn:incoming>Flow_1x29dnp</bpmn:incoming>
-    </bpmn:endEvent>
     <bpmn:sendTask id="Activity_1cp3vsj" name="inform administrator about unconfirmed usage" camunda:asyncBefore="true" camunda:expression="${informAdministratorAboutUnconfirmedUsage}">
       <bpmn:incoming>Flow_1ysv7e7</bpmn:incoming>
       <bpmn:outgoing>Flow_1uhhnvn</bpmn:outgoing>
@@ -151,6 +147,25 @@
       <bpmn:outgoing>Flow_0wjrgq5</bpmn:outgoing>
       <bpmn:messageEventDefinition id="MessageEventDefinition_1097rfg" messageRef="Message_0l87vd6" />
     </bpmn:boundaryEvent>
+    <bpmn:boundaryEvent id="Event_0e9uaq7" name="end of planned usage" cancelActivity="false" attachedToRef="Activity_1vsbnwj">
+      <bpmn:outgoing>Flow_0cnrsz4</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_1mt7pea">
+        <bpmn:timeDate xsi:type="bpmn:tFormalExpression">${endsAtDate}</bpmn:timeDate>
+      </bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="Flow_0cnrsz4" sourceRef="Event_0e9uaq7" targetRef="Activity_1l2akw9" />
+    <bpmn:endEvent id="Event_09q5f5a" name="car sharing completed">
+      <bpmn:incoming>Flow_0ucze8h</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1hnoend" sourceRef="Activity_1l2akw9" targetRef="Event_1f94m7e" />
+    <bpmn:sequenceFlow id="Flow_0ucze8h" sourceRef="Activity_1qbm914" targetRef="Event_09q5f5a" />
+    <bpmn:endEvent id="Event_1f94m7e" name="longer usage treated">
+      <bpmn:incoming>Flow_1hnoend</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sendTask id="Activity_1l2akw9" name="inform next driver about delay" camunda:expression="${informNextDriverAboutDelay}">
+      <bpmn:incoming>Flow_0cnrsz4</bpmn:incoming>
+      <bpmn:outgoing>Flow_1hnoend</bpmn:outgoing>
+    </bpmn:sendTask>
   </bpmn:process>
   <bpmn:error id="Error_0msatxo" name="Email_Not_Verified" errorCode="Email_Not_Verified" />
   <bpmn:message id="Message_2upsvno" name="to" />
@@ -159,7 +174,23 @@
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_0o6mceo">
       <bpmndi:BPMNShape id="Participant_1k1w0l5_di" bpmnElement="Participant_1k1w0l5" isHorizontal="true">
-        <dc:Bounds x="180" y="60" width="1620" height="500" />
+        <dc:Bounds x="180" y="60" width="1830" height="570" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_14xkdex_di" bpmnElement="Event_09q5f5a">
+        <dc:Bounds x="1922" y="292" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1913" y="335" width="55" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1f94m7e_di" bpmnElement="Event_1f94m7e">
+        <dc:Bounds x="1872" y="532" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1858" y="575" width="64" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1dfzpc6_di" bpmnElement="Activity_1l2akw9">
+        <dc:Bounds x="1700" y="510" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_1vsbnwj_di" bpmnElement="Activity_1vsbnwj" isExpanded="true">
@@ -319,12 +350,6 @@
         <dc:Bounds x="1550" y="270" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_14xkdex_di" bpmnElement="Event_09q5f5a">
-        <dc:Bounds x="1722" y="292" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="1713" y="335" width="55" height="27" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_18kydao_di" bpmnElement="Activity_1cp3vsj">
         <dc:Bounds x="1550" y="110" width="100" height="80" />
         <bpmndi:BPMNLabel />
@@ -353,6 +378,12 @@
           <dc:Bounds x="1473" y="106" width="74" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0845y8e_di" bpmnElement="Event_0e9uaq7">
+        <dc:Bounds x="1354" y="492" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1285" y="526" width="73" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_08m2v9o_di" bpmnElement="Flow_08m2v9o">
         <di:waypoint x="288" y="310" />
         <di:waypoint x="350" y="310" />
@@ -372,10 +403,6 @@
         <di:waypoint x="1488" y="150" />
         <di:waypoint x="1550" y="150" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1x29dnp_di" bpmnElement="Flow_1x29dnp">
-        <di:waypoint x="1650" y="310" />
-        <di:waypoint x="1722" y="310" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0a542fp_di" bpmnElement="Flow_0a542fp">
         <di:waypoint x="1600" y="430" />
         <di:waypoint x="1600" y="350" />
@@ -393,6 +420,19 @@
         <di:waypoint x="1488" y="240" />
         <di:waypoint x="1580" y="240" />
         <di:waypoint x="1580" y="270" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0cnrsz4_di" bpmnElement="Flow_0cnrsz4">
+        <di:waypoint x="1372" y="528" />
+        <di:waypoint x="1372" y="550" />
+        <di:waypoint x="1700" y="550" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1hnoend_di" bpmnElement="Flow_1hnoend">
+        <di:waypoint x="1800" y="550" />
+        <di:waypoint x="1872" y="550" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0ucze8h_di" bpmnElement="Flow_0ucze8h">
+        <di:waypoint x="1650" y="310" />
+        <di:waypoint x="1922" y="310" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

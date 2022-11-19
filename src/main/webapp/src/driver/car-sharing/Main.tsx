@@ -70,7 +70,7 @@ const CarSharings = () => {
       userTaskId: string,
       km: number,
       timestamp: Date,
-      comment?: string) => {
+      comment?: string): Promise<boolean> => {
     
     try {
       
@@ -86,6 +86,7 @@ const CarSharings = () => {
         });
       reservations[index] = reservation;
       setReservations([ ...reservations ]);
+      return true;
         
     } catch (error) {
 
@@ -100,6 +101,7 @@ const CarSharings = () => {
             status: 'critical'
           });
       }
+      return false;
       
     }
     

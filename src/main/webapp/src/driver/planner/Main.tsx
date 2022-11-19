@@ -793,7 +793,8 @@ const Planner = () => {
   const setSelection = useCallback((s: Selection) => {
       selection.current = s;
       _setSelection(s);
-    }, [ _setSelection, selection ]);
+      setUseSearch(false);
+    }, [ _setSelection, selection, setUseSearch ]);
     
   const [ waitingForUpdate, _setWaitingForUpdate ] = useState(false);
   const waitingForUpdateRef = useRef(waitingForUpdate);
