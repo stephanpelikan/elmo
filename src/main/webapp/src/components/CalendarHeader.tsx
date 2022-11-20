@@ -17,6 +17,7 @@ const headingSizeMap = {
 
 interface ExtendedCalendarHeaderProps extends CalendarHeaderProps {
   setDate: (date: Date) => void;
+  showRange?: boolean;
 };
 
 const CalendarHeader = ({
@@ -26,7 +27,8 @@ const CalendarHeader = ({
   onPreviousMonth,
   onNextMonth,
   previousInBound,
-  nextInBound
+  nextInBound,
+  showRange = true,
 }: ExtendedCalendarHeaderProps) => {
   
   const { isPhone, currentScreen } = useResponsiveScreen();
@@ -49,7 +51,16 @@ const CalendarHeader = ({
 
   return (
     <>
-      <Box direction="row" justify="between" align="center" gap="small">
+      <Box
+          direction="row"
+          justify="between"
+          align="center"
+          gap="small"
+          margin={ { bottom: showRange
+              ? undefined
+              : isPhone
+              ? 'medium'
+              : 'small' } }>
         <Box flex pad={{ horizontal: headingPadMap[currentScreen] || 'small' }}>
           <Heading
             level={
@@ -79,14 +90,18 @@ const CalendarHeader = ({
           />
         </Box>
       </Box>
-      <Box
-          margin={ { vertical: 'small' } }>
-        <RangeInput
-            min={firstYear}
-            max={thisYear}
-            value={year}
-            onChange={changeYear} />
-      </Box>
+      {
+        showRange
+            ? <Box
+                  margin={ { vertical: 'small' } }>
+                <RangeInput
+                    min={firstYear}
+                    max={thisYear}
+                    value={year}
+                    onChange={changeYear} />
+              </Box>
+            : undefined
+      }
     </>
   );
 };

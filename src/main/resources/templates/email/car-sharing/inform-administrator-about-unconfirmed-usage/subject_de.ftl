@@ -1,0 +1,1 @@
+Car-Sharing-Nutzung wurde nicht bestätigt (Fahrer: ${carSharing.driver.memberId})!

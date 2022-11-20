@@ -3,6 +3,8 @@ package at.elmo.config;
 import at.elmo.util.email.EmailProperties;
 import freemarker.cache.TemplateLookupStrategy;
 import freemarker.template.TemplateException;
+import freemarker.template.Version;
+import no.api.freemarker.java8.Java8ObjectWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,11 +38,12 @@ public class FreemarkerConfiguration {
 
         final var result = new FreeMarkerConfigurationFactoryBean() {
 
+            private final static Version FREEMARKER_VERSION = freemarker.template.Configuration.VERSION_2_3_31;
+            
             @Override
             protected freemarker.template.Configuration newConfiguration() throws IOException, TemplateException {
 
-                return new freemarker.template.Configuration(
-                        freemarker.template.Configuration.VERSION_2_3_31);
+                return new freemarker.template.Configuration(FREEMARKER_VERSION);
 
             }
 
@@ -51,6 +54,7 @@ public class FreemarkerConfiguration {
                 config.setTemplateLookupStrategy(TemplateLookupStrategy.DEFAULT_2_3_0);
                 config.setLocalizedLookup(true);
                 config.setRecognizeStandardFileExtensions(true);
+                config.setObjectWrapper(new Java8ObjectWrapper(FREEMARKER_VERSION));
 
                 final var elmoInformation = new ElmoEmailInformation();
                 elmoInformation.setTitle(properties.getTitleLong());

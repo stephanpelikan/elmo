@@ -15,23 +15,23 @@ import at.elmo.util.pdf.fillin.elements.FillInElement;
  */
 public class ImageElementHandler implements Handler {
 
-	/**
-	 * @param page
-	 *            The page
-	 * @param element
-	 *            The element
-	 * @see Handler#process(PDPage, FillInElement)
-	 */
-	@Override
-	public void process(
-			final PDRectangle mediaBox,
-			final PDPageContentStream contentStream,
-			final FillInElement element) throws IOException {
+    /**
+     * @param page
+     *            The page
+     * @param element
+     *            The element
+     * @see Handler#process(PDPage, FillInElement)
+     */
+    @Override
+    public void process(
+            final PDRectangle mediaBox,
+            final PDPageContentStream contentStream,
+            final FillInElement element) throws IOException {
 
         // final ImageElement imagelement = (ImageElement) element;
-		
+        
         // TODO
 
-	}
-	
+    }
+    
 }

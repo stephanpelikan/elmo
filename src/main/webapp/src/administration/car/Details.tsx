@@ -1,18 +1,20 @@
-import { Box, Button, CheckBox, Grid, Heading, Layer, Paragraph, Text, TextInput } from "grommet";
+import { Box, Button, CheckBox, Paragraph, Text, TextInput } from "grommet";
 import { useEffect, useState } from "react";
 import { ViolationsAwareFormField } from "../../components/ViolationsAwareFormField";
 import { useTranslation } from "react-i18next";
 import QRCode from "react-qr-code";
 import { useNavigate, useParams } from "react-router-dom";
-import styled from "styled-components";
 import { useAppContext } from "../../AppContext";
 import { Car, CarApi } from "../../client/administration";
 import i18n from '../../i18n';
 import { useCarAdministrationApi } from "../AdminAppContext";
 import useResponsiveScreen from '../../utils/responsiveUtils';
+import { LoadingIndicator } from '../../components/LoadingIndicator';
+import { MainLayout, Heading } from "../../components/MainLayout";
+import { CodeButton } from "../../components/CodeButton";
+import { Modal } from "../../components/Modal";
 
 i18n.addResources('en', 'administration/car-details', {
-      "loading": "loading...",
       "shortcut": "Shortcut:",
       "shortcut-readonly": "Shortcut (not changeable):",
       "name": "Name of the car:",
@@ -52,7 +54,6 @@ However, it can be deactivated for passanger-service and car-sharing.`,
       "new": "New",
   });
 i18n.addResources('de', 'administration/car-details', {
-      "loading": "Lade Daten...",
       "shortcut": "Kürzel:",
       "shortcut-readonly": "Kürzel (nicht änderbar):",
       "name": "Name des Autos:",
@@ -90,21 +91,6 @@ i18n.addResources('de', 'administration/car-details', {
  Es kann jedoch für den Fahrtendienst und das Car-Sharing verboten werden.`,
       "new": "Neu",
   });
-
-const SmsTestButton = styled(Button)`
-  position: relative;
-  white-space: nowrap;
-  &:after {
-    content: '';
-    width: 110%;
-    height: 1px;
-    background: white;
-    position: absolute;
-    opacity: 1;
-    bottom: calc(${(props) => props.theme.button.secondary.border.width} * -1 - 1px);
-    left: -5%;
-  }
-`;
 
 const loadData = async (carApi: CarApi, carId: string, setCar: (car: Car) => void) => {
     const car = await carApi.getCar({ carId });
@@ -261,21 +247,12 @@ const Details = () => {
   };
 
   if (loading) {
-    return (
-        <Box
-            pad='medium'>
-          <Heading
-              size='small'
-              level='2'>{ t('loading') }</Heading>
-        </Box>);
+    return <LoadingIndicator />;
   }
   
   return (
-    <Grid
-        pad={ { horizontal: 'medium' } }>
-      <Heading
-          size='small'
-          level='2'>
+    <MainLayout>
+      <Heading>
         { Boolean(car.name) ? car.name : t('new') }
       </Heading>
       <CheckBox
@@ -328,9 +305,8 @@ const Details = () => {
               onChange={ event => setCarValue({ phoneNumber: event.target.value }) }
               focusIndicator={false}
               plain />
-          <SmsTestButton
+          <CodeButton
               secondary
-              fill={false}
               disabled={ !car.appActive }
               onClick={ value => testSms() }
               label={ t('test-sms') } />
@@ -382,41 +358,32 @@ const Details = () => {
                 onClick={ activateApp }
                 label={ t('activate') } /> }
       </Box>
-      { activationCode
-          ? (<Layer
-                onEsc={ dismissQrCode }
-                responsive={true}
-                modal={true}>
-              <Box
-                  direction="column"
-                  pad="medium">
-                <Heading
-                    size='small'
-                    alignSelf="center"
-                    level='2'>
-                  {  car.name }
-                </Heading>
-                <Paragraph
-                    alignSelf="center"
-                    >{ t('scan-qr-code') }</Paragraph>
-                <Box
-                    fill
-                    align='center'
-                    width='100%'
-                    height='100%'>
-                  <QRCode value={ activationCode } />
-                </Box>
-                <Button
-                    onClick={ dismissQrCode }
-                    margin='large'
-                    secondary
-                    alignSelf="center"
-                    label={ t('dismiss') }
-                    />
-              </Box>
-            </Layer>)
-          : '' }
-    </Grid>);
+      <Modal
+          show={ activationCode !== undefined }
+          abort={ dismissQrCode }
+          abortLabel='dismiss'
+          header={
+              <Heading
+                  size='small'
+                  alignSelf="center"
+                  level='2'>
+                {  car.name }
+              </Heading>
+            }
+          t={ t }>
+        <Paragraph
+            alignSelf="center"
+            >{ t('scan-qr-code') }</Paragraph>
+        <Box
+            fill
+            pad={ { horizontal: 'medium', top: 'medium', vertical: 'large' } }
+            align='center'
+            width='100%'
+            height='100%'>
+          <QRCode value={ activationCode } />
+        </Box>
+      </Modal>
+    </MainLayout>);
   
 };
 

@@ -4,6 +4,9 @@ elmo:
     supported: true
   initial-new-member-id: 1
   admin-member-id: 1
+  car-sharing:
+    max-hours: 48
+    max-reservations: 3
   cors:
     allowedHeaders:
     - '*'
@@ -16,16 +19,6 @@ elmo:
     - DELETE
     - PATCH
     maxAge: 43200
-  websockets:
-    message-broker-max-pool-size: 64
-    message-broker-core-pool-size: 4
-    message-broker-queue-capacity: 512
-    in-bound-channel-max-pool-size: 64
-    in-bound-channel-core-pool-size: 4
-    in-bound-channel-queue-capacity: 512
-    out-bound-channel-max-pool-size: 64
-    out-bound-channel-core-pool-size: 4
-    out-bound-channel-queue-capacity: 512
   passanger-service:
     days-for-initial-shift-creation: 90
     shifts:
@@ -91,15 +84,17 @@ spring:
     store-type: none
   liquibase:
     change-log: classpath:liquibase/master.yml
+  jpa:
+    open-in-view: false
   datasource:
-    type: com.zaxxer.hikari.HikariDataSource
+    type: at.elmo.config.db.NotificationsAwareHikariDataSource
     hikari:
       maximum-pool-size: 10
       auto-commit: false
       minimum-idle: 0
       max-lifetime: 600000 # Build new connections every 10 minutes.
       idle-timeout: 180000 # Release new connections after 3 minutes of inactivity.
-      leak-detection-threshold: 4000 # TODO determine a good value
+      leak-detection-threshold: 6000 # TODO determine a good value
       data-source-properties:
       defaultRowPrefetch: 100
   freemarker:
@@ -108,6 +103,7 @@ camunda:
   bpm:
     default-number-of-retries: 1
     job-execution:
+      blueprint: true
       core-pool-size: 2
       max-pool-size: 2
       wait-time-in-millis: 2500
@@ -126,16 +122,21 @@ camunda:
       jdbc-batch-processing: true
     metrics:
       enabled: true
+      db-reporter-activate: false
     webapp:
       index-redirect-enabled: false
+  telemetry:
+    enabled: false
   xstream-serialization:
     allowed-types:
     - at.elmo.**
 logging:
   level:
-# see de.mhb.commons.spa.SpaNoHandlerFoundExceptionHandler
+    liquibase.hub: ERROR
+    # suppress warnings on loosing SSE connection due to user closed the browser
+    org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver: ERROR
+    # see de.mhb.commons.spa.SpaNoHandlerFoundExceptionHandler
     org.springframework.web.servlet.PageNotFound: ERROR
-    org.springframework.web.socket.config.WebSocketMessageBrokerStats: ERROR
     org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: ERROR
     org.springframework.web.servlet.NoHandlerFoundException: FATAL
 
@@ -193,6 +194,8 @@ translations:
       comment: Comment
       iban: IBAN
       payment: Payment
+      hoursServedPassangerService: Passanger-S.
+      hoursConsumedCarSharing: Car-Sharing
     de:
       members: Mitglieder
       memberId: Mitgliedsnummer
@@ -210,3 +213,15 @@ translations:
       comment: Kommenatar
       iban: IBAN
       payment: Zahlung
+      hoursServedPassangerService: Fahrtendienst
+      hoursConsumedCarSharing: Car-Sharing
+
+---
+spring:
+  config:
+    activate:
+      on-profile: "!local"
+  data:
+    r2dbc:
+      repositories:
+        enabled: false

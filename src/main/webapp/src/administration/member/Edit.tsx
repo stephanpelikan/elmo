@@ -3,7 +3,7 @@ import { useMemberApi } from '../AdminAppContext';
 import i18n from '../../i18n';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Box, Button, CheckBox, DateInput, Form, FormField, Heading, Paragraph, Select, Text, TextArea } from 'grommet';
+import { Box, Button, CheckBox, DateInput, Form, FormField, Paragraph, Select, Table, TableBody, TableCell, TableRow, TextArea } from 'grommet';
 import { useTranslation } from 'react-i18next';
 import { ViolationsAwareFormField } from "../../components/ViolationsAwareFormField";
 import { parseLocalDateToIsoString, toLocalDateString } from '../../utils/timeUtils';
@@ -11,10 +11,13 @@ import useResponsiveScreen from '../../utils/responsiveUtils';
 import { CalendarHeader } from '../../components/CalendarHeader';
 import { Modal } from '../../components/Modal';
 import { useAppContext } from '../../AppContext';
+import { LoadingIndicator } from '../../components/LoadingIndicator';
+import { MainLayout, Heading, Content, SubHeading } from '../../components/MainLayout';
 
 i18n.addResources('en', 'administration/member-details', {
-    "loading": "Loading...",
     "new": "new",
+    "hoursServedPassangerService": "Hours served passanger service",
+    "hoursConsumedCarSharing": "Hours consumed car-sharing",
     "person-title": "Title:",
     "first-name": "First name:",
     "first-name_missing": "Please enter a name!",
@@ -49,7 +52,7 @@ i18n.addResources('en', 'administration/member-details', {
     "ADMIN": "Administrator",
     "comment": "Comment:",
     "comment_placeholder": "Comment, e.g. hints for purchasing",
-    "reset": "Reset",
+    "reset": "Reset changes",
     "delete": "Delete",
     "delete_header": "Delete member?",
     "delete_question": "Delete a member irrevocably?",
@@ -68,8 +71,9 @@ i18n.addResources('en', 'administration/member-details', {
     "abort": "Abort",
   });
 i18n.addResources('de', 'administration/member-details', {
-    "loading": "Lade Daten...",
     "new": "Neu",
+    "hoursServedPassangerService": "Geleiste Stunden Fahrtendienst",
+    "hoursConsumedCarSharing": "Konsumierte Stunden Car-Sharing",
     "person-title": "Titel:",
     "first-name": "Vorname:",
     "first-name_missing": "Bitte trage einen Vornamen ein!",
@@ -119,7 +123,7 @@ i18n.addResources('de', 'administration/member-details', {
     "delete_hint_header": "Hinweis:",
     "delete_header": "Mitglied löschen?",
     "inactive": "Das Mitglied ist inaktiv!",
-    "reset": "Zurücksetzen",
+    "reset": "Änderungen zurücksetzen",
     "abort": "Abbrechen",
   });
 
@@ -244,25 +248,44 @@ const EditMember = () => {
   };
   
   return (
-    <Box
-        pad='small'>
+    <MainLayout>
       <Heading
           size='small'
-          level='2'>{
-        loading
-            ? t('loading')
-            : `${formValue?.firstName ? formValue?.firstName : ''} ${formValue?.lastName ? formValue?.lastName :''} (${memberIdString})`
-      }
-      {
-        isInactive()
-            ? <Paragraph
-                  margin={ { vertical: 'xsmall' } }
-                  color="red">
-                { t('inactive') }
-              </Paragraph>
-            : <></>
-      }
+          level='2'>
+        {
+          formValue?.firstName ? formValue?.firstName : ''
+        } {
+          formValue?.lastName ? formValue?.lastName : ''
+        } ({
+          memberIdString
+        })
+        {
+          isInactive()
+              ? <Paragraph
+                    margin={ { vertical: 'xsmall' } }
+                    color="red">
+                  { t('inactive') }
+                </Paragraph>
+              : <></>
+        }
       </Heading>
+      <Content>
+      {
+          formValue?.roles?.includes(Role.Driver)
+              ? <Table style={ { maxWidth: '23rem' } }>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell>{ t('hoursServedPassangerService') }:</TableCell>
+                      <TableCell>{ formValue.hoursServedPassangerService }h</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>{ t('hoursConsumedCarSharing') }:</TableCell>
+                      <TableCell>{ formValue.hoursConsumedCarSharing }h</TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              : undefined
+      }
       <Form<Member>
           value={ formValue }
           validate='change'
@@ -385,7 +408,7 @@ const EditMember = () => {
             disabled={ loading }
             htmlFor="rolesSelect">
           <Select
-              id="reolesSelect"
+              id="rolesSelect"
               multiple
               options={[ Role.Passanger, Role.Driver, Role.Manager, Role.Admin ]}
               value={ formValue?.roles }
@@ -414,22 +437,31 @@ const EditMember = () => {
               primary
               disabled={ loading }
               label={ t('save') } />
-          <Button
-              secondary
-              disabled={ loading }
-              label={ t('delete') }
-              onClick={ value => setConfirmDelete(true) } />
-          <Button
-              secondary
-              disabled={ loading }
-              label={ t(isInactive() ? 'enable' : 'disable') }
-              onClick={ saveMemberAndActivate } />
+          {
+            isNewMember
+                ? undefined
+                : <Button
+                      secondary
+                      disabled={ loading }
+                      label={ t('delete') }
+                      onClick={ value => setConfirmDelete(true) } />
+          }
+          {
+            isNewMember
+                ? undefined
+                : <Button
+                      secondary
+                      disabled={ loading }
+                      label={ t(isInactive() ? 'enable' : 'disable') }
+                      onClick={ saveMemberAndActivate } />
+          }
           <Button
               type="reset"
               disabled={ loading }
               label={ t('reset') } />
         </Box>
       </Form>
+      </Content>
       <Modal
           show={ confirmDelete }
           action={ deleteMember }
@@ -437,13 +469,13 @@ const EditMember = () => {
           abort={ () => setConfirmDelete(false) }
           header='delete_header'
           t={ t }>
-        <Paragraph>
-          <Text>{ t('delete_question') }</Text>
-          <br />
-          <Text><i>{ t('delete_hint_header') }</i> { t('delete_hint') }</Text>
-        </Paragraph>
+        <SubHeading>{ t('delete_question') }</SubHeading>
+        <Paragraph><i>{ t('delete_hint_header') }</i> { t('delete_hint') }</Paragraph>
       </Modal>
-    </Box>);
+      {
+        loading ? <LoadingIndicator /> : undefined
+      }
+    </MainLayout>);
     
 }
 

@@ -1,7 +1,7 @@
 package at.elmo.config;
 
 import at.elmo.car.CarProperties;
-import at.elmo.config.websockets.WebsocketProperties;
+import at.elmo.reservation.carsharing.CarSharingProperties;
 import at.elmo.reservation.passangerservice.PassangerServiceProperties;
 import at.elmo.util.email.EmailProperties;
 import at.elmo.util.sms.SmsProperties;
@@ -9,17 +9,25 @@ import at.phactum.bp.blueprint.async.AsyncProperties;
 import at.phactum.bp.blueprint.async.AsyncPropertiesAware;
 import at.phactum.bp.blueprint.modules.ModuleSpecificProperties;
 import at.phactum.bp.blueprint.modules.WorkflowModuleIdAwareProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.lang.NonNull;
 import org.springframework.web.cors.CorsConfiguration;
 
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.Locale;
+
+import javax.annotation.PostConstruct;
 
 @ConfigurationProperties(prefix = "elmo", ignoreUnknownFields = false)
 public class ElmoProperties implements WorkflowModuleIdAwareProperties, AsyncPropertiesAware {
 
     private static final String WORKFLOW_MODULE_ID = "Elmo";
+    
+    private static final Logger logger = LoggerFactory.getLogger(ElmoProperties.class);
 
     @Bean
     public static ModuleSpecificProperties moduleProps() {
@@ -27,7 +35,7 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties, AsyncPro
         return new ModuleSpecificProperties(ElmoProperties.class, WORKFLOW_MODULE_ID);
 
     }
-
+    
     private AsyncProperties async = new AsyncProperties();
 
     @NonNull
@@ -74,8 +82,6 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties, AsyncPro
 
     private CorsConfiguration cors = new CorsConfiguration();
 
-    private WebsocketProperties websockets;
-
     private Duration accessTokenLifetime = Duration.ofHours(1);
 
     private Duration refreshTokenLifetime = Duration.ofDays(14);
@@ -87,6 +93,8 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties, AsyncPro
     private CarProperties cars;
 
     private PassangerServiceProperties passangerService;
+    
+    private CarSharingProperties carSharing;
 
     @NonNull
     private String passanagerServicePhoneNumber;
@@ -98,14 +106,6 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties, AsyncPro
 
     public void setAsync(AsyncProperties async) {
         this.async = async;
-    }
-
-    public WebsocketProperties getWebsockets() {
-        return websockets;
-    }
-
-    public void setWebsockets(WebsocketProperties websockets) {
-        this.websockets = websockets;
     }
 
     public CorsConfiguration getCors() {
@@ -289,4 +289,40 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties, AsyncPro
         this.passangerService = passangerService;
     }
 
+    public CarSharingProperties getCarSharing() {
+        return carSharing;
+    }
+    
+    public void setCarSharing(CarSharingProperties carSharing) {
+        this.carSharing = carSharing;
+    }
+
+    @PostConstruct
+    public void setDefaultLocale() {
+        
+        final var allLocales = new StringBuilder();
+        Arrays
+                .stream(Locale.getAvailableLocales())
+                .peek(l -> {
+                            if (allLocales.length() != 0) {
+                                allLocales.append(", ");
+                            }
+                            allLocales.append(l);
+                        })
+                .filter(l -> l.toString().equals(defaultLocale))
+                .findFirst()
+                .ifPresentOrElse(l -> {
+                            Locale.setDefault(l);
+                            logger.info("Setting default-locale according to property 'elmo.default-locale={}'.",
+                                    Locale.getDefault());
+                        }, () -> {
+                            logger.info("Unknown locale given by property 'elmo.default-locale={}', using '{}' instead! Known locales are: {}",
+                                    defaultLocale,
+                                    Locale.getDefault(),
+                                    allLocales);
+                        });
+
+        
+    }
+    
 }

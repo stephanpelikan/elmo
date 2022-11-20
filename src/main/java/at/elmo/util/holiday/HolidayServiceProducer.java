@@ -22,10 +22,10 @@ public class HolidayServiceProducer {
 
     @Bean("HolidayService")
     public HolidayService buildHolidayService() {
-    	
+        
         final HolidayCalendar defaultCalendar = HolidayServiceImpl.getHolidayCalendar(defaultCountryStr);
-    	return new HolidayServiceImpl(defaultCalendar, defaultSubCountryStr);
-    	
+        return new HolidayServiceImpl(defaultCalendar, defaultSubCountryStr);
+        
     }
     
 }

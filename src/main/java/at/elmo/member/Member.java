@@ -34,7 +34,13 @@ public class Member extends MemberBase {
     private Status status;
 
     @Column(name = "AVATAR")
-    private Long timestampOfAvatar;
+    private Integer timestampOfAvatar;
+
+    @Column(name = "PS_HOURS")
+    private int hoursServedPassangerService;
+
+    @Column(name = "CS_HOURS")
+    private int hoursConsumedCarSharing;
 
     @OneToMany(mappedBy = "member", fetch = FetchType.EAGER, cascade = { CascadeType.ALL }, orphanRemoval = true)
     private List<RoleMembership> roles = new LinkedList<>();
@@ -63,12 +69,28 @@ public class Member extends MemberBase {
         this.roles = roles;
     }
 
-    public Long getTimestampOfAvatar() {
+    public Integer getTimestampOfAvatar() {
         return timestampOfAvatar;
     }
 
-    public void setTimestampOfAvatar(Long timestampOfAvatar) {
+    public void setTimestampOfAvatar(Integer timestampOfAvatar) {
         this.timestampOfAvatar = timestampOfAvatar;
+    }
+
+    public int getHoursConsumedCarSharing() {
+        return hoursConsumedCarSharing;
+    }
+
+    public void setHoursConsumedCarSharing(int hoursConsumedCarSharing) {
+        this.hoursConsumedCarSharing = hoursConsumedCarSharing;
+    }
+
+    public int getHoursServedPassangerService() {
+        return hoursServedPassangerService;
+    }
+
+    public void setHoursServedPassangerService(int hoursServedPassangerService) {
+        this.hoursServedPassangerService = hoursServedPassangerService;
     }
 
     public void addRoles(

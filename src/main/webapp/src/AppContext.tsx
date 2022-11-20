@@ -17,6 +17,7 @@ export type Toast = {
   title: string | undefined;
   message: string;
   status?: StatusType;
+  timeout?: number;
 };
 type State = {
   appInformation: AppInformation | null;
@@ -99,12 +100,12 @@ const appContextReducer: React.Reducer<State, Action> = (state, action) => {
     break;
   }
   default: throw new Error(`Unhandled app-context action-type: ${action}`);
-	}
-	return newState;
+  }
+  return newState;
 };
 
 type AppContextProviderProps = {
-	children?: React.ReactNode;
+  children?: React.ReactNode;
 };
 
 const useOnboardingGuiApi = (): OnboardingApi => {
@@ -124,7 +125,7 @@ const useMemberGuiApi = (): MemberApi => {
 };
 
 const AppContextProvider = ({ children }: AppContextProviderProps) => {
-	const [state, dispatch] = React.useReducer(appContextReducer, {
+  const [state, dispatch] = React.useReducer(appContextReducer, {
     currentUser: undefined,
     appInformation: null,
     showMenu: false,
@@ -149,7 +150,7 @@ const AppContextProvider = ({ children }: AppContextProviderProps) => {
       [ dispatch ]);
   const memberApplicationFormRevoked = useCallback(() => doMemberApplicationFormRevoked(dispatch),
       [ dispatch ]);
-	const value = {
+  const value = {
     state,
     dispatch,
     loginApi,
@@ -164,8 +165,8 @@ const AppContextProvider = ({ children }: AppContextProviderProps) => {
     memberApplicationFormRevoked,
   };
   
-	return (<AppContext.Provider value={value}>
-	   {children}
+  return (<AppContext.Provider value={value}>
+     {children}
    </AppContext.Provider>);
 };
 

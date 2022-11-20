@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useAppContext } from '../AppContext';
-import { getCarSharingGuiApi } from '../client/driverClient';
-import { CarSharingApi } from '../client/gui';
+import { getCarSharingGuiApi, getDriverGuiApi } from '../client/driverClient';
+import { CarSharingApi, DriverApi } from '../client/gui';
 
 const useCarSharingApi = (): CarSharingApi => {
 
@@ -11,6 +11,15 @@ const useCarSharingApi = (): CarSharingApi => {
   
 };
 
+const useDriverApi = (): DriverApi => {
+
+  const { dispatch } = useAppContext();
+  const api = useMemo(() => getDriverGuiApi(dispatch), [ dispatch ]);
+  return api;
+  
+};
+
 export {
     useCarSharingApi,
+    useDriverApi,
   };

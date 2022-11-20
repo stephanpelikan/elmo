@@ -4,7 +4,7 @@ import { Menu } from './Menu';
 import { FormClose } from 'grommet-icons';
 import { useAppContext } from '../../AppContext';
 import useResponsiveScreen from '../../utils/responsiveUtils';
-import { useOnClickOutside } from 'usehooks-ts'
+import useOnClickOutside from '../../utils/clickOutside';
 
 const ResponsiveMenu = () => {
   
@@ -13,8 +13,16 @@ const ResponsiveMenu = () => {
   
   const hideMenu = () => showMenu(false);
   
+  const stateShowMenuRef = useRef(state.showMenu);
+  stateShowMenuRef.current = state.showMenu;
+  
   const ref = useRef(null);
-  useOnClickOutside(ref, hideMenu);
+  useOnClickOutside(ref, event => {
+      if (!stateShowMenuRef.current) return;
+      event.preventDefault();
+      event.stopPropagation();
+      hideMenu();
+    });
 
   return isPhone && state.showMenu
       ? <Layer
@@ -22,23 +30,23 @@ const ResponsiveMenu = () => {
             responsive={ true }
             modal={ true }>
           <Box
-            background='light-2'
-            tag='header'
-            justify='end'
-            align='center'
-            direction='row'
-            pad='small'>
+              background='light-2'
+              tag='header'
+              justify='end'
+              align='center'
+              direction='row'
+              pad='small'>
             <Button
-              plain
-              focusIndicator={ false }
-              icon={ <FormClose /> }
-              onClick={ hideMenu }
+                plain
+                focusIndicator={ false }
+                icon={ <FormClose /> }
+                onClick={ hideMenu }
             />
           </Box>
           <Box
-            fill
-            pad="small"
-            background='light-2'>
+              fill
+              pad="small"
+              background='light-2'>
             <Menu />
           </Box>
         </Layer>
@@ -49,17 +57,19 @@ const ResponsiveMenu = () => {
                 } }
             target='document'>
           <Box
-              ref={ ref }
-              style={ { position: 'absolute', right: '0', zIndex: 1000 } }
-              flex
-              basis='medium'
-              width='medium'
-              background='light-2'
-              elevation='small'>
+              style={ { position: 'absolute', top: 0, right: '0', zIndex: 20 } }>
+            <Box
+                height="xxsmall"></Box>
             <Collapsible
-              direction="vertical"
-              open={ state.showMenu }>
-              <Menu />
+                direction="vertical"
+                open={ state.showMenu }>
+              <Box
+                  ref={ ref }
+                  width='medium'
+                  background='light-2'
+                  elevation='small'>
+                <Menu />
+              </Box>
             </Collapsible>
           </Box>
         </Keyboard>;

@@ -1,12 +1,11 @@
 package at.elmo.config;
 
-import java.util.Map;
-
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
 import at.elmo.member.MemberBase.Payment;
 import at.elmo.member.MemberBase.Sex;
 import at.elmo.member.Role;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import java.util.Map;
 
 @ConfigurationProperties(prefix = "translations", ignoreUnknownFields = false)
 public class TranslationProperties {
@@ -14,7 +13,7 @@ public class TranslationProperties {
     private Map<String, General> general;
 
     private Map<String, DownloadMembers> downloadMembers;
-
+    
     public static class DownloadMembers {
 
         private String members;
@@ -33,6 +32,8 @@ public class TranslationProperties {
         private String comment;
         private String iban;
         private String payment;
+        private String hoursServedPassangerService;
+        private String hoursConsumedCarSharing;
 
         public String getMembers() {
             return members;
@@ -162,6 +163,22 @@ public class TranslationProperties {
             this.payment = payment;
         }
 
+        public String getHoursConsumedCarSharing() {
+            return hoursConsumedCarSharing;
+        }
+
+        public void setHoursConsumedCarSharing(String hoursConsumedCarSharing) {
+            this.hoursConsumedCarSharing = hoursConsumedCarSharing;
+        }
+
+        public String getHoursServedPassangerService() {
+            return hoursServedPassangerService;
+        }
+
+        public void setHoursServedPassangerService(String hoursServedPassangerService) {
+            this.hoursServedPassangerService = hoursServedPassangerService;
+        }
+
     }
 
     public static class General {
@@ -237,6 +254,6 @@ public class TranslationProperties {
 
     public void setDownloadMembers(Map<String, DownloadMembers> downloadMembers) {
         this.downloadMembers = downloadMembers;
-    };
-
+    }
+    
 }

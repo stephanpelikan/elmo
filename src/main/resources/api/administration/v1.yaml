@@ -546,6 +546,14 @@ components:
           type: boolean
         carSharing:
           type: boolean
+        km:
+          type: integer
+          format: int32
+        kmConfirmed:
+          type: boolean
+        kmConfirmedAt:
+          type: string
+          format: date-time
         createdAt:
           type: string
           format: date-time
@@ -620,7 +628,7 @@ components:
           format: int32
         avatar:
           type: integer
-          format: int64
+          format: int32
         title:
           type: string
         firstName:
@@ -655,6 +663,12 @@ components:
           type: string
         comment:
           type: string
+        hoursServedPassangerService:
+          type: integer
+          format: int32
+        hoursConsumedCarSharing:
+          type: integer
+          format: int32
         roles:
           type: array
           items:

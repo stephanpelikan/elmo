@@ -66,9 +66,9 @@ class HolidayServiceImpl implements HolidayService {
 
     @Override
     public boolean isHoliday() {
-    	
-    	return isHoliday(LocalDate.now());
-    	
+        
+        return isHoliday(LocalDate.now());
+        
     }
     
     @Override
@@ -110,15 +110,15 @@ class HolidayServiceImpl implements HolidayService {
 
     @Override
     public LocalDate getNextBusinessDay( final String country, final LocalDateTime date ) {
-    	
-    	return getNextBusinessDay(country, date.toLocalDate());
-    	
+        
+        return getNextBusinessDay(country, date.toLocalDate());
+        
     }
 
     @Override
     public LocalDate getNextBusinessDay( final String country, final LocalDate date ) {
 
-    	LocalDate checkDate = date;
+        LocalDate checkDate = date;
         while (isHoliday( country, checkDate )) {
             checkDate = checkDate.plusDays(1);
         }
@@ -163,9 +163,9 @@ class HolidayServiceImpl implements HolidayService {
 
     @Override
     public boolean isHoliday( final String country, final LocalDateTime date ) {
-    	
-    	return isHoliday(country, date.toLocalDate());
-    	
+        
+        return isHoliday(country, date.toLocalDate());
+        
     }
 
     @Override

@@ -1,17 +1,22 @@
-import { Box, DataTable, DataTableExtendedProps } from 'grommet';
+import { Box, DataTable, DataTableExtendedProps, Text } from 'grommet';
 import { SnapAlignBox, SnapScrollingGrid } from './SnapScrolling';
 import useResponsiveScreen from '../utils/responsiveUtils';
-import { forwardRef, UIEventHandler } from 'react';
+import { forwardRef, PropsWithChildren, ReactNode, UIEventHandler } from 'react';
 
-interface SnapScrollingDataTableProps<TRowType = any> extends DataTableExtendedProps<TRowType> {
+interface SnapScrollingDataTableProps<TRowType = any> extends PropsWithChildren<DataTableExtendedProps<TRowType>> {
+  additionalHeader?: ReactNode | undefined;
+  headerHeight: string;
   phoneMargin: string;
   onScroll?: UIEventHandler<any> | undefined;
 };
 
 const SnapScrollingDataTable = forwardRef(({
     phoneMargin,
+    headerHeight,
+    additionalHeader,
     columns,
     onScroll,
+    children,
     ...props
   }: SnapScrollingDataTableProps, ref) => {
 
@@ -26,20 +31,19 @@ const SnapScrollingDataTable = forwardRef(({
   return (columns
     ? <SnapScrollingGrid
           fill
-          snapDirection='horizontal'
-          rows={ [ 'xxsmall' ] }>
+          rows={ [ 'max-content', 'auto' ]}
+          snapDirection='horizontal'>
         <Box
-            fill={ isNotPhone }
-            style={
-              isPhone
-                  ? { width: totalWidth }
-                  : undefined
-            }
-            background={ {
-              color: 'accent-2',
-              opacity: 'strong'
-            } }
+            fill={ isNotPhone ? 'horizontal' : undefined }
+            style={ {
+              position: 'relative',
+              width: isPhone ? totalWidth : undefined,
+              } }
+            background='dark-3'
             align="center">
+          {
+            additionalHeader
+          }
           <Box
               fill
               direction='row'
@@ -47,25 +51,39 @@ const SnapScrollingDataTable = forwardRef(({
                 isNotPhone
                     ? {
                         maxWidth: tableWidth,
+                        maxHeight: headerHeight,
+                        minHeight: headerHeight,
                         marginLeft: 'auto',
-                        marginRight: 'auto'
+                        marginRight: 'auto',
+                        zIndex: '2',
                       }
-                    : undefined }
+                    : {
+                        maxHeight: headerHeight,
+                        minHeight: headerHeight,
+                    } }
               pad={
                 isPhone
                     ? { horizontal: phoneMargin }
                     : undefined }>{
             columns.map((column, index) =>
               <SnapAlignBox
-                  pad={ isPhone ? 'medium' : 'small' }
+                  pad={ { horizontal: isPhone ? 'medium' : 'xsmall' } }
                   key={ `column${index}` }
                   align="center"
+                  justify='center'
+                  height="100%"
                   width={ column.size }
-                  snapAlign='center'>{
-                column.header
-              }</SnapAlignBox>)
+                  snapAlign='center'>
+                <Text
+                    weight='bold'
+                    size='large'
+                    color='light-2'
+                    truncate='tip'>{
+                  column.header
+                }</Text>
+              </SnapAlignBox>)
             }</Box>
-          </Box>
+        </Box>
         <Box
             style={ { position: 'relative' }}
             fill={ isNotPhone }
@@ -87,6 +105,7 @@ const SnapScrollingDataTable = forwardRef(({
               columns={ dataTableColumns }
               { ...props } />
         </Box>
+        { children }
       </SnapScrollingGrid>
     : <></>);
   

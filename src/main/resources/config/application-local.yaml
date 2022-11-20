@@ -1,13 +1,13 @@
 elmo:
   default-phone-country: "+43"
-  title-short: Elmo GF
+  title-short: ELMO GF
   title-long: ElektroMobil Gänserndorf
   homepage-url: https://www.elektromobil-gf.at
   homepage-service-conditions-url: https://www.elektromobil-gf.at/wp/kontakt-und-impressum
   passanger-agreement-pdf-directory: src/test/attachments/agreement  
   driver-agreement-pdf-directory: src/test/attachments/agreement  
   gateway-url: http://localhost:3000
-  default-locale: de
+  default-locale: de_AT
   sms:
     supported: false
   passanagerServicePhoneNumber: "+431234567890"
@@ -27,14 +27,6 @@ elmo:
   cors:
     allowed-origins: "*"
 spring:
-  datasource:
-    url: jdbc:h2:file:./target/devdb.h2;DB_CLOSE_ON_EXIT=FALSE
-  jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
-  h2:
-    console:
-      enabled: true
-      path: /h2
   security:
     oauth2:
       client:
@@ -73,3 +65,36 @@ camunda:
 swagger:
   gui:
     enable: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: "!local-postgresql"
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.r2dbc.R2dbcAutoConfiguration
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    url: jdbc:h2:file:./devdb.h2;DB_CLOSE_ON_EXIT=FALSE
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+  h2:
+    console:
+      enabled: true
+      path: /h2
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local-postgresql
+  datasource:
+    url: jdbc:postgresql://localhost:5432/elmo
+    username: elmo
+    password: elmo
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/elmo
+    username: elmo
+    password: elmo
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQL10Dialect

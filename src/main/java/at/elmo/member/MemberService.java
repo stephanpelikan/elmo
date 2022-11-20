@@ -20,6 +20,7 @@ import org.springframework.util.StreamUtils;
 
 import java.io.InputStream;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -72,7 +73,9 @@ public class MemberService {
             final String phoneNumber,
             final String comment,
             final String iban,
-            final Payment payment) {
+            final Payment payment,
+            final int hoursServedPassangerService,
+            final int hoursConsumedCarSharing) {
 
         if (members.findByMemberId(memberId).isPresent()) {
             return;
@@ -98,6 +101,8 @@ public class MemberService {
         member.setStreetNumber(streetNumber);
         member.setTitle(title);
         member.setZip(zip);
+        member.setHoursConsumedCarSharing(hoursConsumedCarSharing);
+        member.setHoursServedPassangerService(hoursServedPassangerService);
 
         members.saveAndFlush(member);
 
@@ -333,11 +338,16 @@ public class MemberService {
                     + "' which is unknown!");
         }
 
+        final var now = OffsetDateTime.now();
+        final var timestamp = (int)
+                (now.toEpochSecond()
+                - OffsetDateTime.of(2020, 1, 1, 0, 0, 0, 0, now.getOffset()).toEpochSecond());
+
         if (avatar.isPresent()) {
 
             avatar.get().setPng(
                     StreamUtils.copyToByteArray(png));
-            owner.get().setTimestampOfAvatar(System.currentTimeMillis());
+            owner.get().setTimestampOfAvatar(timestamp);
             return;
 
         }
@@ -347,7 +357,7 @@ public class MemberService {
         newAvatar.setPng(
                 StreamUtils.copyToByteArray(png));
         newAvatar.setOwner(owner.get());
-        owner.get().setTimestampOfAvatar(System.currentTimeMillis());
+        owner.get().setTimestampOfAvatar(timestamp);
 
         memberAvatars.saveAndFlush(newAvatar);
 

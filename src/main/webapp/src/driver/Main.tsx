@@ -1,20 +1,20 @@
 import { useTranslation } from "react-i18next";
 import { Route, Routes } from "react-router-dom";
-import { TaskCards } from './TaskCards';
-import { Main as CarSharing } from './carsharing/Main';
+import { Dashboard } from './Dashboard';
+import { Planner } from './planner/Main';
 import i18n from '../i18n';
 
 i18n.addResources('en', 'driver', {
       "title.long": 'Driver',
       "title.short": 'Driver',
-      "url-carsharing": "/car-sharing",
-      "card-carsharing": "Car-Sharing",
+      "url-planner": "/planner",
+      "card-planner": "Planner",
     });
 i18n.addResources('de', 'driver', {
       "title.long": 'Fahrer',
       "title.short": 'Fahrer',
-      "url-carsharing": "/car-sharing",
-      "card-carsharing": "Car-Sharing",
+      "url-planner": "/planer",
+      "card-planner": "Planer",
     });
 
 const Main = () => {
@@ -23,8 +23,12 @@ const Main = () => {
 
   return (
     <Routes>
-      <Route path={t('url-carsharing') + '/*'} element={<CarSharing />} />
-      <Route path='/' element={<TaskCards />} />
+      <Route
+          path={t('url-planner') + '/*'}
+          element={<Planner />} />
+      <Route
+          path='/'
+          element={<Dashboard />} />
     </Routes>);
 }
 

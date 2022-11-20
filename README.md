@@ -5,7 +5,7 @@
 ### build
 
 ```sh
-MAVEN_OPTS=--add-opens=java.base/java.util=ALL-UNNAMED mvn -Dcamunda-edition=ce package -P release
+MAVEN_OPTS=--add-opens=java.base/java.util=ALL-UNNAMED mvn -Dorg.slf4j.simpleLogger.log.org.openapitools.codegen.TemplateManager=WARN -Dcamunda-edition=ce package -P release
 ```
 
 ### run

@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.Duration;
 import java.util.HashMap;
 
+import javax.transaction.Transactional;
+
 @RestController("memberGuiApi")
 @RequestMapping("/api/v1")
 public class GuiApiController implements MemberApi {
@@ -63,6 +65,7 @@ public class GuiApiController implements MemberApi {
 
     }
 
+    @Transactional
     @Override
     public ResponseEntity<Void> uploadAvatar(
             final Integer memberId,
@@ -89,6 +92,7 @@ public class GuiApiController implements MemberApi {
 
     }
 
+    @Transactional
     @Override
     public ResponseEntity<Void> requestEmailCode(
             final String body) {
@@ -122,6 +126,7 @@ public class GuiApiController implements MemberApi {
 
     }
 
+    @Transactional
     @Override
     public ResponseEntity<Void> changeEmail(
             final CodeBasedChange codeBasedChange) {
@@ -164,6 +169,7 @@ public class GuiApiController implements MemberApi {
 
     }
 
+    @Transactional
     @Override
     public ResponseEntity<Void> requestPhoneCode(
             final String body) {
@@ -198,6 +204,7 @@ public class GuiApiController implements MemberApi {
 
     }
 
+    @Transactional
     @Override
     public ResponseEntity<Void> changePhoneNumber(
             final CodeBasedChange codeBasedChange) {

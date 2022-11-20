@@ -1,9 +1,11 @@
 import { Box, Button, Header, Heading, Image } from "grommet";
-import { Menu as MenuIcon } from 'grommet-icons';
+import { Login, Menu as MenuIcon } from 'grommet-icons';
+import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useAppContext } from '../../AppContext';
 import useResponsiveScreen from '../../utils/responsiveUtils';
+import { ResponsiveMenu } from "./ResponsiveMenu";
 
 const AppHeader = () => {
   
@@ -12,7 +14,17 @@ const AppHeader = () => {
   const { t } = useTranslation(state.title);
   const navigate = useNavigate();
 
-  const toogleMenu = () => showMenu(!state.showMenu);
+  const stateShowMenuRef = useRef(state.showMenu);
+  stateShowMenuRef.current = state.showMenu;
+
+  const toggleMenu = () => {
+      if (stateShowMenuRef.current) return;
+      showMenu(!state.showMenu);
+    };
+    
+  const goToLogin = () => {
+      document.getElementById('login').scrollIntoView({ behavior: 'smooth' })
+    };
   
   return (
     <Header
@@ -20,8 +32,7 @@ const AppHeader = () => {
         background={ state.intern ? 'accent-3' : 'brand' }
         elevation='medium'
         height='xxsmall'
-        pad='xxsmall'
-        style={{ zIndex: '1' }}>
+        pad='xxsmall'>
       <Box
           onClick={() => navigate('/')}
           focusIndicator={false}
@@ -38,27 +49,29 @@ const AppHeader = () => {
         {
           isPhone ? (
               <Heading
-                  margin='small'
+                  margin={ { horizontal: 'small', vertical: 'none' } }
                   level='2'>{t('title.short')}</Heading>
             ) : (
               <Heading
-                  margin='small'
+                  margin={ { horizontal: 'small', vertical: 'none' } }
                   level='3'>{t('title.long')}</Heading>
             )
         }
       </Box>
-      {
-        state.currentUser
-            ? <Box>
-                <Button
-                    plain
-                    focusIndicator={false}
-                    margin='small'
-                    icon={<MenuIcon />}
-                    onClick={toogleMenu} />
-              </Box>
-            : <></>
-      }
+      <Box>
+        <Button
+            plain
+            focusIndicator={ false }
+            margin='small'
+            icon={ state.currentUser
+                ? <MenuIcon />
+                : <Login /> }
+            onMouseDown={ state.currentUser
+                ? toggleMenu
+                : goToLogin }
+            style={ { position: 'relative' } } />
+        <ResponsiveMenu />
+      </Box>
     </Header>
   );
         

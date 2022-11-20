@@ -9,8 +9,10 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
 @Entity
-@DiscriminatorValue("S")
+@DiscriminatorValue(Shift.TYPE)
 public class Shift extends ReservationBase {
+    
+    public static final String TYPE = "S";
 
     @ManyToOne()
     @JoinColumn(name = "MEMBER", referencedColumnName = "ID")

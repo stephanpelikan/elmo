@@ -13,12 +13,12 @@ import org.springframework.context.annotation.Scope;
 @Configuration
 public class LoggerFactory {
 
-	@Bean
-	@Scope("prototype")
-	public Logger logger(final InjectionPoint injectionPoint) {
+    @Bean
+    @Scope("prototype")
+    public Logger logger(final InjectionPoint injectionPoint) {
 
-		return org.slf4j.LoggerFactory.getLogger(injectionPoint.getMember().getDeclaringClass());
+        return org.slf4j.LoggerFactory.getLogger(injectionPoint.getMember().getDeclaringClass());
 
-	}
+    }
 
 }

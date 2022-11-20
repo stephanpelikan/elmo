@@ -7,12 +7,14 @@ import at.elmo.config.web.JwtSecurityFilter;
 import at.elmo.member.login.ElmoOAuth2User;
 import at.elmo.util.sms.SmsEvent;
 import at.elmo.util.sms.SmsService;
+import at.elmo.util.spring.PingNotification;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.UUID;
 
@@ -88,6 +91,37 @@ public class AppApiController implements AppApi {
                         .name("SMS")
                         .reconnectTime(30000));
 
+    }
+
+    /**
+     * SseEmitter timeouts are absolute. So we need to ping
+     * the connection and if the user closed the browser we
+     * will see an error which indicates we have to drop 
+     * this emitter. 
+     */
+    @Scheduled(fixedDelayString = "PT1M")
+    public void cleanupSmsEmitters() {
+        
+        final var ping = new PingNotification();
+        
+        final var toBeDeleted = new LinkedList<String>();
+        smsEmitters
+                .entrySet()
+                .forEach(entry -> {
+                    try {
+                        final var emitter = entry.getValue();
+                        emitter.send(
+                                SseEmitter
+                                        .event()
+                                        .id(UUID.randomUUID().toString())
+                                        .data(ping, MediaType.APPLICATION_JSON)
+                                        .name(ping.getSource().toString()));
+                    } catch (Exception e) {
+                        toBeDeleted.add(entry.getKey());
+                    }
+                });
+        toBeDeleted.forEach(smsEmitters::remove);
+        
     }
 
     @Override

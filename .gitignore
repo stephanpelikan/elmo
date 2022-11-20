@@ -7,3 +7,6 @@ target
 application.yaml
 *.iml
 _application.yaml
+devdb.h2.mv.db
+devdb.h2.trace.db
+

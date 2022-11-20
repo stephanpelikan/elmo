@@ -8,6 +8,8 @@ import java.time.LocalDateTime;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
@@ -28,6 +30,7 @@ public class RefreshToken extends PersistenceBase<String> {
     @Column(name = "ID")
     private String oauth2Id;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "PROVIDER")
     private ElmoOAuth2Provider provider;
 

@@ -11,6 +11,8 @@ public interface CarRepository extends JpaRepository<Car, String> {
 
     Optional<Car> findByShortcut(String shortcut);
 
+    long countByPassangerService(boolean passangerService);
+    
     List<Car> findByPassangerService(boolean passangerService);
 
     List<Car> findByCarSharing(boolean carSharing);

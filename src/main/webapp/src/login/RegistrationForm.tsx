@@ -1,27 +1,16 @@
-import { Anchor, Box, Button, CheckBox, Collapsible, DateInput, Form, FormField, Heading, Paragraph, Select, Text, TextArea, TextInput } from "grommet";
+import { Anchor, Box, Button, CheckBox, Collapsible, DateInput, Form, FormField, Paragraph, Select, Text, TextArea, TextInput } from "grommet";
 import { useEffect, useState } from "react";
 import { useAppContext, useMemberGuiApi, useOnboardingGuiApi } from '../AppContext';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import { MemberApplicationForm, OnboardingApi, Sex } from '../client/gui';
 import { CalendarHeader } from "../components/CalendarHeader";
+import { CodeButton } from "../components/CodeButton";
 import { ViolationsAwareFormField } from "../components/ViolationsAwareFormField";
-import styled from "styled-components";
 import { parseLocalDate, toLocalDateString } from '../utils/timeUtils';
 import useResponsiveScreen from '../utils/responsiveUtils';
-
-const CodeButton = styled(Button)`
-  position: relative;
-  &:after {
-    content: '';
-    width: 110%;
-    height: 1px;
-    background: white;
-    position: absolute;
-    bottom: calc(${(props) => props.theme.button.secondary.border.width} * -1 - 1px);
-    left: -5%;
-  }
-`;
+import { Content, Heading, MainLayout } from "../components/MainLayout";
+import { Clipboard, CoatCheck, Contact, Home } from "grommet-icons";
 
 i18n.addResources('en', 'registration-form', {
       "title.long": 'Registration',
@@ -303,8 +292,7 @@ const RegistrationForm = () => {
   };
   
   return (
-    <Box
-        pad='small'>
+    <MainLayout>
       <Form<MemberApplicationForm>
           value={ formValue }
           validate='change'
@@ -352,199 +340,203 @@ const RegistrationForm = () => {
               disabled={ submitting } />
         </Collapsible>
         <Heading
-            size='small'
-            level='2'>{ t('personal data') }</Heading>
-        {/* title */}
-        <Collapsible
-            open={ !isAlreadyMember }>
+            icon={ <CoatCheck /> }>{ t('personal data') }</Heading>
+        <Content>
+          {/* title */}
+          <Collapsible
+              open={ !isAlreadyMember }>
+            <ViolationsAwareFormField
+                name="title"
+                label='person-title'
+                t={ t }
+                violations={ violations }
+                disabled={ submitting } />
+          </Collapsible>
+          {/* first name */}
           <ViolationsAwareFormField
-              name="title"
-              label='person-title'
+              name="firstName"
+              label='first-name'
               t={ t }
               violations={ violations }
               disabled={ submitting } />
-        </Collapsible>
-        {/* first name */}
-        <ViolationsAwareFormField
-            name="firstName"
-            label='first-name'
-            t={ t }
-            violations={ violations }
-            disabled={ submitting } />
-        {/* last name */}
-        <ViolationsAwareFormField
-            name="lastName"
-            label='last-name'
-            t={ t }
-            violations={ violations }
-            disabled={ submitting } />
-        {/* sex */}
-        <Collapsible
-            open={ !isAlreadyMember }>
+          {/* last name */}
           <ViolationsAwareFormField
-              name="sex"
-              label='sex'
+              name="lastName"
+              label='last-name'
               t={ t }
               violations={ violations }
-              disabled={ submitting }
-              htmlFor="sexSelect">
-            <Select
-                id="sexSelect"
-                options={[ Sex.Female, Sex.Male, Sex.Other ]}
-                value={ formValue?.sex }
-                labelKey={ t }
-                onChange={({ value }) => setSex(value)}
-              />
-          </ViolationsAwareFormField>
-        </Collapsible>
-        {/* birthdate */}
-        <FormField
-            name="birthdate"
-            label={ t('birthdate') }
-            disabled={ submitting }>
-          <DateInput
-              format={ t('birthdate_format') }
-              value={ parseLocalDate(formValue?.birthdate)?.toISOString() }
-              onChange={ ({ value }) => setBirthdate(value as string) }
-              calendarProps={ {
-                  fill: isPhone,
-                  animate: false,
-                  header: props => CalendarHeader({ ...props, setDate: setBirthdate })
-                } } />
-        </FormField>
+              disabled={ submitting } />
+          {/* sex */}
+          <Collapsible
+              open={ !isAlreadyMember }>
+            <ViolationsAwareFormField
+                name="sex"
+                label='sex'
+                t={ t }
+                violations={ violations }
+                disabled={ submitting }
+                htmlFor="sexSelect">
+              <Select
+                  id="sexSelect"
+                  options={[ Sex.Female, Sex.Male, Sex.Other ]}
+                  value={ formValue?.sex }
+                  labelKey={ t }
+                  onChange={({ value }) => setSex(value)}
+                />
+            </ViolationsAwareFormField>
+          </Collapsible>
+          {/* birthdate */}
+          <FormField
+              name="birthdate"
+              label={ t('birthdate') }
+              disabled={ submitting }>
+            <DateInput
+                format={ t('birthdate_format') }
+                value={ parseLocalDate(formValue?.birthdate)?.toISOString() }
+                onChange={ ({ value }) => setBirthdate(value as string) }
+                calendarProps={ {
+                    fill: isPhone,
+                    animate: false,
+                    header: props => CalendarHeader({ ...props, setDate: setBirthdate })
+                  } } />
+          </FormField>
+        </Content>
         <Collapsible
             open={ !isAlreadyMember }>
           <Heading
-              size='small'
-              level='2'>{t('address data')}</Heading>
-          {/* street */}
-          <ViolationsAwareFormField
-              name="street"
-              label='street'
-              t={ t }
-              violations={ violations }
-              disabled={ submitting } />
-          {/* street number */}
-          <ViolationsAwareFormField
-              name="streetNumber"
-              label='street-number'
-              t={ t }
-              violations={ violations }
-              disabled={ submitting } />
-          {/* zip */}
-          <ViolationsAwareFormField
-              name="zip"
-              label='zip'
-              t={ t }
-              violations={ violations }
-              disabled={ submitting } />
-          {/* city */}
-          <ViolationsAwareFormField
-              name="city"
-              label='city'
-              t={ t }
-              violations={ violations }
-              disabled={ submitting } />
+              icon={ <Home /> }>{t('address data')}</Heading>
+          <Content>
+            {/* street */}
+            <ViolationsAwareFormField
+                name="street"
+                label='street'
+                t={ t }
+                violations={ violations }
+                disabled={ submitting } />
+            {/* street number */}
+            <ViolationsAwareFormField
+                name="streetNumber"
+                label='street-number'
+                t={ t }
+                violations={ violations }
+                disabled={ submitting } />
+            {/* zip */}
+            <ViolationsAwareFormField
+                name="zip"
+                label='zip'
+                t={ t }
+                violations={ violations }
+                disabled={ submitting } />
+            {/* city */}
+            <ViolationsAwareFormField
+                name="city"
+                label='city'
+                t={ t }
+                violations={ violations }
+                disabled={ submitting } />
+          </Content>
         </Collapsible>
         <Heading
-            size='small'
-            level='2'>{t('contact data')}</Heading>
-        {/* email */}
-        <ViolationsAwareFormField
-            name="email"
-            label='email'
-            info={ t('email_info') }
-            t={ t }
-            violations={ violations }
-            disabled={ submitting } />
-        <ViolationsAwareFormField
-            name="emailConfirmationCode"
-            htmlFor="emailConfirmationCode"
-            label='email-confirmation-code'
-            t={ t }
-            violations={ violations }
-            disabled={ submitting }>
-          <Box
-              direction="row"
-              gap="medium">
-            <TextInput
-                id="emailConfirmationCode"
-                value={ formValue?.emailConfirmationCode }
-                onChange={ code => setFormValue({ ...formValue, emailConfirmationCode: code.target.value }) }
-                focusIndicator={false}
-                plain />
-            <CodeButton
-                secondary
-                fill={false}
+             icon={ <Contact /> }>{t('contact data')}</Heading>
+        <Content>
+          {/* email */}
+          <ViolationsAwareFormField
+              name="email"
+              label='email'
+              info={ t('email_info') }
+              t={ t }
+              violations={ violations }
+              disabled={ submitting } />
+          <ViolationsAwareFormField
+              name="emailConfirmationCode"
+              htmlFor="emailConfirmationCode"
+              label='email-confirmation-code'
+              t={ t }
+              violations={ violations }
+              disabled={ submitting }>
+            <Box
+                direction="row"
+                gap="medium">
+              <TextInput
+                  id="emailConfirmationCode"
+                  value={ formValue?.emailConfirmationCode }
+                  onChange={ code => setFormValue({ ...formValue, emailConfirmationCode: code.target.value }) }
+                  focusIndicator={false}
+                  plain />
+              <CodeButton
+                  secondary
+                  fill={false}
+                  disabled={ submitting }
+                  onClick={ value => requestEmailCode() }
+                  label={ t('request-email-confirmation-code') } />
+            </Box>
+          </ViolationsAwareFormField>
+          {/* phone */}
+          <ViolationsAwareFormField
+              name="phoneNumber"
+              label='phone-number'
+              placeholder="+436641234567"
+              t={t}
+              violations={ violations }
+              disabled={ submitting } />
+          <ViolationsAwareFormField
+              name="phoneConfirmationCode"
+              htmlFor="phoneConfirmationCode"
+              label='phone-confirmation-code'
+              t={ t }
+              violations={ violations }
+              disabled={ submitting }>
+            <Box
+                direction="row"
+                gap="medium">
+              <TextInput
+                  id="phoneConfirmationCode"
+                  value={ formValue?.phoneConfirmationCode }
+                  onChange={ code => setFormValue({ ...formValue, phoneConfirmationCode: code.target.value }) }
+                  focusIndicator={false}
+                  plain />
+              <CodeButton
+                  secondary
+                  fill={false}
+                  disabled={ submitting }
+                  onClick={ value => requestSmsCode() }
+                  label={ t('request-phone-confirmation-code') } />
+            </Box>
+          </ViolationsAwareFormField>
+          {/* prefer notifications per sms */}
+          <FormField
+              contentProps={ { border: false } }
+              name="preferNotificationsPerSms">
+            <CheckBox
+                name="preferNotificationsPerSms"
+                label={ t('prefer-notifications-per-sms') }
                 disabled={ submitting }
-                onClick={ value => requestEmailCode() }
-                label={ t('request-email-confirmation-code') } />
-          </Box>
-        </ViolationsAwareFormField>
-        {/* phone */}
-        <ViolationsAwareFormField
-            name="phoneNumber"
-            label='phone-number'
-            placeholder="+436641234567"
-            t={t}
-            violations={ violations }
-            disabled={ submitting } />
-        <ViolationsAwareFormField
-            name="phoneConfirmationCode"
-            htmlFor="phoneConfirmationCode"
-            label='phone-confirmation-code'
-            t={ t }
-            violations={ violations }
-            disabled={ submitting }>
-          <Box
-              direction="row"
-              gap="medium">
-            <TextInput
-                id="phoneConfirmationCode"
-                value={ formValue?.phoneConfirmationCode }
-                onChange={ code => setFormValue({ ...formValue, phoneConfirmationCode: code.target.value }) }
-                focusIndicator={false}
-                plain />
-            <CodeButton
-                secondary
-                fill={false}
-                disabled={ submitting }
-                onClick={ value => requestSmsCode() }
-                label={ t('request-phone-confirmation-code') } />
-          </Box>
-        </ViolationsAwareFormField>
-        {/* prefer notifications per sms */}
-        <FormField
-            contentProps={ { border: false } }
-            name="preferNotificationsPerSms">
-          <CheckBox
-              name="preferNotificationsPerSms"
-              label={ t('prefer-notifications-per-sms') }
-              disabled={ submitting }
-            />
-        </FormField>
+              />
+          </FormField>
+        </Content>
         <Heading
-            size='small'
-            level='2'>{t('about application')}</Heading>
+            icon={ <Clipboard /> }>{t('about application')}</Heading>
         {/* application comment */}
         <Collapsible
             open={ !isAlreadyMember }>
-          <FormField
-              name="applicationComment"
-              label={ t('application-comment') }
-              disabled={ submitting }
-              htmlFor="applicationComment">
-            <Box
-                height={ isPhone ? '9rem': undefined }>
-              <TextArea
-                  name="applicationComment"
-                  fill
-                  focusIndicator={false}
-                  plain
-                  size="medium"
-                  placeholder={ t('application-comment_placeholder') } />
-            </Box>
-          </FormField>
+          <Content>
+            <FormField
+                name="applicationComment"
+                label={ t('application-comment') }
+                disabled={ submitting }
+                htmlFor="applicationComment">
+              <Box
+                  height={ isPhone ? '10.5rem': undefined }>
+                <TextArea
+                    name="applicationComment"
+                    fill
+                    focusIndicator={false}
+                    plain
+                    size="medium"
+                    placeholder={ t('application-comment_placeholder') } />
+              </Box>
+            </FormField>
+          </Content>
         </Collapsible>
         {/* terms and conditions */}
         <FormField
@@ -577,7 +569,7 @@ const RegistrationForm = () => {
               label={ t('submit-form') } />
         </Box>
       </Form>
-    </Box>);
+    </MainLayout>);
 }
 
 export { RegistrationForm };

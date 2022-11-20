@@ -52,7 +52,7 @@ public class ShiftGenerator {
 
     }
 
-    @Scheduled(cron = "0 0 2 * * *")
+    @Scheduled(cron = "0 0 4 * * *")
     public void generateShifts() {
 
         carService

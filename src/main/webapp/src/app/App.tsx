@@ -3,7 +3,6 @@ import { Box, Grommet, Heading, Text, ThemeType } from 'grommet';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { useAppContext } from '../AppContext';
 import { AppHeader } from './menu/AppHeader';
-import { ResponsiveMenu } from './menu/ResponsiveMenu';
 import { Main } from './Main';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
@@ -14,6 +13,10 @@ import { Role } from '../client/gui';
 import { Login } from '../login/Login';
 import { css } from 'styled-components';
 import { MessageToast } from '../components/Toast';
+import { PreconfiguredReconnectingEventSource } from "../utils/sseUtils";
+import { EventSourceProvider } from 'react-sse-hooks';
+import { LoadingIndicator } from '../components/LoadingIndicator';
+import { useKeepNowUpToDate } from '../utils/now-hook';
 
 export const theme: ThemeType = {
   global: {
@@ -22,7 +25,9 @@ export const theme: ThemeType = {
       'accent-1': '#e2e2e2',
       'accent-2': '#333333',
       'accent-3': '#348eda',
-      'placeholder': '#bbbbbb'
+      'placeholder': '#bbbbbb',
+      'light-5': '#c7c7c7',
+      'light-6': '#b4b4b4',
     },
     font: {
       family: 'Roboto',
@@ -39,14 +44,20 @@ export const theme: ThemeType = {
     }
   },
   table: {
+    header: {
+      border: undefined,
+    },
     body: {
       extend: css`
         overflow: visible;
       `
-    }
+    },
   },
   heading: {
-    color: '#444444'
+    color: '#444444',
+    extend: css`
+      margin-top: 0;
+    `
   },
   formField: {
     label: {
@@ -55,6 +66,7 @@ export const theme: ThemeType = {
   },
   textArea: {
     extend: css`
+      font-weight: normal;
       ::placeholder {
         font-weight: normal;
         color: ${props => props.theme.global.colors.placeholder};
@@ -121,8 +133,11 @@ export const theme: ThemeType = {
         background: {
           color: 'accent-2',
           opacity: 'strong'
-        }
-      }
+        },
+        extend: css`
+          z-index: 19;
+        `
+      },
     }
   },
   page: {
@@ -132,7 +147,12 @@ export const theme: ThemeType = {
         max: 'xlarge'
       }
     }
-  }
+  },
+  paragraph: {
+    extend: css`
+      margin-top: 0;
+    `
+  },
 };
 
 const appNs = 'app';
@@ -174,6 +194,8 @@ const App: React.FC<AppProps> = (props: AppProps): JSX.Element => {
 
   const { state, fetchAppInformation, dispatch } = useAppContext();
   
+  useKeepNowUpToDate();
+
   useEffect(() => {
     fetchAppInformation();
   }, [ fetchAppInformation ]);
@@ -192,56 +214,54 @@ const App: React.FC<AppProps> = (props: AppProps): JSX.Element => {
     <Grommet
         theme={theme}
         full>
-      <>
+      <EventSourceProvider eventSource={ PreconfiguredReconnectingEventSource }>
         {state.toast && (
           <MessageToast dispatch={dispatch} msg={state.toast} />
         )}
         <Router>
-          <Box fill>
+          <Box
+              fill>
             <AppHeader />
             <Box
                 direction='row'
-                flex
-                overflow={{ horizontal: 'hidden' }}>
-              <Box flex>
-                <Suspense fallback={<Box>Loading...</Box>}>
-                  <CurrentUser>
-                    <Routes>
-                      <Route element={<ProtectedRoute roles={[ Role.Admin ]} />}>
-                        <Route path={t('url-administration') + '/*'} element={<Administration />} />
-                      </Route>
-                      <Route element={<ProtectedRoute roles={[ Role.Driver ]} />}>
-                        <Route path={t('url-driver') + '/*'} element={<Driver />} />
-                      </Route>
-                      <Route element={<ProtectedRoute />}>
-                        <Route path={t('url-user-profile') + '/*'} element={<UserProfile />} />
-                      </Route>
-                      <Route path='/login' element={<Login />} />
-                      <Route element={<ProtectedRoute />}>
-                        <Route path='/' element={<Main />} />
-                      </Route>
-                      <Route path='*' element={
-                        <Box
-                            direction='column'
-                            fill='horizontal'
-                            flex='shrink'
-                            align='center'
-                            gap='medium'
-                            pad='medium'
-                            width='medium'>
-                          <Heading level='3'>{t('not-found')}</Heading>
-                          <Text>{t('not-found hint')}</Text>
-                        </Box>
-                      } />
-                    </Routes>
-                  </CurrentUser>
-                </Suspense>
-              </Box>
-              <ResponsiveMenu />
+                style={ { display: 'unset' } } /* to avoid removing bottom margin of inner boxes */
+                overflow={ { horizontal: 'hidden' } }>
+              <Suspense fallback={<LoadingIndicator />}>
+                <CurrentUser>
+                  <Routes>
+                    <Route element={<ProtectedRoute roles={[ Role.Admin ]} />}>
+                      <Route path={t('url-administration') + '/*'} element={<Administration />} />
+                    </Route>
+                    <Route element={<ProtectedRoute roles={[ Role.Driver ]} />}>
+                      <Route path={t('url-driver') + '/*'} element={<Driver />} />
+                    </Route>
+                    <Route element={<ProtectedRoute />}>
+                      <Route path={t('url-user-profile') + '/*'} element={<UserProfile />} />
+                    </Route>
+                    <Route path='/login' element={<Login />} />
+                    <Route element={<ProtectedRoute />}>
+                      <Route path='/' element={<Main />} />
+                    </Route>
+                    <Route path='*' element={
+                      <Box
+                          direction='column'
+                          fill='horizontal'
+                          flex='shrink'
+                          align='center'
+                          gap='medium'
+                          pad='medium'
+                          width='medium'>
+                        <Heading level='3'>{t('not-found')}</Heading>
+                        <Text>{t('not-found hint')}</Text>
+                      </Box>
+                    } />
+                  </Routes>
+                </CurrentUser>
+              </Suspense>
             </Box>
           </Box>
         </Router>
-      </>
+      </EventSourceProvider>
     </Grommet>
   );
 };

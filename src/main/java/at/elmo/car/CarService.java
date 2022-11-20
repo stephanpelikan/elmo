@@ -100,6 +100,12 @@ public class CarService {
         return cars.findByPassangerService(true);
 
     }
+    
+    public long getCountOfPassangerServiceCars() {
+        
+        return cars.countByPassangerService(true);
+        
+    }
 
     public Page<Car> getCars(
             final int page,

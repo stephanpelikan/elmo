@@ -21,23 +21,23 @@ import java.util.concurrent.TimeUnit;
 @ControllerAdvice
 public class SpaNoHandlerFoundExceptionHandler {
 
-	@Autowired
-	private ResourceLoader resourceLoader;
+    @Autowired
+    private ResourceLoader resourceLoader;
 
-	@Value("${spring.application.spa-default-file}")
-	private String defaultFile;
+    @Value("${spring.application.spa-default-file}")
+    private String defaultFile;
 
     @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<Resource> renderDefaultPage(final NoHandlerFoundException exception) {
 
-	    final var hasExtension = exception.getRequestURL().lastIndexOf('.') > exception.getRequestURL().lastIndexOf('/');
+        final var hasExtension = exception.getRequestURL().lastIndexOf('.') > exception.getRequestURL().lastIndexOf('/');
         final var uri = "classpath:/static"
                 + exception.getRequestURL()
                 + (hasExtension ? "" : ".html");
-		var resource = resourceLoader.getResource(uri);
-		if (!resource.exists()) {
-			resource = resourceLoader.getResource(defaultFile);
-		}
+        var resource = resourceLoader.getResource(uri);
+        if (!resource.exists()) {
+            resource = resourceLoader.getResource(defaultFile);
+        }
         final var filename = resource.getFilename();
         final var posOfExtension = filename.lastIndexOf('.');
         final String contentType;
@@ -47,12 +47,12 @@ public class SpaNoHandlerFoundExceptionHandler {
         } else {
             contentType = "text/html";
         }
-		return ResponseEntity
-				.ok()
+        return ResponseEntity
+                .ok()
                 .header("Content-Type", contentType)
-				.cacheControl(CacheControl.maxAge(0, TimeUnit.SECONDS))
-				.body(resource);
+                .cacheControl(CacheControl.maxAge(0, TimeUnit.SECONDS))
+                .body(resource);
 
-	}
+    }
 
 }

@@ -11,38 +11,38 @@ import org.springframework.core.annotation.Order;
 @ConfigurationProperties(prefix = "camunda.xstream-serialization")
 public class SpringPluginConfiguration {
 
-	@Value("${encoding:UTF-8}")
-	private String encoding;
+    @Value("${encoding:UTF-8}")
+    private String encoding;
 
-	private List<String> allowedTypes;
+    private List<String> allowedTypes;
 
-	private List<String> converters;
+    private List<String> converters;
 
-	@Bean(name = "xstreamProcessEnginePlugin")
-	@Order(Ordering.DEFAULT_ORDER + 1)
-	public ProcessEnginePlugin xstreamProcessEnginePlugin() {
+    @Bean(name = "xstreamProcessEnginePlugin")
+    @Order(Ordering.DEFAULT_ORDER + 1)
+    public ProcessEnginePlugin xstreamProcessEnginePlugin() {
 
-		final at.elmo.config.xstream.ProcessEnginePlugin plugin =
-				new at.elmo.config.xstream.ProcessEnginePlugin();
-		if (encoding != null) {
-			plugin.setEncoding(encoding);
-		}
-		if (allowedTypes != null) {
-			plugin.setAllowedTypes(String.join(",", allowedTypes));
-		}
-		if (converters != null) {
-			plugin.setConverters(String.join(",", converters));
-		}
-		return plugin;
-		
-	}
-	
-	public void setAllowedTypes(List<String> allowedTypes) {
-		this.allowedTypes = allowedTypes;
-	}
-	
-	public void setConverters(List<String> converters) {
-		this.converters = converters;
-	}
-	
+        final at.elmo.config.xstream.ProcessEnginePlugin plugin =
+                new at.elmo.config.xstream.ProcessEnginePlugin();
+        if (encoding != null) {
+            plugin.setEncoding(encoding);
+        }
+        if (allowedTypes != null) {
+            plugin.setAllowedTypes(String.join(",", allowedTypes));
+        }
+        if (converters != null) {
+            plugin.setConverters(String.join(",", converters));
+        }
+        return plugin;
+        
+    }
+    
+    public void setAllowedTypes(List<String> allowedTypes) {
+        this.allowedTypes = allowedTypes;
+    }
+    
+    public void setConverters(List<String> converters) {
+        this.converters = converters;
+    }
+    
 }

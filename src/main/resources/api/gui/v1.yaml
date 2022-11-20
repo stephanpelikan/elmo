@@ -286,24 +286,132 @@ paths:
           description: Email is wrong format
         404:
           description: The member-id is unknown
-  /gui/car-sharing/calendar:
+  /gui/driver/calendar:
     post:
       tags:
-        - car-sharing
-      summary: The calendar for car-sharing
-      operationId: getCarSharingCalendar
+        - driver
+      summary: The calendar for car-sharing/passanger-service
+      operationId: getPlannerCalendar
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CarSharingCalendarRequest'
+              $ref: '#/components/schemas/PlannerCalendarRequest'
       responses:
         200:
-          description: The calander
+          description: The calender
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CarSharingCalendar'
+                $ref: '#/components/schemas/PlannerCalendar'
+  /gui/driver/shift-overview:
+    get:
+      tags:
+        - driver
+      summary: The shifts within the next two weeks
+      operationId: getShiftOverview
+      responses:
+        200:
+          description: The shift-overview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShiftOverview'
+  /gui/car-sharing/reservations:
+    get:
+      tags:
+        - car-sharing
+      summary: The reservations of the member currently logged in
+      operationId: getCarSharingReservations
+      responses: 
+        200:
+          description: The shift-overview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CarSharingReservations'
+  /gui/car-sharing/{carId}/reservation:
+    post:
+      tags:
+        - car-sharing
+      summary: Take a car-sharing reservation
+      operationId: addCarSharingReservation
+      parameters:
+        - in: path
+          name: carId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlannerReservation'
+      responses:
+        200:
+          description: Reservation accepted
+        400:
+          description: Input parameters invalid
+        404:
+          description: Car not found
+        409:
+          description: Reservation declined due to other reservations
+  /gui/car-sharing/{carId}/reservation/{reservationId}:
+    put:
+      tags:
+        - car-sharing
+      summary: Confirm start or end of car-sharing
+      operationId: confirmStartOrStopOfCarSharing
+      parameters:
+        - in: path
+          name: carId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: reservationId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CarSharingStarStopRequest'
+      responses:
+        200:
+          description: Reservation confirmed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CarSharingReservation'
+        400:
+          description: Wrong parameters
+        404:
+          description: Reservation not found
+    delete:
+      tags:
+        - car-sharing
+      summary: Cancel a car-sharing reservation
+      operationId: cancelCarSharingReservation
+      parameters:
+        - in: path
+          name: carId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: reservationId
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Reservation removed
+        400:
+          description: Reservation not found
+        404:
+          description: Car not found
 components:
   schemas:
     ValidationErrors:
@@ -332,12 +440,26 @@ components:
         - REJECTED
         - ACTIVE
         - INACTIVE
-    CarSharingReservationType:
+    PlannerReservationType:
       type: string
       enum:
         - CS # shortcut of CarSharing
         - BLOCK
         - PS # shortcut of PassanagerService
+    ShiftStatus:
+      type: string
+      enum:
+        - NO_SHIFT # hour has no passanger-service shift
+        - FREE     # no car drivers set to shift
+        - PARTIAL  # in case of more cars for passanger-service if one car driver is set and the other not
+        - COMPLETE # all car drivers set to shift
+    CarSharingStatus:
+      type: string
+      enum:
+        - RESERVED
+        - ONGOING
+        - COMPLETED
+        - CANCELLED
     AppInformation:
       type: object
       properties:
@@ -389,7 +511,7 @@ components:
           type: int
         email:
           type: string
-        name:
+        lastName:
           type: string
         firstName:
           type: string
@@ -397,7 +519,7 @@ components:
           $ref: '#/components/schemas/Sex'
         avatar:
           type: integer
-          format: int64
+          format: int32
         roles:
           type: array
           items:
@@ -471,7 +593,7 @@ components:
           type: string
         applicationComment:
           type: string
-    CarSharingCalendarRequest:
+    PlannerCalendarRequest:
       type: object
       properties:
         startsAt:
@@ -480,9 +602,7 @@ components:
         endsAt:
           type: string
           format: date-time
-        history:
-          type: boolean
-    CarSharingDriver:
+    PlannerDriver:
       type: object
       properties:
         memberId:
@@ -493,9 +613,12 @@ components:
           type: string
         sex:
           $ref: '#/components/schemas/Sex'
+        avatar:
+          type: integer
+          format: int32
         phoneNumber:
           type: string
-    CarSharingCar:
+    PlannerCar:
       type: object
       properties:
         id:
@@ -504,33 +627,148 @@ components:
           type: string
         shortcut:
           type: string
-    CarSharingReservation:
+        reservations:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlannerReservation'
+    PlannerReservation:
       type: object
       properties:
+        id:
+          type: string
         startsAt:
           type: string
           format: date-time
         endsAt:
           type: string
           format: date-time
+        status:
+          type: string
         type:
-          $ref: '#/components/schemas/CarSharingReservationType'
+          $ref: '#/components/schemas/PlannerReservationType'
         driverMemberId:
           type: integer
-        carId:
-          type: string
-    CarSharingCalendar:
+    PlannerCalendar:
       type: object
       properties:
+        remainingHours:
+          type: integer
+          format: int32
+        maxHours:
+          type: integer
+          format: int32
         drivers:
           type: array
           items:
-            $ref: '#/components/schemas/CarSharingDriver'
+            $ref: '#/components/schemas/PlannerDriver'
         cars:
           type: array
           items:
-            $ref: '#/components/schemas/CarSharingCar'
+            $ref: '#/components/schemas/PlannerCar'
+    ShiftOverviewWeek:
+      type: object
+      properties:
+        description:
+          type: string
+        startsAt:
+          type: string
+        endsAt:
+          type: string
+        days:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShiftOverviewDay'
+    ShiftOverviewDay:
+      type: object
+      properties:
+        description:
+          type: string
+        date:
+          type: string
+        hours:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShiftOverviewHour'
+    ShiftOverviewHour:
+      type: object
+      properties:
+        description:
+          type: string
+        carId:
+          type: string
+        status:
+          $ref: '#/components/schemas/ShiftStatus'
+    ShiftOverview:
+      type: object
+      properties:
+        numberOfCars:
+          type: integer
+          format: int32
+        weeks:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShiftOverviewWeek'
+    CarSharingReservation:
+      type: object
+      properties:
+        id:
+          type: string
+        driverMemberId:
+          type: integer
+          format: int32
+        startsAt:
+          type: string
+          format: date-time
+        startUsage:
+          type: string
+          format: date-time
+        kmAtStart:
+          type: integer
+          format: int32
+        endsAt:
+          type: string
+          format: date-time
+        endUsage:
+          type: string
+          format: date-time
+        kmAtEnd:
+          type: integer
+          format: int32
+        comment:
+          type: string
+        hoursPlanned:
+          type: integer
+          format: int32
+        carId:
+          type: string
+        carName:
+          type: string
+        carKm:
+          type: integer
+          format: int32
+        status:
+          $ref: '#/components/schemas/CarSharingStatus'
+        userTaskType:
+          type: string
+        userTaskId:
+          type: string
+    CarSharingReservations:
+      type: object
+      properties:
         reservations:
           type: array
           items:
             $ref: '#/components/schemas/CarSharingReservation'
+    CarSharingStarStopRequest:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        km:
+          type: integer
+          format: int32
+        comment:
+          type: string
+        userTaskId:
+          type: string

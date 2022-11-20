@@ -3,6 +3,8 @@ import { Dispatch } from '../AppContext';
 import buildFetchApi from './fetchApi';
 import { Cookies } from "react-cookie";
 
+const SSE_UPDATE_URL = "/api/v1/gui/updates";
+
 const REFRESH_TOKEN_HEADER = "x-refresh-token";
 
 const RefreshAwareMiddleware: Middleware = {
@@ -59,10 +61,7 @@ const RefreshAwareMiddleware: Middleware = {
         return new Promise((resolve, reject) => {
             context
                 .fetch(new Request(context.url, init))
-                .then(result => {
-                    window.localStorage.removeItem(REFRESH_TOKEN_HEADER);
-                    resolve(result);
-                  })
+                .then(result => resolve(result))
                 .catch(error => {
                   if (error.response) { // server denied access
                     window.localStorage.removeItem(REFRESH_TOKEN_HEADER);
@@ -116,6 +115,7 @@ const getMemberGuiApi = (dispatch: Dispatch): MemberApi => {
 export { RefreshAwareMiddleware, REFRESH_TOKEN_HEADER };
 
 export {
+    SSE_UPDATE_URL,
     getLoginGuiApi,
     getOnboardingGuiApi,
     getMemberGuiApi,
