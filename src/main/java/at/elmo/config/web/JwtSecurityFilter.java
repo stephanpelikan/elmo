@@ -67,8 +67,6 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
 
     public static final String COOKIE_AUTH = "token";
 
-    public static final String COOKIE_HAS_TOKEN = "hasToken";
-
     private static final String JWT_PROVIDER = "p";
 
     private static final String JWT_ROLE = "role";
@@ -134,6 +132,94 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
 
     }
 
+    private void processJwtToken(
+            final String jwt,
+            final HttpServletRequest request,
+            final HttpServletResponse response,
+            final FilterChain filterChain) throws IOException {
+        
+        final var jwtBody = Jwts
+                .parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(jwt)
+                .getBody();
+        final var id = jwtBody.getSubject();
+        @SuppressWarnings("unchecked")
+        final var roles = ((List<String>) jwtBody.get(JWT_ROLE, List.class));
+        
+        final ElmoJwtToken auth;
+        if (roles.contains(JWT_CAR_ROLE)) {
+            final var carId = jwtBody.get(JWT_ELMO_ID, String.class);
+            final var car = cars.findById(carId);
+            if (car.isEmpty()) {
+                throw new IllegalArgumentException("Unknown car id '" + carId + "'");
+            }
+            if (!car.get().isAppActive()) {
+                return;
+            }
+            auth = buildAuthentication(jwt, jwtBody, roles, car.get());
+        } else {
+            final var member = members.findByOauth2Ids_Id(id);
+            if (member.isEmpty()) {
+                final var memberApplication = memberApplications.findByOauth2Id_Id(id);
+                if (memberApplication.isEmpty()) {
+                    return;
+                } else {
+                    auth = buildAuthentication(jwt, jwtBody, roles, null, memberApplication.get().getId());
+                }
+            } else {
+                auth = buildAuthentication(jwt, jwtBody, roles, member.get().getId(), null);
+            }
+        }
+        
+        SecurityContextHolder.getContext().setAuthentication(auth);
+        
+    }
+    
+    private void processRefreshToken(
+            final String refreshToken,
+            final HttpServletRequest request,
+            final HttpServletResponse response,
+            final FilterChain filterChain) throws IOException {
+        
+        final var newRefreshToken = refreshTokenService
+                .consumeRefreshToken(
+                        refreshToken);
+        if (newRefreshToken == null) {
+            return;
+        }
+
+        response.setHeader(RefreshToken.HEADER_NAME, newRefreshToken.getToken());
+
+        final ElmoJwtToken auth;
+        final var id = newRefreshToken.getOauth2Id();
+        if (newRefreshToken.getProvider() == ElmoOAuth2Provider.ELMO) {
+            final var car = cars.findById(id);
+            if (car.isEmpty() || !car.get().isAppActive()) {
+                return;
+            }
+            auth = buildAuthentication(newRefreshToken, car.get());
+        } else {
+            final var member = members.findByOauth2Ids_Id(id);
+            if (member.isEmpty()) {
+                final var memberApplication = memberApplications.findByOauth2Id_Id(id);
+                if (memberApplication.isEmpty()) {
+                    return;
+                } else {
+                    auth = buildAuthentication(newRefreshToken, null, memberApplication.get());
+                }
+            } else {
+                auth = buildAuthentication(newRefreshToken, member.get(), null);
+            }
+        }
+
+        setToken(request, response, auth.getJwt());
+
+        SecurityContextHolder.getContext().setAuthentication(auth);
+        
+    }
+    
     @Override
     protected void doFilterInternal(
             final HttpServletRequest request,
@@ -145,121 +231,24 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
 
             currentResponse.set(response);
 
-            final var jwt = resolveToken(request);
-            if (jwt != null) {
-
-                final var jwtBody = Jwts
-                                .parserBuilder()
-                                .setSigningKey(key)
-                                .build()
-                                .parseClaimsJws(jwt)
-                                .getBody();
-                final var id = jwtBody.getSubject();
-                @SuppressWarnings("unchecked")
-                final var roles = ((List<String>) jwtBody.get(JWT_ROLE, List.class));
-
-                final ElmoJwtToken auth;
-                if (roles.contains(JWT_CAR_ROLE)) {
-                    final var carId = jwtBody.get(JWT_ELMO_ID, String.class);
-                    final var car = cars.findById(carId);
-                    if (car.isEmpty()) {
-                        throw new IllegalArgumentException("Unknown car id '" + carId + "'");
-                    }
-                    if (!car.get().isAppActive()) {
-                        doFilterOrSendUnauthorizedIfProtected(request, response, filterChain);
-                        return;
-                    }
-                    auth = buildAuthentication(jwt, jwtBody, roles, car.get());
-                } else {
-                    final var member = members.findByOauth2Ids_Id(id);
-                    if (member.isEmpty()) {
-                        final var memberApplication = memberApplications.findByOauth2Id_Id(id);
-                        if (memberApplication.isEmpty()) {
-                            response.sendError(HttpStatus.FORBIDDEN.value());
-                            return;
-                        } else {
-                            auth = buildAuthentication(jwt, jwtBody, roles, null, memberApplication.get().getId());
-                        }
-                    } else {
-                        auth = buildAuthentication(jwt, jwtBody, roles, member.get().getId(), null);
-                    }
-                }
-
-                SecurityContextHolder.getContext().setAuthentication(auth);
-
-            } else if ((request.getHeader(RefreshToken.HEADER_NAME) != null)
-                    || isElmoApp(request)) {
-
-                throw new ExpiredJwtException(null, null, null);
-
-            }
-
-            filterChain.doFilter(request, response);
-
-        } catch (ExpiredJwtException e) {
-
-            if (isPublicUrl(request)) {
-                filterChain.doFilter(request, response);
-                return;
-            }
-
             final var refreshToken = getRefreshToken(request);
-            if (!StringUtils.hasText(refreshToken)) {
-                doFilterOrSendUnauthorizedIfProtected(request, response, filterChain);
-                return;
+            if (StringUtils.hasText(refreshToken)) {
+                processRefreshToken(refreshToken, request, response, filterChain);
             }
 
-            final var newRefreshToken = refreshTokenService
-                    .consumeRefreshToken(
-                            refreshToken);
-            if (newRefreshToken == null) {
-                doFilterOrSendUnauthorizedIfProtected(request, response, filterChain);
-                return;
-            }
-
-            response.setHeader(RefreshToken.HEADER_NAME, newRefreshToken.getToken());
-
-            final ElmoJwtToken auth;
-            final var id = newRefreshToken.getOauth2Id();
-            final var car = cars.findById(id);
-            if (car.isPresent()) {
-                if (!car.get().isAppActive()) {
-                    doFilterOrSendUnauthorizedIfProtected(request, response, filterChain);
-                    return;
-                }
-                auth = buildAuthentication(newRefreshToken, car.get());
-            } else {
-                final var member = members.findByOauth2Ids_Id(id);
-                if (member.isEmpty()) {
-                    final var memberApplication = memberApplications.findByOauth2Id_Id(id);
-                    if (memberApplication.isEmpty()) {
-                        response.sendError(HttpStatus.FORBIDDEN.value());
-                        return;
-                    } else {
-                        auth = buildAuthentication(newRefreshToken, null, memberApplication.get());
-                    }
-                } else {
-                    auth = buildAuthentication(newRefreshToken, member.get(), null);
-                }
-            }
-
-            setToken(request, response, auth.getJwt());
-
-            SecurityContextHolder.getContext().setAuthentication(auth);
-
-            try {
-                
-                filterChain.doFilter(request, response);
-                
-            } catch (Exception ie) {
-                
-                response.sendError(500);
-                
+            final var jwt = resolveToken(request);
+            if (!StringUtils.hasText(refreshToken)
+                    && StringUtils.hasText(jwt)) {
+                processJwtToken(jwt, request, response, filterChain);
             }
             
-        } catch (UnsupportedJwtException | MalformedJwtException | SignatureException e) {
+            filterChain.doFilter(request, response);
+            
+        } catch (ExpiredJwtException | UnsupportedJwtException | MalformedJwtException | SignatureException e) {
 
-            logger.warn("JWT-error", e);
+            if (!(e instanceof ExpiredJwtException)) {
+                logger.warn("JWT-error", e);
+            }
 
             // delete access token
             final var authCookie = new Cookie(COOKIE_AUTH, "");
@@ -267,11 +256,6 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
             authCookie.setPath("/");
             authCookie.setMaxAge(0);
             response.addCookie(authCookie);
-            final var isAuthCookie = new Cookie(COOKIE_HAS_TOKEN, "");
-            isAuthCookie.setHttpOnly(false);
-            isAuthCookie.setPath("/");
-            isAuthCookie.setMaxAge(0);
-            response.addCookie(isAuthCookie);
 
             doFilterOrSendUnauthorizedIfProtected(request, response, filterChain);
 
@@ -290,7 +274,8 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
             final HttpServletRequest request) {
 
         final var appAuthHeader = request.getHeader(AUTH_HEADER);
-        if ((appAuthHeader != null) && appAuthHeader.startsWith(APP_AUTH_PREFIX)) {
+        if ((appAuthHeader != null)
+                && appAuthHeader.startsWith(APP_AUTH_PREFIX)) {
             return appAuthHeader.substring(APP_AUTH_PREFIX.length());
         }
 
@@ -329,9 +314,19 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
             final HttpServletResponse response, final FilterChain filterChain) throws ServletException, IOException {
 
         if (isPublicUrl(request)) {
-            filterChain.doFilter(request, response);
+            
+            // try catch is necessary, otherwise the client doesn't see
+            // exceptions thrown by 'doFilter' as an internal server error
+            try {
+                filterChain.doFilter(request, response);
+            } catch (Exception ie) {
+                response.sendError(500);
+            }
+            
         } else {
+            
             response.sendError(HttpStatus.UNAUTHORIZED.value());
+            
         }
 
     }
@@ -521,7 +516,7 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
 
             final var authorization = request.getHeader(AUTH_HEADER);
             if ((authorization != null)
-                && authorization.startsWith(AUTH_PREFIX)) {
+                    && authorization.startsWith(AUTH_PREFIX)) {
                 return authorization.substring(AUTH_PREFIX.length());
             } else {
                 return null;
@@ -578,11 +573,6 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
         authCookie.setPath("/");
         authCookie.setMaxAge((int) accessTokenLifetime.getSeconds() * 2);
         response.addCookie(authCookie);
-        final var isAuthCookie = new Cookie(COOKIE_HAS_TOKEN, "true");
-        isAuthCookie.setHttpOnly(false);
-        isAuthCookie.setPath("/");
-        isAuthCookie.setMaxAge((int) accessTokenLifetime.getSeconds() * 2);
-        response.addCookie(isAuthCookie);
 
     }
 

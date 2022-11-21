@@ -37,11 +37,6 @@ public class LogoutSuccessHandler implements org.springframework.security.web.au
         authCookie.setPath("/");
         authCookie.setMaxAge(0);
         response.addCookie(authCookie);
-        final var isAuthCookie = new Cookie(JwtSecurityFilter.COOKIE_HAS_TOKEN, "");
-        isAuthCookie.setHttpOnly(false);
-        isAuthCookie.setPath("/");
-        isAuthCookie.setMaxAge(0);
-        response.addCookie(isAuthCookie);
 
         response.sendRedirect(properties.getGatewayUrl());
 
