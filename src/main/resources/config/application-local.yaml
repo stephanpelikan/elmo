@@ -62,9 +62,14 @@ camunda:
       password: admin
       first-name: Admin
       last-name: Istrator
-swagger:
-  gui:
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
     enable: true
+    doc-expansion: list
+    tagsSorter: alpha
+    operationsSorter: alpha
 
 ---
 spring:

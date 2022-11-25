@@ -15,7 +15,7 @@ class ConfigValue extends PersistenceBase<String> {
     @Column(name = "NAME")
     private String name;
 
-    @Column(name = "VALUE")
+    @Column(name = "CONFIG_VALUE")
     private String value;
 
     public ConfigValue() {

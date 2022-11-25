@@ -99,7 +99,7 @@ public class CarSharingService {
                 .getHoursConsumedCarSharing()
                 + carSharing.getHoursPlanned();
         members
-                .getById(driver.getId())
+                .getReferenceById(driver.getId())
                 .setHoursConsumedCarSharing(newHours);
 
         return processService.startWorkflow(carSharing);

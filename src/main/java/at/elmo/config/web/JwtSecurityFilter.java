@@ -27,6 +27,7 @@ import io.jsonwebtoken.security.SignatureException;
 import org.camunda.bpm.engine.impl.util.StringUtil;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -102,6 +103,7 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
     private ConfigService configs;
 
     @Autowired
+    @Lazy // avoid circular dependency
     private WebInvocationPrivilegeEvaluator privilegeEvaluator;
 
     private static SecretKey key;

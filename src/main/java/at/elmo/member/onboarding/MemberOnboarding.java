@@ -154,7 +154,7 @@ public class MemberOnboarding {
             final Role initialRole) {
 
         final var application = memberApplications
-                .getById(applicationId);
+                .getReferenceById(applicationId);
         validateMemberForApplicationInformationProcessing(taskId, application);
 
         if (action == MemberApplicationUpdate.REQUEST) {
@@ -295,7 +295,7 @@ public class MemberOnboarding {
 
     public void takeoverMemberApplicationByApplicant(final String applicationId, final String taskId) {
 
-        final var application = memberApplications.getById(applicationId);
+        final var application = memberApplications.getReferenceById(applicationId);
 
         application.setStatus(Status.DATA_INVALID);
 
@@ -307,7 +307,7 @@ public class MemberOnboarding {
             final String applicationId,
             final String taskId) {
 
-        final var application = memberApplications.getById(applicationId);
+        final var application = memberApplications.getReferenceById(applicationId);
 
         application.setStatus(Status.APPLICATION_SUBMITTED);
 

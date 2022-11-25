@@ -115,7 +115,7 @@
       <column name="NAME" type="varchar(100)">
         <constraints primaryKey="true" />
       </column>
-      <column name="VALUE" type="varchar(255)">
+      <column name="CONFIG_VALUE" type="varchar(255)">
         <constraints nullable="false" />
       </column>
     </createTable>

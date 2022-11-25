@@ -1,5 +1,5 @@
 elmo:
-  version: 0.0.1-SNAPSHOT
+  version: "@project.version@"
   sms:
     supported: true
   initial-new-member-id: 1
@@ -67,6 +67,10 @@ elmo:
           end: '16:00:00'
         - start: '16:00:00'
           end: '19:00:00'
+server:
+  port: 8080
+  servlet:
+    context-path: /
 spring:
   application:
     name: elmo-gf
@@ -99,6 +103,9 @@ spring:
       defaultRowPrefetch: 100
   freemarker:
     template-loader-path: classpath:templates
+springdoc:
+  api-docs:
+    enabled: false
 camunda:
   bpm:
     default-number-of-retries: 1

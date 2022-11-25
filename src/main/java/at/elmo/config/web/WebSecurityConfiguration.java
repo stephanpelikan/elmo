@@ -14,11 +14,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.authentication.ui.DefaultLoginPageGeneratingFilter;
@@ -30,7 +30,7 @@ import javax.annotation.Resource;
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(jsr250Enabled = true)
-public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
+public class WebSecurityConfiguration {
 
     @Value("${camunda.bpm.admin-user.id}")
     private String adminUserId;
@@ -53,25 +53,25 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     //@Resource
     //private JdbcTemplate jdbcTemplate;
 
-    @Override
-    protected void configure(final HttpSecurity http) throws Exception {
+    @Bean
+    protected SecurityFilterChain configure(final HttpSecurity http) throws Exception {
 
         final RequestMatcher[] unprotectedGuiApi = new RequestMatcher[] {
                 new AntPathRequestMatcher("/api/v*/gui/app-info"),
                 new AntPathRequestMatcher("/api/v*/gui/current-user"),
                 new AntPathRequestMatcher("/api/v*/app/text-messages-notification/*"),
                 new AntPathRequestMatcher("/api/v*/gui/oauth2-clients"),
-        };
+            };
 
         final RequestMatcher[] administrationApi = new RequestMatcher[] {
                 new AntPathRequestMatcher("/api/v*/administration/**")
-        };
+            };
 
         final RequestMatcher[] guiApi = new RequestMatcher[] {
                 new AntPathRequestMatcher("/api/v*/**"),
                 new AntPathRequestMatcher("/logout"),
                 new AntPathRequestMatcher("/**/oauth2/**"),
-        };
+            };
 
         http
                 .requestMatchers()
@@ -125,6 +125,8 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                     .and()
                 .addFilterBefore(jwtSecurityFilter(), LogoutFilter.class);
 
+        return http.build();
+        
     }
 
     @Bean
