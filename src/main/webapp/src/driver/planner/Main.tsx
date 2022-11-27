@@ -9,7 +9,6 @@ import { UserAvatar } from '../../components/UserAvatar';
 import { LoadingIndicator } from '../../components/LoadingIndicator';
 import { useCarSharingApi, useDriverApi } from '../DriverAppContext';
 import { DriverApi, PlannerCar, PlannerDriver, PlannerReservation, User } from "../../client/gui";
-import { SSE_UPDATE_URL } from "../../client/guiClient";
 import { CSSProperties, memo, MouseEvent as ReactMouseEvent, MutableRefObject, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { BackgroundType, BorderType } from "grommet/utils";
 import { TFunction } from "i18next";
@@ -17,9 +16,10 @@ import styled from "styled-components";
 import { normalizeColor,  } from "grommet/utils";
 import { Contract, DocumentTime, FormCheckmark, FormClose, FormDown, FormUp, History } from "grommet-icons";
 import { useAppContext } from "../../AppContext";
-import { useEventSource, useEventSourceListener } from "react-sse-hooks";
 import { CalendarHeader } from "../../components/CalendarHeader";
+import { useGuiSse } from '../../client/guiClient';
 import { now, registerEachSecondHook, unregisterEachSecondHook } from '../../utils/now-hook';
+import { WakeupSseCallback } from "../../components/SseProvider";
 
 i18n.addResources('en', 'driver/planner', {
       "title.long": 'Planner',
@@ -706,8 +706,10 @@ const Planner = () => {
   const { t } = useTranslation('driver/planner');
   const { state, toast, setAppHeaderTitle } = useAppContext();
   const { isPhone, isNotPhone } = useResponsiveScreen();
-  const carSharingApi = useCarSharingApi();
-  const driverApi = useDriverApi();
+  
+  const wakeupSseCallback = useRef<WakeupSseCallback>(undefined);
+  const carSharingApi = useCarSharingApi(wakeupSseCallback);
+  const driverApi = useDriverApi(wakeupSseCallback);
 
   useLayoutEffect(() => {
     setAppHeaderTitle('driver/planner', false);
@@ -776,7 +778,7 @@ const Planner = () => {
     }, [ driverApi, days, restrictions, setRestrictions, drivers, startsAt ]);
   
   useEffect(() => {
-      const rerenderPastHoursHook = (lastNow) => {
+      const rerenderPastHoursHook = (lastNow: Date) => {
           if (now.getHours() !== lastNow.getHours()) {
             increaseDayVersions(dayVersionsRef, now, cars);
             updateDayVersions(dayVersionsRef.current);
@@ -822,6 +824,8 @@ const Planner = () => {
   const mouseDownOnHour = useCallback((event: ReactMouseEvent, car: PlannerCar, hour: CalendarHour) => {
       if (isMouseDown.current) return;
       if (hour.endsAt.getTime() < now.getTime()) return;
+      event.preventDefault();
+      event.stopPropagation();
       if (restrictionsRef.current.remainingHours < 1) {
         toast({
             namespace: 'driver/car-sharing/booking',
@@ -831,8 +835,6 @@ const Planner = () => {
           });
         return;
       }
-      event.preventDefault();
-      event.stopPropagation();
 
       if (selection.current !== undefined) {
         for (let hour = selection.current.startsAt.getTime()
@@ -1075,6 +1077,7 @@ const Planner = () => {
         };
       removePlannerReservation();
     }, [ carSharingApi ]);
+  
   useEffect(() => {
       window.addEventListener('mouseup', mouseUp);
       window.addEventListener('mousemove', mouseMove);
@@ -1083,65 +1086,57 @@ const Planner = () => {
           window.removeEventListener('mousemove', mouseMove);
         };
     }, [ mouseUp, mouseMove ]);
-  
-  const updateSource = useEventSource({
-      source: SSE_UPDATE_URL,
-    });
     
   const debounceSse = useDebounce();
-  useEventSourceListener<UpdateEvent>({
-      source: updateSource,
-      startOnInit: true,
-      event: {
-        name: "Reservation#all",
-        listener: ({ data }) => {
-            const startsAt = new Date(data.startsAt);
-            const endsAt = new Date(data.endsAt);
-            const effectedDays = [];
-            for (let day = startsAt.getTime(); day < endsAt.getTime(); day += 3600000 * 24) {
-              const current = new Date(day);
-              const key = dayVersionKey(current, data.carId);
-              if (!effectedDays.includes(key)) {
-                effectedDays.push(new Date(current.getFullYear(), current.getMonth(), current.getDate()));
-              }
-            }
-            const key = dayVersionKey(endsAt, data.carId);
-            if (!effectedDays.includes(key)) {
-              effectedDays.push(nextHours(endsAt, 24 - endsAt.getHours(), false));
-            }
+  wakeupSseCallback.current = useGuiSse<UpdateEvent>(
+      [ driverApi, setRestrictions, setSelection, state.currentUser.memberId, t, toast ],
+      ({ data }) => {
+        const startsAt = new Date(data.startsAt);
+        const endsAt = new Date(data.endsAt);
+        const effectedDays = [];
+        for (let day = startsAt.getTime(); day < endsAt.getTime(); day += 3600000 * 24) {
+          const current = new Date(day);
+          const key = dayVersionKey(current, data.carId);
+          if (!effectedDays.includes(key)) {
+            effectedDays.push(new Date(current.getFullYear(), current.getMonth(), current.getDate()));
+          }
+        }
+        const key = dayVersionKey(endsAt, data.carId);
+        if (!effectedDays.includes(key)) {
+          effectedDays.push(nextHours(endsAt, 24 - endsAt.getHours(), false));
+        }
 
-            const updateStartsAt = effectedDays[0].getTime() < daysRef.current[0].startsAt.getTime() ? daysRef.current[0].startsAt : effectedDays[0];
-            const updateEndsAt = effectedDays[effectedDays.length - 1];
-            const updateDataAndSelection = async () => {
-                await loadData(driverApi, dayVersionsRef, updateDayVersions, setEndDate, updateStartsAt, updateEndsAt, daysRef.current, setDays, driversRef.current, setDrivers, setRestrictions);
-                setWaitingForUpdate(false);
-                // detect overlapping selection of other members:
-                if (selection.current === undefined) return;
-                if ((startsAt.getTime() >= selection.current.startsAt.getTime()
-                        && (endsAt.getTime() <= selection.current.endsAt.getTime()))
-                    || (startsAt.getTime() < selection.current.startsAt.getTime()
-                        && (endsAt.getTime() > selection.current.endsAt.getTime()))
-                    || (startsAt.getTime() <= selection.current.startsAt.getTime()
-                        && (endsAt.getTime() > selection.current.startsAt.getTime()))
-                    || (startsAt.getTime() < selection.current.endsAt.getTime()
-                        && (endsAt.getTime() >= selection.current.endsAt.getTime()))) {
-                  if (data.driverMemberId !== state.currentUser.memberId) {
-                    toast({
-                        namespace: 'driver/car-sharing/booking',
-                        title: t('conflicting-incoming_title'),
-                        message: t('conflicting-incoming_msg'),
-                        status: 'warning'
-                      });
-                  }
-                  setSelection(undefined);
-                }
-              };
-            debounceSse(() => { updateDataAndSelection(); });
-          },
+        const updateStartsAt = effectedDays[0].getTime() < daysRef.current[0].startsAt.getTime() ? daysRef.current[0].startsAt : effectedDays[0];
+        const updateEndsAt = effectedDays[effectedDays.length - 1];
+        const updateDataAndSelection = async () => {
+            await loadData(driverApi, dayVersionsRef, updateDayVersions, setEndDate, updateStartsAt, updateEndsAt, daysRef.current, setDays, driversRef.current, setDrivers, setRestrictions);
+            setWaitingForUpdate(false);
+            // detect overlapping selection of other members:
+            if (selection.current === undefined) return;
+            if ((startsAt.getTime() >= selection.current.startsAt.getTime()
+                    && (endsAt.getTime() <= selection.current.endsAt.getTime()))
+                || (startsAt.getTime() < selection.current.startsAt.getTime()
+                    && (endsAt.getTime() > selection.current.endsAt.getTime()))
+                || (startsAt.getTime() <= selection.current.startsAt.getTime()
+                    && (endsAt.getTime() > selection.current.startsAt.getTime()))
+                || (startsAt.getTime() < selection.current.endsAt.getTime()
+                    && (endsAt.getTime() >= selection.current.endsAt.getTime()))) {
+              if (data.driverMemberId !== state.currentUser.memberId) {
+                toast({
+                    namespace: 'driver/car-sharing/booking',
+                    title: t('conflicting-incoming_title'),
+                    message: t('conflicting-incoming_msg'),
+                    status: 'warning'
+                  });
+              }
+              setSelection(undefined);
+            }
+          };
+        debounceSse(() => { updateDataAndSelection(); });
       },
-    },
-    [ updateSource ]);
-  
+      "Reservation#all"
+    );
+
   const carColumnSize = isPhone ? '80vw' : '300px';
   const carColumns: ColumnConfig<any>[] = !cars
       ? []

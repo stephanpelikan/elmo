@@ -1,9 +1,7 @@
 package at.elmo.util;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
-
+import at.elmo.car.Car;
+import at.elmo.car.CarRepository;
 import at.elmo.member.Member;
 import at.elmo.member.MemberRepository;
 import at.elmo.member.Role;
@@ -12,6 +10,9 @@ import at.elmo.member.onboarding.MemberApplication;
 import at.elmo.member.onboarding.MemberApplicationRepository;
 import at.elmo.util.exceptions.ElmoException;
 import at.elmo.util.exceptions.ElmoForbiddenException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 
 @Component
 public class UserContext {
@@ -21,6 +22,40 @@ public class UserContext {
 
     @Autowired
     private MemberApplicationRepository memberApplications;
+    
+    @Autowired
+    private CarRepository cars;
+
+    public Car getLoggedInCar() {
+
+        final var authentication = SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+        
+        if (authentication == null) {
+            throw new ElmoForbiddenException("No security context");
+        }
+        if (!authentication.isAuthenticated()) {
+            throw new ElmoForbiddenException("Car not logged in");
+        }
+
+        if (!(authentication.getPrincipal() instanceof ElmoOAuth2User)) {
+            throw new ElmoForbiddenException("Car logged in not of instance '" + ElmoOAuth2User.class + "'");
+        }
+
+        final var oauth2User = (ElmoOAuth2User) authentication.getPrincipal();
+        if (oauth2User.getElmoId() == null) {
+            return null;
+        }
+
+        final var result = cars.findById(oauth2User.getElmoId());
+        if (result.isEmpty()) {
+            return null;
+        }
+        
+        return result.get();
+
+    }
 
     public Member getLoggedInMember() {
 
@@ -36,7 +71,7 @@ public class UserContext {
         }
 
         if (!(authentication.getPrincipal() instanceof ElmoOAuth2User)) {
-            throw new ElmoForbiddenException("User logged in not of incstance '" + ElmoOAuth2User.class + "'");
+            throw new ElmoForbiddenException("User logged in not of instance '" + ElmoOAuth2User.class + "'");
         }
 
         final var oauth2User = (ElmoOAuth2User) authentication.getPrincipal();
@@ -66,7 +101,7 @@ public class UserContext {
             throw new ElmoForbiddenException("User anonymous");
         }
         if (!(authentication.getPrincipal() instanceof ElmoOAuth2User)) {
-            throw new ElmoForbiddenException("User logged in not of incstance '" + ElmoOAuth2User.class + "'");
+            throw new ElmoForbiddenException("User logged in not of instance '" + ElmoOAuth2User.class + "'");
         }
 
         final var oauth2User = (ElmoOAuth2User) authentication.getPrincipal();

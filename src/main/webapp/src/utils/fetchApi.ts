@@ -1,5 +1,5 @@
-import { FetchAPI } from './gui';
 import { Dispatch } from '../AppContext';
+import { WakeupSseCallback } from 'components/SseProvider';
 
 const REFRESH_TOKEN_HEADER = "x-refresh-token";
 
@@ -18,7 +18,6 @@ const doRequest = (
         mode: Boolean(refreshToken) ? 'exclusive' : 'shared'
       },
       async _lock => {
-
         try {
 
           const storedRefreshToken = window.localStorage.getItem(REFRESH_TOKEN_HEADER);
@@ -35,7 +34,6 @@ const doRequest = (
           
           // @ts-ignore
           const response = await fetch(input, initWithRefreshToken);
-          
           // save new refresh-token regardless the response code
           // because if it's given, it is valid
           const responseRefreshToken = response.headers.get(REFRESH_TOKEN_HEADER);
@@ -99,10 +97,13 @@ const doRequest = (
   
 };
 
-const buildFetchApi = (dispatch: Dispatch): FetchAPI => {
+const buildFetchApi = (dispatch: Dispatch, wakeupSeeCallback?: WakeupSseCallback): WindowOrWorkerGlobalScope['fetch'] => {
   
   return (input, init): Promise<Response> => {
       return new Promise((resolve, reject) => {
+          if (wakeupSeeCallback !== undefined) {
+            wakeupSeeCallback();
+          }
           doRequest(dispatch, resolve, reject, input, init);
         });
     };

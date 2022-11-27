@@ -24,18 +24,6 @@ paths:
         404:
           description: The member-id is unknown
   /app/text-messages:
-    get:
-      tags:
-        - app
-      summary: Request a auth token for establishing a SSE channel
-      operationId: requestSeeAuthToken
-      responses:
-        200:
-          description: The auth token
-          content:
-            text/plain:
-              schema:
-                type: string
     post:
       tags:
         - app

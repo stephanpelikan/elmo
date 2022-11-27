@@ -1,10 +1,7 @@
-import { useCallback, useEffect } from "react";
-import { useEventSource, useEventSourceListener } from "react-sse-hooks";
+import { WakeupSseCallback } from "components/SseProvider";
+import { useCallback, useEffect, useRef } from "react";
 import { useAppApi } from './CarAppContext';
-
-interface SmsSenderProps {
-  token: string;
-}
+import { useSmsSse } from "./SmsSseProvider";
 
 interface SmsEvent {
   senderNumber: string;
@@ -13,16 +10,12 @@ interface SmsEvent {
 // @ts-ignore
 const smsCommunicator = typeof webkit !== 'undefined' ? webkit.messageHandlers.native : window.native;
 
-const SmsSender = ({ token }: SmsSenderProps) => {
+const SmsSender = () => {
 
-  const appApi = useAppApi();
-
-  const smsSource = useEventSource({
-    source: '/api/v1/app/text-messages-notification/' + encodeURIComponent(token),
-  });
+  const wakeupSseCallback = useRef<WakeupSseCallback>(undefined);
+  const appApi = useAppApi(wakeupSseCallback);
 
   const sendSms = useCallback(async () => {
-
     const result = await appApi.requestTextMessages();
     result.textMessages?.forEach(
         message => {
@@ -42,21 +35,15 @@ const SmsSender = ({ token }: SmsSenderProps) => {
 
   useEffect(() => {
     
-    const timer = setInterval(() => sendSms(), 60000);
+    const timer = setInterval(() => sendSms(), 300000);
     return () => clearInterval(timer);
     
   }, [sendSms]);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { startListening, stopListening } = useEventSourceListener<SmsEvent>({
-      source: smsSource,
-      startOnInit: true,
-      event: {
-        name: "SMS",
-        listener: ({ data }) => { sendSms() },
-      },
-    },
-    [smsSource, sendSms]);
+  wakeupSseCallback.current = useSmsSse<SmsEvent>(
+      [sendSms],
+      sendSms,
+      'SMS'); 
 
   return (<></>);
   

@@ -57,6 +57,12 @@ public class ElmoJwtToken extends AbstractAuthenticationToken {
         return user.getOAuth2Id();
 
     }
+    
+    public String getElmoId() {
+        
+        return user.getElmoId();
+        
+    }
 
     public String getJwt() {
 

@@ -1,7 +1,7 @@
 import { Dispatch } from '../AppContext';
 import { FLUTTER_AUTH_TOKEN, FLUTTER_REFRESH_TOKEN } from '../app/FlutterSupport';
-import { AppApi, Configuration, FetchAPI } from './app';
-import { REFRESH_TOKEN_HEADER } from './fetchApi';
+import { AppApi, Configuration } from './app';
+import { REFRESH_TOKEN_HEADER } from '../utils/fetchApi';
 
 const doRequest = (
     dispatch: Dispatch,
@@ -13,7 +13,7 @@ const doRequest = (
   ) => {
 
   navigator.locks.request(
-      'elmo-webapp',
+      'elmo-app',
       {
         mode: Boolean(refreshToken) ? 'exclusive' : 'shared'
       },
@@ -38,7 +38,6 @@ const doRequest = (
           
           // @ts-ignore
           const response = await fetch(input, initWithToken);
-          
           // save new refresh-token and auth-token regardless the response code
           // because if it's given, it is valid
           const responseRefreshToken = response.headers.get(REFRESH_TOKEN_HEADER);
@@ -109,23 +108,26 @@ const doRequest = (
   
 };
 
-const buildFetchApi = (dispatch: Dispatch): FetchAPI => {
+const buildAppFetchApi = (dispatch: Dispatch, wakeupSeeCallback?: () => void): WindowOrWorkerGlobalScope['fetch'] => {
   
   return (input, init): Promise<Response> => {
       return new Promise((resolve, reject) => {
+          if (wakeupSeeCallback !== undefined) {
+            wakeupSeeCallback();
+          }
           doRequest(dispatch, resolve, reject, input, init);
         });
     };
 
 };
 
-const getAppApi = (dispatch: Dispatch): AppApi => {
+const getAppApi = (dispatch: Dispatch, wakeupSeeCallback?: () => void): AppApi => {
   const config = new Configuration({
     basePath: '/api/v1',
-    fetchApi: buildFetchApi(dispatch),
+    fetchApi: buildAppFetchApi(dispatch, wakeupSeeCallback),
   });
   
   return new AppApi(config);
 };
 
-export { getAppApi };
+export { getAppApi, buildAppFetchApi };

@@ -1,8 +1,9 @@
-import { SmsChannelProvider } from "./SmsChannelProvider";
+import { SmsSseProvider } from "./SmsSseProvider";
+import { SmsSender } from "./SmsSender";
 
 const CarAppSupport = () => (
-  <>
-    <SmsChannelProvider />
-  </>);
+  <SmsSseProvider>
+    <SmsSender />
+  </SmsSseProvider>);
 
 export default CarAppSupport;

@@ -333,27 +333,6 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
 
     }
 
-    public static String getCarIdFromToken(
-            final String jwt) throws Exception {
-
-        final var jwtBody = Jwts
-                .parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(jwt)
-                .getBody();
-
-        @SuppressWarnings("unchecked")
-        final var roles = ((List<String>) jwtBody.get(JWT_ROLE, List.class));
-        if (!roles.contains(JWT_CAR_ROLE)) {
-            return null;
-        }
-
-        final var carId = jwtBody.get(JWT_ELMO_ID, String.class);
-        return carId;
-
-    }
-
     private ElmoJwtToken buildAuthentication(
             final RefreshToken refreshToken,
             final Member member,

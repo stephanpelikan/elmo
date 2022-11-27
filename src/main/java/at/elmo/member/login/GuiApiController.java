@@ -23,6 +23,7 @@ import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -114,6 +115,9 @@ public class GuiApiController implements LoginApi {
 
     @Autowired
     private OAuth2UserService oauth2UserService;
+    
+    @Autowired
+    private TaskScheduler taskScheduler;
 
     private Map<String, UpdateEmitter> updateEmitters = new HashMap<>();
     
@@ -132,6 +136,25 @@ public class GuiApiController implements LoginApi {
                 .withEmitter(updateEmitter)
                 .withMember(member));
 
+        // This ping forces the browser to treat the text/event-stream request
+        // as closed an therefore the lock created in fetchApi.ts is released
+        // to avoid the UI would stuck in cases of errors.
+        taskScheduler.schedule(
+                () -> {
+                    try {
+                        final var ping = new PingNotification();
+                        updateEmitter
+                                .send(
+                                        SseEmitter
+                                                .event()
+                                                .id(UUID.randomUUID().toString())
+                                                .data(ping, MediaType.APPLICATION_JSON)
+                                                .name(ping.getSource().toString()));
+                    } catch (Exception e) {
+                        logger.warn("Could not SSE send confirmation, client might stuck");
+                    }
+                }, Instant.now().plusMillis(300));
+        
         return updateEmitter;
 
     }

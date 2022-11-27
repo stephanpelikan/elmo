@@ -1,13 +1,14 @@
-import { useMemo } from 'react';
+import { WakeupSseCallback } from 'components/SseProvider';
+import { MutableRefObject, useMemo } from 'react';
 import { useAppContext } from '../../AppContext';
 import { AppApi } from '../../client/app';
 import{ getAppApi } from '../../client/appClient';
 
-const useAppApi = (): AppApi => {
+const useAppApi = (wakeupSseCallback?: MutableRefObject<WakeupSseCallback>): AppApi => {
 
   const { dispatch } = useAppContext();
   
-  const appApi = useMemo(() => getAppApi(dispatch), [ dispatch ]);
+  const appApi = useMemo(() => getAppApi(dispatch, wakeupSseCallback?.current), [ dispatch ]);
 
   return appApi;
   

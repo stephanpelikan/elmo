@@ -59,17 +59,21 @@ const AppHeader = () => {
         }
       </Box>
       <Box>
-        <Button
-            plain
-            focusIndicator={ false }
-            margin='small'
-            icon={ state.currentUser
-                ? <MenuIcon />
-                : <Login /> }
-            onMouseDown={ state.currentUser
-                ? toggleMenu
-                : goToLogin }
-            style={ { position: 'relative' } } />
+        {
+          state.currentUser || isPhone
+              ? <Button
+                    plain
+                    focusIndicator={ false }
+                    margin='small'
+                    icon={ state.currentUser
+                        ? <MenuIcon />
+                        : <Login /> }
+                    onMouseDown={ state.currentUser
+                        ? toggleMenu
+                        : goToLogin }
+                    style={ { position: 'relative' } } />
+              : undefined
+        }
         <ResponsiveMenu />
       </Box>
     </Header>

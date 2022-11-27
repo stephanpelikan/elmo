@@ -1,4 +1,4 @@
-import { Notification } from "grommet";
+import { Notification, Timeout } from "grommet";
 import { useCallback, useEffect, useLayoutEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Dispatch, Toast } from '../AppContext';
@@ -22,8 +22,8 @@ const MessageToast = ({ dispatch, msg }: MessageToastProps) => {
   useEffect(() => {
     let timeout = msg.timeout !== undefined ? msg.timeout : msg.message.length * 50;
     if (timeout < 3000) timeout = 3000;
-    const timer = setTimeout(close, timeout);
-    return () => clearTimeout(timer);
+    const timer: Timeout = window.setTimeout(close, timeout);
+    return () => window.clearTimeout(timer);
   }, [msg, close]);
   
   return (

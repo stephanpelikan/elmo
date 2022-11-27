@@ -10,11 +10,10 @@ import '../i18n';
 import { ProtectedRoute } from './ProtectedRoute';
 import { CurrentUser } from './CurrentUser';
 import { Role } from '../client/gui';
+import { GuiSseProvider } from '../client/guiClient';
 import { Login } from '../login/Login';
 import { css } from 'styled-components';
 import { MessageToast } from '../components/Toast';
-import { PreconfiguredReconnectingEventSource } from "../utils/sseUtils";
-import { EventSourceProvider } from 'react-sse-hooks';
 import { LoadingIndicator } from '../components/LoadingIndicator';
 import { useKeepNowUpToDate } from '../utils/now-hook';
 
@@ -214,10 +213,10 @@ const App: React.FC<AppProps> = (props: AppProps): JSX.Element => {
     <Grommet
         theme={theme}
         full>
-      <EventSourceProvider eventSource={ PreconfiguredReconnectingEventSource }>
-        {state.toast && (
-          <MessageToast dispatch={dispatch} msg={state.toast} />
-        )}
+      {state.toast && (
+        <MessageToast dispatch={dispatch} msg={state.toast} />
+      )}
+      <GuiSseProvider>
         <Router>
           <Box
               fill>
@@ -261,7 +260,7 @@ const App: React.FC<AppProps> = (props: AppProps): JSX.Element => {
             </Box>
           </Box>
         </Router>
-      </EventSourceProvider>
+      </GuiSseProvider>
     </Grommet>
   );
 };

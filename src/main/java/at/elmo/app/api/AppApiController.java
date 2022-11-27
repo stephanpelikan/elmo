@@ -2,9 +2,8 @@ package at.elmo.app.api;
 
 import at.elmo.app.api.v1.AppApi;
 import at.elmo.app.api.v1.TextMessages;
-import at.elmo.car.CarService;
-import at.elmo.config.web.JwtSecurityFilter;
-import at.elmo.member.login.ElmoOAuth2User;
+import at.elmo.car.Car;
+import at.elmo.util.UserContext;
 import at.elmo.util.sms.SmsEvent;
 import at.elmo.util.sms.SmsService;
 import at.elmo.util.spring.PingNotification;
@@ -13,30 +12,32 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.UUID;
 
-import javax.validation.constraints.NotNull;
-
 @RestController("appApiController")
 @RequestMapping("/api/v1")
+@Secured("CAR")
 public class AppApiController implements AppApi {
 
     @Autowired
     private Logger logger;
+
+    @Autowired
+    private UserContext userContext;
 
     @Autowired
     private AppMapper mapper;
@@ -45,7 +46,7 @@ public class AppApiController implements AppApi {
     private SmsService smsService;
 
     @Autowired
-    private CarService carService;
+    private TaskScheduler taskScheduler;
 
     private Map<String, SseEmitter> smsEmitters = new HashMap<>();
 
@@ -58,17 +59,37 @@ public class AppApiController implements AppApi {
 
     @RequestMapping(
             method = RequestMethod.GET,
-            value = "/app/text-messages-notification/{token}"
+            value = "/app/text-messages-notification"
         )
-    public SseEmitter smsSubscription(
-            @NotNull @PathVariable(value = "token", required = true) String token) throws Exception {
+    public SseEmitter smsSubscription() throws Exception {
 
-        final var carId = JwtSecurityFilter.getCarIdFromToken(token);
-        final var phoneNumber = getPhoneNumberOfCar(carId);
+        final var car = userContext.getLoggedInCar();
+        final var phoneNumber = getPhoneNumberOfCar(car);
 
         final var smsEmitter = new SseEmitter(-1l);
         smsEmitters.put(phoneNumber, smsEmitter);
 
+        // This ping forces the browser to treat the text/event-stream request
+        // as closed an therefore the lock created in fetchApi.ts is released
+        // to avoid the UI would stuck in cases of errors.
+        taskScheduler.schedule(
+                () -> {
+                    try {
+                        final var event = new SmsEvent(
+                                AppApiController.class.getSimpleName() + "#smsSubscription",
+                                null);
+                        smsEmitter.send(
+                                SseEmitter
+                                        .event()
+                                        .id(UUID.randomUUID().toString())
+                                        .data(event, MediaType.APPLICATION_JSON)
+                                        .name("SMS")
+                                        .reconnectTime(30000));
+                    } catch (Exception e) {
+                        logger.warn("Could not SSE send confirmation, client might stuck");
+                    }
+                }, Instant.now().plusMillis(300));
+        
         return smsEmitter;
 
     }
@@ -125,24 +146,10 @@ public class AppApiController implements AppApi {
     }
 
     @Override
-    @Secured("ROLE_CAR")
-    public ResponseEntity<String> requestSeeAuthToken() {
-
-        final var user = (ElmoOAuth2User) SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getPrincipal();
-        final var token = JwtSecurityFilter.generateToken(user, 60);
-
-        return ResponseEntity.ok(token);
-
-    }
-
-    @Override
-    @Secured("ROLE_CAR")
     public ResponseEntity<TextMessages> requestTextMessages() {
 
-        final var phoneNumber = getPhoneNumberOfCar();
+        final var car = userContext.getLoggedInCar();
+        final var phoneNumber = getPhoneNumberOfCar(car);
 
         final var messages = smsService.getMessagesToSend(phoneNumber);
 
@@ -156,27 +163,14 @@ public class AppApiController implements AppApi {
 
     }
 
-    private String getPhoneNumberOfCar() {
+    private String getPhoneNumberOfCar(final Car car) {
 
-        final var user = (ElmoOAuth2User) SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getPrincipal();
-        final var carId = user.getElmoId();
-
-        return getPhoneNumberOfCar(carId);
-
-    }
-
-    private String getPhoneNumberOfCar(final String carId) {
-
-        final var car = carService.getCar(carId);
-        if (car.isEmpty()
-                || !StringUtils.hasText(car.get().getPhoneNumber())) {
+        if ((car == null)
+                || !StringUtils.hasText(car.getPhoneNumber())) {
             throw new RuntimeException("not found");
         }
 
-        return car.get().getPhoneNumber();
+        return car.getPhoneNumber();
 
     }
 
