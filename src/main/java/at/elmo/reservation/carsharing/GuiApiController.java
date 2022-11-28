@@ -8,6 +8,7 @@ import at.elmo.gui.api.v1.CarSharingStarStopRequest;
 import at.elmo.gui.api.v1.PlannerReservation;
 import at.elmo.gui.api.v1.PlannerReservationType;
 import at.elmo.reservation.ReservationService;
+import at.elmo.reservation.passangerservice.shift.Shift;
 import at.elmo.util.UserContext;
 import at.elmo.util.exceptions.ElmoValidationException;
 import org.slf4j.Logger;
@@ -126,25 +127,26 @@ public class GuiApiController implements CarSharingApi {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
         
-        final var otherCarsReservations = reservationService.findReservations(
+        reservationService.findReservations(
                 carSharingReservation.getStartsAt(),
-                carSharingReservation.getEndsAt());
-        final var parallelReservation = otherCarsReservations
+                carSharingReservation.getEndsAt())
                 .stream()
-                .filter(reservation -> {
+                .forEach(reservation -> {
                     if ((reservation instanceof CarSharing)
                             && ((CarSharing) reservation).getDriver().getId()
                                     .equals(driver.getId())) {
-                        return true;
+                        throw new ElmoValidationException(
+                                "parallel-carsharing",
+                                reservation.getCar().getName());
+                    } else if ((reservation instanceof Shift)
+                            && (((Shift) reservation).getDriver() != null)
+                            && ((Shift) reservation).getDriver().getId()
+                            .equals(driver.getId())) {
+                        throw new ElmoValidationException(
+                                "parallel-passangerservice",
+                                reservation.getCar().getName());
                     }
-                    return false;
-                })
-                .findFirst();
-        if (parallelReservation.isPresent()) {
-            throw new ElmoValidationException(
-                    "parallel-reservations",
-                    parallelReservation.get().getCar().getName());
-        }
+                });
         
         try {
             

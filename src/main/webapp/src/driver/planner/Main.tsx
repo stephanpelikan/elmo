@@ -36,8 +36,10 @@ i18n.addResources('en', 'driver/planner', {
       "conflicting-reservation_msg": "This view is not up to date! Meanwhile there is a conflicting reservation. Please go back and reenter to refresh the view.",
       "conflicting-incoming_title": "Planning",
       "conflicting-incoming_msg": "Another driver created a conflicting reservation. Your selection was removed.",
-      "parallel-reservations_title": "Planning",
-      "parallel-reservations_msg": "You have another reservation in parallel for '{{value}}'!",
+      "parallel-carsharing_title": "Planning",
+      "parallel-carsharing_msg": "You have another reservation in parallel for '{{value}}'!",
+      "parallel-passangerservice_title": "Planning",
+      "parallel-passangerservice_msg": "You are planned yourself for passanger-service on '{{value}}' in parallel!",
       "date_format": "yyyy/mm/dd",
     });
 i18n.addResources('de', 'driver/planner', {
@@ -55,8 +57,10 @@ i18n.addResources('de', 'driver/planner', {
       "conflicting-reservation_msg": "Diese Ansicht ist nicht aktuell! Mittlerweile gibt es eine andere Reservierung in dieser Zeit. Bitte wechsle zur vorigen Ansicht steige neu ein, um die Ansicht zu aktualisieren.",
       "conflicting-incoming_title": "Planer",
       "conflicting-incoming_msg": "Ein(e) andere(r) Fahrer(in) hat eine Reservierung in der Zeit deiner Auswahl eingetragen, weshalb sie entfernt wurde.",
-      "parallel-reservations_title": "Planning",
-      "parallel-reservations_msg": "Du hast zeitgleich eine andere Reservierung für '{{value}}'!",
+      "parallel-carsharing_title": "Planning",
+      "parallel-carsharing_msg": "Du hast zeitgleich eine andere Car-Sharing-Reservierung für '{{value}}'!",
+      "parallel-passangerservice_title": "Planning",
+      "parallel-passangerservice_msg": "Du bist hast dich zeitgleich für den Fahrtendienst mit '{{value}}' eingetragen!",
       "date_format": "dd.mm.yyyy",
     });
 
