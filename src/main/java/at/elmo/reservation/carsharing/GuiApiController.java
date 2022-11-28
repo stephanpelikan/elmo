@@ -113,7 +113,9 @@ public class GuiApiController implements CarSharingApi {
 
         if (carSharingService.numberOfFutureCarSharings(driver) >=
                 properties.getMaxReservations()) {
-            throw new ElmoValidationException("max-reservations", Long.toString(properties.getMaxReservations()));
+            throw new ElmoValidationException(
+                    "max-reservations",
+                    Long.toString(properties.getMaxReservations()));
         }
         
         final var overlappings = reservationService.checkForOverlappings(
@@ -122,6 +124,26 @@ public class GuiApiController implements CarSharingApi {
                 carSharingReservation.getEndsAt());
         if (!overlappings.isEmpty()) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+        
+        final var otherCarsReservations = reservationService.findReservations(
+                carSharingReservation.getStartsAt(),
+                carSharingReservation.getEndsAt());
+        final var parallelReservation = otherCarsReservations
+                .stream()
+                .filter(reservation -> {
+                    if ((reservation instanceof CarSharing)
+                            && ((CarSharing) reservation).getDriver().getId()
+                                    .equals(driver.getId())) {
+                        return true;
+                    }
+                    return false;
+                })
+                .findFirst();
+        if (parallelReservation.isPresent()) {
+            throw new ElmoValidationException(
+                    "parallel-reservations",
+                    parallelReservation.get().getCar().getName());
         }
         
         try {

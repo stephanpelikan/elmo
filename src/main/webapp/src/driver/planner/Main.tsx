@@ -31,11 +31,13 @@ i18n.addResources('en', 'driver/planner', {
       "no-remaining-hours_title": "Planning",
       "no-remaining-hours_msg": "The quota has been used up!",
       "max-reservations_title": "Planning",
-      "max-reservations_msg": "The maximum number of car-sharing reservations is reached: {{maxReservations}}!",
+      "max-reservations_msg": "The maximum number of car-sharing reservations is reached: {{value}}!",
       "conflicting-reservation_title": "Planning",
       "conflicting-reservation_msg": "This view is not up to date! Meanwhile there is a conflicting reservation. Please go back and reenter to refresh the view.",
       "conflicting-incoming_title": "Planning",
       "conflicting-incoming_msg": "Another driver created a conflicting reservation. Your selection was removed.",
+      "parallel-reservations_title": "Planning",
+      "parallel-reservations_msg": "You have another reservation in parallel for '{{value}}'!",
       "date_format": "yyyy/mm/dd",
     });
 i18n.addResources('de', 'driver/planner', {
@@ -48,11 +50,13 @@ i18n.addResources('de', 'driver/planner', {
       "no-remaining-hours_title": "Planer",
       "no-remaining-hours_msg": "Dein Car-Sharing-Kontingent ist bereits aufgebraucht!",
       "max-reservations_title": "Planer",
-      "max-reservations_msg": "Du hast bereits die maximale Anzahl an Car-Sharing-Reservierungen gebucht: {{maxReservations}}!",
+      "max-reservations_msg": "Du hast bereits die maximale Anzahl an Car-Sharing-Reservierungen gebucht: {{value}}!",
       "conflicting-reservation_title": "Planer",
       "conflicting-reservation_msg": "Diese Ansicht ist nicht aktuell! Mittlerweile gibt es eine andere Reservierung in dieser Zeit. Bitte wechsle zur vorigen Ansicht steige neu ein, um die Ansicht zu aktualisieren.",
       "conflicting-incoming_title": "Planer",
       "conflicting-incoming_msg": "Ein(e) andere(r) Fahrer(in) hat eine Reservierung in der Zeit deiner Auswahl eingetragen, weshalb sie entfernt wurde.",
+      "parallel-reservations_title": "Planning",
+      "parallel-reservations_msg": "Du hast zeitgleich eine andere Reservierung für '{{value}}'!",
       "date_format": "dd.mm.yyyy",
     });
 
@@ -1047,12 +1051,16 @@ const Planner = () => {
             // violations response
             else if (error.response?.json) {
               const violations = await error.response?.json()
-              toast({
-                  namespace: 'driver/car-sharing/booking',
-                  title: t('max-reservations_title'),
-                  message: t('max-reservations_msg', { maxReservations: violations["max-reservations"] }),
-                  status: 'critical'
-                });
+              Object
+                  .keys(violations)
+                  .forEach(violation => {
+                      toast({
+                          namespace: 'driver/car-sharing/booking',
+                          title: t(`${violation}_title`),
+                          message: t(`${violation}_msg`, { value: violations[violation] }),
+                          status: 'critical'
+                        });
+                  });
             }
           } 
         };
