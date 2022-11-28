@@ -114,7 +114,7 @@ const Login = () => {
     };
     fetchClients();
   }, [ fetchOauth2Clients, setOauth2Clients ]);
-  
+
   return (
     <MainLayout>
       <Heading
@@ -124,13 +124,15 @@ const Login = () => {
           gap="large"
           justify="around"
           direction="row-responsive">
-        <Content>
+        <Content
+            margin={ { horizontal: 'auto' } }>
           <TextHeading icon={ <Group /> }>{t('wanna be a part of?')}</TextHeading>
           <Paragraph>{t('login to become a member')}</Paragraph>
           <Paragraph>{t('visit the homepage')}</Paragraph>
           <Anchor target='_blank' href={ state.appInformation?.homepageUrl }>{ state.appInformation?.homepageUrl }</Anchor>
         </Content>
-        <Content>
+        <Content
+            margin={ { horizontal: 'auto' } }>
           <TextHeading icon={ <Like /> }>{t('already a part of?')}</TextHeading>
           <Paragraph>{t('login to book a ride')}</Paragraph>
           <Box width={{ max: 'medium' }}>
@@ -162,7 +164,6 @@ const Login = () => {
                       onClick={ oauth2Client.url === 'native' ? () => doNativeLogin(oauth2Client.id) : undefined }
                       key={ oauth2Client.id }
                       height={ { max: 'xsmall' } }
-                      width={ { max: 'medium' } }
                       fill='horizontal'
                       direction='row'
                       gap='medium'
