@@ -2,7 +2,7 @@ import { useEffect } from "react";
 
 let now = new Date();
 
-type EachSecondHook = (lastNow?: Date) => void;
+type EachSecondHook = (lastNow: Date) => void;
 
 const hooks = new Array<EachSecondHook>();
 

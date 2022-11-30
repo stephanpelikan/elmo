@@ -8,8 +8,8 @@ import { SnapScrollingDataTable } from '../../components/SnapScrollingDataTable'
 import { UserAvatar } from '../../components/UserAvatar';
 import { LoadingIndicator } from '../../components/LoadingIndicator';
 import { useCarSharingApi, useDriverApi } from '../DriverAppContext';
-import { DriverApi, PlannerCar, PlannerDriver, PlannerReservation, User } from "../../client/gui";
-import { CSSProperties, memo, MouseEvent as ReactMouseEvent, MutableRefObject, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { DriverApi, PlannerCar, PlannerDriver, PlannerReservation, PlannerReservationType, User } from "../../client/gui";
+import React, { CSSProperties, memo, MouseEvent as ReactMouseEvent, MutableRefObject, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { BackgroundType, BorderType } from "grommet/utils";
 import { TFunction } from "i18next";
 import styled from "styled-components";
@@ -222,7 +222,7 @@ const SelectionBox = ({ hour, selection, mouseDownOnDrag, cancelSelection, accep
                           <UserAvatar
                               size='medium'
                               border={ { color: 'accent-3', size: '3px' }}
-                              user={ state.currentUser } />
+                              user={ state.currentUser! } />
                         </Box>
                         <Box>
                           <Text>
@@ -329,7 +329,7 @@ const CancellationBox = ({
     reservation: PlannerReservation,
     cancelReservation: (event: ReactMouseEvent, carId: string, reservationId: string) => void
   }) => {
-    if (reservation.status !== 'RESERVED') return undefined;
+    if (reservation.status !== 'RESERVED') return null;
     return <Box
           style={ { position: 'relative' } }>
         <Box
@@ -370,13 +370,13 @@ const PlannerReservationBox = ({
           <UserAvatar
               size='small'
               border={ { color: 'dark-4', size: '1px' }}
-              user={ drivers[ hour.reservation.driverMemberId ] } />
+              user={ drivers[ hour.reservation!.driverMemberId! ] } />
           <Box>
               <Text
                   truncate>{
-                timeAsString(hour.reservation.startsAt)
+                timeAsString(hour.reservation!.startsAt)
               } - {
-                timeAsString(hour.reservation.endsAt)
+                timeAsString(hour.reservation!.endsAt)
               }</Text>
           </Box>
         </Box>
@@ -415,13 +415,13 @@ const DayTable = memo<{
                     && !reservationIsInactive
                 ? 'accent-3'
                 : 'dark-4';
-            const backgroundColor: BackgroundType = hour.reservation
+            const backgroundColor: BackgroundType | undefined = hour.reservation
                 ? (hour.reservation?.driverMemberId === currentUser.memberId)
                     && !reservationIsInactive
                 ? { color: 'accent-3', opacity: 'strong' }
                 : 'light-4'
                 : undefined;
-            const borders = [];
+            const borders: BorderType = [];
             let hasTopBorder = false;
             let hasBottomBorder = false;
             if (hour.reservation) {
@@ -521,16 +521,16 @@ const DayTable = memo<{
                               cancellationBox={ isLastHourOfReservation
                                   ? <CancellationBox
                                        carId={ car.id }
-                                       reservation={ hour.reservation }
+                                       reservation={ hour.reservation! }
                                        cancelReservation={ cancelReservation } />
                                   : undefined }
                                />
-                          : <Text>{ t(`reservation-type_${hour.reservation.type}` as const) }</Text>
+                          : <Text>{ t(`reservation-type_${hour.reservation!.type}` as const) }</Text>
                         : isLastHourOfReservation
                         ? isPlannerReservation
                           ? <CancellationBox
                                carId={ car.id }
-                               reservation={ hour.reservation }
+                               reservation={ hour.reservation! }
                                cancelReservation={ cancelReservation } />
                           : undefined
                         : undefined
@@ -573,7 +573,7 @@ const DayTable = memo<{
     return prev.dayVersion === next.dayVersion;
   });
 
-const dayVersionKey = (time: Date, carId: string) =>
+const dayVersionKey = (time: Date, carId: string): string =>
     (time.getFullYear() * 10000 + time.getMonth() * 100 + time.getDate()) + carId;
     
 const getDayVersion = (
@@ -630,15 +630,15 @@ const loadData = async (
 
   if (setRestrictions) {
     setRestrictions({
-        remainingHours: calendar.remainingHours,
-        maxHours: calendar.maxHours,
+        remainingHours: calendar.remainingHours!,
+        maxHours: calendar.maxHours!,
       });
   }
   if (setCars) {
     setCars(calendar.cars);
   }
   
-  const newDays = [];
+  const newDays: Array<CalendarDay> = [];
 
   const currentHour = { at: startsAt, day: { startsAt, hours: {} } };
   newDays.push(currentHour.day);
@@ -656,8 +656,8 @@ const loadData = async (
         hours = [];
         currentHour.day.hours[car.id] = hours;
       }
-      const numberOfReservations = car.reservations?.length;
-      let reservation = undefined;
+      const numberOfReservations = car.reservations?.length || 0;
+      let reservation: PlannerReservation | undefined = undefined;
       if (numberOfReservations > 0) {
         for (var i = carReservationIndex[car.id];
             (i < numberOfReservations); ++i) {
@@ -739,7 +739,7 @@ const Planner = () => {
           : currentHour(false)
     );
   const setStartsAt = (dateInput: string|Date) => {
-    let date: Date;
+    let date: Date | undefined;
     if (dateInput === undefined) {
       date = undefined;
     } else if (typeof dateInput === 'string') {
@@ -752,28 +752,28 @@ const Planner = () => {
       date = dateInput;
     }
     setUseSearch(false);
-    _setStartsAt(nextHours(date, date.getHours(), true));
+    _setStartsAt(nextHours(date!, date!.getHours(), true));
     setDays(undefined);
     setRestrictions(undefined);
   };
 
-  const [ endDate, setEndDate ] = useState<Date>(undefined);
-  const [ days, _setDays]  = useState<Array<CalendarDay>>(undefined);
+  const [ endDate, setEndDate ] = useState<Date | undefined>(undefined);
+  const [ days, _setDays]  = useState<Array<CalendarDay> | undefined>(undefined);
   const daysRef = useRef(days);
-  const setDays = (d: Array<CalendarDay>) => {
+  const setDays = (d: Array<CalendarDay> | undefined) => {
       daysRef.current = d;
       _setDays(d);
     };
-  const [ cars, setCars ] = useState<Array<PlannerCar>>(undefined);
-  const [ drivers, _setDrivers ] = useState<ReservationDrivers>(undefined);
+  const [ cars, setCars ] = useState<Array<PlannerCar> | undefined>(undefined);
+  const [ drivers, _setDrivers ] = useState<ReservationDrivers | undefined>(undefined);
   const driversRef = useRef(drivers);
   const setDrivers = (d: ReservationDrivers) => {
       driversRef.current = d;
       _setDrivers(d);
     };
-  const [ restrictions, _setRestrictions ] = useState<Restrictions>(undefined);
+  const [ restrictions, _setRestrictions ] = useState<Restrictions | undefined>(undefined);
   const restrictionsRef = useRef(restrictions);
-  const setRestrictions = useCallback((r: Restrictions) => {
+  const setRestrictions = useCallback((r: Restrictions | undefined) => {
       restrictionsRef.current = r;
       _setRestrictions(r);
     }, [ restrictionsRef, _setRestrictions ]);
@@ -781,14 +781,14 @@ const Planner = () => {
   useEffect(() => {
       if (restrictions === undefined) {
         const endsAt = nextHours(startsAt, (24 - startsAt.getHours()) + 24, false);
-        loadData(driverApi, dayVersionsRef, updateDayVersions, setEndDate, startsAt, endsAt, days, setDays, drivers, setDrivers, setRestrictions, setCars);
+        loadData(driverApi, dayVersionsRef, updateDayVersions, setEndDate, startsAt, endsAt, days!, setDays, drivers!, setDrivers, setRestrictions, setCars);
       }
     }, [ driverApi, days, restrictions, setRestrictions, drivers, startsAt ]);
   
   useEffect(() => {
       const rerenderPastHoursHook = (lastNow: Date) => {
           if (now.getHours() !== lastNow.getHours()) {
-            increaseDayVersions(dayVersionsRef, now, cars);
+            increaseDayVersions(dayVersionsRef, now, cars!);
             updateDayVersions(dayVersionsRef.current);
           }
         };
@@ -798,9 +798,9 @@ const Planner = () => {
 
   const [ _isMouseDown, setMouseIsDown ] = useState(false);
   const isMouseDown = useRef(_isMouseDown);
-  const [ _selection, _setSelection ] = useState<Selection>(undefined);
+  const [ _selection, _setSelection ] = useState<Selection | undefined>(undefined);
   const selection = useRef(_selection);
-  const setSelection = useCallback((s: Selection) => {
+  const setSelection = useCallback((s: Selection | undefined) => {
       selection.current = s;
       _setSelection(s);
       setUseSearch(false);
@@ -816,6 +816,7 @@ const Planner = () => {
   
   const mouseDownOnDrag = useCallback((event: ReactMouseEvent | TouchEvent, top: boolean) => {
       if (isMouseDown.current) return;
+      if (selection.current === undefined) return;
       event.preventDefault();
       event.stopPropagation();
       const s = {
@@ -834,7 +835,7 @@ const Planner = () => {
       if (hour.endsAt.getTime() < now.getTime()) return;
       event.preventDefault();
       event.stopPropagation();
-      if (restrictionsRef.current.remainingHours < 1) {
+      if (restrictionsRef.current!.remainingHours < 1) {
         toast({
             namespace: 'driver/car-sharing/booking',
             title: t('no-remaining-hours_title'),
@@ -866,8 +867,9 @@ const Planner = () => {
       setMouseIsDown(true);
 
     }, [ setMouseIsDown, t, toast, selection, setSelection ]);
-  const mouseEnterHour = useCallback((event: ReactMouseEvent, car: PlannerCar, days: CalendarDay[], day: CalendarDay, hour: CalendarHour) => {
+  const mouseEnterHour = useCallback((event: ReactMouseEvent | Event, car: PlannerCar, days: CalendarDay[], day: CalendarDay, hour: CalendarHour) => {
       if (!isMouseDown.current) return;
+      if (selection.current === undefined) return;
       if (car.id !== selection.current.carId) return;
       if (hour.endsAt.getTime() < now.getTime()) return;
       event.preventDefault();
@@ -886,7 +888,7 @@ const Planner = () => {
         } else {
           const maxStartsAt = nextHours(
               selection.current.startedAtEnds,
-              Math.min(restrictionsRef.current.remainingHours, restrictionsRef.current.maxHours),
+              Math.min(restrictionsRef.current!.remainingHours, restrictionsRef.current!.maxHours),
               true);
           const indexOfStartsAt = indexOfHour
               + numberOfHoursBetween(selection.current.startsAt, hour.startsAt);
@@ -927,7 +929,7 @@ const Planner = () => {
         } else {
           const maxEndsAt = nextHours(
               selection.current.startedAtStarts,
-              Math.min(restrictionsRef.current.remainingHours, restrictionsRef.current.maxHours),
+              Math.min(restrictionsRef.current!.remainingHours, restrictionsRef.current!.maxHours),
               false);
           const indexOfEndsAt = indexOfHour
               - numberOfHoursBetween(selection.current.endsAt, hour.endsAt);
@@ -974,7 +976,7 @@ const Planner = () => {
       setSelection(s);
       
     }, [ isMouseDown, setSelection, selection ]);
-  const lastMoveElement = useRef<Element>(undefined);
+  const lastMoveElement = useRef<Element | null>(null);
   const mouseMove = useCallback((event: MouseEvent) => {
       if (!isMouseDown.current) return;
       event.preventDefault();
@@ -1015,10 +1017,10 @@ const Planner = () => {
       event.preventDefault();
       event.stopPropagation();
 
-      for (let hour = selection.current.startsAt.getTime()
-          ; hour !== selection.current.endsAt.getTime()
+      for (let hour = selection.current!.startsAt.getTime()
+          ; hour !== selection.current!.endsAt.getTime()
           ; hour += 3600000) {
-        increaseDayVersion(dayVersionsRef, new Date(hour), selection.current.carId);
+        increaseDayVersion(dayVersionsRef, new Date(hour), selection.current!.carId);
       }
       updateDayVersions(dayVersionsRef.current);
       setSelection(undefined);
@@ -1032,12 +1034,12 @@ const Planner = () => {
           try {
             setWaitingForUpdate(true);
             await carSharingApi.addCarSharingReservation({
-                carId: selection.current.carId,
-                plannerReservation: {
-                  driverMemberId: state.currentUser.memberId,
-                  startsAt: selection.current.startsAt,
-                  endsAt: selection.current.endsAt,
-                  type: 'CS',
+                carId: selection.current!.carId,
+                addPlannerReservation: {
+                  driverMemberId: state.currentUser!.memberId!,
+                  startsAt: selection.current!.startsAt,
+                  endsAt: selection.current!.endsAt,
+                  type: PlannerReservationType.Cs,
                 }
               });
             // selection will be cancelled by server-sent update
@@ -1101,27 +1103,16 @@ const Planner = () => {
     
   const debounceSse = useDebounce();
   wakeupSseCallback.current = useGuiSse<UpdateEvent>(
-      [ driverApi, setRestrictions, setSelection, state.currentUser.memberId, t, toast ],
+      [ driverApi, setRestrictions, setSelection, state.currentUser!.memberId, t, toast ],
       ({ data }) => {
+      
         const startsAt = new Date(data.startsAt);
         const endsAt = new Date(data.endsAt);
-        const effectedDays = [];
-        for (let day = startsAt.getTime(); day < endsAt.getTime(); day += 3600000 * 24) {
-          const current = new Date(day);
-          const key = dayVersionKey(current, data.carId);
-          if (!effectedDays.includes(key)) {
-            effectedDays.push(new Date(current.getFullYear(), current.getMonth(), current.getDate()));
-          }
-        }
-        const key = dayVersionKey(endsAt, data.carId);
-        if (!effectedDays.includes(key)) {
-          effectedDays.push(nextHours(endsAt, 24 - endsAt.getHours(), false));
-        }
-
-        const updateStartsAt = effectedDays[0].getTime() < daysRef.current[0].startsAt.getTime() ? daysRef.current[0].startsAt : effectedDays[0];
-        const updateEndsAt = effectedDays[effectedDays.length - 1];
+        const midnightOfStartsAtDay = new Date(startsAt.getFullYear(), startsAt.getMonth(), startsAt.getDate());
+        const updateStartsAt = midnightOfStartsAtDay.getTime() < daysRef.current![0].startsAt.getTime() ? daysRef.current![0].startsAt : midnightOfStartsAtDay;
+        const updateEndsAt = nextHours(endsAt, 24 - endsAt.getHours(), false);
         const updateDataAndSelection = async () => {
-            await loadData(driverApi, dayVersionsRef, updateDayVersions, setEndDate, updateStartsAt, updateEndsAt, daysRef.current, setDays, driversRef.current, setDrivers, setRestrictions);
+            await loadData(driverApi, dayVersionsRef, updateDayVersions, setEndDate, updateStartsAt, updateEndsAt, daysRef.current!, setDays, driversRef.current!, setDrivers, setRestrictions);
             setWaitingForUpdate(false);
             // detect overlapping selection of other members:
             if (selection.current === undefined) return;
@@ -1133,7 +1124,7 @@ const Planner = () => {
                     && (endsAt.getTime() > selection.current.startsAt.getTime()))
                 || (startsAt.getTime() < selection.current.endsAt.getTime()
                     && (endsAt.getTime() >= selection.current.endsAt.getTime()))) {
-              if (data.driverMemberId !== state.currentUser.memberId) {
+              if (data.driverMemberId !== state.currentUser!.memberId) {
                 toast({
                     namespace: 'driver/car-sharing/booking',
                     title: t('conflicting-incoming_title'),
@@ -1161,14 +1152,14 @@ const Planner = () => {
               return <DayTable
                   key={ day.startsAt.toISOString() }
                   t={ t }
-                  currentUser={ state.currentUser }
+                  currentUser={ state.currentUser! }
                   dayVersion={ dayVersion }
-                  drivers={ drivers }
-                  days={ days }
+                  drivers={ drivers! }
+                  days={ days! }
                   day={ day }
                   car={ car }
                   useSearch={ useSearch }
-                  selection={ selection.current }
+                  selection={ selection.current! }
                   cancelSelection={ cancelSelection }
                   acceptSelection={ acceptSelection }
                   cancelReservation={ cancelReservation }
@@ -1182,12 +1173,13 @@ const Planner = () => {
         }));
         
   const loadMore = async () => {
+    if (days === undefined) return;
     if (days.length === 0) return;
     const day = days[ days.length - 1 ];
     if (!day) return;
-    const startsAt = endDate;
+    const startsAt = endDate!;
     const endsAt = nextHours(startsAt, itemsBatchSize, false);
-    await loadData(driverApi, dayVersionsRef, updateDayVersions, setEndDate, startsAt, endsAt, days, setDays, drivers, setDrivers, setRestrictions);
+    await loadData(driverApi, dayVersionsRef, updateDayVersions, setEndDate, startsAt, endsAt, days, setDays, drivers!, setDrivers, setRestrictions);
   };
   
   const headerHeight = '3rem';

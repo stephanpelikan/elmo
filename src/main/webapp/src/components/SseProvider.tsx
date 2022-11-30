@@ -96,7 +96,6 @@ const SseProvider = ({ url, Context, buildFetchApi, children, ...rest }: React.P
   };
   
   const buildEventSource = () => {
-    console.log('build event source');
     abortController.current = new AbortController();
     fetchEventSource(
         url, {

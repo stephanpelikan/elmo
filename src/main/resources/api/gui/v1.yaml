@@ -346,7 +346,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PlannerReservation'
+              $ref: '#/components/schemas/AddPlannerReservation'
       responses:
         200:
           description: Reservation accepted
@@ -604,6 +604,8 @@ components:
           format: date-time
     PlannerDriver:
       type: object
+      required:
+        - memberId
       properties:
         memberId:
           type: integer
@@ -620,6 +622,11 @@ components:
           type: string
     PlannerCar:
       type: object
+      required:
+        - id
+        - name
+        - shortcut
+        - reservations
       properties:
         id:
           type: string
@@ -631,8 +638,32 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/PlannerReservation'
+    AddPlannerReservation:
+      type: object
+      required:
+        - startsAt
+        - endsAt
+        - type
+        - driverMemberId
+      properties:
+        startsAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: string
+          format: date-time
+        driverMemberId:
+          type: integer
+        type:
+          $ref: '#/components/schemas/PlannerReservationType'
     PlannerReservation:
       type: object
+      required:
+        - id
+        - startsAt
+        - endsAt
+        - type
+        - status
       properties:
         id:
           type: string
@@ -650,6 +681,11 @@ components:
           type: integer
     PlannerCalendar:
       type: object
+      required:
+        - remainingHours
+        - maxHours
+        - drivers
+        - cars
       properties:
         remainingHours:
           type: integer
@@ -708,8 +744,32 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ShiftOverviewWeek'
+    ReservationEvent:
+      type: object
+      required:
+        - id
+        - type
+        - startsAt
+        - endsAt
+        - carId
+      properties:
+        type:
+          type: string
+        id:
+          type: string
+        driverMemberId:
+          type: number
+        startsAt:
+          type: string
+        endsAt:
+          type: string
+        carId:
+          type: string
     CarSharingReservation:
       type: object
+      required:
+        - id
+        - carId
       properties:
         id:
           type: string
