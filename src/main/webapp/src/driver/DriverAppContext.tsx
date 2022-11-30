@@ -7,7 +7,7 @@ import { WakeupSseCallback } from '../components/SseProvider';
 const useCarSharingApi = (wakeupSseCallback?: MutableRefObject<WakeupSseCallback>): CarSharingApi => {
 
   const { dispatch } = useAppContext();
-  const api = useMemo(() => getCarSharingGuiApi(dispatch, wakeupSseCallback?.current), [ dispatch ]);
+  const api = useMemo(() => getCarSharingGuiApi(dispatch, wakeupSseCallback?.current), [ dispatch, wakeupSseCallback ]);
   return api;
   
 };
@@ -15,7 +15,7 @@ const useCarSharingApi = (wakeupSseCallback?: MutableRefObject<WakeupSseCallback
 const useDriverApi = (wakeupSseCallback?: MutableRefObject<WakeupSseCallback>): DriverApi => {
 
   const { dispatch } = useAppContext();
-  const api = useMemo(() => getDriverGuiApi(dispatch, wakeupSseCallback?.current), [ dispatch ]);
+  const api = useMemo(() => getDriverGuiApi(dispatch, wakeupSseCallback?.current), [ dispatch, wakeupSseCallback ]);
   return api;
   
 };

@@ -8,7 +8,7 @@ const useAppApi = (wakeupSseCallback?: MutableRefObject<WakeupSseCallback>): App
 
   const { dispatch } = useAppContext();
   
-  const appApi = useMemo(() => getAppApi(dispatch, wakeupSseCallback?.current), [ dispatch ]);
+  const appApi = useMemo(() => getAppApi(dispatch, wakeupSseCallback?.current), [ dispatch, wakeupSseCallback ]);
 
   return appApi;
   
