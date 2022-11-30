@@ -14,7 +14,7 @@
       <bpmn:startEvent id="Event_1sppnlo" name="start of car usage">
         <bpmn:outgoing>Flow_18sabf4</bpmn:outgoing>
       </bpmn:startEvent>
-      <bpmn:sendTask id="Activity_150dlco" name="remind driver about confirming end of usage" camunda:asyncBefore="true" camunda:expression="${remindDriverToConfirmEndOfUsage}">
+      <bpmn:sendTask id="Activity_150dlco" name="remind driver about confirming end of usage" camunda:expression="${remindDriverToConfirmEndOfUsage}">
         <bpmn:incoming>Flow_1enmb8x</bpmn:incoming>
         <bpmn:incoming>Flow_09mygfl</bpmn:incoming>
         <bpmn:outgoing>Flow_0pc54w7</bpmn:outgoing>
@@ -69,7 +69,7 @@
           <bpmn:incoming>Flow_1wdsos7</bpmn:incoming>
           <bpmn:outgoing>Flow_1xpj5qy</bpmn:outgoing>
         </bpmn:userTask>
-        <bpmn:sendTask id="Activity_1a47arc" name="remind driver to confirm start of usage in app" camunda:asyncBefore="true" camunda:expression="${remindDriverToConfirmStartOfUsage}">
+        <bpmn:sendTask id="Activity_1a47arc" name="remind driver to confirm start of usage in app" camunda:expression="${remindDriverToConfirmStartOfUsage}">
           <bpmn:incoming>Flow_0jznnqh</bpmn:incoming>
           <bpmn:incoming>Flow_10xofpx</bpmn:incoming>
           <bpmn:outgoing>Flow_0qhzld0</bpmn:outgoing>
@@ -113,11 +113,11 @@
     <bpmn:startEvent id="Event_0yatdx0" name="car sharing reserved">
       <bpmn:outgoing>Flow_08m2v9o</bpmn:outgoing>
     </bpmn:startEvent>
-    <bpmn:sendTask id="Activity_1ifav8b" name="inform driver about cancellation" camunda:asyncBefore="true" camunda:expression="${informDriverAboutCancellationByAdministrator}">
+    <bpmn:sendTask id="Activity_1ifav8b" name="inform driver about cancellation" camunda:expression="${informDriverAboutCancellationByAdministrator}">
       <bpmn:incoming>Flow_1spxycx</bpmn:incoming>
       <bpmn:outgoing>Flow_0a542fp</bpmn:outgoing>
     </bpmn:sendTask>
-    <bpmn:serviceTask id="Activity_1qbm914" name="update recorded usage according to actual usage" camunda:asyncBefore="true" camunda:expression="${updateRecordedUsage}">
+    <bpmn:serviceTask id="Activity_1qbm914" name="update recorded usage according to actual usage" camunda:expression="${updateRecordedUsage}">
       <bpmn:incoming>Flow_16tomnj</bpmn:incoming>
       <bpmn:incoming>Flow_0a542fp</bpmn:incoming>
       <bpmn:incoming>Flow_1uhhnvn</bpmn:incoming>
@@ -125,7 +125,7 @@
       <bpmn:incoming>Flow_0wjrgq5</bpmn:incoming>
       <bpmn:outgoing>Flow_0ucze8h</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:sendTask id="Activity_1cp3vsj" name="inform administrator about unconfirmed usage" camunda:asyncBefore="true" camunda:expression="${informAdministratorAboutUnconfirmedUsage}">
+    <bpmn:sendTask id="Activity_1cp3vsj" name="inform administrator about unconfirmed usage" camunda:expression="${informAdministratorAboutUnconfirmedUsage}">
       <bpmn:incoming>Flow_1ysv7e7</bpmn:incoming>
       <bpmn:outgoing>Flow_1uhhnvn</bpmn:outgoing>
     </bpmn:sendTask>

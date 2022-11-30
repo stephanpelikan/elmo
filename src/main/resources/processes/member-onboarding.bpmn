@@ -27,7 +27,7 @@
     <bpmn:association id="Association_1rtvg1e" sourceRef="Activity_13gxu9k" targetRef="TextAnnotation_0pbn4hx" />
   </bpmn:collaboration>
   <bpmn:process id="MemberOnboarding" isExecutable="true">
-    <bpmn:startEvent id="StartEvent_1" name="New social login detected" camunda:asyncBefore="true">
+    <bpmn:startEvent id="StartEvent_1" name="New social login detected">
       <bpmn:outgoing>Flow_0d1k5ji</bpmn:outgoing>
     </bpmn:startEvent>
     <bpmn:sequenceFlow id="Flow_1gn81iw" sourceRef="Activity_0fdcnuy" targetRef="Gateway_1lq9qsm" />
@@ -103,7 +103,7 @@
       <bpmn:incoming>Flow_1fr7w2j</bpmn:incoming>
       <bpmn:outgoing>Flow_0dl88pw</bpmn:outgoing>
     </bpmn:intermediateThrowEvent>
-    <bpmn:serviceTask id="Activity_0q1kx0a" name="delete all user information" camunda:asyncBefore="true" camunda:delegateExpression="${deleteUserDueToAbortOfOnboarding}">
+    <bpmn:serviceTask id="Activity_0q1kx0a" name="delete all user information" camunda:delegateExpression="${deleteUserDueToAbortOfOnboarding}">
       <bpmn:incoming>Flow_0eiqn0g</bpmn:incoming>
       <bpmn:outgoing>Flow_028tx4x</bpmn:outgoing>
     </bpmn:serviceTask>
@@ -140,7 +140,7 @@
       <bpmn:incoming>Flow_0frr5p2</bpmn:incoming>
       <bpmn:outgoing>Flow_12kqhj0</bpmn:outgoing>
     </bpmn:intermediateThrowEvent>
-    <bpmn:sendTask id="Activity_1ocyqmk" name="send rejection of application" camunda:asyncBefore="true" camunda:delegateExpression="${sendRejectionOfApplication}">
+    <bpmn:sendTask id="Activity_1ocyqmk" name="send rejection of application" camunda:delegateExpression="${sendRejectionOfApplication}">
       <bpmn:incoming>Flow_06ha00l</bpmn:incoming>
       <bpmn:outgoing>Flow_0xpxlmx</bpmn:outgoing>
     </bpmn:sendTask>
@@ -148,26 +148,26 @@
       <bpmn:incoming>Flow_0xpxlmx</bpmn:incoming>
       <bpmn:linkEventDefinition id="LinkEventDefinition_1t0ul0e" name="abort onboarding" />
     </bpmn:intermediateThrowEvent>
-    <bpmn:serviceTask id="Activity_13gxu9k" name="register new social login" camunda:asyncAfter="true" camunda:delegateExpression="${registerAdditionalSocialLogin}">
+    <bpmn:serviceTask id="Activity_13gxu9k" name="register new social login" camunda:delegateExpression="${registerAdditionalSocialLogin}">
       <bpmn:incoming>Flow_158spom</bpmn:incoming>
       <bpmn:outgoing>Flow_104rab7</bpmn:outgoing>
     </bpmn:serviceTask>
     <bpmn:endEvent id="Event_0il5m8j" name="onboarding completed">
       <bpmn:incoming>Flow_1y1b4mj</bpmn:incoming>
     </bpmn:endEvent>
-    <bpmn:sendTask id="Activity_1boedy7" name="send confirmation of application" camunda:asyncBefore="true" camunda:delegateExpression="${sendConfirmationOfApplication}">
+    <bpmn:sendTask id="Activity_1boedy7" name="send confirmation of application" camunda:delegateExpression="${sendConfirmationOfApplication}">
       <bpmn:incoming>Flow_0q9uvfk</bpmn:incoming>
       <bpmn:outgoing>Flow_1y1b4mj</bpmn:outgoing>
     </bpmn:sendTask>
-    <bpmn:sendTask id="Activity_02sciyb" name="inform drivers about new member" camunda:asyncBefore="true" camunda:delegateExpression="${informDriversAboutNewMember}">
+    <bpmn:sendTask id="Activity_02sciyb" name="inform drivers about new member" camunda:delegateExpression="${informDriversAboutNewMember}">
       <bpmn:incoming>Flow_0dokoyj</bpmn:incoming>
       <bpmn:outgoing>Flow_0q9uvfk</bpmn:outgoing>
     </bpmn:sendTask>
-    <bpmn:sendTask id="Activity_1ol1end" name="send confirmation of application" camunda:asyncBefore="true" camunda:delegateExpression="${sendConfirmationOfApplicationAsADuplicate}">
+    <bpmn:sendTask id="Activity_1ol1end" name="send confirmation of application" camunda:delegateExpression="${sendConfirmationOfApplicationAsADuplicate}">
       <bpmn:incoming>Flow_104rab7</bpmn:incoming>
       <bpmn:outgoing>Flow_1ii485d</bpmn:outgoing>
     </bpmn:sendTask>
-    <bpmn:serviceTask id="Activity_1ikq7t2" name="create member based on application" camunda:asyncBefore="true" camunda:delegateExpression="${createMember}">
+    <bpmn:serviceTask id="Activity_1ikq7t2" name="create member based on application" camunda:delegateExpression="${createMember}">
       <bpmn:incoming>Flow_12kqhj0</bpmn:incoming>
       <bpmn:outgoing>Flow_0dokoyj</bpmn:outgoing>
     </bpmn:serviceTask>
