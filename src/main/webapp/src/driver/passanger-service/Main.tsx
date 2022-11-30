@@ -2,6 +2,7 @@ import { Cycle, Schedule, ShareOption } from 'grommet-icons';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Box } from 'grommet';
+import React from 'react';
 import useResponsiveScreen from '../../utils/responsiveUtils';
 import { Heading } from '../../components/MainLayout';
 import i18n from '../../i18n';

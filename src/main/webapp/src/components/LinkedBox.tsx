@@ -2,7 +2,7 @@ import React, { PropsWithChildren } from 'react';
 import { Box, BoxProps } from 'grommet';
 
 interface LinkedBoxProps extends PropsWithChildren<BoxProps> {
-  href: string,
+  href?: string,
 };
 
 const LinkedBox = ({

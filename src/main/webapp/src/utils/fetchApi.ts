@@ -59,7 +59,7 @@ const doRequest = (
               doRequest(dispatch, resolve, reject, input, init, storedRefreshToken);
               return;
             }
-          } else if (response.status === 500) {
+          } else if (response.status >= 500) {
             dispatch({ type: 'toast', toast: {
                 namespace: 'app',
                 title: 'error',

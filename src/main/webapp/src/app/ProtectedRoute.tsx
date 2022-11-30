@@ -1,3 +1,4 @@
+import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { Role } from '../client/gui';
 import { Login } from '../login/Login';

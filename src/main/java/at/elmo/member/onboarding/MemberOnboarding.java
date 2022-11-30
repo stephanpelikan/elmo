@@ -362,7 +362,7 @@ public class MemberOnboarding {
 
     }
 
-    @WorkflowTask(taskDefinition = "userRegistrationForm")
+    @WorkflowTask
     public void userRegistrationForm(
             final MemberApplication application,
             final @TaskId String taskId,
@@ -376,7 +376,7 @@ public class MemberOnboarding {
 
     }
 
-    @WorkflowTask(taskDefinition = "userValidationForm")
+    @WorkflowTask
     public void userValidationForm(
             final MemberApplication application,
             final @TaskId String taskId,

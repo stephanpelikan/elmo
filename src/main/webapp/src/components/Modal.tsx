@@ -1,6 +1,6 @@
+import React, { PropsWithChildren } from "react";
 import { Box, BoxProps, Button, Heading, Layer } from "grommet";
 import { TFunction } from "i18next";
-import { PropsWithChildren } from "react";
 
 interface ModalProperties extends BoxProps {
   show: boolean;
@@ -70,7 +70,7 @@ const Modal = ({
                         align='center'
                         justify='around'>
                       {
-                        action
+                        action && actionLabel
                           ? <Button
                                 label={ t(actionLabel) }
                                 onClick={ action }

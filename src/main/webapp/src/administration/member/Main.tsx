@@ -2,7 +2,7 @@ import { Route, Routes } from "react-router-dom";
 import { ListOfMembers } from './List';
 import { EditMember } from './Edit';
 import i18n from '../../i18n';
-import { useLayoutEffect } from "react";
+import React, { useLayoutEffect } from "react";
 import { useAppContext } from "../../AppContext";
 
 i18n.addResources('en', 'administration/member', {

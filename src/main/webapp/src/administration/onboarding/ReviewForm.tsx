@@ -1,6 +1,6 @@
 import { Box, Button, FormField, Text, TextArea, Form, ThemeContext , ThemeType, DateInput, Select, CheckBox, TextInput, Collapsible } from "grommet";
 import { deepMerge } from 'grommet/utils';
-import { useEffect, useState } from "react";
+import React, { ChangeEvent, MouseEvent, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAppContext } from "../../AppContext";
@@ -107,12 +107,12 @@ i18n.addResources('de', 'administration/onboarding/review', {
     
 interface FormState {
   taskId: string;
-  memberId: number;
+  memberId: number | undefined;
   title: string;
   firstName: string;
   lastName: string;
-  sex: Sex;
-  birthdate: Date;
+  sex: Sex | undefined;
+  birthdate: Date | undefined;
   street: string;
   streetNumber: string;
   city: string;
@@ -130,22 +130,22 @@ const setFormValueByApplication = (
     setFormValue: (formValue: FormState) => void) => {
   
   const formValue: FormState = {
-    taskId: application.taskId,
+    taskId: application.taskId!,
     memberId: application.memberId,
-    title: application.title,
-    firstName: application.firstName,
-    lastName: application.lastName,
+    title: application.title ?? '',
+    firstName: application.firstName ?? '',
+    lastName: application.lastName ?? '',
     birthdate: parseLocalDate(application.birthdate),
     sex: application.sex,
-    street: application.street,
-    streetNumber: application.streetNumber,
-    city: application.city,
-    zip: application.zip,
-    email: application.email,
-    phoneNumber: application.phoneNumber,
-    preferNotificationsPerSms: application.preferNotificationsPerSms,
-    comment: application.comment,
-    applicationComment: application.applicationComment,
+    street: application.street ?? '',
+    streetNumber: application.streetNumber ?? '',
+    city: application.city ?? '',
+    zip: application.zip ?? '',
+    email: application.email ?? '',
+    phoneNumber: application.phoneNumber ?? '',
+    preferNotificationsPerSms: application.preferNotificationsPerSms ?? false,
+    comment: application.comment ?? '',
+    applicationComment: application.applicationComment ?? '',
     initialRole: application.initialRole ? application.initialRole : Role.Passanger,
   };
   setFormValue(formValue);
@@ -179,7 +179,8 @@ const updateData = async (
         action,
         taskId: formValue.taskId,
         memberApplication: {
-          birthdate: toLocalDateString(formValue.birthdate),
+          id: applicationId,
+          birthdate: toLocalDateString(formValue.birthdate!),
           city: formValue.city,
           email: formValue.email,
           title: formValue.title,
@@ -199,9 +200,9 @@ const updateData = async (
       }
     });  
     setFormValueByApplication(application, setFormValue);
-    return new Promise((resolve, reject) => resolve(true));
+    return new Promise((resolve, _reject) => resolve(true));
   } catch (error) {
-    return new Promise((resolve, reject) => reject(error.response.json()));
+    return new Promise((_resolve, reject) => reject(error.response.json()));
   }
 };
 
@@ -225,18 +226,18 @@ const ReviewForm = () => {
   const { t } = useTranslation('administration/onboarding/review');
   const debounceOnChangeMemberId = useDebounce();
   
-  const [ formValue, setFormValue ] = useState<FormState>(undefined);
-  const [ violations, setViolations ] = useState({});
+  const [ formValue, setFormValue ] = useState<FormState | undefined>(undefined);
+  const [ violations, setViolations ] = useState<Record<string, string>>({});
   
   const loading = formValue === undefined;
   useEffect(() => {
       if (formValue === undefined) { 
-        loadData(onboardingApi, setFormValue, params.applicationId);
+        loadData(onboardingApi, setFormValue, params.applicationId!);
       };
     }, [ formValue, onboardingApi, setFormValue, params.applicationId ]);
 
   const setBirthdate = (dateInput: string|Date) => {
-    let date: Date;
+    let date: Date | undefined;
     if (dateInput === undefined) {
       date = undefined;
     } else if (typeof dateInput === 'string') {
@@ -249,21 +250,21 @@ const ReviewForm = () => {
       date = dateInput;
     }
     setFormValue({
-      ...formValue,
+      ...formValue!,
       birthdate: date
     })
   };
   
   const setSex = (sex: Sex) => {
     setFormValue({
-      ...formValue,
+      ...formValue!,
       sex
     })
   };
 
   const setInitialRole = (initialRole: Role) => {
     setFormValue({
-      ...formValue,
+      ...formValue!,
       initialRole
     })
   };
@@ -271,48 +272,48 @@ const ReviewForm = () => {
   const reject = () => {
     updateData(
         onboardingApi,
-        formValue,
+        formValue!,
         setFormValue,
-        params.applicationId,
+        params.applicationId!,
         MemberApplicationUpdate.Reject)
       .then(() => {
           navigate('..', { replace: true } );
         })
-      .catch(error => error.then(violations => setViolations(violations)));
+      .catch(error => error.then((violations: Record<string, string>) => setViolations(violations)));
   };
 
   const inquiry = () => {
     updateData(
         onboardingApi,
-        formValue,
+        formValue!,
         setFormValue,
-        params.applicationId,
+        params.applicationId!,
         MemberApplicationUpdate.Inquiry)
       .then(() => {
           navigate('..', { replace: true } );
         })
-      .catch(error => error.then(violations => setViolations(violations)));
+      .catch(error => error.then((violations: Record<string, string>) => setViolations(violations)));
   };
 
   const accept = () => {
     updateData(
         onboardingApi,
-        formValue,
+        formValue!,
         setFormValue,
-        params.applicationId,
+        params.applicationId!,
         MemberApplicationUpdate.Accepted)
       .then(() => {
           navigate('..', { replace: true } );
         })
-      .catch(error => error.then(violations => setViolations(violations)));
+      .catch(error => error.then((violations: Record<string, string>) => setViolations(violations)));
   };
   
   const save = () => {
     updateData(
         onboardingApi,
-        formValue,
+        formValue!,
         setFormValue,
-        params.applicationId,
+        params.applicationId!,
         MemberApplicationUpdate.Save)
       .then(() =>
           toast({
@@ -321,20 +322,20 @@ const ReviewForm = () => {
             message: t('save_success'),
             status: 'normal'
           }))
-      .catch(error => error.then(violations => setViolations(violations)));
+      .catch(error => error.then((violations: Record<string, string>) => setViolations(violations)));
   };
   
   const [ memberIdState, setMemberIdState ] = useState(undefined);
-  const [ memberSuggestions, setMemberSuggestions ] = useState([]);
-  const [ member, setMember ] = useState<Member>(undefined);
+  const [ memberSuggestions, setMemberSuggestions ] = useState<Array<{ value: number, label: JSX.Element}>>([]);
+  const [ member, setMember ] = useState<Member | undefined>(undefined);
   
-  const onChangeMemberId = event => {
+  const onChangeMemberId = (event: ChangeEvent<HTMLInputElement>) => {
     debounceOnChangeMemberId(() => async () => {
         setMemberIdState(undefined);
-        if (formValue.memberId) {
+        if (formValue!.memberId) {
           setMember(undefined);
           setFormValue({
-              ...formValue,
+              ...formValue!,
               memberId: undefined
             });
         }
@@ -353,22 +354,22 @@ const ReviewForm = () => {
       });
   };
 
-  const onMemberSuggestionSelect = async event => {
+  const onMemberSuggestionSelect = async (event: { suggestion: { value: any; }; }) => {
     const memberId = event.suggestion.value;
     setMemberIdState(memberId);
     setFormValue({
-        ...formValue,
+        ...formValue!,
         memberId
       });
     const result = await memberApi.getMemberById({ memberId });
     setMember(result);
   };
   
-  const copyToClipbard = (data: string) => {
+  const copyToClipbard = (data: string | undefined | null) => {
     if (!Boolean(data)) {
       return;
     }
-    navigator.clipboard.writeText(data);
+    navigator.clipboard.writeText(data!);
     toast({
       namespace: 'administration/onboarding/review',
       title: t('clipboard_title'),
@@ -397,7 +398,7 @@ const ReviewForm = () => {
                 setFormValue(nextValue);
               } }
             onReset={ () => setFormValue(undefined) }
-            onSubmit={ value => accept() }>
+            onSubmit={ _value => accept() }>
           {/* application comment */}
           <FormField
               name="applicationComment"
@@ -413,6 +414,7 @@ const ReviewForm = () => {
           {/* Member ID */}
           <ViolationsAwareFormField
               label='member-id'
+              name='member-id'
               t={ t }
               violations={ violations }
               disabled={ loading }
@@ -471,6 +473,7 @@ const ReviewForm = () => {
                 options={[ Sex.Female, Sex.Male, Sex.Other ]}
                 value={ formValue?.sex }
                 labelKey={ t }
+                disabled={ loading || !!member }
                 onChange={({ value }) => setSex(value)}
               />
           </ViolationsAwareFormField>
@@ -579,7 +582,7 @@ const ReviewForm = () => {
                 secondary
                 disabled={ loading }
                 label={ t('inquiry') }
-                onClick={ value => inquiry() } />
+                onClick={ (_event: MouseEvent<HTMLButtonElement & HTMLAnchorElement>) => inquiry() } />
             <Button
                 type="submit"
                 primary
@@ -589,11 +592,11 @@ const ReviewForm = () => {
                 color='control'
                 disabled={ loading }
                 label={ t('reject-member') }
-                onClick={ value => reject() } />
+                onClick={ (_value: MouseEvent<HTMLButtonElement & HTMLAnchorElement>) => reject() } />
             <Button
                 disabled={ loading }
                 label={ t('save') }
-                onClick={ value => save() } />
+                onClick={ (_value: MouseEvent<HTMLButtonElement & HTMLAnchorElement>) => save() } />
             <Button
                 type="reset"
                 disabled={ loading }

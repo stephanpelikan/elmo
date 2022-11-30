@@ -4,7 +4,7 @@ import { Car, Schedules } from 'grommet-icons';
 import styled, { keyframes } from 'styled-components';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Modal } from '../../components/Modal';
 import { hoursBetween, nextHours, toLocaleTimeStringWithoutSeconds } from '../../utils/timeUtils';
 import { now } from '../../utils/now-hook';
@@ -51,7 +51,7 @@ i18n.addResources('de', 'driver/car-sharings/reservation', {
       "km-title": "Aktueller Kilometerstand",
     });
 
-const blinkAnimation = (props) => keyframes`
+const blinkAnimation = (props: any) => keyframes`
   50% {
     background-color: ${normalizeColor('brand', props.theme)};
   }
@@ -77,9 +77,9 @@ const ReservationAccordionPanel = ({
   const { t } = useTranslation('driver/car-sharings/reservation');
 
   const [ confirmation, setConfirmation ] = useState<Confirmation>(undefined);
-  const [ timestamp, setTimestamp ] = useState<Date>(undefined);
-  const [ km, setKm ] = useState<number>(reservation.carKm);
-  const [ comment, setComment ] = useState<string>(reservation.comment);
+  const [ timestamp, setTimestamp ] = useState<Date | undefined>(undefined);
+  const [ km, setKm ] = useState<number | undefined>(reservation.carKm);
+  const [ comment, setComment ] = useState<string | undefined>(reservation.comment);
   
   const showConfirmationModal = (type: Confirmation, km: number | undefined) => {
     setKm(km);
@@ -89,7 +89,7 @@ const ReservationAccordionPanel = ({
   };
   
   const confirm = async () => {
-      const success = await confirmStartOrStopOfCarSharing(timestamp, km, comment);
+      const success = await confirmStartOrStopOfCarSharing(timestamp!, km!, comment!);
       if (!success) return;
       setConfirmation(undefined);
     };
@@ -189,11 +189,11 @@ const ReservationAccordionPanel = ({
                         { t('usage-from') }:
                       </TableCell>
                       <TableCell>
-                        { reservation.startUsage.toLocaleDateString() }
+                        { reservation.startUsage!.toLocaleDateString() }
                         &nbsp;
-                        { toLocaleTimeStringWithoutSeconds(reservation.startUsage) }
+                        { toLocaleTimeStringWithoutSeconds(reservation.startUsage!) }
                         <br/>
-                        { reservation.kmAtStart.toLocaleString() }
+                        { reservation.kmAtStart!.toLocaleString() }
                         &nbsp;km
                       </TableCell>
                     </TableRow>
@@ -207,11 +207,11 @@ const ReservationAccordionPanel = ({
                         { t('usage-until') }:
                       </TableCell>
                       <TableCell>
-                        { reservation.endUsage.toLocaleDateString() }
+                        { reservation.endUsage!.toLocaleDateString() }
                         &nbsp;
-                        { toLocaleTimeStringWithoutSeconds(reservation.endUsage) }
+                        { toLocaleTimeStringWithoutSeconds(reservation.endUsage!) }
                         <br/>
-                        { reservation.kmAtEnd.toLocaleString() }
+                        { reservation.kmAtEnd!.toLocaleString() }
                         &nbsp;km
                       </TableCell>
                     </TableRow>

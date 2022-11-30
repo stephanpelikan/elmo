@@ -3,9 +3,9 @@ import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import { useAppContext, useOnboardingGuiApi } from "../AppContext";
 import { MemberApplicationForm, OnboardingApi, UserStatus } from '../client/gui';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { parseLocalDate } from '../utils/timeUtils';
-import { Emoji } from 'grommet-icons';
+import { Emoji, Halt } from 'grommet-icons';
 import { LoadingIndicator } from '../components/LoadingIndicator';
 import { MainLayout, Heading, Content } from '../components/MainLayout';
 
@@ -85,7 +85,7 @@ const RegistrationSubmitted = () => {
 
   const onboardingApi = useOnboardingGuiApi();
   
-  const [ memberApplicationForm, setMemberApplicationForm ] = useState<MemberApplicationForm>(undefined);
+  const [ memberApplicationForm, setMemberApplicationForm ] = useState<MemberApplicationForm | undefined>(undefined);
 
   const loading = memberApplicationForm === undefined;
   useEffect(() => {
@@ -97,7 +97,7 @@ const RegistrationSubmitted = () => {
   const takeOver = async () => {
     await onboardingApi.takeoverMemberApplicationForm({
         takeoverMemberApplicationFormRequest: {
-          taskId: memberApplicationForm.taskId
+          taskId: memberApplicationForm!.taskId
         }
       });
     memberApplicationFormRevoked();
@@ -109,34 +109,37 @@ const RegistrationSubmitted = () => {
     return <LoadingIndicator />
   }
   
-  if (state.currentUser.status ===  UserStatus.Rejected) {
+  if (state.currentUser!.status ===  UserStatus.Rejected) {
     return (
       <Box
           pad='medium'>
         <Heading
             size='small'
-            level='2'>{ t(`title_${state.currentUser.status}`) }</Heading>
-        <Paragraph>{ t(`text_${state.currentUser.status}`) }</Paragraph>
+            level='2'>{ t(`title_${state.currentUser!.status}`) }</Heading>
+        <Paragraph>{ t(`text_${state.currentUser!.status}`) }</Paragraph>
         <Markdown>{ memberApplicationForm?.comment }</Markdown>
       </Box>);
   }
   
+  const isNotInactive = state.currentUser!.status !== 'INACTIVE';
+  const Icon = isNotInactive ? Emoji : Halt;
+  
   return (
     <MainLayout>
       <Heading icon={
-            <Emoji
+            <Icon
                 color='brand'
                 size='large'
                 style={ { marginRight: '0.5rem' } } />
           }>
-        { t(`title_${state.currentUser.status}`) }
+        { t(`title_${state.currentUser!.status}`) }
       </Heading>
       <Content>
         <Markdown
             options={ {
                 forceBlock: true,
               } }>
-          { t(`text_${state.currentUser.status}`, {
+          { t(`text_${state.currentUser!.status}`, {
               memberApplicationForm,
               title: memberApplicationForm?.title ? memberApplicationForm.title : '',
               salutation: t(`salutation_${memberApplicationForm.sex}`),
@@ -146,14 +149,18 @@ const RegistrationSubmitted = () => {
             } )
           }
         </Markdown>
-        <Box
-            align='center'
-            pad={{ bottom: 'medium' }}>
-          <Button
-              secondary
-              onClick={takeOver}
-              label={ t('button_changedata') } />
-        </Box>
+        {
+          isNotInactive
+              ? <Box
+                    align='center'
+                    pad={{ bottom: 'medium' }}>
+                  <Button
+                      secondary
+                      onClick={takeOver}
+                      label={ t('button_changedata') } />
+                </Box>
+              : undefined
+        }
       </Content>
     </MainLayout>);
   

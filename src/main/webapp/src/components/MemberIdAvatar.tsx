@@ -1,3 +1,4 @@
+import React from "react";
 import { UserAvatar } from './UserAvatar';
 import { Badge } from './Badge';
 import styled from "styled-components";

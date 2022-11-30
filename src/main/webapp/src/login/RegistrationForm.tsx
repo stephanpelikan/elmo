@@ -1,5 +1,5 @@
 import { Anchor, Box, Button, CheckBox, Collapsible, DateInput, Form, FormField, Paragraph, Select, Text, TextArea, TextInput } from "grommet";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAppContext, useMemberGuiApi, useOnboardingGuiApi } from '../AppContext';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
@@ -165,9 +165,9 @@ const RegistrationForm = () => {
   const { memberApplicationFormSubmitted, toast,
       setAppHeaderTitle, state, fetchCurrentUser } = useAppContext();
   
-  const [ formValue, setFormValue ] = useState<MemberApplicationForm>(undefined);
+  const [ formValue, setFormValue ] = useState<MemberApplicationForm | undefined>(undefined);
   const [ isAlreadyMember, setIsAlreadyMember ] = useState(false);
-  const [ submitting, setSubmitting ] = useState(false);
+  const [ submitting, setSubmitting ] = useState(true);
   const [ termsAccepted, setTermsAccepted ] = useState(false);
   const [ violations, setViolations ] = useState({});
 
@@ -176,8 +176,12 @@ const RegistrationForm = () => {
    }, [ setAppHeaderTitle, t ]);
   
   useEffect(() => {
-      if (formValue === undefined) { 
-        loadData(onboardingApi, setFormValue, setIsAlreadyMember, setSubmitting);
+      if (formValue === undefined) {
+        const _loadData = async () => {
+            await loadData(onboardingApi, setFormValue, setIsAlreadyMember, setSubmitting);
+            setSubmitting(false);
+          };
+        _loadData();
       };
     }, [ formValue, onboardingApi, setFormValue ]);
 
@@ -207,13 +211,13 @@ const RegistrationForm = () => {
   };
   
   const requestSmsCode = async () => {
-    if (!formValue.phoneNumber) {
+    if (!formValue!.phoneNumber) {
       setViolations({ ...violations, phoneNumber: 'missing' });
       return;
     }
     try {
       await memberApi
-          .requestPhoneCode({ body: formValue.phoneNumber })
+          .requestPhoneCode({ body: formValue!.phoneNumber })
           .then(() =>
             toast({
               namespace: 'registration-form',
@@ -232,13 +236,13 @@ const RegistrationForm = () => {
   };
   
   const requestEmailCode = async () => {
-    if (!formValue.email) {
+    if (!formValue!.email) {
       setViolations({ ...violations, email: 'missing' });
       return;
     }
     try {
       await memberApi
-          .requestEmailCode({ body: formValue.email })
+          .requestEmailCode({ body: formValue!.email })
           .then(() =>
             toast({
               namespace: 'registration-form',
@@ -257,7 +261,7 @@ const RegistrationForm = () => {
   };
   
   const setBirthdate = (dateInput: string|Date) => {
-    let date: Date;
+    let date: Date | undefined;
     if (dateInput === undefined) {
       date = undefined;
     } else if (typeof dateInput === 'string') {
@@ -271,7 +275,7 @@ const RegistrationForm = () => {
     }
     setFormValue({
       ...formValue,
-      birthdate: toLocalDateString(date)
+      birthdate: toLocalDateString(date!)
     })
   };
   
@@ -282,7 +286,7 @@ const RegistrationForm = () => {
     })
   };
   
-  const selectIsAlreadyMember = checked => {
+  const selectIsAlreadyMember = (checked: boolean) => {
     
     setIsAlreadyMember(checked);
     if (!checked) {
@@ -300,7 +304,7 @@ const RegistrationForm = () => {
               setFormValue(nextValue);
             } }
           onReset={ () => setFormValue(undefined) }
-          onSubmit={ value => submitForm() }>
+          onSubmit={ submitForm }>
         {
           Boolean(formValue?.comment)
             ? <>
@@ -466,8 +470,8 @@ const RegistrationForm = () => {
               <CodeButton
                   secondary
                   fill={false}
-                  disabled={ submitting }
-                  onClick={ value => requestEmailCode() }
+                  disabled={ submitting || !formValue }
+                  onClick={ requestEmailCode }
                   label={ t('request-email-confirmation-code') } />
             </Box>
           </ViolationsAwareFormField>
@@ -498,8 +502,8 @@ const RegistrationForm = () => {
               <CodeButton
                   secondary
                   fill={false}
-                  disabled={ submitting }
-                  onClick={ value => requestSmsCode() }
+                  disabled={ submitting || !formValue }
+                  onClick={ requestSmsCode }
                   label={ t('request-phone-confirmation-code') } />
             </Box>
           </ViolationsAwareFormField>

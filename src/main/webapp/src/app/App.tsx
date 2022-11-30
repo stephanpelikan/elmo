@@ -189,7 +189,7 @@ const Driver = lazy(() => import('../driver/Main'));
 
 type AppProps = {};
 
-const App: React.FC<AppProps> = (props: AppProps): JSX.Element => {
+const App: React.FC<AppProps> = (_props: AppProps): JSX.Element => {
 
   const { state, fetchAppInformation, dispatch } = useAppContext();
   
@@ -200,12 +200,12 @@ const App: React.FC<AppProps> = (props: AppProps): JSX.Element => {
   }, [ fetchAppInformation ]);
   
   const { t, i18n } = useTranslation('app');
-  if (state?.appInformation !== null) {
+  if (state!.appInformation !== null) {
     ['en', 'de']
         .forEach(lng => {
-          i18n.addResource(lng, appNs, 'title.long', state.appInformation.titleLong);
-          i18n.addResource(lng, appNs, 'title.short', state.appInformation.titleShort);
-          i18n.addResource(lng, appNs, 'homepage', state.appInformation.homepageUrl);
+          i18n.addResource(lng, appNs, 'title.long', state.appInformation!.titleLong!);
+          i18n.addResource(lng, appNs, 'title.short', state.appInformation!.titleShort!);
+          i18n.addResource(lng, appNs, 'homepage', state.appInformation!.homepageUrl!);
         });
   }
 

@@ -19,8 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDate;
 import java.util.HashMap;
 
-import javax.validation.Valid;
-
 @RestController("onboardingAdministrationApiController")
 @RequestMapping("/api/v1")
 public class AdministrationApiController implements OnboardingApi {
@@ -39,8 +37,8 @@ public class AdministrationApiController implements OnboardingApi {
 
     @Override
     public ResponseEntity<MemberOnboardingApplications> getMemberOnboardingApplications(
-            final @Valid Integer pageNumber,
-            final @Valid Integer pageSize) {
+            final Integer pageNumber,
+            final Integer pageSize) {
 
         final var applications = memberOnboarding.getMemberApplications(pageNumber, pageSize);
 
@@ -66,7 +64,7 @@ public class AdministrationApiController implements OnboardingApi {
     @Override
     public ResponseEntity<Void> takeoverMemberOnboardingApplication(
             final String applicationId,
-            final @Valid TakeoverMemberOnboardingApplicationRequest usertask) {
+            final TakeoverMemberOnboardingApplicationRequest usertask) {
 
         memberOnboarding.takeoverMemberApplicationByManagementComitee(
                 applicationId,
@@ -79,7 +77,7 @@ public class AdministrationApiController implements OnboardingApi {
     @Override
     public ResponseEntity<MemberApplication> updateMemberOnboardingApplication(
             final String applicationId,
-            final @Valid UpdateMemberOnboarding updateMemberOnboarding) {
+            final UpdateMemberOnboarding updateMemberOnboarding) {
 
         final var application = updateMemberOnboarding
                 .getMemberApplication();

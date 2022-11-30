@@ -1,7 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 import { ListOfCars } from './List';
 import i18n from '../../i18n';
-import { useLayoutEffect } from "react";
+import React, { useLayoutEffect } from "react";
 import { useAppContext } from "../../AppContext";
 import { Details } from "./Details";
 

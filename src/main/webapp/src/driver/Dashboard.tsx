@@ -1,4 +1,4 @@
-import { useLayoutEffect } from 'react';
+import React, { useLayoutEffect } from 'react';
 import { Box } from 'grommet';
 import { useAppContext } from '../AppContext';
 import { useCurrentUserRoles } from '../utils/roleUtils';

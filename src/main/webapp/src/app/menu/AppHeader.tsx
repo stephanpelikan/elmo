@@ -1,6 +1,6 @@
 import { Box, Button, Header, Heading, Image } from "grommet";
 import { Login, Menu as MenuIcon } from 'grommet-icons';
-import { useRef } from "react";
+import React, { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useAppContext } from '../../AppContext';
@@ -23,7 +23,7 @@ const AppHeader = () => {
     };
     
   const goToLogin = () => {
-      document.getElementById('login').scrollIntoView({ behavior: 'smooth' })
+      document.getElementById('login')!.scrollIntoView({ behavior: 'smooth' })
     };
   
   return (

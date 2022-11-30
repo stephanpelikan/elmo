@@ -1,6 +1,6 @@
 import { Box, Button, ColumnConfig, DataTable, ResponsiveContext, Text } from 'grommet';
 import { FormEdit } from 'grommet-icons';
-import { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useOnboardingAdministrationApi } from '../AdminAppContext';
@@ -41,7 +41,7 @@ const itemsBatchSize = 20;
 const loadData = async (
     onboardingApi: OnboardingApi,
     setMemberApplications: (applications: Array<MemberApplication>) => void,
-    memberApplications: Array<MemberApplication>
+    memberApplications: Array<MemberApplication> | undefined,
   ) => {
 
     const result = await onboardingApi
@@ -62,7 +62,7 @@ const loadData = async (
 const ListOfOnboardings = () => {
   const onboardingApi = useOnboardingAdministrationApi();
   
-  const [ memberApplications, setMemberApplications ] = useState(undefined);
+  const [ memberApplications, setMemberApplications ] = useState<Array<MemberApplication> | undefined>(undefined);
   
   useEffect(() => {
     if (memberApplications === undefined) {
@@ -80,7 +80,7 @@ const ListOfOnboardings = () => {
     
     if (takeOver) {
       await onboardingApi.takeoverMemberOnboardingApplication({
-          applicationId: application.id,
+          applicationId: application.id!,
           takeoverMemberOnboardingApplicationRequest: {
             taskId: application.taskId,
           }

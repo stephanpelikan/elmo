@@ -1,3 +1,4 @@
+import React from 'react';
 import { Box, Paragraph } from 'grommet';
 import { Icon } from 'grommet-icons';
 import { PropsWithChildren } from 'react';

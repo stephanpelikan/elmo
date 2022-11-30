@@ -463,6 +463,11 @@ components:
         - INQUIRY
     Page:
       type: object
+      required:
+        - totalElements
+        - totalPages
+        - number
+        - size
       properties:
         totalElements:
           type: integer
@@ -484,6 +489,9 @@ components:
           format: int32
     MemberOnboardingApplications:
       type: object
+      required:
+        - page
+        - applications
       properties:
         page:
           $ref: '#/components/schemas/Page'
@@ -499,6 +507,9 @@ components:
           format: int32
     Members:
       type: object
+      required:
+        - page
+        - members
       properties:
         page:
           $ref: '#/components/schemas/Page'
@@ -519,6 +530,9 @@ components:
           format: int32
     Cars:
       type: object
+      required:
+        - page
+        - cars
       properties:
         page:
           $ref: '#/components/schemas/Page'
@@ -528,9 +542,17 @@ components:
             $ref: '#/components/schemas/Car'
     Car:
       type: object
+      required:
+        - id
+        - name
+        - shortcut
+        - appActive
+        - passangerService
+        - carSharing
       properties:
         id:
           type: string
+          nullable: true
         shortcut:
           type: string
         name:
@@ -571,9 +593,12 @@ components:
           $ref: '#/components/schemas/MemberApplication'
     MemberApplication:
       type: object
+      required:
+        - id
       properties:
         id:
           type: string
+          nullable: true
         taskId:
           type: string
         status:
@@ -618,9 +643,15 @@ components:
           $ref: '#/components/schemas/Role'
     Member:
       type: object
+      required:
+        - id
+        - status
+        - memberId
+        - sex
       properties:
         id:
           type: string
+          nullable: true
         status:
           $ref: '#/components/schemas/MemberStatus'
         memberId:

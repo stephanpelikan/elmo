@@ -1,7 +1,7 @@
 import { MemberApi, Member, Sex, Role, MemberStatus } from '../../client/administration';
 import { useMemberApi } from '../AdminAppContext';
 import i18n from '../../i18n';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Box, Button, CheckBox, DateInput, Form, FormField, Paragraph, Select, Table, TableBody, TableCell, TableRow, TextArea } from 'grommet';
 import { useTranslation } from 'react-i18next';
@@ -147,11 +147,15 @@ const EditMember = () => {
   const memberApi = useMemberApi();
   const params = useParams();
   const isNewMember = params.memberId === '-';
-  const memberId: number = isNewMember ? -1 : parseInt(params.memberId);
-  const memberIdString: string = isNewMember ? t('new') : params.memberId;
+  const memberId: number = isNewMember ? -1 : parseInt(params.memberId!);
+  const memberIdString: string = isNewMember ? t('new') : params.memberId!;
   
   const [ confirmDelete, setConfirmDelete ] = useState(false);
-  const [ formValue, setFormValue ] = useState<Member>(isNewMember ? { } : undefined);
+  const [ formValue, setFormValue ] = useState<Member | undefined | null>(isNewMember ? {
+      id: null,
+      status: MemberStatus.Active,
+      memberId: memberId,
+    } as Member : undefined);
   const [ violations, setViolations ] = useState({});
   const loading = !Boolean(formValue);
   
@@ -164,7 +168,7 @@ const EditMember = () => {
   
   const setSex = (sex: Sex) => {
     setFormValue({
-      ...formValue,
+      ...formValue!,
       sex
     })
   };
@@ -172,7 +176,7 @@ const EditMember = () => {
   const isInactive = () => formValue?.status === MemberStatus.Inactive;
   
   const setBirthdate = (dateInput: string|Date) => {
-    let date: string;
+    let date: string | undefined;
     if (dateInput === undefined) {
       date = undefined;
     } else if (typeof dateInput === 'string') {
@@ -184,14 +188,14 @@ const EditMember = () => {
       date = toLocalDateString(dateInput);
     }
     setFormValue({
-      ...formValue,
+      ...formValue!,
       birthdate: date
     })
   };
   
   const setRoles = (roles: Array<Role>) => {
     setFormValue({
-      ...formValue,
+      ...formValue!,
       roles
     })
   };
@@ -201,7 +205,7 @@ const EditMember = () => {
       const newFormValue = await memberApi.saveMember({
           memberId,
           member: {
-            ...formValue,
+            ...formValue!,
             status: isInactive() ? MemberStatus.Active : MemberStatus.Inactive,
           },
         });
@@ -224,8 +228,8 @@ const EditMember = () => {
       const newFormValue = await memberApi.saveMember({
           memberId,
           member: {
-            ...formValue,
-            status: isNewMember ? MemberStatus.Active : formValue.status,
+            ...formValue!,
+            status: isNewMember ? MemberStatus.Active : formValue!.status,
           },
         });
       setFormValue(newFormValue);
@@ -287,13 +291,13 @@ const EditMember = () => {
               : undefined
       }
       <Form<Member>
-          value={ formValue }
+          value={ formValue ?? undefined }
           validate='change'
           onChange={ nextValue => {
               setFormValue(nextValue);
             } }
           onReset={ () => loadData(memberApi, setFormValue, memberId) }
-          onSubmit={ value => saveMember() }>
+          onSubmit={ _value => saveMember() }>
         {/* title */}
         <ViolationsAwareFormField
             name="title"
@@ -328,6 +332,7 @@ const EditMember = () => {
               options={[ Sex.Female, Sex.Male, Sex.Other ]}
               value={ formValue?.sex }
               labelKey={ t }
+              disabled={ loading }
               onChange={({ value }) => setSex(value)}
             />
         </ViolationsAwareFormField>
@@ -444,7 +449,7 @@ const EditMember = () => {
                       secondary
                       disabled={ loading }
                       label={ t('delete') }
-                      onClick={ value => setConfirmDelete(true) } />
+                      onClick={ (_value: any) => setConfirmDelete(true) } />
           }
           {
             isNewMember

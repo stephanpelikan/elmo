@@ -1,14 +1,18 @@
-import { Box, DataTable, DataTableExtendedProps, Text } from 'grommet';
+import { Box, ColumnConfig, DataTable, DataTableExtendedProps, Text } from 'grommet';
 import { SnapAlignBox, SnapScrollingGrid } from './SnapScrolling';
 import useResponsiveScreen from '../utils/responsiveUtils';
-import { forwardRef, PropsWithChildren, ReactNode, UIEventHandler } from 'react';
+import React, { forwardRef, PropsWithChildren, ReactNode, UIEventHandler } from 'react';
 
-interface SnapScrollingDataTableProps<TRowType = any> extends PropsWithChildren<DataTableExtendedProps<TRowType>> {
+interface SnapScrollingDataTableProps<TRowType = any> extends PropsWithChildren<Omit<DataTableExtendedProps<TRowType>, 'columns'>> {
   additionalHeader?: ReactNode | undefined;
   headerHeight: string;
   phoneMargin: string;
   onScroll?: UIEventHandler<any> | undefined;
+  columns: ColumnConfig<TRowType>[];
 };
+
+const calculateColumWidth = (width: string, column: any) =>
+    width !== '' ? width + ' + ' + column.size : column.size;
 
 const SnapScrollingDataTable = forwardRef(({
     phoneMargin,
@@ -22,7 +26,7 @@ const SnapScrollingDataTable = forwardRef(({
 
   const { isPhone, isNotPhone } = useResponsiveScreen();
 
-  const columnsWidth = columns.reduce((width, column) => (width !== '' ? width + ' + ' + column.size : column.size), '');
+  const columnsWidth = columns.reduce(calculateColumWidth, '');
   const tableWidth = `calc(${columnsWidth})`;
   const totalWidth = `calc(${columnsWidth} + 2 * ${phoneMargin})`;
   
@@ -79,7 +83,7 @@ const SnapScrollingDataTable = forwardRef(({
                     size='large'
                     color='light-2'
                     truncate='tip'>{
-                  column.header
+                  column.header as string | React.ReactNode
                 }</Text>
               </SnapAlignBox>)
             }</Box>

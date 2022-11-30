@@ -107,11 +107,11 @@ class FlutterConsole implements Console {
 
     indent = '';
     
-    profileEnd(label?: string): void {
+    profileEnd(_label?: string): void {
         throw new Error('console.profileEnd not supported');
     }
     
-    profile(label?: string): void {
+    profile(_label?: string): void {
         throw new Error('console.profile not supported');
     }
     
@@ -139,7 +139,7 @@ class FlutterConsole implements Console {
       this.warn = this.warn.bind(this);
     } 
        
-    assert(condition?: boolean, ...data: any[]): void {
+    assert(_condition?: boolean, ..._data: any[]): void {
       throw new Error('console.assert not supported');
     }
     
@@ -178,11 +178,11 @@ class FlutterConsole implements Console {
       this.l('DEBUG', ...data);
     }
     
-    dir(item?: any, options?: any): void {
+    dir(_item?: any, _options?: any): void {
       throw new Error('console.dir not supported');
     }
     
-    dirxml(...data: any[]): void {
+    dirxml(..._data: any[]): void {
       throw new Error('console.dirxml not supported');
     }
     
@@ -214,7 +214,7 @@ class FlutterConsole implements Console {
       this.l('INFO', ...data);
     }
     
-    table(tabularData?: any, properties?: string[]): void {
+    table(_tabularData?: any, _properties?: string[]): void {
       throw new Error('console.table not supported');
     }
     
@@ -259,7 +259,7 @@ class FlutterConsole implements Console {
       }
     }
     
-    timeStamp(label?: string): void {
+    timeStamp(_label?: string): void {
       throw new Error('console.timeStamp not supported');
     }
     

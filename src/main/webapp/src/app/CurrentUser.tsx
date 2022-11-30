@@ -1,10 +1,10 @@
-import { PropsWithChildren } from 'react';
+import React, { PropsWithChildren } from 'react';
 import { useAppContext } from '../AppContext';
 import { User } from '../client/gui';
 
 interface Props {};
 
-let promise = undefined;
+let promise: Promise<User | null> | undefined = undefined;
 let inprogress = false;
 
 const CurrentUser = ({ children }: PropsWithChildren<Props>) => {
@@ -13,8 +13,8 @@ const CurrentUser = ({ children }: PropsWithChildren<Props>) => {
   
   if (promise === undefined) {
     inprogress = true;
-    promise = new Promise((resolveUser, rejectUser) => {
-      new Promise((resolveLoading, rejectLoading) => {
+    promise = new Promise<User | null>((resolveUser, rejectUser) => {
+      new Promise<User | null>((resolveLoading, rejectLoading) => {
           fetchCurrentUser(resolveLoading, rejectLoading);
         })
         .then((value: User | null) => {

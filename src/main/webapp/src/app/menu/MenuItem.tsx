@@ -6,7 +6,7 @@ import { useCurrentUserRoles } from '../../utils/roleUtils';
 
 interface MenuItemProps extends PropsWithChildren<BoxProps> {
   href?: string;
-  roles?: Array<Role>;
+  roles?: Array<Role> | null;
   background?: BackgroundType;
 };
 
@@ -19,7 +19,6 @@ const MenuItem = ({
 }: MenuItemProps) => {
   
   const { hasOneOfRoles } = useCurrentUserRoles();
-
   if (!hasOneOfRoles(roles)) {
     return <></>;
   }

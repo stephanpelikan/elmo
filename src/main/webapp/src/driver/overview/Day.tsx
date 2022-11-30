@@ -1,7 +1,8 @@
 import { Box, Text } from 'grommet';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { ShiftOverviewDay } from '../../client/gui';
+import { ShiftOverviewDay, ShiftOverviewHour } from '../../client/gui';
 
 const Day = ({
     dayIndex,
@@ -14,10 +15,10 @@ const Day = ({
   const { t } = useTranslation('driver');
   const navigate = useNavigate();
   
-  const gotToPlanner = (event: MouseEvent, hourIndex: number) => {
-      let hour = undefined;
+  const gotToPlanner = (_event: MouseEvent, hourIndex: number) => {
+      let hour: ShiftOverviewHour | undefined = undefined;
       do {
-        hour = day.hours[hourIndex];
+        hour = day.hours![hourIndex];
         --hourIndex;
       } while ((hourIndex > 0) && (hour.description === undefined));
       navigate(`.${t('url-planner')}?${day.date}_${hour.carId}_${hour.description}`);

@@ -2,7 +2,7 @@ package at.elmo.util.mapper;
 
 import at.elmo.administration.api.v1.Page;
 
-public abstract class AdministrationApiMapperBase {
+public abstract class AdministrationApiMapperBase extends MapperBase {
 
     public Page toApi(org.springframework.data.domain.Page<?> page) {
 

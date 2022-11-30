@@ -1,5 +1,5 @@
 import React, { PropsWithChildren } from 'react';
-import { Text, TextProps } from 'grommet';
+import { TextProps } from 'grommet';
 import styled from 'styled-components';
 
 const LighterWeightText = ({

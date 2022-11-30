@@ -1,3 +1,4 @@
+import React from 'react';
 import { useTranslation } from "react-i18next";
 import { Route, Routes } from "react-router-dom";
 import { Dashboard } from './Dashboard';

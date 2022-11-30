@@ -68,13 +68,24 @@ public class H2Notifications extends TriggerAdapter {
         
     }
     
+    private String getTableName(
+            final String originalTableName) {
+        
+        final var posOfCopyStr = originalTableName.indexOf("_COPY_");
+        if (posOfCopyStr == -1) {
+            return originalTableName;
+        }
+        return originalTableName.substring(0, posOfCopyStr);
+        
+    }
+    
     @Override
     public void fire(
             final Connection conn,
             final ResultSet oldRow,
             final ResultSet newRow) throws SQLException {
         
-        final var table = super.tableName;
+        final var table = getTableName(super.tableName);
         final var action = switch (super.type) {
         case DELETE -> Action.DELETE;
         case UPDATE -> Action.UPDATE;

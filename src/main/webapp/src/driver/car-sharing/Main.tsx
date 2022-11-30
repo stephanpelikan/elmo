@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Accordion, Box, Paragraph } from 'grommet';
 import { useCarSharingApi } from '../DriverAppContext';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { CarSharingReservation } from '../../client/gui';
 import useResponsiveScreen from '../../utils/responsiveUtils';
 import { Content, Heading, TextHeading } from '../../components/MainLayout';
@@ -42,7 +42,7 @@ const CarSharings = () => {
   const { toast } = useAppContext();
 
   const [ detailsVisible, setDetailsVisible ] = useState<Array<number>>([]);
-  const [ reservations, setReservations ] = useState<Array<CarSharingReservation>>(undefined);
+  const [ reservations, setReservations ] = useState<Array<CarSharingReservation> | undefined>(undefined);
 
   useEffect(() => {
       const loadCarSharings = async () => {
@@ -51,7 +51,7 @@ const CarSharings = () => {
           const visible = r
               .reservations
               .filter(reservation => reservation.userTaskId !== undefined)
-              .map((reservation, index) => index);
+              .map((_reservation, index) => index);
           setDetailsVisible(visible);
         };
       loadCarSharings();
@@ -84,8 +84,8 @@ const CarSharings = () => {
             timestamp
           }
         });
-      reservations[index] = reservation;
-      setReservations([ ...reservations ]);
+      reservations![index] = reservation;
+      setReservations([ ...reservations! ]);
       return true;
         
     } catch (error) {
@@ -154,7 +154,7 @@ const CarSharings = () => {
                                                           index,
                                                           reservation.carId,
                                                           reservation.id,
-                                                          reservation.userTaskId,
+                                                          reservation.userTaskId!,
                                                           km,
                                                           timestamp,
                                                           comment) } />)

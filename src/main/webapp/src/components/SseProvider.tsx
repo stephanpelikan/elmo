@@ -87,7 +87,6 @@ const SseProvider = ({ url, Context, buildFetchApi, children, ...rest }: React.P
         window.clearTimeout(closeConnectionTimer.current);
       }
       closeConnectionTimer.current = window.setTimeout(() => {
-    console.log('abort');
           abortController.current?.abort();
           abortController.current = undefined;
           closeConnectionTimer.current = undefined;

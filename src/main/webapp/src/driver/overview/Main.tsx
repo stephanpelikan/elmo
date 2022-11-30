@@ -1,6 +1,6 @@
 import { Box, Text } from 'grommet';
 import { Cycle, MapLocation } from 'grommet-icons';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ShiftOverview, ShiftOverviewWeek } from '../../client/gui';
 import useResponsiveScreen from '../../utils/responsiveUtils';
@@ -67,7 +67,7 @@ const Overview = () => {
   const { isPhone } = useResponsiveScreen();
   const driverApi = useDriverApi();
   
-  const [ overview, setOverview ] = useState<ShiftOverview>(undefined);
+  const [ overview, setOverview ] = useState<ShiftOverview | undefined>(undefined);
   useEffect(() => {
       const loadOverview = async () => {
           const loadedOverview = await driverApi.getShiftOverview();
@@ -87,35 +87,35 @@ const Overview = () => {
              { t('title') }
            </Heading>
            <Box
-                justify='between'
-                align="center"
-                direction="row">
-              <Text
-                  color='accent-3'
-                  weight='bold'>{ t('calendar-week') }&nbsp;{ overview?.weeks?.at(0).description }</Text>
-              {
-                overview !== undefined
-                    ? <Text>&nbsp;({ new Date(overview?.weeks?.at(0).startsAt).toLocaleDateString() }
-                          - { new Date(overview?.weeks?.at(0).endsAt).toLocaleDateString() })</Text>
-                    : undefined
-              }
-            </Box>
-           <WeekBox week={ overview?.weeks?.at(0) } />
+               justify='between'
+               align="center"
+               direction="row">
+             <Text
+                 color='accent-3'
+                 weight='bold'>{ t('calendar-week') }&nbsp;{ overview?.weeks[0].description }</Text>
+             {
+               overview !== undefined
+                   ? <Text>&nbsp;({ new Date(overview?.weeks[0].startsAt).toLocaleDateString() }
+                         - { new Date(overview?.weeks[0].endsAt).toLocaleDateString() })</Text>
+                   : undefined
+             }
+           </Box>
+           <WeekBox week={ overview?.weeks[0]! } />
            <Box
-                justify='between'
-                align="center"
-                direction="row">
-              <Text
-                  color='accent-3'
-                  weight='bold'>{ t('calendar-week') }&nbsp;{ overview?.weeks?.at(1).description }</Text>
-              {
-                overview !== undefined
-                    ? <Text>&nbsp;({ new Date(overview?.weeks?.at(1).startsAt).toLocaleDateString() }
-                          - { new Date(overview?.weeks?.at(1).endsAt).toLocaleDateString() })</Text>
-                    : undefined
-              }
-            </Box>
-           <WeekBox week={ overview?.weeks?.at(1) } />
+               justify='between'
+               align="center"
+               direction="row">
+             <Text
+                 color='accent-3'
+                 weight='bold'>{ t('calendar-week') }&nbsp;{ overview?.weeks[1].description }</Text>
+             {
+               overview !== undefined
+                   ? <Text>&nbsp;({ new Date(overview?.weeks[1].startsAt).toLocaleDateString() }
+                         - { new Date(overview?.weeks[1].endsAt).toLocaleDateString() })</Text>
+                   : undefined
+             }
+           </Box>
+           <WeekBox week={ overview?.weeks[1]! } />
            <Box
                 direction="column"
                 gap="small">
@@ -131,7 +131,7 @@ const Overview = () => {
                  <Text>{ t('has-drivers') }</Text>
                </Box>
                {
-                 overview?.numberOfCars > 1
+                 overview?.numberOfCars ?? 0 > 1
                     ? <Box
                           direction="row"
                           gap="xsmall"
@@ -142,9 +142,9 @@ const Overview = () => {
                    : undefined
                }
                <Box
-                    direction="row"
-                    gap="xsmall"
-                    align="center">
+                   direction="row"
+                   gap="xsmall"
+                   align="center">
                  <Box background="status-critical" width="1rem" height="1rem"></Box>
                  <Text>{ t('has-no-drivers') }</Text>
                </Box>

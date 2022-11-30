@@ -1,10 +1,12 @@
+import React from "react";
 import { FormField, FormFieldExtendedProps } from "grommet";
-import { TFunction } from "react-i18next";
+import { TFunction } from "i18next";
 
-interface ViolationsAwareFormFieldProps extends FormFieldExtendedProps {
+interface ViolationsAwareFormFieldProps extends Omit<FormFieldExtendedProps, 'name'> {
   violations: any;
   t: TFunction;
   label: string;
+  name: string;
 }
 
 const ViolationsAwareFormField = ({
@@ -25,7 +27,7 @@ const ViolationsAwareFormField = ({
         }
       }
       label={ t(label) }
-      error={ t(violations[name] !== undefined ? label + '_' + violations[name] : undefined) }
+      error={ violations[name] !== undefined ? t(`${label}_${violations[name]}`) : undefined }
       {...props}>{children}</FormField>);
 
 export { ViolationsAwareFormField };

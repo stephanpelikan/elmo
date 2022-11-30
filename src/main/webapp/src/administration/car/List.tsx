@@ -1,6 +1,6 @@
 import { Box, Button, ColumnConfig, DataTable, Grid, Text } from 'grommet';
 import { Add, Car as CarIcon, FormEdit, PhoneVertical, ShareOption } from 'grommet-icons';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useCarAdministrationApi } from '../AdminAppContext';
@@ -38,7 +38,7 @@ const loadData = async (
     carAdministrationApi: CarApi,
     setNumberOfCars: (number: number) => void,
     setCars: (applications: Array<Car>) => void,
-    cars: Array<Car>
+    cars: Array<Car> | undefined,
   ) => {
 
     const result = await carAdministrationApi
@@ -49,7 +49,7 @@ const loadData = async (
                   + (cars.length % itemsBatchSize),
             pageSize: itemsBatchSize
           });
-    setNumberOfCars(result.page.totalElements);
+    setNumberOfCars(result!.page.totalElements);
     setCars(
         cars === undefined
         ? result.cars
@@ -64,7 +64,7 @@ const ListOfCars = () => {
   const { t } = useTranslation('administration/car');
   const navigate = useNavigate();
   
-  const [ cars, setCars ] = useState(undefined);
+  const [ cars, setCars ] = useState<Array<Car> | undefined>(undefined);
   const [ numberOfCars, setNumberOfCars ] = useState(0);
   
   useEffect(() => {

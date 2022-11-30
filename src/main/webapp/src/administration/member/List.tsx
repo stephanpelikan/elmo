@@ -1,6 +1,6 @@
 import { Box, Button, ColumnConfig, DataTable, Grid, Text } from 'grommet';
 import { Add, Download, FormEdit, Upload } from 'grommet-icons';
-import { ChangeEvent, useEffect, useRef, useState } from 'react';
+import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../AppContext';
@@ -63,7 +63,7 @@ const loadData = async (
     memberApi: MemberApi,
     setNumberOfMembers: (number: number) => void,
     setMembers: (applications: Array<Member>) => void,
-    members: Array<Member>
+    members: Array<Member> | undefined,
   ) => {
 
     const result = await memberApi
@@ -90,7 +90,7 @@ const ListOfMembers = () => {
   const { t } = useTranslation('administration/member');
   const navigate = useNavigate();
   
-  const [ members, setMembers ] = useState(undefined);
+  const [ members, setMembers ] = useState<Array<Member> | undefined>(undefined);
   const [ numberOfMembers, setNumberOfMembers ] = useState(0);
   
   useEffect(() => {
@@ -99,16 +99,14 @@ const ListOfMembers = () => {
     }
   }, [ memberApi, setMembers, setNumberOfMembers, members ]);
   
-  const uploadRef = useRef(null);
+  const uploadRef = useRef<HTMLInputElement>(null);
   
   const newMember = () => {
     navigate('./-');
   }
 
   const onUploadExcel = () => {
-    
-    uploadRef.current.click();
-    
+    uploadRef.current!.click();
   };
   
   const onExcelUpload = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -140,6 +138,7 @@ const ListOfMembers = () => {
         });
       
     }
+    // @ts-ignore
     event.target.value = null; // reset file input
     
   };
@@ -147,7 +146,7 @@ const ListOfMembers = () => {
   const onDownloadExcel = async () => {
     
     const excel = await memberApi.generateMembersExcelFileRaw();
-    const disposition = excel.raw.headers.get('content-disposition');
+    const disposition = excel.raw.headers.get('content-disposition')!;
     const anchor = window.document.createElement('a');
     anchor.href = window.URL.createObjectURL(await excel.value());
     const posOfEquals = disposition.indexOf('=');

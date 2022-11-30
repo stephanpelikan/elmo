@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect } from 'react';
+import React, { useEffect, useLayoutEffect } from 'react';
 import { useAppContext } from '../AppContext';
 import { Main as PassangerMain } from '../passanger/Main';
 import { RegistrationMain } from '../login/RegistrationMain';
@@ -19,9 +19,9 @@ const Main = () => {
   
   useEffect(() => {
     if (isAdminOnly) {
-      navigate(t('url-administration'));
+      navigate(t('url-administration') as string);
     } else if (isDriverOnly) {
-      navigate(t('url-driver'));
+      navigate(t('url-driver') as string);
     }
   }, [ isAdminOnly, isDriverOnly, navigate, t ]);
   

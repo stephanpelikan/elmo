@@ -4,7 +4,7 @@ import { UserAvatar } from '../components/UserAvatar';
 import i18n from '../i18n';
 import AvatarUpload from 'react-avatar-edit';
 import { Anchor, Avatar, Box, Button, CheckBox, Collapsible, Paragraph, Stack, Text, TextInput } from 'grommet';
-import { useEffect, useLayoutEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { useAppContext, useMemberGuiApi } from '../AppContext';
 import { ViolationsAwareFormField } from "../components/ViolationsAwareFormField";
 import { CoatCheck, Contact, FormEdit, Home, User } from 'grommet-icons';
@@ -122,22 +122,22 @@ const Profile = () => {
   const { state, toast, fetchCurrentUser } = useAppContext();
   const memberApi = useMemberGuiApi();
   
-  const [ member, setMember ] = useState<Member>(undefined);
+  const [ member, setMember ] = useState<Member | undefined | null>(undefined);
   const [ sending, setSending ] = useState(false);
-  const [ uploadedAvatar, setUploadedAvatar ] = useState(null);
+  const [ uploadedAvatar, setUploadedAvatar ] = useState<URL | null>(null);
   const [ avatarEditMode, setAvatarEditMode ] = useState(false);
   const [ emailEditMode, setEmailEditMode ] = useState(false);
-  const [ email, setEmail ] = useState<string>(undefined);
-  const [ emailConfirmationCode, setEmailConfirmationCode ] = useState<string>(undefined);
+  const [ email, setEmail ] = useState<string | undefined>(undefined);
+  const [ emailConfirmationCode, setEmailConfirmationCode ] = useState<string | undefined>(undefined);
   const [ phoneEditMode, setPhoneEditMode ] = useState(false);
-  const [ phone, setPhone ] = useState<string>(undefined);
-  const [ phoneConfirmationCode, setPhoneConfirmationCode ] = useState<string>(undefined);
+  const [ phone, setPhone ] = useState<string | undefined>(undefined);
+  const [ phoneConfirmationCode, setPhoneConfirmationCode ] = useState<string | undefined>(undefined);
   const [ preferEditMode, setPreferEditMode ] = useState(false);
   const [ prefer, setPrefer ] = useState(false);
   const [ violations, setViolations ] = useState({});
   
-  const onBeforeAvatarLoad = (elem) => {
-    if(elem.target.files[0].size > 12 * 1024 * 1024){
+  const onBeforeAvatarLoad = (elem: React.ChangeEvent<HTMLInputElement>) => {
+    if(elem.target.files![0].size > 12 * 1024 * 1024){
       elem.target.value = "";
       toast({
         namespace: 'passanger/profile',
@@ -150,8 +150,8 @@ const Profile = () => {
   const onCloseAvatar = () => {
     setUploadedAvatar(null);
   };
-  const onCropAvatar = preview => {
-    setUploadedAvatar(preview);
+  const onCropAvatar = (preview: string) => {
+    setUploadedAvatar(new URL(preview));
   };
   const abortAvatarEditing = () => {
     setAvatarEditMode(false);
@@ -161,11 +161,11 @@ const Profile = () => {
     try {
       /* convert base64-url into Blob: */
       setSending(true);
-      const fetchBasedConverter = await fetch(uploadedAvatar);
+      const fetchBasedConverter = await fetch(uploadedAvatar!);
       const uploadedAvatarBlob = await fetchBasedConverter.blob();
       // upload Blob
       await memberApi.uploadAvatar({
-          memberId: state.currentUser.memberId,
+          memberId: state.currentUser!.memberId!,
           body: uploadedAvatarBlob
         });
       // Refresh current-user to make changes visible
@@ -181,20 +181,20 @@ const Profile = () => {
   };
   
   const setPreferEditing = () => {
-    setPrefer(member?.preferNotificationsPerSms);
+    setPrefer(member?.preferNotificationsPerSms!);
     setPreferEditMode(true);
   };
   const abortPreferEditing = () => {
-    setPrefer(member?.preferNotificationsPerSms);
+    setPrefer(member?.preferNotificationsPerSms!);
     setPreferEditMode(false);
   };
   const savePrefer = async () => {
     await memberApi.setPreferedWayForNotifications({
-        memberId: state.currentUser.memberId,
+        memberId: state.currentUser!.memberId!,
         body: prefer ? 'SMS' : 'Email',
       })
     const updated = await memberApi.getMemberDetails({
-        memberId: state.currentUser.memberId
+        memberId: state.currentUser!.memberId!
       });
     setMember(updated);
     setPreferEditMode(false);
@@ -222,7 +222,7 @@ const Profile = () => {
           fetchCurrentUser(resolve, reject, true);
         });
       const updated = await memberApi.getMemberDetails({
-          memberId: state.currentUser.memberId
+          memberId: state.currentUser!.memberId!
         });
       setMember(updated);
       setEmailConfirmationCode(undefined);
@@ -283,7 +283,7 @@ const Profile = () => {
           }
         });
       const updated = await memberApi.getMemberDetails({
-          memberId: state.currentUser.memberId
+          memberId: state.currentUser!.memberId!
         });
       setMember(updated);
       setPhoneConfirmationCode(undefined);
@@ -326,7 +326,7 @@ const Profile = () => {
   useEffect(() => {
     if (member === undefined) {
       setMember(null);
-      loadMember(memberApi, state.currentUser.memberId, setMember);
+      loadMember(memberApi, state.currentUser!.memberId!, setMember);
     }
   }, [ memberApi, state.currentUser, member, setMember ]);
   
@@ -347,7 +347,7 @@ const Profile = () => {
               anchor='bottom-right'>
             <UserAvatar
                 size='200px'
-                user={ state.currentUser } />
+                user={ state.currentUser! } />
             {
               isPhone
                   ? <Button
@@ -389,7 +389,7 @@ const Profile = () => {
             <Avatar
                 size='large'
                 border={ uploadedAvatar == null }
-                src={ uploadedAvatar } />
+                src={ uploadedAvatar?.toString() } />
             <Button
                 secondary
                 onClick={ saveAvatarEditing }
@@ -454,7 +454,10 @@ const Profile = () => {
               <CodeButton
                   secondary
                   disabled={ sending }
-                  onClick={ value => { requestEmailCode(); value.target.blur(); } }
+                  onClick={ (value: any) => {
+                      requestEmailCode();
+                      value.target.blur();
+                    } }
                   label={ t('request-email-confirmation-code') } />
             </Box>
           </ViolationsAwareFormField>
@@ -519,7 +522,10 @@ const Profile = () => {
               <CodeButton
                   secondary
                   disabled={ sending }
-                  onClick={ value => { requestPhoneCode(); value.target.blur(); } }
+                  onClick={ (event: any) => {
+                      requestPhoneCode();
+                      event.target!.blur();
+                    } }
                   label={ t('request-phone-confirmation-code') } />
             </Box>
           </ViolationsAwareFormField>
@@ -586,8 +592,8 @@ const Profile = () => {
         <Anchor
             target='_blank'
             weight='normal'
-            href={ 'mailto:' + state.appInformation.contactEmailAddress }>
-          { state.appInformation.contactEmailAddress }
+            href={ 'mailto:' + state.appInformation!.contactEmailAddress }>
+          { state.appInformation!.contactEmailAddress }
         </Anchor>
       </Content>
       <Heading icon={ <Home /> }>{ t('address_data') }</Heading>
@@ -598,12 +604,12 @@ const Profile = () => {
           { member?.zip }&nbsp;
           { member?.city }
         </Paragraph>
-        { t('ask_management_board', { mmb: state.appInformation.contactEmailAddress }) }
+        { t('ask_management_board', { mmb: state.appInformation!.contactEmailAddress }) }
         <Anchor
             target='_blank'
             weight='normal'
-            href={ 'mailto:' + state.appInformation.contactEmailAddress }>
-          { state.appInformation.contactEmailAddress }
+            href={ 'mailto:' + state.appInformation!.contactEmailAddress }>
+          { state.appInformation!.contactEmailAddress }
         </Anchor>
       </Content>
     </MainLayout>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import { Box } from 'grommet';
 import { Car, DocumentUser, Group } from 'grommet-icons';
 import { CardBadge } from './CardBadge';
@@ -23,12 +23,12 @@ const TaskCards = () => {
   
   const loadCountOfInprogressMemberOnboardings = useCallback(async () => {
     const { count } = await onboardingApi.getCountOfInprogressMemberOnboardings();
-    setCountOfInprogressMemberOnboardings(count);
+    setCountOfInprogressMemberOnboardings(count!);
   }, [ onboardingApi ]);
 
   const loadCountOfActiveMembers = useCallback(async () => {
     const { count } = await memberApi.getCountOfActiveMembers();
-    setCountOfActiveMembers(count);
+    setCountOfActiveMembers(count!);
   }, [ memberApi ]);
   
   useEffect(() => {

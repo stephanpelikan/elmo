@@ -47,10 +47,10 @@ const Menu = () => {
           pad="small"
           gap="small">
         {
-          state.currentUser === null ? '' :
+          !Boolean(state.currentUser) ? '' :
           <>
             <User
-                user={ state.currentUser } />
+                user={ state.currentUser! } />
             {
               !isPassangerOnly && !isInRegistration
                   ? <Box
@@ -59,13 +59,13 @@ const Menu = () => {
                         direction='row'>
                       <Stakeholder />
                       <Box>{
-                        state.currentUser.roles.map(role => t(role)).join(', ')
+                        state.currentUser!.roles!.map(role => t(role)).join(', ')
                       }</Box>
                     </Box>
                   : <></>
             }
             <MenuItem
-                roles={null}
+                roles={ null }
                 onClick={ doLogout }>
               <Logout />
               <Text>{t('logout')}</Text>
@@ -73,7 +73,7 @@ const Menu = () => {
             <MenuItem
                 onClick={() => {
                   hideMenu();
-                  navigate(tApp('url-user-profile'));
+                  navigate(tApp('url-user-profile') as string);
                 }}>
               <UserSettings />
               <Text>{t('user profile')}</Text>
@@ -82,10 +82,10 @@ const Menu = () => {
                 roles={[ Role.Driver ]}
                 onClick={() => {
                   hideMenu();
-                  navigate(tApp('url-driver'));
+                  navigate(tApp('url-driver') as string);
                 }}>
               {
-                state.currentUser.sex === Sex.Female
+                state.currentUser!.sex === Sex.Female
                     ? <UserFemale />
                     : <UserMale />
               }
@@ -96,7 +96,7 @@ const Menu = () => {
                 background='accent-3'
                 onClick={() => {
                   hideMenu();
-                  navigate(tApp('url-administration'));
+                  navigate(tApp('url-administration') as string);
                 }}>
               <UserAdmin />
               <Text>{t('administration')}</Text>
@@ -105,7 +105,7 @@ const Menu = () => {
         }
         <Text margin={ { top: 'medium' } }>{tApp('title.long')}</Text>
         <Anchor target='_blank' href={ state.appInformation?.homepageUrl }>{ state.appInformation?.homepageUrl }</Anchor>
-        <Text margin={ { top: 'medium' } }>Version { state.appInformation.version }</Text>
+        <Text margin={ { top: 'medium' } }>Version { state.appInformation!.version }</Text>
       </Grid>);
     
 }

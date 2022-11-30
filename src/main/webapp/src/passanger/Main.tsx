@@ -3,6 +3,7 @@ import { Add, Group, User, UserFemale } from "grommet-icons";
 import { CircleButton } from '../components/CircleButton';
 import { useAppContext } from '../AppContext';
 import { Sex } from "../client/gui";
+import React from 'react';
 import { MainLayout, SubHeading, Content } from '../components/MainLayout';
 import { MemberIdAvatar } from '../components/MemberIdAvatar';
 
@@ -18,7 +19,7 @@ const Main = () => {
           <Box
               gap="xsmall"
               direction='row'>
-            { state.currentUser.sex === Sex.Female
+            { state.currentUser!.sex === Sex.Female
                 ? <UserFemale color="accent-3" size='medium' />
                 : <User color="accent-3" size='medium' /> }
             <Box justify='center'>Meine Fahrten:</Box>

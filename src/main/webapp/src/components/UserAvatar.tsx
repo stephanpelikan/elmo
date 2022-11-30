@@ -2,7 +2,7 @@ import { User as UserDto, Sex, PlannerDriver } from '../client/gui';
 import { User as UserMale, UserFemale } from 'grommet-icons';
 import { Avatar, Box, Paragraph, Text } from 'grommet';
 import { BorderType } from 'grommet/utils';
-import { useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import useOnClickOutside from '../utils/clickOutside';
 import { useAppContext } from '../AppContext';
 
@@ -64,7 +64,7 @@ const UserAvatar = ({
           style={ { position: 'relative' } }
           onMouseDown={ () => setShowDetails(true) }>
         {
-          (state.currentUser.memberId !== user.memberId) && showDetails
+          (state.currentUser!.memberId !== user.memberId) && showDetails
               ? <Box
                     ref={ ref }
                     background='white'
@@ -92,7 +92,7 @@ const UserAvatar = ({
               : undefined
         }
         <Avatar
-            style={ { zIndex: (state.currentUser.memberId !== user.memberId) && showDetails ? 20 : undefined } }
+            style={ { zIndex: (state.currentUser!.memberId !== user.memberId) && showDetails ? 20 : undefined } }
             background={ backgroundColor }
             size={ size }
             border={ border }

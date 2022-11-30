@@ -736,7 +736,7 @@ const Planner = () => {
   const [ startsAt, _setStartsAt ] = useState<Date>(
       daySearchParam > 0
           ? new Date(document.location.search.substring(1, daySearchParam))
-          : currentHour(false)
+          : currentHour()
     );
   const setStartsAt = (dateInput: string|Date) => {
     let date: Date | undefined;

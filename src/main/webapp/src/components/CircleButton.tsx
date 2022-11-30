@@ -1,5 +1,5 @@
 import { Box, Button, ButtonType } from "grommet";
-import { createRef } from "react";
+import React, { createRef, MouseEvent } from "react";
 
 const CircleButton = ({
   style,
@@ -27,9 +27,9 @@ const CircleButton = ({
               color={ color }
               hoverIndicator
               style={ { border: 'none', height: '4rem' } }
-              onClick={event => {
-                buttonRef.current.blur();
-                onClick(event);
+              onClick={ (event: MouseEvent<HTMLButtonElement & HTMLAnchorElement>) => {
+                buttonRef.current?.blur();
+                if (onClick) onClick(event);
               }} />
         </Box>);
 }

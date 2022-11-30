@@ -11,13 +11,13 @@ const isValidLocalDate = (localDate: string): boolean => {
   
 }
 
-const parseLocalDate = (localDate: string): Date | undefined => {
+const parseLocalDate = (localDate: string | undefined): Date | undefined => {
   
   if (!Boolean(localDate)) {
     return undefined;
   }
   
-  const result = localDate.match(LOCAL_DATE_FORMAT);
+  const result = localDate!.match(LOCAL_DATE_FORMAT);
   if (result == null) {
     throw new Error(`Unsupported date format '${localDate}'`);
   }
@@ -30,7 +30,7 @@ const parseLocalDate = (localDate: string): Date | undefined => {
   
 }
 
-const parseLocalDateToIsoString = (localDate: string): string | undefined => {
+const parseLocalDateToIsoString = (localDate: string | undefined | null): string | undefined => {
   
   if (!Boolean(localDate)) {
     return undefined;
@@ -64,7 +64,7 @@ const toLocaleTimeStringWithoutSeconds = (date: Date): string | undefined => {
   
 }
 
-const currentHour = (history: boolean): Date => {
+const currentHour = (): Date => {
   
   const now = new Date();
   return new Date(

@@ -1,5 +1,5 @@
 import { Box, MaskedInput } from 'grommet';
-import { forwardRef, useState } from 'react';
+import React, { forwardRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 
@@ -10,7 +10,7 @@ i18n.addResources('de', 'km-input', {
       "thousand-separator": ".",
     });
 
-const formatKm = (km: number | string, thousandSeparator: string) => {
+const formatKm = (km: number | string | undefined, thousandSeparator: string) => {
   
   if (km === undefined) return "";
   const kmStr = km.toString();
@@ -22,8 +22,8 @@ const formatKm = (km: number | string, thousandSeparator: string) => {
 };
 
 interface KmInputProps {
-  km: number,
-  setKm: (km: number) => void
+  km: number | undefined,
+  setKm: (km: number | undefined) => void
 };
 
 const KmInput = forwardRef<HTMLInputElement, KmInputProps>(({

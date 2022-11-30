@@ -7,6 +7,7 @@ import at.elmo.member.MemberRepository;
 import at.elmo.member.Role;
 import at.elmo.member.login.ElmoOAuth2User;
 import at.elmo.member.onboarding.MemberApplication;
+import at.elmo.member.onboarding.MemberApplication.Status;
 import at.elmo.member.onboarding.MemberApplicationRepository;
 import at.elmo.util.exceptions.ElmoException;
 import at.elmo.util.exceptions.ElmoForbiddenException;
@@ -105,14 +106,41 @@ public class UserContext {
         }
 
         final var oauth2User = (ElmoOAuth2User) authentication.getPrincipal();
-
-        final var result = memberApplications.findById(oauth2User.getMemberApplicationId());
-        if (result.isEmpty()) {
-            throw new ElmoException(
-                    "There is no member-application-record for user logged '" + oauth2User.getOAuth2Id() + "'");
+        if (oauth2User.getElmoId() != null) {
+            
+            final var memberFound = members.findById(oauth2User.getElmoId());
+            if (memberFound.isEmpty()) {
+                throw new ElmoException(
+                        "There is no member-application-record for user logged '" + oauth2User.getOAuth2Id() + "'");
+            }
+            final var member = memberFound.get();
+            final var result = new MemberApplication();
+            result.setBirthdate(member.getBirthdate());
+            result.setCity(member.getCity());
+            result.setEmail(member.getEmail());
+            result.setFirstName(member.getFirstName());
+            result.setLastName(member.getLastName());
+            result.setId(member.getId());
+            result.setMemberId(member.getMemberId());
+            result.setPhoneNumber(member.getPhoneNumber());
+            result.setSex(member.getSex());
+            result.setStatus(Status.ACCEPTED);
+            result.setStreet(member.getStreet());
+            result.setStreetNumber(member.getStreetNumber());
+            result.setTitle(member.getTitle());
+            result.setZip(member.getZip());
+            return result;
+            
+        } else {
+            
+            final var result = memberApplications.findById(oauth2User.getMemberApplicationId());
+            if (result.isEmpty()) {
+                throw new ElmoException(
+                        "There is no member-application-record for user logged '" + oauth2User.getOAuth2Id() + "'");
+            }
+            return result.get();
+            
         }
-
-        return result.get();
 
     }
 

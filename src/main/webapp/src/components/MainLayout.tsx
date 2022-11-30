@@ -1,5 +1,5 @@
 import { Box, BoxExtendedProps, BoxTypes, Heading as GrommetHeading, HeadingProps, Page, PageContent, Paragraph } from "grommet";
-import { PropsWithChildren } from "react";
+import React, { PropsWithChildren } from "react";
 import useResponsiveScreen from '../utils/responsiveUtils';
 
 const MainLayout = ({ children, ...props }: PropsWithChildren<BoxExtendedProps>) => {

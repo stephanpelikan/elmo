@@ -1,5 +1,5 @@
 import { Box, Button, CheckBox, Paragraph, Text, TextInput } from "grommet";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ViolationsAwareFormField } from "../../components/ViolationsAwareFormField";
 import { useTranslation } from "react-i18next";
 import QRCode from "react-qr-code";
@@ -52,6 +52,7 @@ i18n.addResources('en', 'administration/car-details', {
       "not-deleted_message": `The car war not deleted, because it's already in use!
 However, it can be deactivated for passanger-service and car-sharing.`,
       "new": "New",
+      "save-hint": "Please save changes to enable the 'Activate Elmo-App'-button.",
   });
 i18n.addResources('de', 'administration/car-details', {
       "shortcut": "Kürzel:",
@@ -90,6 +91,7 @@ i18n.addResources('de', 'administration/car-details', {
       "not-deleted_message": `Fahrzeug wurde nicht gelöscht, da es bereits in Verwendung ist!
  Es kann jedoch für den Fahrtendienst und das Car-Sharing verboten werden.`,
       "new": "Neu",
+      "save-hint": "Bitte speichere die Änderungen, um den 'Elmo-App aktivieren'-Button zu aktivieren.",
   });
 
 const loadData = async (carApi: CarApi, carId: string, setCar: (car: Car) => void) => {
@@ -109,34 +111,28 @@ const Details = () => {
 
   const [ dirty, setDirty ] = useState<boolean>(false);
   const [ violations, setViolations ] = useState<any>({});
-  const [ car, setCar ] = useState<Car>(undefined);
+  const [ car, setCar ] = useState<Car | undefined>(undefined);
 
   const loading = car === undefined;
 
-  const [ activationCode, setActivationCode ] = useState<string>(undefined);
+  const [ activationCode, setActivationCode ] = useState<string | undefined>(undefined);
   
   const activateApp = async () => {
-    
-    const code = await carApi.activateCarApp({ carId: car.id });
+    const code = await carApi.activateCarApp({ carId: car!.id! });
     setActivationCode(code);
-    const updatedCar = await carApi.getCar({ carId: car.id });
+    const updatedCar = await carApi.getCar({ carId: car!.id! });
     setCar(updatedCar);
-    
   };
 
   const deactivateApp = async () => {
-    
-    await carApi.deactivateCarApp({ carId: car.id });
+    await carApi.deactivateCarApp({ carId: car!.id! });
     setActivationCode(undefined);
-    const updatedCar = await carApi.getCar({ carId: car.id });
+    const updatedCar = await carApi.getCar({ carId: car!.id! });
     setCar(updatedCar);
-    
   };
   
   const dismissQrCode = () => {
-    
     setActivationCode(undefined);
-    
   };
   
   const testSms = async () => {
@@ -144,9 +140,9 @@ const Details = () => {
     try {
       
       await carApi.sendTestSms({
-          carId: car.id,
+          carId: car!.id!,
           testTextMessage: {
-            phoneNumber: car.phoneNumber
+            phoneNumber: car!.phoneNumber
           }
         });
       toast({
@@ -177,7 +173,7 @@ const Details = () => {
 
     try {
       
-      const carId = await carApi.saveCar({ carId: params.carId, car });
+      const carId = await carApi.saveCar({ carId: params.carId!, car });
       if (carId !== params.carId) {
         navigate(`../${carId}`, { replace: true })
       }
@@ -202,7 +198,7 @@ const Details = () => {
 
     try {
       
-      await carApi.deleteCar({ carId: params.carId });
+      await carApi.deleteCar({ carId: params.carId! });
       navigate('../');
       
     } catch (error) {
@@ -219,7 +215,7 @@ const Details = () => {
   };
   
   const reset = async () => {
-    await loadData(carApi, params.carId, setCar);
+    await loadData(carApi, params.carId!, setCar);
     setDirty(false);
   };
   
@@ -229,6 +225,7 @@ const Details = () => {
       }
       if (isNewCar) {
         setCar({
+          id: null,
           name: '',
           shortcut: '',
           phoneNumber: '',
@@ -238,7 +235,7 @@ const Details = () => {
         });
         return;
       }
-      loadData(carApi, params.carId, setCar);
+      loadData(carApi, params.carId!, setCar);
     }, [ isNewCar, car, params.carId, setCar, carApi ]);
     
   const setCarValue = (data: any) => {
@@ -307,8 +304,8 @@ const Details = () => {
               plain />
           <CodeButton
               secondary
-              disabled={ !car.appActive }
-              onClick={ value => testSms() }
+              disabled={ !Boolean(car?.phoneNumber) }
+              onClick={ (_value: any) => testSms() }
               label={ t('test-sms') } />
         </Box>
       </ViolationsAwareFormField>
@@ -344,8 +341,8 @@ const Details = () => {
             ? <>
                 <Text>{ t('last-app-activity') }
                     { isPhone ? <br/> : ' ' }
-                    { car.lastAppActivity.toLocaleDateString() }&nbsp;
-                    { car.lastAppActivity.toLocaleTimeString() }</Text>
+                    { car.lastAppActivity!.toLocaleDateString() }&nbsp;
+                    { car.lastAppActivity!.toLocaleTimeString() }</Text>
                 <Button
                     secondary
                     disabled={ dirty }
@@ -356,7 +353,13 @@ const Details = () => {
                 secondary
                 disabled={ dirty }
                 onClick={ activateApp }
-                label={ t('activate') } /> }
+                label={ t('activate') } />
+        }
+        {
+          dirty
+              ? <Text>{ t('save-hint') }</Text>
+              : undefined
+        }
       </Box>
       <Modal
           show={ activationCode !== undefined }
@@ -380,7 +383,7 @@ const Details = () => {
             align='center'
             width='100%'
             height='100%'>
-          <QRCode value={ activationCode } />
+          <QRCode value={ activationCode! } />
         </Box>
       </Modal>
     </MainLayout>);

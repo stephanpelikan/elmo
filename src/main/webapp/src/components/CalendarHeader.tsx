@@ -1,5 +1,5 @@
 import { Box, Button, CalendarHeaderProps, Heading, RangeInput } from "grommet";
-import { useContext } from "react";
+import React, { ChangeEvent, useContext } from "react";
 import { ThemeContext } from "styled-components";
 import useResponsiveScreen from "../utils/responsiveUtils";
 
@@ -40,8 +40,8 @@ const CalendarHeader = ({
       
   const year = date.getFullYear();
   
-  const changeYear = event => {
-    const target = event.target.value;
+  const changeYear = (event: ChangeEvent<HTMLInputElement>) => {
+    const target = parseInt(event.target.value);
     const newDate = new Date(date);
     newDate.setFullYear(date.getFullYear() + (target - year));
     setDate(newDate);

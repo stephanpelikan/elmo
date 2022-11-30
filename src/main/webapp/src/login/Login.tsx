@@ -2,7 +2,7 @@ import { Anchor, Box, Button, Collapsible, Paragraph, Text } from "grommet";
 import { Google, Amazon, CaretDown, CaretUp, Compliance, Group, Like } from "grommet-icons";
 import React, { useEffect, useState } from "react";
 import { useAppContext } from '../AppContext';
-import { LinkedBox } from './LinkedBox';
+import { LinkedBox } from '../components/LinkedBox';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import { useCookies } from "react-cookie";
@@ -60,7 +60,7 @@ const Login = () => {
   
   const { state, toast, fetchCurrentUser, fetchOauth2Clients, nativeAppLogin } = useAppContext();
 
-  const [ cookies, setCookie ] = useCookies([]);
+  const [ cookies, setCookie ] = useCookies<string>([]);
   const [ showHint, setShowHint ] = useState(!cookies[CookieConfirmationName]);
   
   const confirmCookies = () => {
@@ -105,7 +105,7 @@ const Login = () => {
       ]));
   };
   
-  const [ oauth2Clients, setOauth2Clients ] = useState<Array<Oauth2Client>>(undefined);
+  const [ oauth2Clients, setOauth2Clients ] = useState<Array<Oauth2Client> | undefined>(undefined);
     
   useEffect(() => {
     const fetchClients = async () => {
