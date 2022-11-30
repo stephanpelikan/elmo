@@ -7,7 +7,7 @@ import io.r2dbc.postgresql.api.PostgresqlConnection;
 import io.r2dbc.postgresql.api.PostgresqlResult;
 import io.r2dbc.spi.ConnectionFactory;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -16,15 +16,21 @@ import java.io.IOException;
 
 public class PostgreSQLNotifications {
 
-    @Autowired
-    private Logger logger;
+    private static final Logger logger = LoggerFactory.getLogger(PostgreSQLNotifications.class);
     
-    @Autowired
-    private ApplicationEventPublisher applicationEventPublisher;
+    private final ApplicationEventPublisher applicationEventPublisher;
     
-    @Autowired
-    private ConnectionFactory connectionFactory;
+    private final ConnectionFactory connectionFactory;
     
+    public PostgreSQLNotifications(
+            final ApplicationEventPublisher applicationEventPublisher,
+            final ConnectionFactory connectionFactory) {
+
+        this.applicationEventPublisher = applicationEventPublisher;
+        this.connectionFactory = connectionFactory;
+        
+    }
+
     private PostgresqlConnection receiver;
 
     public void initialize() {

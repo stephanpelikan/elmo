@@ -1,6 +1,7 @@
 package at.elmo.config.db;
 
 import com.zaxxer.hikari.HikariDataSource;
+import io.r2dbc.spi.ConnectionFactory;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -10,6 +11,7 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
@@ -49,9 +51,13 @@ public class DbConfiguration extends DataSourceAutoConfiguration {
                 name = "database-platform",
                 havingValue = "org.hibernate.dialect.PostgreSQL10Dialect")
         @Bean
-        public PostgreSQLNotifications postgresqlNotifications() {
+        public PostgreSQLNotifications postgresqlNotifications(
+                final ApplicationEventPublisher applicationEventPublisher,
+                final ConnectionFactory connectionFactory) {
             
-            return new PostgreSQLNotifications();
+            return new PostgreSQLNotifications(
+                    applicationEventPublisher,
+                    connectionFactory);
             
         }
 
@@ -80,9 +86,13 @@ public class DbConfiguration extends DataSourceAutoConfiguration {
             name = "database-platform",
             havingValue = "org.hibernate.dialect.H2Dialect")
     @Bean
-    public H2Notifications h2Notifications() {
+    public H2Notifications h2Notifications(
+            final ApplicationEventPublisher applicationEventPublisher,
+            final H2NotificationSender sender) {
         
-        return new H2Notifications();
+        return new H2Notifications(
+                applicationEventPublisher,
+                sender);
         
     }
 

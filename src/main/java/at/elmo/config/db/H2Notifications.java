@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.h2.tools.TriggerAdapter;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.event.TransactionPhase;
@@ -14,8 +14,6 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
-import javax.annotation.PostConstruct;
 
 public class H2Notifications extends TriggerAdapter {
 
@@ -34,24 +32,22 @@ public class H2Notifications extends TriggerAdapter {
         
     }
     
-    @Autowired
-    private Logger logger;
-    
-    @Autowired
-    private ApplicationEventPublisher applicationEventPublisher;
-    
-    @Autowired
     private H2NotificationSender sender;
     
-    private static Logger eventLogger;
+    private static Logger eventLogger = LoggerFactory.getLogger(H2Notifications.class);
     
     private static ApplicationEventPublisher eventPublisher;
     
-    @PostConstruct
-    public void init() {
+    public H2Notifications() {
+        // used by H2
+    }
+    
+    public H2Notifications(
+            final ApplicationEventPublisher applicationEventPublisher,
+            final H2NotificationSender sender) {
         
         H2Notifications.eventPublisher = applicationEventPublisher;
-        H2Notifications.eventLogger = logger;
+        this.sender = sender;
         
     }
     
