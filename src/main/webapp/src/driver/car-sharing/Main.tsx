@@ -3,13 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Accordion, Box, Paragraph } from 'grommet';
 import { useCarSharingApi } from '../DriverAppContext';
-import React, { useEffect, useState } from 'react';
-import { CarSharingReservation } from '../../client/gui';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { CarSharingReservation, ReservationEvent } from '../../client/gui';
 import useResponsiveScreen from '../../utils/responsiveUtils';
 import { Content, Heading, TextHeading } from '../../components/MainLayout';
 import i18n from '../../i18n';
 import { ReservationAccordionPanel } from './ReservationAccordionPanel';
 import { useAppContext } from '../../AppContext';
+import { EventSourceMessage, WakeupSseCallback } from '../../components/SseProvider';
+import { useGuiSse } from '../../client/guiClient';
+import debounce from '../../utils/debounce';
  
 i18n.addResources('en', 'driver/car-sharings', {
       "title": "Your Reservations",
@@ -38,24 +41,39 @@ const CarSharings = () => {
   const { t: tDriver } = useTranslation('driver');
   const { isPhone } = useResponsiveScreen();
   const navigate = useNavigate();
-  const carSharingApi = useCarSharingApi();
-  const { toast } = useAppContext();
+  const { toast, state } = useAppContext();
+  const wakeupSseCallback = useRef<WakeupSseCallback>(undefined);
+  const carSharingApi = useCarSharingApi(wakeupSseCallback);
 
   const [ detailsVisible, setDetailsVisible ] = useState<Array<number>>([]);
   const [ reservations, setReservations ] = useState<Array<CarSharingReservation> | undefined>(undefined);
 
+  const loadCarSharings = useCallback(async () => {
+      const r = await carSharingApi.getCarSharingReservations();
+      setReservations(r.reservations);
+      const visible = r
+          .reservations
+          .filter(reservation => reservation.userTaskId !== undefined)
+          .map((_reservation, index) => index);
+      setDetailsVisible(visible);
+    }, [ carSharingApi, setReservations ]);
+
   useEffect(() => {
-      const loadCarSharings = async () => {
-          const r = await carSharingApi.getCarSharingReservations();
-          setReservations(r.reservations);
-          const visible = r
-              .reservations
-              .filter(reservation => reservation.userTaskId !== undefined)
-              .map((_reservation, index) => index);
-          setDetailsVisible(visible);
-        };
       loadCarSharings();
-    }, [ carSharingApi, setReservations, t ]);
+    }, [ loadCarSharings ]);
+  
+  const updateCarSharings = useMemo(
+    () => debounce(
+        async (ev: EventSourceMessage<ReservationEvent>) => {
+            if (ev.data.driverMemberId !== state.currentUser!.memberId) return;
+            await loadCarSharings();
+          }),
+    [ loadCarSharings, state.currentUser ]);
+
+  wakeupSseCallback.current = useGuiSse<ReservationEvent>(
+      updateCarSharings,
+      "Reservation#CS"
+    );
 
   const goToPlanner = (reservation: CarSharingReservation) => {
       const day = reservation.startsAt.toISOString().substring(0, 10);

@@ -1,12 +1,12 @@
 import { fetchEventSource, EventSourceMessage as FetchEventSourceMessage, FetchEventSourceInit } from "@microsoft/fetch-event-source";
 import { Timeout } from "grommet";
-import { Context, DependencyList, useContext, useEffect, useRef } from "react";
+import { Context, useContext, useEffect, useRef } from "react";
 
 type SseURL = string;
 
 type SseConnectionID = string;
 
-interface EventSourceMessage<T> {
+export interface EventSourceMessage<T> {
     id: string;
     event: string;
     data: T;
@@ -19,12 +19,12 @@ export type OnMessageFunction<T> = (ev: EventSourceMessage<T>) => void;
 
 type OnMessageSignature = {
   onMessage: OnMessageFunction<any>,
-  messageName?: string
+  messageName?: string | RegExp
 };
 
 type GetConnectionFunction = (
     onMessage: OnMessageFunction<any>,
-    messageName?: string
+    messageName?: string | RegExp
   ) => SseConnectionID;
       
 type ReleaseConnectionFunction = (connectionId: SseConnectionID) => void;
@@ -48,11 +48,13 @@ const onmessage = (
   Object
       .keys(connections)
       .map(connectionId => connections[connectionId] )
-      .filter(onMessageSignature => onMessageSignature === undefined
-          ? false
-          : onMessageSignature.messageName
-          ? onMessageSignature.messageName === ev.event
-          : true)
+      .filter(onMessageSignature => onMessageSignature === undefined // connection deleted meanwhile
+          ? false                                                    // means no notification
+          : typeof onMessageSignature.messageName === 'string'       // messageName as string
+          ? onMessageSignature.messageName === ev.event              // matches given event or
+          : onMessageSignature.messageName instanceof RegExp         // as regular expression
+          ? onMessageSignature.messageName.test(ev.event)            // matches given event
+          : true)                                                    // no messageName means no filtering
       .forEach(onMessageSignature => {
           try {
             onMessageSignature.onMessage(
@@ -169,9 +171,8 @@ const SseProvider = ({ url, Context, buildFetchApi, children, ...rest }: React.P
 
 const useSse = <T, >(
   Context: Context<SseContextInterface>,
-  dependencies: DependencyList,
   onMessage: OnMessageFunction<T>,
-  messageName?: string
+  messageName?: string | RegExp
 ): WakeupSseCallback => {
   
   const sseContext = useContext(Context);
@@ -180,8 +181,7 @@ const useSse = <T, >(
       const connectionId = sseContext.getConnection(onMessage, messageName);
       return () => sseContext.releaseConnection(connectionId);
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [ sseContext, onMessage, messageName, ...dependencies ]);
+    [ sseContext, onMessage, messageName ]);
   
   return sseContext.wakeupSseCallback;
   

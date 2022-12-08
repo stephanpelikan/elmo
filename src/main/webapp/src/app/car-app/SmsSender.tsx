@@ -41,7 +41,6 @@ const SmsSender = () => {
   }, [sendSms]);
 
   wakeupSseCallback.current = useSmsSse<SmsEvent>(
-      [sendSms],
       sendSms,
       'SMS'); 
 

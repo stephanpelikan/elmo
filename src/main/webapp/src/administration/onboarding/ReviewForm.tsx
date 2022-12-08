@@ -1,6 +1,6 @@
 import { Box, Button, FormField, Text, TextArea, Form, ThemeContext , ThemeType, DateInput, Select, CheckBox, TextInput, Collapsible } from "grommet";
 import { deepMerge } from 'grommet/utils';
-import React, { ChangeEvent, MouseEvent, useEffect, useState } from "react";
+import React, { ChangeEvent, MouseEvent, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAppContext } from "../../AppContext";
@@ -10,7 +10,7 @@ import i18n from '../../i18n';
 import { css } from "styled-components";
 import { CalendarHeader } from '../../components/CalendarHeader';
 import { ViolationsAwareFormField } from "../../components/ViolationsAwareFormField";
-import useDebounce from '../../utils/debounce-hook';
+import debounce from '../../utils/debounce';
 import { Copy } from "grommet-icons";
 import { useOnboardingAdministrationApi, useMemberApi } from '../AdminAppContext';
 import { parseLocalDate, toLocalDateString } from '../../utils/timeUtils';
@@ -224,7 +224,6 @@ const ReviewForm = () => {
   const navigate = useNavigate();
   const params = useParams();
   const { t } = useTranslation('administration/onboarding/review');
-  const debounceOnChangeMemberId = useDebounce();
   
   const [ formValue, setFormValue ] = useState<FormState | undefined>(undefined);
   const [ violations, setViolations ] = useState<Record<string, string>>({});
@@ -329,8 +328,9 @@ const ReviewForm = () => {
   const [ memberSuggestions, setMemberSuggestions ] = useState<Array<{ value: number, label: JSX.Element}>>([]);
   const [ member, setMember ] = useState<Member | undefined>(undefined);
   
-  const onChangeMemberId = (event: ChangeEvent<HTMLInputElement>) => {
-    debounceOnChangeMemberId(() => async () => {
+  const onChangeMemberId = useMemo(
+    () => debounce(
+      async (event: ChangeEvent<HTMLInputElement>) => {
         setMemberIdState(undefined);
         if (formValue!.memberId) {
           setMember(undefined);
@@ -351,8 +351,8 @@ const ReviewForm = () => {
                   label: <Box><Text margin='small'>{m.memberId}: {m.lastName}, {m.firstName}</Text></Box>
                 })));
         }
-      });
-  };
+      }, 500),
+    [ formValue, memberApi ]);
 
   const onMemberSuggestionSelect = async (event: { suggestion: { value: any; }; }) => {
     const memberId = event.suggestion.value;

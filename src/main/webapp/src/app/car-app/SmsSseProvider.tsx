@@ -1,5 +1,5 @@
 import { OnMessageFunction, SseContextInterface, SseProvider, useSse, WakeupSseCallback } from "../../components/SseProvider";
-import { createContext, DependencyList } from "react";
+import { createContext } from "react";
 import { buildAppFetchApi } from "client/appClient";
 import { useAppContext } from "AppContext";
 
@@ -30,12 +30,10 @@ const SmsSseProvider = ({ children, ...rest }: React.PropsWithChildren<{}>) => {
 };
 
 const useSmsSse = <T, >(
-    dependencies: DependencyList,
     onMessage: OnMessageFunction<T>,
     messageName?: string
   ): WakeupSseCallback => useSse(
     SmsSseContext,
-    dependencies,
     onMessage,
     messageName
   );  

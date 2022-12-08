@@ -2,7 +2,7 @@ import { Configuration as GuiConfiguration, LoginApi, MemberApi, OnboardingApi }
 import { Dispatch, useAppContext } from '../AppContext';
 import { buildFetchApi, doLogout } from '../utils/fetchApi';
 import { OnMessageFunction, SseContextInterface, SseProvider, useSse, WakeupSseCallback } from '../components/SseProvider';
-import { createContext, DependencyList } from 'react';
+import { createContext } from 'react';
 
 const SSE_UPDATE_URL = "/api/v1/gui/updates";
 
@@ -64,12 +64,12 @@ const GuiSseProvider = ({ children, ...rest }: React.PropsWithChildren<{}>) => {
 };
 
 const useGuiSse = <T, >(
-    dependencies: DependencyList,
+    //dependencies: DependencyList,
     onMessage: OnMessageFunction<T>,
-    messageName?: string
+    messageName?: string | RegExp
   ): WakeupSseCallback => useSse(
     GuiSseContext,
-    dependencies,
+    //dependencies,
     onMessage,
     messageName
   );  

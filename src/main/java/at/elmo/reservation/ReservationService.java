@@ -61,13 +61,14 @@ public class ReservationService {
         final var startsAt = ((JsonNode) record
                 .get("starts_at"))
                 .asText();
-
         final var endsAt = ((JsonNode) record
                 .get("ends_at"))
                 .asText();
-
         final var carId = ((JsonNode) record
                 .get("car"))
+                .asText();
+        final var reservationType = ((JsonNode) record
+                .get("type"))
                 .asText();
 
         final var type = notification.getAction() == Action.INSERT
@@ -78,7 +79,7 @@ public class ReservationService {
         
         applicationEventPublisher.publishEvent(
                 new ReservationNotification(
-                        "Reservation#all",
+                        "Reservation#" + reservationType,
                         type,
                         id,
                         driverId,
