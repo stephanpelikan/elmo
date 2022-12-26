@@ -193,6 +193,14 @@ public class MemberService {
         if (!updateByMember) {
             toBeUpdated.setComment(updatedMember.getComment());
             if (newRoles != null) {
+                // ensure at least one admin exists to not lock out
+                if (toBeUpdated.hasRole(Role.ADMIN)
+                        && !newRoles.contains(Role.ADMIN)) {
+                    final var admins = members.findByRoles_Role(Role.ADMIN);
+                    if (admins.size() == 1) { // must be current user due to if above
+                        return -1;
+                    }
+                }
                 toBeUpdated.updateRoles(newRoles);
             }
         }

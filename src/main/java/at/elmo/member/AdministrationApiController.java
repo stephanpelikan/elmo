@@ -161,6 +161,9 @@ public class AdministrationApiController implements MemberApi {
         if (savedId == null) {
             return ResponseEntity.badRequest().build();
         }
+        if (savedId == -1) {
+            throw new ElmoValidationException("roles", "last-admin");
+        }
 
         return getMemberById(savedId);
 

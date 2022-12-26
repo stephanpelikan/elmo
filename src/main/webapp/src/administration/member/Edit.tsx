@@ -30,6 +30,7 @@ i18n.addResources('en', 'administration/member-details', {
     "OTHER": "Other",
     "birthdate": "Birthdate:",
     "birthdate_format": "yyyy/mm/dd",
+    "birthdate_missing": "Please enter the birthday!",
     "street": "Street:",
     "street_missing": "Please enter the name of the street!",
     "street-number": "Street number:",
@@ -46,6 +47,7 @@ i18n.addResources('en', 'administration/member-details', {
     "phone-number_format": "Wrong format: +[country][area code without zero][number]!",
     "prefer-notifications-per-sms": "Notify by SMS instead email?",
     "roles": "Roles:",
+    "roles_last-admin": "You cannot remove the Admin role, because this is user is the last admin.",
     "PASSANGER": "Passanger",
     "DRIVER": "Driver",
     "MANAGER": "Manager",
@@ -86,6 +88,7 @@ i18n.addResources('de', 'administration/member-details', {
     "OTHER": "Andere",
     "birthdate": "Geburtstag:",
     "birthdate_format": "dd.mm.yyyy",
+    "birthdate_missing": "Bitte trage das Geburtsdatum ein!",
     "street": "Straße:",
     "street_missing": "Bitte trage eine Straße ein!",
     "street-number": "Hausnummer:",
@@ -102,6 +105,7 @@ i18n.addResources('de', 'administration/member-details', {
     "phone-number_format": "Falsches Format: +[Land][Vorwahl ohne Null][Nummer]!",
     "prefer-notifications-per-sms": "Hinweise per SMS statt Email?",
     "roles": "Rollen:",
+    "roles_last-admin": "Du kannst die Administrator-Rolle kann nicht entfernt, weil dieser Benutzer der letzte Administrator ist.",
     "PASSANGER": "Passagier",
     "DRIVER": "FahrerIn",
     "MANAGER": "ManagerIn",
@@ -194,6 +198,7 @@ const EditMember = () => {
   };
   
   const setRoles = (roles: Array<Role>) => {
+    violations["roles"] = undefined;
     setFormValue({
       ...formValue!,
       roles
@@ -337,9 +342,11 @@ const EditMember = () => {
             />
         </ViolationsAwareFormField>
         {/* birthdate */}
-        <FormField
+        <ViolationsAwareFormField
             name="birthdate"
-            label={ t('birthdate') }
+            label="birthdate"
+            t={ t }
+            violations={ violations }
             disabled={ loading }>
           <DateInput
               format={ t('birthdate_format') }
@@ -351,7 +358,7 @@ const EditMember = () => {
                   animate: false,
                   header: props => CalendarHeader({ ...props, setDate: setBirthdate })
                 } } />
-        </FormField>
+        </ViolationsAwareFormField>
         {/* street */}
         <ViolationsAwareFormField
             name="street"
