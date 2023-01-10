@@ -12,7 +12,7 @@ import { ReservationAccordionPanel } from './ReservationAccordionPanel';
 import { useAppContext } from '../../AppContext';
 import { EventSourceMessage, WakeupSseCallback } from '../../components/SseProvider';
 import { useGuiSse } from '../../client/guiClient';
-import debounce from '../../utils/debounce';
+import { debounce } from '../../utils/debounce';
  
 i18n.addResources('en', 'driver/car-sharings', {
       "title": "Your Reservations",

@@ -5,6 +5,7 @@ import at.elmo.config.ElmoProperties;
 import at.elmo.member.Member;
 import at.elmo.member.MemberRepository;
 import at.elmo.member.Role;
+import at.elmo.reservation.ReservationNeighborChangedNotification;
 import at.elmo.reservation.ReservationService;
 import at.elmo.reservation.blocking.BlockingReservation;
 import at.elmo.reservation.carsharing.CarSharing.Status;
@@ -12,15 +13,16 @@ import at.elmo.reservation.passangerservice.shift.Shift;
 import at.elmo.util.email.EmailService;
 import at.elmo.util.email.NamedObject;
 import at.elmo.util.sms.SmsService;
-import at.phactum.bp.blueprint.process.ProcessService;
-import at.phactum.bp.blueprint.service.BpmnProcess;
-import at.phactum.bp.blueprint.service.TaskEvent;
-import at.phactum.bp.blueprint.service.TaskEvent.Event;
-import at.phactum.bp.blueprint.service.TaskId;
-import at.phactum.bp.blueprint.service.WorkflowService;
-import at.phactum.bp.blueprint.service.WorkflowTask;
+import io.vanillabp.spi.process.ProcessService;
+import io.vanillabp.spi.service.BpmnProcess;
+import io.vanillabp.spi.service.TaskEvent;
+import io.vanillabp.spi.service.TaskEvent.Event;
+import io.vanillabp.spi.service.TaskId;
+import io.vanillabp.spi.service.WorkflowService;
+import io.vanillabp.spi.service.WorkflowTask;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,6 +63,30 @@ public class CarSharingService {
     @Autowired
     private ReservationService reservationService;
     
+    @EventListener(classes = ReservationNeighborChangedNotification.class)
+    public void processChangeOfNeighbor(
+            final ReservationNeighborChangedNotification notification) {
+        
+        if (notification.isPreviousChanged()) {
+            return;
+        }
+        
+        final var carSharingFound = carSharings.findById(notification.getId());
+        if (carSharingFound.isEmpty()) {
+            return;
+        }
+        
+        final var carSharing = carSharingFound.get();
+        
+        if ((notification.getOldNeighborReservationId() == null)
+                && (notification.getNewNeighborReservationId() != null)) {
+            processService.correlateMessage(
+                    carSharing,
+                    "CarReservedDirectlyAfterwards");
+        }
+        
+    }
+    
     public long numberOfFutureCarSharings(
             final Member driver) {
 
@@ -80,34 +106,59 @@ public class CarSharingService {
         
     }
     
-    public CarSharing addCarSharing(
+    public CarSharing createCarSharing(
             final Car car,
             final LocalDateTime startsAt,
             final LocalDateTime endsAt,
             final Member driver) throws Exception {
-
-        final var carSharing = new CarSharing();
-        carSharing.setId(UUID.randomUUID().toString());
-        carSharing.setCar(car);
-        carSharing.setDriver(driver);
-        carSharing.setStartsAt(startsAt);
-        carSharing.setEndsAt(endsAt);
-        carSharing.setStatus(Status.RESERVED);
-        carSharing.setHoursPlanned(carSharing.getHours());
+        
+        final var nextReservation = reservationService
+                .getReservationByStartsAt(car, endsAt);
+        final var previousReservation = reservationService
+                .getReservationByEndsAt(car, startsAt);
+        
+        final var newCarSharing = new CarSharing();
+        newCarSharing.setId(UUID.randomUUID().toString());
+        newCarSharing.setCar(car);
+        newCarSharing.setDriver(driver);
+        newCarSharing.setStartsAt(startsAt);
+        newCarSharing.setEndsAt(endsAt);
+        newCarSharing.setStatus(Status.RESERVED);
+        newCarSharing.setHoursPlanned(newCarSharing.getHours());
+        newCarSharing.setNextReservation(nextReservation);
+        newCarSharing.setPreviousReservation(previousReservation);
 
         final var newHours = driver
                 .getHoursConsumedCarSharing()
-                + carSharing.getHoursPlanned();
+                + newCarSharing.getHoursPlanned();
         members
                 .getReferenceById(driver.getId())
                 .setHoursConsumedCarSharing(newHours);
 
-        return processService.startWorkflow(carSharing);
+        final var carSharing = processService.startWorkflow(newCarSharing);
+        
+        if (nextReservation != null) {
+            nextReservation.setPreviousReservation(carSharing);
+        }
+        if (previousReservation != null) {
+            previousReservation.setNextReservation(carSharing);
+        }
+        
+        return carSharing;
 
     }
     
     public boolean cancelCarSharingDueToConflict(
             final CarSharing carSharing) {
+        
+        if (carSharing.getPreviousReservation() != null) {
+            carSharing.getPreviousReservation().setNextReservation(null);
+            carSharing.setPreviousReservation(null);
+        }
+        if (carSharing.getNextReservation() != null) {
+            carSharing.getNextReservation().setPreviousReservation(null);
+            carSharing.setNextReservation(null);
+        }
         
         return cancelCarSharing(
                 carSharing,
@@ -150,6 +201,7 @@ public class CarSharingService {
         
         final var now = LocalDateTime.now();
 
+        // car-sharing already started
         if (carSharing.getStartsAt().isBefore(now)) {
             
             final var endOfUsage = now
@@ -157,6 +209,28 @@ public class CarSharingService {
                     .plusHours(1);
             if (endOfUsage.isBefore(carSharing.getEndsAt())) {
                 carSharing.setEndsAt(endOfUsage);
+            }
+            
+            if (carSharing.getNextReservation() != null) {
+                carSharing.getNextReservation().setPreviousReservation(null);
+                carSharing.setNextReservation(null);
+            }
+            final var nextReservation = reservationService
+                    .getReservationByStartsAt(carSharing.getCar(), endOfUsage);
+            if (nextReservation != null) {
+                carSharing.setNextReservation(nextReservation);
+                nextReservation.setPreviousReservation(carSharing);
+            }
+            
+        } else {
+            
+            if (carSharing.getPreviousReservation() != null) {
+                carSharing.getPreviousReservation().setNextReservation(null);
+                carSharing.setPreviousReservation(null);
+            }
+            if (carSharing.getNextReservation() != null) {
+                carSharing.getNextReservation().setPreviousReservation(null);
+                carSharing.setNextReservation(null);
             }
             
         }
@@ -192,6 +266,20 @@ public class CarSharingService {
         smsService.sendSms(
                 "car-sharing/remind-driver-to-confirm-start-of-usage",
                 CarSharingService.class.getSimpleName() + "#remindDriverToConfirmStartOfUsage",
+                properties.getPassanagerServicePhoneNumber(),
+                carSharing.getDriver().getMemberId().toString(),
+                carSharing.getDriver().getPhoneNumber(),
+                NamedObject.from(carSharing).as("carSharing"));
+
+    }
+
+    @WorkflowTask
+    public void remindDriverToReturnCarInTime(
+            final CarSharing carSharing) throws Exception {
+
+        smsService.sendSms(
+                "car-sharing/remind-driver-to-return-car-in-time",
+                CarSharingService.class.getSimpleName() + "#remindDriverToReturnCarInTime",
                 properties.getPassanagerServicePhoneNumber(),
                 carSharing.getDriver().getMemberId().toString(),
                 carSharing.getDriver().getPhoneNumber(),

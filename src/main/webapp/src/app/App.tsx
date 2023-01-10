@@ -116,6 +116,12 @@ export const theme: ThemeType = {
         background: '#e0a244',
         color: '#333333',
       }
+    },
+    disabled: {
+      opacity: 1,
+      color: '#eeeeee',
+      background: '#cccccc',
+      border: { color: '#bbbbbb' }
     }
   },
   accordion: {

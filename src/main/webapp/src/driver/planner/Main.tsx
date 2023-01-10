@@ -1,7 +1,7 @@
 import { Box, ColumnConfig, DataTable, DateInput, Text } from "grommet";
 import { useTranslation } from "react-i18next";
 import i18n from '../../i18n';
-import debounce from '../../utils/debounce';
+import { debounceByKey } from '../../utils/debounce';
 import useResponsiveScreen from '../../utils/responsiveUtils';
 import { currentHour, nextHours, timeAsString, numberOfHoursBetween } from '../../utils/timeUtils';
 import { SnapScrollingDataTable } from '../../components/SnapScrollingDataTable';
@@ -101,6 +101,7 @@ interface Selection {
 interface Restrictions {
   maxHours: number;
   remainingHours: number;
+  allowPaidCarSharing: boolean;
 };
 
 const ButtonBox = styled(Box)`
@@ -320,7 +321,6 @@ const CancellationBox = ({
     reservation: PlannerReservation,
     cancelReservation: (event: ReactMouseEvent, carId: string, reservationId: string) => void
   }) => {
-    if (reservation.status !== 'RESERVED') return null;
     return <Box
           style={ { position: 'relative' } }>
         <Box
@@ -436,6 +436,9 @@ const DayTable = memo<{
             const isFirstHourOfReservation = (hour.reservation?.startsAt.getTime() === hour.startsAt.getTime())
                         || (hour.reservation && (index === 0));
             const isLastHourOfReservation = hour.reservation?.endsAt.getTime() === hour.endsAt.getTime();
+            const hasCancelButton = (isLastHourOfReservation
+                                      && (hour.reservation!.status === 'RESERVED')
+                                      && (hour.reservation?.driverMemberId === currentUser.memberId));
             const isPlannerReservation = hour.reservation?.type === "CS";
             return (
                 <Box
@@ -509,16 +512,18 @@ const DayTable = memo<{
                           ? <PlannerReservationBox
                               hour={ hour }
                               drivers={ drivers }
-                              cancellationBox={ isLastHourOfReservation
+                              cancellationBox={
+                                  hasCancelButton
                                   ? <CancellationBox
                                        carId={ car.id }
                                        reservation={ hour.reservation! }
                                        cancelReservation={ cancelReservation } />
-                                  : undefined }
-                               />
+                                  : undefined
+                                }
+                              />
                           : <Text>{ t(`reservation-type_${hour.reservation!.type}` as const) }</Text>
                         : isLastHourOfReservation
-                        ? isPlannerReservation
+                        ? isPlannerReservation && hasCancelButton
                           ? <CancellationBox
                                carId={ car.id }
                                reservation={ hour.reservation! }
@@ -623,6 +628,7 @@ const loadData = async (
     setRestrictions({
         remainingHours: calendar.remainingHours!,
         maxHours: calendar.maxHours!,
+        allowPaidCarSharing: calendar.allowPaidCarSharing
       });
   }
   if (setCars) {
@@ -826,7 +832,8 @@ const Planner = () => {
       if (hour.endsAt.getTime() < now.getTime()) return;
       event.preventDefault();
       event.stopPropagation();
-      if (restrictionsRef.current!.remainingHours < 1) {
+      if ((restrictionsRef.current!.remainingHours < 1)
+          && !restrictionsRef.current!.allowPaidCarSharing) {
         toast({
             namespace: 'driver/car-sharing/booking',
             title: t('no-remaining-hours_title'),
@@ -1093,42 +1100,48 @@ const Planner = () => {
     }, [ mouseUp, mouseMove ]);
   
   const updateReservations = useMemo(
-    () => debounce(
-        async (ev: EventSourceMessage<ReservationEvent>) => {
-          const startsAt = new Date(ev.data.startsAt);
-          const endsAt = new Date(ev.data.endsAt);
-          const midnightOfStartsAtDay = new Date(startsAt.getFullYear(), startsAt.getMonth(), startsAt.getDate());
-          const updateStartsAt = midnightOfStartsAtDay.getTime() < daysRef.current![0].startsAt.getTime() ? daysRef.current![0].startsAt : midnightOfStartsAtDay;
-          const updateEndsAt = nextHours(endsAt, 24 - endsAt.getHours(), false);
-          
-          await loadData(driverApi, dayVersionsRef, updateDayVersions, setEndDate, updateStartsAt, updateEndsAt, daysRef.current!, setDays, driversRef.current!, setDrivers, setRestrictions);
-          setWaitingForUpdate(false);
-          // detect overlapping selection of other members:
-          if (selection.current === undefined) return;
-          if ((startsAt.getTime() >= selection.current.startsAt.getTime()
-                  && (endsAt.getTime() <= selection.current.endsAt.getTime()))
-              || (startsAt.getTime() < selection.current.startsAt.getTime()
-                  && (endsAt.getTime() > selection.current.endsAt.getTime()))
-              || (startsAt.getTime() <= selection.current.startsAt.getTime()
-                  && (endsAt.getTime() > selection.current.startsAt.getTime()))
-              || (startsAt.getTime() < selection.current.endsAt.getTime()
-                  && (endsAt.getTime() >= selection.current.endsAt.getTime()))) {
-            if (ev.data.driverMemberId !== state.currentUser!.memberId) {
-              toast({
-                  namespace: 'driver/car-sharing/booking',
-                  title: t('conflicting-incoming_title'),
-                  message: t('conflicting-incoming_msg'),
-                  status: 'warning'
-                });
-            }
-            setSelection(undefined);
+    () => async (ev: EventSourceMessage<ReservationEvent>) =>
+      {
+        const startsAt = new Date(ev.data.startsAt);
+        const endsAt = new Date(ev.data.endsAt);
+        const midnightOfStartsAtDay = new Date(startsAt.getFullYear(), startsAt.getMonth(), startsAt.getDate());
+        const updateStartsAt = midnightOfStartsAtDay.getTime() < daysRef.current![0].startsAt.getTime() ? daysRef.current![0].startsAt : midnightOfStartsAtDay;
+        const updateEndsAt = nextHours(endsAt, 24 - endsAt.getHours(), false);
+        
+        debounceByKey(
+            `Reservation#${updateStartsAt.toString()}-${updateEndsAt.toString()}`,
+            async () => {
+                await loadData(driverApi, dayVersionsRef, updateDayVersions, setEndDate, updateStartsAt, updateEndsAt, daysRef.current!, setDays, driversRef.current!, setDrivers, setRestrictions);
+                setWaitingForUpdate(false);
+              }
+          );
+        
+        // detect overlapping selection of other members:
+        if (selection.current === undefined) return;
+        if ((startsAt.getTime() >= selection.current.startsAt.getTime()
+                && (endsAt.getTime() <= selection.current.endsAt.getTime()))
+            || (startsAt.getTime() < selection.current.startsAt.getTime()
+                && (endsAt.getTime() > selection.current.endsAt.getTime()))
+            || (startsAt.getTime() <= selection.current.startsAt.getTime()
+                && (endsAt.getTime() > selection.current.startsAt.getTime()))
+            || (startsAt.getTime() < selection.current.endsAt.getTime()
+                && (endsAt.getTime() >= selection.current.endsAt.getTime()))) {
+          if (ev.data.driverMemberId !== state.currentUser!.memberId) {
+            toast({
+                namespace: 'driver/car-sharing/booking',
+                title: t('conflicting-incoming_title'),
+                message: t('conflicting-incoming_msg'),
+                status: 'warning'
+              });
           }
-        }),
+          setSelection(undefined);
+        }
+      },
     [ driverApi, setRestrictions, setSelection, state.currentUser, t, toast ]);
     
   wakeupSseCallback.current = useGuiSse<ReservationEvent>(
       updateReservations,
-      /^Reservation#/
+      /^Reservation$/
     );
 
   const carColumnSize = isPhone ? '80vw' : '300px';

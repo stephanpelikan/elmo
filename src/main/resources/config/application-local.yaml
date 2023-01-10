@@ -27,6 +27,8 @@ elmo:
   cors:
     allowed-origins: "*"
 spring:
+  application:
+    name: elmo-gf
   security:
     oauth2:
       client:

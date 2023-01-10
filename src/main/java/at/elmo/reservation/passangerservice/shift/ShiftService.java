@@ -2,9 +2,9 @@ package at.elmo.reservation.passangerservice.shift;
 
 import at.elmo.car.Car;
 import at.elmo.reservation.ReservationService;
-import at.phactum.bp.blueprint.process.ProcessService;
-import at.phactum.bp.blueprint.service.BpmnProcess;
-import at.phactum.bp.blueprint.service.WorkflowService;
+import io.vanillabp.spi.process.ProcessService;
+import io.vanillabp.spi.service.BpmnProcess;
+import io.vanillabp.spi.service.WorkflowService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,13 +71,29 @@ public class ShiftService {
                     + overlappings.stream().collect(Collectors.joining(", ")));
         }
 
-        final var shift = new Shift();
-        shift.setId(UUID.randomUUID().toString());
-        shift.setCar(car);
-        shift.setStartsAt(startsAt);
-        shift.setEndsAt(endsAt);
+        final var nextReservation = reservationService
+                .getReservationByStartsAt(car, endsAt);
+        final var previousReservation = reservationService
+                .getReservationByEndsAt(car, startsAt);
 
-        return processService.startWorkflow(shift);
+        final var newShift = new Shift();
+        newShift.setId(UUID.randomUUID().toString());
+        newShift.setCar(car);
+        newShift.setStartsAt(startsAt);
+        newShift.setEndsAt(endsAt);
+        newShift.setNextReservation(nextReservation);
+        newShift.setPreviousReservation(previousReservation);
+
+        final var shift = processService.startWorkflow(newShift);
+        
+        if (nextReservation != null) {
+            nextReservation.setPreviousReservation(shift);
+        }
+        if (previousReservation != null) {
+            previousReservation.setNextReservation(shift);
+        }
+        
+        return shift;
 
     }
 

@@ -281,4 +281,11 @@
       <column name="KM" type="int" defaultValueNumeric="0" />
     </addColumn> 
   </changeSet>
+  <changeSet id="car-sharing-next-and-previous"
+             author="stephanpelikan">
+    <addColumn tableName="ELMO_RESERVATION">
+        <column name="NEXT_RES" type="varchar(40)" />
+        <column name="PREVIOUS_RES" type="varchar(40)" />
+    </addColumn> 
+  </changeSet>
 </databaseChangeLog>

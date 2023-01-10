@@ -45,14 +45,28 @@ public class BlockingService {
                     + overlappings.stream().collect(Collectors.joining(", ")));
         }
 
-        final var blocking = new BlockingReservation();
-        blocking.setId(UUID.randomUUID().toString());
-        blocking.setCar(car);
-        blocking.setStartsAt(startsAt);
-        blocking.setEndsAt(endsAt);
-        blocking.setReason(reason);
+        final var nextReservation = reservationService
+                .getReservationByStartsAt(car, endsAt);
+        final var previousReservation = reservationService
+                .getReservationByEndsAt(car, startsAt);
+        
+        final var newBlocking = new BlockingReservation();
+        newBlocking.setId(UUID.randomUUID().toString());
+        newBlocking.setCar(car);
+        newBlocking.setStartsAt(startsAt);
+        newBlocking.setEndsAt(endsAt);
+        newBlocking.setReason(reason);
+        newBlocking.setPreviousReservation(previousReservation);
+        newBlocking.setNextReservation(nextReservation);
 
-        blockings.save(blocking);
+        final var blocking = blockings.save(newBlocking);
+        
+        if (nextReservation != null) {
+            nextReservation.setPreviousReservation(blocking);
+        }
+        if (previousReservation != null) {
+            previousReservation.setNextReservation(blocking);
+        }
 
     }
 

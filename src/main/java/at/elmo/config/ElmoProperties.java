@@ -1,18 +1,15 @@
 package at.elmo.config;
 
 import at.elmo.car.CarProperties;
+import at.elmo.config.async.AsyncProperties;
+import at.elmo.config.async.AsyncPropertiesAware;
 import at.elmo.reservation.carsharing.CarSharingProperties;
 import at.elmo.reservation.passangerservice.PassangerServiceProperties;
 import at.elmo.util.email.EmailProperties;
 import at.elmo.util.sms.SmsProperties;
-import at.phactum.bp.blueprint.async.AsyncProperties;
-import at.phactum.bp.blueprint.async.AsyncPropertiesAware;
-import at.phactum.bp.blueprint.modules.ModuleSpecificProperties;
-import at.phactum.bp.blueprint.modules.WorkflowModuleIdAwareProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 import org.springframework.lang.NonNull;
 import org.springframework.web.cors.CorsConfiguration;
 
@@ -23,19 +20,10 @@ import java.util.Locale;
 import javax.annotation.PostConstruct;
 
 @ConfigurationProperties(prefix = "elmo", ignoreUnknownFields = false)
-public class ElmoProperties implements WorkflowModuleIdAwareProperties, AsyncPropertiesAware {
+public class ElmoProperties implements AsyncPropertiesAware {
 
-    private static final String WORKFLOW_MODULE_ID = "Elmo";
-    
     private static final Logger logger = LoggerFactory.getLogger(ElmoProperties.class);
 
-    @Bean
-    public static ModuleSpecificProperties moduleProps() {
-
-        return new ModuleSpecificProperties(ElmoProperties.class, WORKFLOW_MODULE_ID);
-
-    }
-    
     private AsyncProperties async = new AsyncProperties();
 
     @NonNull
@@ -138,11 +126,6 @@ public class ElmoProperties implements WorkflowModuleIdAwareProperties, AsyncPro
 
     public void setGatewayUrl(String gatewayUrl) {
         this.gatewayUrl = gatewayUrl;
-    }
-
-    @Override
-    public String getWorkflowModuleId() {
-        return WORKFLOW_MODULE_ID;
     }
 
     public String getHomepageUrl() {

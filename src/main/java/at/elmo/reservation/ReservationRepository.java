@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ReservationRepository extends JpaRepository<ReservationBase, String> {
@@ -29,4 +30,8 @@ public interface ReservationRepository extends JpaRepository<ReservationBase, St
             + "ORDER BY r.startsAt")
     List<ReservationBase> findInPeriod(LocalDateTime startsAt, LocalDateTime endsAt);
 
+    Optional<ReservationBase> findByCarAndStartsAtAndCancelled(Car car, LocalDateTime startsAt, boolean cancelled);
+    
+    Optional<ReservationBase> findByCarAndEndsAtAndCancelled(Car car, LocalDateTime endsAt, boolean cancelled);
+    
 }

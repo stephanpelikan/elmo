@@ -65,12 +65,6 @@ const doRequest = (
                 title: 'error',
                 message: 'unexpected'
               }});
-          } else if (response.status === 400) {
-            dispatch({ type: 'toast', toast: {
-                namespace: 'app',
-                title: 'error',
-                message: 'validation'
-              }});
           } else if (response.status === 403) {
             dispatch({ type: 'toast', toast: {
                 namespace: 'app',

@@ -287,8 +287,18 @@ public class GuiApiController implements MemberApi {
 
     private void checkAccessOfMemberDetails(final Integer memberId) {
 
+        final var loggedInMember = userContext.getLoggedInMember();
+        
         // TODO: Test for relations of requested member to the current user
-        if (!userContext.getLoggedInMember().getMemberId().equals(memberId)) {
+        if (loggedInMember.getMemberId().equals(memberId)) {
+            return;
+        } else if (loggedInMember.hasRole(Role.ADMIN)) {
+            return;
+        } else if (loggedInMember.hasRole(Role.MANAGER)) {
+            return;
+        } else if (loggedInMember.hasRole(Role.DRIVER)) {
+            return;
+        } else {
             throw new ElmoForbiddenException();
         }
 

@@ -25,6 +25,7 @@ i18n.addResources('en', 'registration-form', {
       "OTHER": "Other",
       "birthdate": "Birthdate:",
       "birthdate_format": "yyyy/mm/dd",
+      "birthdate_missing": "Please enter your birthday!",
       "address data": "Address data",
       "street": "Street:",
       "street_missing": "Please enter the name of the street!",
@@ -88,6 +89,7 @@ i18n.addResources('de', 'registration-form', {
       "OTHER": "Andere",
       "birthdate": "Geburtstag:",
       "birthdate_format": "dd.mm.yyyy",
+      "birthdate_missing": "Bitte trage dein Geburtsdatum ein!",
       "address data": "Adressdaten",
       "street": "Straße:",
       "street_missing": "Bitte trage deine Straße ein!",
@@ -390,9 +392,11 @@ const RegistrationForm = () => {
             </ViolationsAwareFormField>
           </Collapsible>
           {/* birthdate */}
-          <FormField
+          <ViolationsAwareFormField
               name="birthdate"
-              label={ t('birthdate') }
+              label='birthdate'
+              t={ t }
+              violations={ violations }
               disabled={ submitting }>
             <DateInput
                 format={ t('birthdate_format') }
@@ -403,7 +407,7 @@ const RegistrationForm = () => {
                     animate: false,
                     header: props => CalendarHeader({ ...props, setDate: setBirthdate })
                   } } />
-          </FormField>
+          </ViolationsAwareFormField>
         </Content>
         <Collapsible
             open={ !isAlreadyMember }>

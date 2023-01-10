@@ -688,6 +688,7 @@ components:
       required:
         - remainingHours
         - maxHours
+        - allowPaidCarSharing
         - drivers
         - cars
       properties:
@@ -697,6 +698,8 @@ components:
         maxHours:
           type: integer
           format: int32
+        allowPaidCarSharing:
+          type: boolean
         drivers:
           type: array
           items:

@@ -73,7 +73,7 @@ server:
     context-path: /
 spring:
   application:
-    name: elmo-gf
+    name: elmo
     # see de.mhb.commons.spa.SpaNoHandlerFoundExceptionHandler
     spa-default-file: classpath:/static/index.html
   main:
@@ -110,7 +110,6 @@ camunda:
   bpm:
     default-number-of-retries: 1
     job-execution:
-      blueprint: true
       core-pool-size: 2
       max-pool-size: 2
       wait-time-in-millis: 2500

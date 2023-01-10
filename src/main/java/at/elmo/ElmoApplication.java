@@ -1,8 +1,5 @@
 package at.elmo;
 
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.ComponentScan;
 import at.elmo.car.CarProperties;
 import at.elmo.config.ElmoProperties;
 import at.elmo.config.TranslationProperties;
@@ -10,7 +7,12 @@ import at.elmo.reservation.carsharing.CarSharingProperties;
 import at.elmo.reservation.passangerservice.PassangerServiceProperties;
 import at.elmo.util.email.EmailProperties;
 import at.elmo.util.sms.SmsProperties;
-import at.phactum.bp.blueprint.modules.ModuleAndWorkerAwareSpringApplication;
+import io.vanillabp.springboot.ModuleAndWorkerAwareSpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @ComponentScan(basePackages = "at.elmo")
@@ -23,6 +25,8 @@ import at.phactum.bp.blueprint.modules.ModuleAndWorkerAwareSpringApplication;
         PassangerServiceProperties.class,
         CarSharingProperties.class
     })
+@EnableAsync
+@EnableScheduling
 public class ElmoApplication {
 
     public static void main(String... args) {

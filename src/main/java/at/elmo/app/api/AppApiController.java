@@ -31,7 +31,7 @@ import java.util.UUID;
 @RestController("appApiController")
 @RequestMapping("/api/v1")
 @Secured("CAR")
-public class AppApiController implements AppApi {
+public class AppApiController implements AppApi, AppApiControllerScheduledOrAsync {
 
     @Autowired
     private Logger logger;
@@ -96,7 +96,7 @@ public class AppApiController implements AppApi {
 
     @EventListener
     @Async
-    protected void sendSms(
+    public void sendSms(
             final SmsEvent event) throws Exception {
 
         final var smsEmitter = smsEmitters.get(event.getSenderNumber());

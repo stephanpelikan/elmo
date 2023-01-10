@@ -10,7 +10,7 @@ import i18n from '../../i18n';
 import { css } from "styled-components";
 import { CalendarHeader } from '../../components/CalendarHeader';
 import { ViolationsAwareFormField } from "../../components/ViolationsAwareFormField";
-import debounce from '../../utils/debounce';
+import { debounce } from '../../utils/debounce';
 import { Copy } from "grommet-icons";
 import { useOnboardingAdministrationApi, useMemberApi } from '../AdminAppContext';
 import { parseLocalDate, toLocalDateString } from '../../utils/timeUtils';
@@ -37,6 +37,7 @@ i18n.addResources('en', 'administration/onboarding/review', {
       "ADMIN": "Administrator",
       "birthdate": "Birthdate:",
       "birthdate_format": "yyyy/mm/dd",
+      "birthdate_missing": "Please enter the birthday!",
       "street": "Street:",
       "street-number": "Street number:",
       "zip": "ZIP:",
@@ -78,6 +79,7 @@ i18n.addResources('de', 'administration/onboarding/review', {
       "ADMIN": "AdministratorIn",
       "birthdate": "Geburtstag:",
       "birthdate_format": "dd.mm.yyyy",
+      "birthdate_missing": "Bitte trage das Geburtsdatum ein!",
       "street": "Straße:",
       "street-number": "Hausnummer:",
       "zip": "PLZ:",
@@ -478,9 +480,11 @@ const ReviewForm = () => {
               />
           </ViolationsAwareFormField>
           {/* birthdate */}
-          <FormField
+          <ViolationsAwareFormField
               name="birthdate"
-              label={ t('birthdate') }
+              label='birthdate'
+              t={ t }
+              violations={ violations }
               disabled={ loading || !!member }>
             <DateInput
                 format={ t('birthdate_format') }
@@ -492,7 +496,7 @@ const ReviewForm = () => {
                     animate: false,
                     header: props => CalendarHeader({ ...props, setDate: setBirthdate })
                   } } />
-          </FormField>
+          </ViolationsAwareFormField>
           {/* street */}
           <ViolationsAwareFormField
               name="street"

@@ -1,0 +1,1 @@
+${elmo.title} Car-Sharing: Die usage of ${carSharing.car.name} by ${carSharing.driver.firstName!""} ${carSharing.driver.lastName!""} did not end yet! Please call to ask, if the car will be available in time for you: ${carSharing.driver.phoneNumber!""}

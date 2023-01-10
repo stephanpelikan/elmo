@@ -1,0 +1,1 @@
+${elmo.title} Car-Sharing: Die Nutzung von ${carSharing.car.name} durch ${carSharing.driver.firstName!""} ${carSharing.driver.lastName!""} wurde noch nicht beendet! Bitte frage nach, ob das Auto für dich bereit stehen wird: ${carSharing.driver.phoneNumber!""}

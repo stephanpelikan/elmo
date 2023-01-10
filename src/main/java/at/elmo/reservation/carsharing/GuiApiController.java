@@ -108,7 +108,8 @@ public class GuiApiController implements CarSharingApi {
         final var newHoursConsumedCarSharing =
                 driver.getHoursConsumedCarSharing()
                 + hours;
-        if (newHoursConsumedCarSharing > driver.getHoursServedPassangerService()) {
+        if ((newHoursConsumedCarSharing > driver.getHoursServedPassangerService())
+                && !properties.isAllowPaidCarSharing()) {
             return ResponseEntity.badRequest().build();
         }
 
@@ -150,7 +151,7 @@ public class GuiApiController implements CarSharingApi {
         
         try {
             
-            final var carSharing = carSharingService.addCarSharing(
+            final var carSharing = carSharingService.createCarSharing(
                     car.get(),
                     carSharingReservation.getStartsAt(),
                     carSharingReservation.getEndsAt(),

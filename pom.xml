@@ -86,7 +86,7 @@
                 <interfaceOnly>true</interfaceOnly>
                 <useSpringController>true</useSpringController>
                 <dateLibrary>java8-localdatetime</dateLibrary>
-                <useBeanValidation>true</useBeanValidation>
+                <useBeanValidation>false</useBeanValidation>
                 <useTags>true</useTags>
               </configOptions>
               <addCompileSourceRoot>true</addCompileSourceRoot>
@@ -110,7 +110,7 @@
                 <interfaceOnly>true</interfaceOnly>
                 <useSpringController>true</useSpringController>
                 <dateLibrary>java8-localdatetime</dateLibrary>
-                <useBeanValidation>true</useBeanValidation>
+                <useBeanValidation>false</useBeanValidation>
                 <useTags>true</useTags>
               </configOptions>
               <addCompileSourceRoot>true</addCompileSourceRoot>
@@ -134,7 +134,7 @@
                 <interfaceOnly>true</interfaceOnly>
                 <useSpringController>true</useSpringController>
                 <dateLibrary>java8-localdatetime</dateLibrary>
-                <useBeanValidation>true</useBeanValidation>
+                <useBeanValidation>false</useBeanValidation>
                 <useTags>true</useTags>
               </configOptions>
               <addCompileSourceRoot>true</addCompileSourceRoot>
@@ -305,6 +305,7 @@
     <dependency>
       <groupId>org.liquibase</groupId>
       <artifactId>liquibase-core</artifactId>
+      <version>4.16.0</version>
     </dependency>
     <dependency>
       <groupId>org.postgresql</groupId>

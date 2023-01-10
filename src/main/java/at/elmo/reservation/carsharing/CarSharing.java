@@ -153,6 +153,15 @@ public class CarSharing extends ReservationBase {
 
     }
 
+    
+    public String getFiftyMinutesBeforeEnd() {
+
+        return getEndsAt()
+                .minusMinutes(50)
+                .format(DateTimeFormatter.ISO_DATE_TIME);
+
+    }
+
     public String getTwoHoursAfterEnd() {
 
         return getEndsAt()

@@ -1,10 +1,11 @@
-import { User as UserDto, Sex, PlannerDriver } from '../client/gui';
+import { User as UserDto, Sex, PlannerDriver, Member } from '../client/gui';
 import { User as UserMale, UserFemale } from 'grommet-icons';
-import { Avatar, Box, Paragraph, Text } from 'grommet';
+import { Anchor, Avatar, Box, Paragraph, Text } from 'grommet';
 import { BorderType } from 'grommet/utils';
 import React, { useRef, useState } from 'react';
 import useOnClickOutside from '../utils/clickOutside';
-import { useAppContext } from '../AppContext';
+import { useAppContext, useMemberGuiApi } from '../AppContext';
+import { Content } from './MainLayout';
 
 type UserAvatarProps = {
   user: UserDto | PlannerDriver;
@@ -19,6 +20,7 @@ const UserAvatar = ({
 }: UserAvatarProps) => {
 
   const { state } = useAppContext();
+  const memberApi = useMemberGuiApi();
 
   const backgroundColor = user.memberId
       ? `hsl(${ (user.memberId * 207) % 360 }, 70%, 45%)`
@@ -50,21 +52,26 @@ const UserAvatar = ({
     symbolSize = `${ intSize * 0.65 }px`;
   }
   
-  const [ showDetails, setShowDetails ] = useState(false);
+  const [ showDetails, setShowDetails ] = useState<Member | undefined>(undefined);
   const ref = useRef(null);
   useOnClickOutside(ref, event => {
       if (!showDetails) return;
       event.preventDefault();
       event.stopPropagation();
-      setShowDetails(false);
+      setShowDetails(undefined);
     });
+  const loadAndShowDetails = async () => {
+    if (state.currentUser!.memberId === user.memberId) return;
+    const details = await memberApi.getMemberDetails({ memberId: user.memberId! });
+    setShowDetails(details);
+  };
   
   return (
       <Box
           style={ { position: 'relative' } }
-          onMouseDown={ () => setShowDetails(true) }>
+          onMouseDown={ () => loadAndShowDetails() }>
         {
-          (state.currentUser!.memberId !== user.memberId) && showDetails
+          showDetails
               ? <Box
                     ref={ ref }
                     background='white'
@@ -73,10 +80,11 @@ const UserAvatar = ({
                         maxWidth: 'unset',
                         margin: '-0.3rem',
                         zIndex: 20,
+                        opacity: 2,
                         boxShadow: '5px 5px 10px rgba(0, 0, 0, 0.5)'
                     } }
                     height="xsmall"
-                    width="small"
+                    width="16rem"
                     round="small"
                     border
                     pad={ {
@@ -85,9 +93,15 @@ const UserAvatar = ({
                       } }>
                   <Text
                       weight="bold">{ user.memberId }</Text>
-                  <Paragraph>
+                  <Content>
+                    <Text truncate="tip">
                       { user.firstName } { user.lastName }
-                  </Paragraph>
+                    </Text>
+                    <Anchor
+                        href={ `tel:${ showDetails.phoneNumber }` }>
+                      { showDetails.phoneNumber }
+                    </Anchor>
+                  </Content>
                 </Box>
               : undefined
         }

@@ -18,6 +18,7 @@ import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 @Entity
@@ -48,6 +49,14 @@ public abstract class ReservationBase extends PersistenceBase<String> {
     @Column(name = "ENDS_AT", nullable = false, updatable = true, columnDefinition = "TIMESTAMP")
     private LocalDateTime endsAt;
 
+    @OneToOne
+    @JoinColumn(name = "NEXT_RES")
+    private ReservationBase nextReservation;
+    
+    @OneToOne
+    @JoinColumn(name = "PREVIOUS_RES")
+    private ReservationBase previousReservation;
+    
     @ManyToOne()
     @JoinColumn(name = "CAR", referencedColumnName = "ID")
     private Car car;
@@ -131,4 +140,20 @@ public abstract class ReservationBase extends PersistenceBase<String> {
         this.cancelled = cancelled;
     }
 
+    public ReservationBase getNextReservation() {
+        return nextReservation;
+    }
+    
+    public void setNextReservation(ReservationBase nextReservation) {
+        this.nextReservation = nextReservation;
+    }
+    
+    public ReservationBase getPreviousReservation() {
+        return previousReservation;
+    }
+    
+    public void setPreviousReservation(ReservationBase previousReservation) {
+        this.previousReservation = previousReservation;
+    }
+    
 }

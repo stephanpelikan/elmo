@@ -1,0 +1,1 @@
+${elmo.title} Car-Sharing: ${carSharing.car.name} is reserved subsequently to your reservation. Please take care ${carSharing.car.name} is back and loaded on time!

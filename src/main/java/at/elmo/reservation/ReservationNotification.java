@@ -20,8 +20,10 @@ public class ReservationNotification extends NotificationEvent {
     
     private final String carId;
     
+    private final String reservationType;
+    
     public ReservationNotification(
-            final Object source,
+            final String reservationType,
             final Type type,
             final String id,
             final Integer driverMemberId,
@@ -29,12 +31,16 @@ public class ReservationNotification extends NotificationEvent {
             final LocalDateTime endsAt,
             final String carId) {
         
-        super(source, type, List.of(Role.ADMIN, Role.MANAGER, Role.DRIVER));
+        super(
+                "Reservation",
+                type,
+                List.of(Role.ADMIN, Role.MANAGER, Role.DRIVER));
         this.id = id;
         this.driverMemberId = driverMemberId;
         this.carId = carId;
         this.startsAt = startsAt;
         this.endsAt = endsAt;
+        this.reservationType = reservationType;
         
     }
     
@@ -56,6 +62,10 @@ public class ReservationNotification extends NotificationEvent {
 
     public Integer getDriverMemberId() {
         return driverMemberId;
+    }
+    
+    public String getReservationType() {
+        return reservationType;
     }
     
 }

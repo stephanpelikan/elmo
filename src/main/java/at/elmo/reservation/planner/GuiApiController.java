@@ -90,13 +90,14 @@ public class GuiApiController implements DriverApi {
 
         final var driver = userContext.getLoggedInMember();
 
-        final var result = new PlannerCalendar();
-        result.setDrivers(mapper.toApi(drivers));
-        result.setCars(List.copyOf(carReservations.values()));
-        result.setRemainingHours(
-                driver.getHoursServedPassangerService()
-                - driver.getHoursConsumedCarSharing());
-        result.setMaxHours(csProperties.getMaxHours());
+        final var result = new PlannerCalendar()
+                .drivers(mapper.toApi(drivers))
+                .cars(List.copyOf(carReservations.values()))
+                .remainingHours(
+                        driver.getHoursServedPassangerService()
+                        - driver.getHoursConsumedCarSharing())
+                .maxHours(csProperties.getMaxHours())
+                .allowPaidCarSharing(csProperties.isAllowPaidCarSharing());
 
         return ResponseEntity.ok(result);
 

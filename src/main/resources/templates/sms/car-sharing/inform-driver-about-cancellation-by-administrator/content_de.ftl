@@ -1,1 +1,1 @@
-${elmo.title} Car-Sharing: Du hast jetzt ${carSharing.car.name} für dich reserviert. Bitte bestätige deine Nutzung in der App mit dem aktuellen Kilometerstand, wenn du losfährst.
+${elmo.title} Car-Sharing: Deine Car-Sharing-Reservierung von ${carSharing.car.name} wurde einen Administrator storniert!

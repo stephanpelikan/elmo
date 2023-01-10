@@ -20,4 +20,39 @@ const debounce: Debounce = (
   }
 };
 
-export default debounce;
+interface KeyTimerMap {
+    [key: string]: number;
+}
+
+const timers: KeyTimerMap = {};
+
+type FuncForKey = () => void;
+
+type DebounceByKey = (
+    key: string,
+    func?: FuncForKey,
+    timeout?: number,
+  ) => void;
+
+
+const debounceByKey: DebounceByKey = (
+  key,
+  func,
+  timeout = 300
+) => {
+  const prevTimer = timers[key];
+  if (prevTimer) {
+    window.clearTimeout(prevTimer);
+    delete timers[key];
+  }
+  if (func) {
+    timers[key] = window.setTimeout(() => {
+        func();
+      }, timeout);
+  }
+};
+
+export {
+  debounce,
+  debounceByKey
+};

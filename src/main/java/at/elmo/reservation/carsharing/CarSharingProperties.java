@@ -11,6 +11,8 @@ public class CarSharingProperties {
     
     @NonNull
     private int maxReservations;
+    
+    private boolean allowPaidCarSharing;
 
     public int getMaxHours() {
         return maxHours;
@@ -26,6 +28,14 @@ public class CarSharingProperties {
 
     public void setMaxReservations(int maxReservations) {
         this.maxReservations = maxReservations;
+    }
+    
+    public void setAllowPaidCarSharing(boolean allowPaidCarSharing) {
+        this.allowPaidCarSharing = allowPaidCarSharing;
+    }
+    
+    public boolean isAllowPaidCarSharing() {
+        return allowPaidCarSharing;
     }
     
 }
