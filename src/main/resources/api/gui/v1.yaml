@@ -389,6 +389,38 @@ paths:
           description: Wrong parameters
         404:
           description: Reservation not found
+    patch:
+      tags:
+        - car-sharing
+      summary: Extend planned usage of car-sharing
+      operationId: extendCarSharing
+      parameters:
+        - in: path
+          name: carId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: reservationId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExtendCarSharingRequest'
+      responses:
+        200:
+          description: Reservation confirmed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CarSharingReservation'
+        400:
+          description: Wrong parameters
+        404:
+          description: Reservation not found
     delete:
       tags:
         - car-sharing
@@ -842,6 +874,14 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/CarSharingReservation'
+    ExtendCarSharingRequest:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        userTaskId:
+          type: string
     CarSharingStarStopRequest:
       type: object
       properties:

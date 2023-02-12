@@ -8,7 +8,7 @@ import { CarSharingReservation, ReservationEvent } from '../../client/gui';
 import useResponsiveScreen from '../../utils/responsiveUtils';
 import { Content, Heading, TextHeading } from '../../components/MainLayout';
 import i18n from '../../i18n';
-import { ReservationAccordionPanel } from './ReservationAccordionPanel';
+import { ReservationAccordionPanel, Confirmation } from './ReservationAccordionPanel';
 import { useAppContext } from '../../AppContext';
 import { EventSourceMessage, WakeupSseCallback } from '../../components/SseProvider';
 import { useGuiSse } from '../../client/guiClient';
@@ -23,6 +23,7 @@ i18n.addResources('en', 'driver/car-sharings', {
       "confirm-car-sharing_title": "Car-Sharing",
       "confirm-car-sharing_lower-than-car": "The given value for kilometers is lower than already recorded for this car!",
       "confirm-car-sharing_missing": "You have to fill the field 'Current Mileage'!",
+      "confirm-car-sharing_extend-not-possible": "Meanwhile someone else booked the requested period!",
     });
 i18n.addResources('de', 'driver/car-sharings', {
       "title": "Deine Reservierungen",
@@ -33,6 +34,7 @@ i18n.addResources('de', 'driver/car-sharings', {
       "confirm-car-sharing_title": "Car-Sharing",
       "confirm-car-sharing_lower-than-car": "Der angegebene KM-Stand ist niedriger als für das Auto bereits erfasst wurde!",
       "confirm-car-sharing_missing": "Du musst das Feld 'Aktueller Kilometerstand' befüllen!",
+      "confirm-car-sharing_extend-not-possible": "Mittlerweile hat jemand anderes die Zeitspanne gebucht!!",
     });
 
 const CarSharings = () => {
@@ -80,6 +82,46 @@ const CarSharings = () => {
       const hour = reservation.startsAt.getHours();
       navigate(`.${tDriver('url-planner')}?${day}_${reservation.carId}_${hour}`);
     };
+  
+  const extendCarSharing = async (
+      index: number,
+      carId: string,
+      reservationId: string,
+      userTaskId: string,
+      timestamp: Date): Promise<boolean> => {
+    
+    try {
+      
+      const reservation = await carSharingApi.extendCarSharing({
+          carId,
+          reservationId,
+          extendCarSharingRequest: {
+            userTaskId,
+            timestamp
+          }
+        });
+      reservations![index] = reservation;
+      setReservations([ ...reservations! ]);
+      return true;
+        
+    } catch (error) {
+
+      if ((error.response?.status === 400)
+          && (error.response?.json)) {
+        let violation = 'unknown_error';
+        violation = (await error.response.json()).timestamp;
+        toast({
+            namespace: 'driver/car-sharings',
+            title: t('confirm-car-sharing_title'),
+            message: t(`confirm-car-sharing_${violation}`),
+            status: 'critical'
+          });
+      }
+      return false;
+      
+    }
+    
+  };
   
   const confirmStartOrStopOfCarSharing = async (
       index: number,
@@ -168,7 +210,15 @@ const CarSharings = () => {
                                 index={ index }
                                 goToPlanner={ goToPlanner}
                                 confirmStartOrStopOfCarSharing={
-                                    (timestamp, km, comment) => confirmStartOrStopOfCarSharing(
+                                    (type, timestamp, km, comment) =>
+                                        type === 'extend'
+                                            ? extendCarSharing(
+                                                          index,
+                                                          reservation.carId,
+                                                          reservation.id,
+                                                          reservation.userTaskId!,
+                                                          timestamp)
+                                            : confirmStartOrStopOfCarSharing(
                                                           index,
                                                           reservation.carId,
                                                           reservation.id,

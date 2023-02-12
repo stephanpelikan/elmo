@@ -14,7 +14,7 @@ import { normalizeColor } from 'grommet/utils';
 import { useDriverApi } from '../DriverAppContext';
 import { UserAvatar } from '../../components/UserAvatar';
 
-type Confirmation = 'start' | 'stop' | 'extend' | undefined;
+export type Confirmation = 'start' | 'stop' | 'extend' | undefined;
 
 type ExtendOption = {
   timestamp: Date;
@@ -83,7 +83,7 @@ const ReservationAccordionPanel = ({
     reservation: CarSharingReservation,
     index: number,
     goToPlanner: (reservation: CarSharingReservation) => void,
-    confirmStartOrStopOfCarSharing: (timestamp: Date, km: number, comment: string) => Promise<boolean>,
+    confirmStartOrStopOfCarSharing: (type: Confirmation, timestamp: Date, km: number, comment: string) => Promise<boolean>,
   }) => {
 
   const { t } = useTranslation('driver/car-sharings/reservation');
@@ -138,8 +138,8 @@ const ReservationAccordionPanel = ({
   
   const showConfirmStopModal = () => extendModal('stop');
 
-  const confirm = async () => {
-      const success = await confirmStartOrStopOfCarSharing(timestamp!, km!, comment!);
+  const confirm = async (type: Confirmation) => {
+      const success = await confirmStartOrStopOfCarSharing(type, timestamp!, km!, comment!);
       if (!success) return;
       setConfirmation(undefined);
     };
@@ -316,7 +316,7 @@ const ReservationAccordionPanel = ({
                     show={ true }
                     abort={ () => setConfirmation(undefined) }
                     abortLabel='dismiss-button'
-                    action={ confirm }
+                    action={ () => confirm(confirmation) }
                     actionLabel='start-button'
                     header='start-usage'
                     t={ t }>
@@ -340,7 +340,7 @@ const ReservationAccordionPanel = ({
                     show={ true }
                     abort={ () => setConfirmation(undefined) }
                     abortLabel='dismiss-button'
-                    action={ confirm }
+                    action={ () => confirm(confirmation) }
                     actionLabel={ `${confirmation}-button` }
                     header={ `${confirmation}-usage` }
                     t={ t }>

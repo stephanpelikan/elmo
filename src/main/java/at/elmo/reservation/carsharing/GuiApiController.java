@@ -6,10 +6,12 @@ import at.elmo.gui.api.v1.CarSharingApi;
 import at.elmo.gui.api.v1.CarSharingReservation;
 import at.elmo.gui.api.v1.CarSharingReservations;
 import at.elmo.gui.api.v1.CarSharingStarStopRequest;
+import at.elmo.gui.api.v1.ExtendCarSharingRequest;
 import at.elmo.gui.api.v1.PlannerReservationType;
 import at.elmo.reservation.ReservationService;
 import at.elmo.reservation.passangerservice.shift.Shift;
 import at.elmo.util.UserContext;
+import at.elmo.util.exceptions.ElmoException;
 import at.elmo.util.exceptions.ElmoValidationException;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -187,6 +189,47 @@ public class GuiApiController implements CarSharingApi {
                 .reservations(mapper.toApi(carSharings));
         
         return ResponseEntity.ok(result);
+        
+    }
+    
+    @Override
+    public ResponseEntity<CarSharingReservation> extendCarSharing(
+            final String carId,
+            final String reservationId,
+            final ExtendCarSharingRequest details) {
+        
+        if (details == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        if (!StringUtils.hasText(details.getUserTaskId())) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        if (!StringUtils.hasText(carId)) {
+            return ResponseEntity.badRequest().build();
+        }
+        final var carFound = carService.getCar(carId);
+        if (carFound.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        try {
+            
+            final var reservation = carSharingService.extendCarSharing(
+                    carId,
+                    reservationId,
+                    details.getUserTaskId(),
+                    details.getTimestamp());
+
+            if (reservation == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            return ResponseEntity.ok(mapper.toApi(reservation));
+            
+        } catch (ElmoException e) {
+            throw new ElmoValidationException("timestamp", e.getMessage());
+        }
         
     }
     

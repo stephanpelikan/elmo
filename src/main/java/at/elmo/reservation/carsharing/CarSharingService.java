@@ -12,6 +12,7 @@ import at.elmo.reservation.carsharing.CarSharing.Status;
 import at.elmo.reservation.passangerservice.shift.Shift;
 import at.elmo.util.email.EmailService;
 import at.elmo.util.email.NamedObject;
+import at.elmo.util.exceptions.ElmoException;
 import at.elmo.util.sms.SmsService;
 import io.vanillabp.spi.process.ProcessService;
 import io.vanillabp.spi.service.BpmnProcess;
@@ -411,6 +412,49 @@ public class CarSharingService {
 
     }
     
+    public CarSharing extendCarSharing(
+            final String carId,
+            final String reservationId,
+            final String userTaskId,
+            final LocalDateTime timestamp) {
+
+        final var carSharingFound = carSharings.findById(reservationId);
+        if (carSharingFound.isEmpty()) {
+            return null;
+        }
+        final var carSharing = carSharingFound.get();
+        
+        final var car = carSharing.getCar();
+        if (!car.getId().equals(carId)) {
+            return null;
+        }
+
+        if ((carSharing.getUserTaskId() == null)
+                || !carSharing.getUserTaskId().equals(userTaskId)) {
+            return null;
+        }
+
+        if (timestamp.isBefore(carSharing.getEndsAt())
+                || timestamp.isEqual(carSharing.getEndsAt())) {
+            return carSharing;
+        }
+        
+        final var conflicts = !reservationService
+                .checkForOverlappings(
+                        car,
+                        carSharing.getEndsAt(),
+                        timestamp)
+                .isEmpty();
+        if (conflicts) {
+            throw new ElmoException("extend-not-possible");
+        }
+        
+        carSharing.setEndsAt(timestamp);
+        
+        return carSharing;
+
+    }
+    
     public CarSharing startOrStopCarSharing(
             final String carId,
             final String reservationId,
@@ -424,8 +468,14 @@ public class CarSharingService {
             return null;
         }
         final var carSharing = carSharingFound.get();
+                
         final var car = carSharing.getCar();
         if (!car.getId().equals(carId)) {
+            return null;
+        }
+        
+        if ((carSharing.getUserTaskId() == null)
+                || !carSharing.getUserTaskId().equals(userTaskId)) {
             return null;
         }
         
