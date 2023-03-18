@@ -108,6 +108,7 @@ const SseProvider = ({ url, Context, buildFetchApi, children, ...rest }: React.P
           },
           signal: abortController.current.signal,
           onmessage: ev => onmessage(ev, connections.current),
+          openWhenHidden: true,
           onclose: () => {
               throw new Error(); // if the server closes the connection unexpectedly, retry in "onerror"
             },
