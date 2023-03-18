@@ -7,25 +7,23 @@ import { currentHour, nextHours, numberOfHoursBetween } from '../../utils/timeUt
 import { SnapScrollingDataTable } from '../../components/SnapScrollingDataTable';
 import { LoadingIndicator } from '../../components/LoadingIndicator';
 import { useCarSharingApi, usePlannerApi } from '../DriverAppContext';
-import { PlannerApi, PlannerCar, PlannerReservation, PlannerReservationType, ReservationEvent, User } from "../../client/gui";
+import { PlannerApi, PlannerCar, PlannerReservation, PlannerReservationType, ReservationEvent } from "../../client/gui";
 import React, { memo, MouseEvent as ReactMouseEvent, MutableRefObject, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { BackgroundType, BorderType } from "grommet/utils";
-import { TFunction } from "i18next";
 import { Contract, DocumentTime, History } from "grommet-icons";
 import { useAppContext } from "../../AppContext";
 import { CalendarHeader } from "../../components/CalendarHeader";
 import { useGuiSse } from '../../client/guiClient';
 import { now, registerEachSecondHook, unregisterEachSecondHook } from '../../utils/now-hook';
 import { EventSourceMessage, WakeupSseCallback } from "../../components/SseProvider";
-import { CalendarDay, CalendarHour, ReservationDrivers, Selection } from "./PlannerTypes";
+import { CalendarDay, CalendarHour, ReservationDrivers, Selection } from "./utils";
 import { SelectionBox } from "./SelectionBox";
-import { CancellationBox, PlannerReservationBox } from "./PlannerReservationBox";
+import { CarSharingBox } from "./CarSharingBox";
+import { BlockBox } from "./BlockBox";
+import { PassangerServiceBox } from "./PassangerServiceBox";
 
 i18n.addResources('en', 'driver/planner', {
       "title.long": 'Planner',
       "title.short": 'Planner',
-      "reservation-type_BLOCK": "Unavailable",
-      "reservation-type_PS": "Passanger Service",
       "remaining": "Remaining hours:",
       "max-hours": "Largest reservation possible:",
       "no-remaining-hours_title": "Planning",
@@ -45,8 +43,6 @@ i18n.addResources('en', 'driver/planner', {
 i18n.addResources('de', 'driver/planner', {
       "title.long": 'Planer',
       "title.short": 'Planer',
-      "reservation-type_BLOCK": "Nicht verfügbar",
-      "reservation-type_PS": "Fahrtendienst",
       "remaining": "Verbleibende Stunden:",
       "max-hours": "Größtmögliche Reservierung:",
       "no-remaining-hours_title": "Planer",
@@ -77,8 +73,6 @@ interface Restrictions {
 };
 
 const DayTable = memo<{
-    t: TFunction,
-    currentUser: User,
     dayVersion: number,
     drivers: ReservationDrivers,
     car: PlannerCar,
@@ -94,7 +88,7 @@ const DayTable = memo<{
     mouseEnterHour: (event: ReactMouseEvent | Event, car: PlannerCar, days: CalendarDay[], day: CalendarDay, hour: CalendarHour) => void,
     touchMove: (event: TouchEvent) => void,
     touchEnd: (event: TouchEvent) => void }>(
-  ({ t, currentUser, drivers, car, days, day, useSearch, selection, cancelSelection, acceptSelection, cancelReservation, mouseDownOnHour, mouseEnterHour, mouseDownOnDrag, touchMove, touchEnd }) => {
+  ({ drivers, car, days, day, useSearch, selection, cancelSelection, acceptSelection, cancelReservation, mouseDownOnHour, mouseEnterHour, mouseDownOnDrag, touchMove, touchEnd }) => {
 
     const hours = day.hours[car.id];
 
@@ -102,32 +96,6 @@ const DayTable = memo<{
         property: '-not-used-but-mandatory-',
         sortable: false,
         render: (hour: CalendarHour) => {
-            const reservationIsInactive = ((hour.reservation?.status === 'COMPLETED')
-                || (hour.reservation?.status === 'CANCELLED'));
-            const borderColor = (hour.reservation?.driverMemberId === currentUser.memberId)
-                    && !reservationIsInactive
-                ? 'accent-3'  // car-sharing reservation
-                : 'dark-4';   // non car-sharing reservation
-            const backgroundColor: BackgroundType | undefined = hour.reservation
-                ? (hour.reservation?.driverMemberId === currentUser.memberId)
-                    && !reservationIsInactive
-                ? { color: 'accent-3', opacity: 'strong' } // car-sharing reservation
-                : 'light-4'   // non car-sharing reservation
-                : undefined;  // no reservation
-            const borders: BorderType = [];
-            let hasTopBorder = false;
-            let hasBottomBorder = false;
-            if (hour.reservation) {
-              borders.push({ side: "vertical", color: borderColor, size: '1px' });
-              if (hour.reservation.startsAt.getTime() === hour.startsAt.getTime()) {
-                borders.push({ side: "top", color: borderColor, size: '1px' });
-                hasTopBorder = true;
-              }
-              if (hour.reservation.endsAt.getTime() === hour.endsAt.getTime()) {
-                borders.push({ side: "bottom", color: borderColor, size: '1px' });
-                hasBottomBorder = true;
-              }
-            }
             const hasSelection = (selection !== undefined)
                         && (selection.carId === car.id)
                         && (selection.startsAt.getTime() <= hour.startsAt.getTime())
@@ -135,13 +103,13 @@ const DayTable = memo<{
             
             const index = hours.indexOf(hour);
             
-            const isFirstHourOfReservation = (hour.reservation?.startsAt.getTime() === hour.startsAt.getTime())
-                        || (hour.reservation && (index === 0));
-            const isLastHourOfReservation = hour.reservation?.endsAt.getTime() === hour.endsAt.getTime();
-            const hasCancelButton = (isLastHourOfReservation
-                                      && (hour.reservation!.status === 'RESERVED')
-                                      && (hour.reservation?.driverMemberId === currentUser.memberId));
-            const isPlannerReservation = hour.reservation?.type === "CS";
+            const isFirstHourOfReservation =
+                (hour.reservation?.startsAt.getTime() === hour.startsAt.getTime())
+              || (hour.reservation && (index === 0));
+            
+            const isLastHourOfReservation =
+                (hour.reservation?.endsAt.getTime() === hour.endsAt.getTime());
+            
             return (
                 <Box
                     id={ `${day.startsAt.toISOString().substring(0,10)}_${car.id}_${hour.startsAt.getHours() + 1}` }
@@ -187,19 +155,12 @@ const DayTable = memo<{
                           }
                           mouseDownOnHour(event, car, hour);
                         } }
-                      pad={ {
-                          horizontal: 'xsmall',
-                          top: hasTopBorder ? undefined : '1px',
-                          bottom: hasBottomBorder ? undefined : '1px',
-                        } }
-                      border={ borders }
                       width="100%"
                       style={ {
                           position: 'relative',
                           minHeight: '100%'
                         } }
-                      margin={ { horizontal: '1rem' }}
-                      background={ backgroundColor }>{
+                      margin={ { horizontal: '1rem' }} >{
                     hasSelection
                         ? <SelectionBox
                                 hour={ hour }
@@ -209,29 +170,30 @@ const DayTable = memo<{
                                 mouseDownOnDrag={ mouseDownOnDrag }
                                 touchMove={ touchMove }
                                 touchEnd={ touchEnd } />
-                        : isFirstHourOfReservation
-                        ? isPlannerReservation
-                          ? <PlannerReservationBox
+                        : !Boolean(hour.reservation) || (hour.reservation!.status === 'CANCELLED')
+                        ? undefined
+                        : hour.reservation?.type === PlannerReservationType.Cs
+                        ? <CarSharingBox
                               hour={ hour }
+                              car={ car }
+                              isFirstHourOfReservation={ isFirstHourOfReservation }
+                              isLastHourOfReservation={ isLastHourOfReservation }
                               drivers={ drivers }
-                              cancellationBox={
-                                  hasCancelButton
-                                  ? <CancellationBox
-                                       carId={ car.id }
-                                       reservation={ hour.reservation! }
-                                       cancelReservation={ cancelReservation } />
-                                  : undefined
-                                }
-                              />
-                          : <Text>{ t(`reservation-type_${hour.reservation!.type}` as const) }</Text>
-                        : isLastHourOfReservation
-                        ? isPlannerReservation && hasCancelButton
-                          ? <CancellationBox
-                               carId={ car.id }
-                               reservation={ hour.reservation! }
-                               cancelReservation={ cancelReservation } />
-                          : undefined
-                        : undefined
+                              cancelReservation={ cancelReservation }
+                            />
+                        : hour.reservation?.type === PlannerReservationType.Block
+                        ? <BlockBox
+                              hour={ hour }
+                              isFirstHourOfReservation={ isFirstHourOfReservation }
+                              isLastHourOfReservation={ isLastHourOfReservation }
+                            />
+                        : hour.reservation?.type === PlannerReservationType.Ps
+                        ? <PassangerServiceBox
+                              hour={ hour }
+                              isFirstHourOfReservation={ isFirstHourOfReservation }
+                              isLastHourOfReservation={ isLastHourOfReservation }
+                            />
+                        : undefined // add new reservation types here
                     }
                   </Box>
                 </Box>);
@@ -857,8 +819,6 @@ const Planner = () => {
               const dayVersion = getDayVersion(dayVersions, day.startsAt, car.id);
               return <DayTable
                   key={ day.startsAt.toISOString() }
-                  t={ t }
-                  currentUser={ state.currentUser! }
                   dayVersion={ dayVersion }
                   drivers={ drivers! }
                   days={ days! }

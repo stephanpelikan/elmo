@@ -3,7 +3,7 @@ import { BorderType, normalizeColor } from "grommet/utils";
 import React, { CSSProperties, MouseEvent } from "react";
 import styled from "styled-components";
 import { useAppContext } from "../../AppContext";
-import { CalendarHour, Selection } from "./PlannerTypes";
+import { CalendarHour, Selection } from "./utils";
 import { timeAsString, numberOfHoursBetween } from '../../utils/timeUtils';
 import { UserAvatar } from "../../components/UserAvatar";
 import { FormCheckmark, FormClose, FormDown, FormUp } from "grommet-icons";
@@ -54,7 +54,6 @@ const SelectionBox = ({ hour, selection, mouseDownOnDrag, cancelSelection, accep
     touchMove: (event: TouchEvent) => void,
     touchEnd: (event: TouchEvent) => void,
   }) => {
-
     const { state } = useAppContext();
 
     const isFirstHourOfSelection = selection.startsAt.getTime() === hour.startsAt.getTime();
