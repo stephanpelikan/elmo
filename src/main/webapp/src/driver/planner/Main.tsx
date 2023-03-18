@@ -7,8 +7,8 @@ import { currentHour, nextHours, timeAsString, numberOfHoursBetween } from '../.
 import { SnapScrollingDataTable } from '../../components/SnapScrollingDataTable';
 import { UserAvatar } from '../../components/UserAvatar';
 import { LoadingIndicator } from '../../components/LoadingIndicator';
-import { useCarSharingApi, useDriverApi } from '../DriverAppContext';
-import { DriverApi, PlannerCar, PlannerDriver, PlannerReservation, PlannerReservationType, ReservationEvent, User } from "../../client/gui";
+import { useCarSharingApi, usePlannerApi } from '../DriverAppContext';
+import { PlannerApi, PlannerCar, PlannerDriver, PlannerReservation, PlannerReservationType, ReservationEvent, User } from "../../client/gui";
 import React, { CSSProperties, memo, MouseEvent as ReactMouseEvent, MutableRefObject, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { BackgroundType, BorderType } from "grommet/utils";
 import { TFunction } from "i18next";
@@ -606,7 +606,7 @@ const increaseDayVersion = (
   };
 
 const loadData = async (
-      driverApi: DriverApi,
+      plannerApi: PlannerApi,
       dayVersions: MutableRefObject<DayVersions>,
       updateDayVersions: (versions: DayVersions) => void,
       setEndDate: (endDate: Date) => void,
@@ -620,7 +620,7 @@ const loadData = async (
       setCars?: (cars: Array<PlannerCar>) => void,
     ) => {
 
-  const calendar = await driverApi.getPlannerCalendar({
+  const calendar = await plannerApi.getPlannerCalendar({
       plannerCalendarRequest: { startsAt, endsAt }
     });
 
@@ -714,7 +714,7 @@ const Planner = () => {
   
   const wakeupSseCallback = useRef<WakeupSseCallback>(undefined);
   const carSharingApi = useCarSharingApi(wakeupSseCallback);
-  const driverApi = useDriverApi(wakeupSseCallback);
+  const plannerApi = usePlannerApi(wakeupSseCallback);
 
   useLayoutEffect(() => {
     setAppHeaderTitle('driver/planner', false);
@@ -778,9 +778,9 @@ const Planner = () => {
   useEffect(() => {
       if (restrictions === undefined) {
         const endsAt = nextHours(startsAt, (24 - startsAt.getHours()) + 24, false);
-        loadData(driverApi, dayVersionsRef, updateDayVersions, setEndDate, startsAt, endsAt, days!, setDays, drivers!, setDrivers, setRestrictions, setCars);
+        loadData(plannerApi, dayVersionsRef, updateDayVersions, setEndDate, startsAt, endsAt, days!, setDays, drivers!, setDrivers, setRestrictions, setCars);
       }
-    }, [ driverApi, days, restrictions, setRestrictions, drivers, startsAt ]);
+    }, [ plannerApi, days, restrictions, setRestrictions, drivers, startsAt ]);
   
   useEffect(() => {
       const rerenderPastHoursHook = (lastNow: Date) => {
@@ -1111,7 +1111,7 @@ const Planner = () => {
         debounceByKey(
             `Reservation#${updateStartsAt.toString()}-${updateEndsAt.toString()}`,
             async () => {
-                await loadData(driverApi, dayVersionsRef, updateDayVersions, setEndDate, updateStartsAt, updateEndsAt, daysRef.current!, setDays, driversRef.current!, setDrivers, setRestrictions);
+                await loadData(plannerApi, dayVersionsRef, updateDayVersions, setEndDate, updateStartsAt, updateEndsAt, daysRef.current!, setDays, driversRef.current!, setDrivers, setRestrictions);
                 setWaitingForUpdate(false);
               }
           );
@@ -1137,7 +1137,7 @@ const Planner = () => {
           setSelection(undefined);
         }
       },
-    [ driverApi, setRestrictions, setSelection, state.currentUser, t, toast ]);
+    [ plannerApi, setRestrictions, setSelection, state.currentUser, t, toast ]);
     
   wakeupSseCallback.current = useGuiSse<ReservationEvent>(
       updateReservations,
@@ -1183,7 +1183,7 @@ const Planner = () => {
     if (!day) return;
     const startsAt = endDate!;
     const endsAt = nextHours(startsAt, itemsBatchSize, false);
-    await loadData(driverApi, dayVersionsRef, updateDayVersions, setEndDate, startsAt, endsAt, days, setDays, drivers!, setDrivers, setRestrictions);
+    await loadData(plannerApi, dayVersionsRef, updateDayVersions, setEndDate, startsAt, endsAt, days, setDays, drivers!, setDrivers, setRestrictions);
   };
   
   const headerHeight = '3rem';

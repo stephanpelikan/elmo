@@ -11,7 +11,7 @@ import { now } from '../../utils/now-hook';
 import { SubHeading } from '../../components/MainLayout';
 import { KmInput } from '../../components/KmInput';
 import { normalizeColor } from 'grommet/utils';
-import { useDriverApi } from '../DriverAppContext';
+import { usePlannerApi } from '../DriverAppContext';
 import { UserAvatar } from '../../components/UserAvatar';
 
 const USERTASK_CONFIRMSTARTOFUSAGE = 'confirmStartOfUsage';
@@ -109,7 +109,7 @@ const ReservationAccordionPanel = ({
   }) => {
 
   const { t } = useTranslation('driver/car-sharings/reservation');
-  const driverApi = useDriverApi();
+  const plannerApi = usePlannerApi();
 
   const [ confirmation, setConfirmation ] = useState<Confirmation>(undefined);
   const [ violations, setViolations ] = useState<{ [key in string]: string } | undefined>(undefined);  
@@ -128,7 +128,7 @@ const ReservationAccordionPanel = ({
   
   const [ extendOptions, setExtendOptions ] = useState<Array<ExtendOption>>([]);
   const extendModal = useCallback(async (type: Confirmation) => {
-      const calendar = await driverApi.getPlannerCalendar({
+      const calendar = await plannerApi.getPlannerCalendar({
           plannerCalendarRequest: {
             startsAt: type === 'extend' ? reservation.endsAt : now,
             endsAt: nextHours(reservation.endsAt, 8, false)
@@ -173,7 +173,7 @@ const ReservationAccordionPanel = ({
       setTimestamp(reservation.endsAt);
       setConfirmation(type);
       setViolations(undefined);
-    }, [ driverApi, reservation, setConfirmation, setTimestamp, setComment, setKmStart, setKmEnd, setExtendOptions, setViolations ]);
+    }, [ plannerApi, reservation, setConfirmation, setTimestamp, setComment, setKmStart, setKmEnd, setExtendOptions, setViolations ]);
   const showExtendModal = () => extendModal('extend');
   
   const showConfirmStopModal = () => extendModal('stop');
@@ -379,7 +379,7 @@ const ReservationAccordionPanel = ({
                     <KmInput
                         km={ kmStart }
                         setKm={ setKmStart }
-                        onChange={ (km) => {
+                        onChange={ (_km) => {
                               if (violations?.kmStart) delete violations!.kmStart;
                             } } />
                     {
@@ -471,7 +471,7 @@ const ReservationAccordionPanel = ({
                                           <KmInput
                                               km={ kmStart }
                                               setKm={ setKmStart }
-                                              onChange={ (km) => {
+                                              onChange={ (_km) => {
                                                     if (violations?.kmStart) delete violations!.kmStart;
                                                   } } />
                                           {
@@ -491,7 +491,7 @@ const ReservationAccordionPanel = ({
                                 <KmInput
                                     km={ kmEnd }
                                     setKm={ setKmEnd }
-                                    onChange={ (km) => {
+                                    onChange={ (_km) => {
                                           if (violations?.kmEnd) delete violations!.kmEnd;
                                         } } />
                                 {

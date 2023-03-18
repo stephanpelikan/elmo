@@ -286,10 +286,10 @@ paths:
           description: Email is wrong format
         404:
           description: The member-id is unknown
-  /gui/driver/calendar:
+  /gui/planner/calendar:
     post:
       tags:
-        - driver
+        - planner
       summary: The calendar for car-sharing/passanger-service
       operationId: getPlannerCalendar
       requestBody:
@@ -304,10 +304,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PlannerCalendar'
-  /gui/driver/shift-overview:
+  /gui/passanger-service/shift-overview:
     get:
       tags:
-        - driver
+        - passanger-service
       summary: The shifts within the next two weeks
       operationId: getShiftOverview
       responses:

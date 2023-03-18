@@ -1,4 +1,4 @@
-import { Configuration as GuiConfiguration, CarSharingApi, DriverApi } from './gui';
+import { Configuration as GuiConfiguration, CarSharingApi, PlannerApi } from './gui';
 import { Dispatch } from '../AppContext';
 import { buildFetchApi } from '../utils/fetchApi';
 import { WakeupSseCallback } from '../components/SseProvider';
@@ -14,18 +14,18 @@ const getCarSharingGuiApi = (
   return new CarSharingApi(config);
 };
 
-const getDriverGuiApi = (
+const getPlannerGuiApi = (
   dispatch: Dispatch,
   wakeupSseCallback?: WakeupSseCallback
-): DriverApi => {
+): PlannerApi => {
   const config = new GuiConfiguration({
     basePath: '/api/v1',
     fetchApi: buildFetchApi(dispatch, wakeupSseCallback),
   });
-  return new DriverApi(config);
+  return new PlannerApi(config);
 };
 
 export {
     getCarSharingGuiApi,
-    getDriverGuiApi,
+    getPlannerGuiApi,
   };

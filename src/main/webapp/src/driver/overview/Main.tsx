@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ShiftOverview, ShiftOverviewWeek } from '../../client/gui';
 import useResponsiveScreen from '../../utils/responsiveUtils';
-import { useDriverApi } from '../DriverAppContext';
+import { usePassangerServiceGuiApi } from '../../AppContext';
 import { Day } from './Day';
 import i18n from '../../i18n';
 import { Heading } from '../../components/MainLayout';
@@ -65,16 +65,16 @@ const Overview = () => {
 
   const { t } = useTranslation('driver/overview');
   const { isPhone } = useResponsiveScreen();
-  const driverApi = useDriverApi();
+  const passangerServiceApi = usePassangerServiceGuiApi();
   
   const [ overview, setOverview ] = useState<ShiftOverview | undefined>(undefined);
   useEffect(() => {
       const loadOverview = async () => {
-          const loadedOverview = await driverApi.getShiftOverview();
+          const loadedOverview = await passangerServiceApi.getShiftOverview();
           setOverview(loadedOverview);
         };
       loadOverview();
-    }, [ driverApi, setOverview ]);
+    }, [ passangerServiceApi, setOverview ]);
     
   return <Box
              width={ isPhone ? '17.5rem' : '21rem'}
