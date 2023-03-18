@@ -13,6 +13,7 @@ import at.elmo.reservation.passangerservice.shift.Shift;
 import at.elmo.util.email.EmailService;
 import at.elmo.util.email.NamedObject;
 import at.elmo.util.exceptions.ElmoException;
+import at.elmo.util.exceptions.ElmoValidationException;
 import at.elmo.util.sms.SmsService;
 import io.vanillabp.spi.process.ProcessService;
 import io.vanillabp.spi.service.BpmnProcess;
@@ -36,10 +37,17 @@ import java.util.stream.Collectors;
 @Service
 @WorkflowService(
         workflowAggregateClass = CarSharing.class,
-        bpmnProcess = { @BpmnProcess(bpmnProcessId = "CarSharingLifecycle") })
+        bpmnProcess = @BpmnProcess(bpmnProcessId = "CarSharingLifecycle"),
+        secondaryBpmnProcesses = @BpmnProcess(bpmnProcessId = "CarSharingLifecycleCarInUse"))
 @Transactional
 public class CarSharingService {
 
+    public static final String USERTASK_CONFIRM_START_OF_USAGE = "confirmStartOfUsage";
+    
+    public static final String USERTASK_CONFIRM_END_OF_USAGE = "confirmEndOfUsage";
+
+    public static final String USERTASK_SET_KM_VALUES = "setKmValues";
+    
     @Autowired
     private Logger logger;
     
@@ -103,7 +111,7 @@ public class CarSharingService {
         
         return carSharings.findByDriver_IdAndStatusNotInOrderByStartsAtAsc(
                 driver.getId(),
-                List.of(Status.COMPLETED, Status.CANCELLED));
+                List.of(Status.COMPLETED, Status.CANCELLED, Status.NOT_CONFIRMED));
         
     }
     
@@ -380,7 +388,7 @@ public class CarSharingService {
         
     }
 
-    @WorkflowTask(taskDefinition = "confirmStartOfUsage")
+    @WorkflowTask(taskDefinition = CarSharingService.USERTASK_CONFIRM_START_OF_USAGE)
     public void confirmStartOfUsageForm(
             final CarSharing carSharing,
             final @TaskId String taskId,
@@ -388,7 +396,7 @@ public class CarSharingService {
 
         if (event == Event.CREATED) {
             carSharing.setUserTaskId(taskId);
-            carSharing.setUserTaskType("confirmStartOfUsage");
+            carSharing.setUserTaskType(CarSharingService.USERTASK_CONFIRM_START_OF_USAGE);
         } else {
             carSharing.setUserTaskId(null);
             carSharing.setUserTaskType(null);
@@ -396,7 +404,25 @@ public class CarSharingService {
 
     }
     
-    @WorkflowTask(taskDefinition = "confirmEndOfUsage")
+    @WorkflowTask(taskDefinition = CarSharingService.USERTASK_SET_KM_VALUES)
+    public void setKmValuesForm(
+            final CarSharing carSharing,
+            final @TaskId String taskId,
+            final @TaskEvent Event event) {
+        
+        carSharing.setStatus(Status.NOT_CONFIRMED);
+
+        if (event == Event.CREATED) {
+            carSharing.setUserTaskId(taskId);
+            carSharing.setUserTaskType(CarSharingService.USERTASK_SET_KM_VALUES);
+        } else {
+            carSharing.setUserTaskId(null);
+            carSharing.setUserTaskType(null);
+        }
+
+    }
+    
+    @WorkflowTask(taskDefinition = CarSharingService.USERTASK_CONFIRM_END_OF_USAGE)
     public void confirmEndOfUsageForm(
             final CarSharing carSharing,
             final @TaskId String taskId,
@@ -404,7 +430,7 @@ public class CarSharingService {
 
         if (event == Event.CREATED) {
             carSharing.setUserTaskId(taskId);
-            carSharing.setUserTaskType("confirmEndOfUsage");
+            carSharing.setUserTaskType(CarSharingService.USERTASK_CONFIRM_END_OF_USAGE);
         } else {
             carSharing.setUserTaskId(null);
             carSharing.setUserTaskType(null);
@@ -451,6 +477,10 @@ public class CarSharingService {
         
         carSharing.setEndsAt(timestamp);
         
+        processService.correlateMessage(
+                carSharing,
+                "CarUsageExtended");
+        
         return carSharing;
 
     }
@@ -460,7 +490,8 @@ public class CarSharingService {
             final String reservationId,
             final String userTaskId,
             final LocalDateTime timestamp,
-            final Integer km,
+            final Integer kmStart,
+            final Integer kmEnd,
             final String comment) {
         
         final var carSharingFound = carSharings.findById(reservationId);
@@ -481,10 +512,11 @@ public class CarSharingService {
         
         final var now = LocalDateTime.now();
         
-        if (carSharing.getKmAtStart() == null) {
+        if (carSharing.getUserTaskType().equals(
+                CarSharingService.USERTASK_CONFIRM_START_OF_USAGE)) {
             
             carSharing.setStartUsage(now);
-            carSharing.setKmAtStart(km);
+            carSharing.setKmAtStart(kmStart);
             carSharing.setStatus(Status.ONGOING);
             
         } else {
@@ -496,7 +528,13 @@ public class CarSharingService {
                             .plusHours(timestamp.getMinute() == 0 ? 0 : 1);
             carSharing.setEndsAt(endOfUsage);
             carSharing.setEndUsage(now);
-            carSharing.setKmAtEnd(km);
+            if (carSharing.getKmAtStart() == null) {
+                if (kmStart == null) {
+                    throw new ElmoValidationException("kmStart", "missing");
+                }
+                carSharing.setKmAtStart(kmStart);
+            }
+            carSharing.setKmAtEnd(kmEnd);
             carSharing.setStatus(Status.COMPLETED);
             
         }
@@ -505,7 +543,6 @@ public class CarSharingService {
         carSharing.setUserTaskType(null);
         carSharing.setComment(comment);
         
-        car.setKm(km);
         car.setKmConfirmed(true);
         car.setKmConfirmedAt(LocalDateTime.now());
         

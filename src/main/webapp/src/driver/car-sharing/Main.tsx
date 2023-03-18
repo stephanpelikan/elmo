@@ -8,7 +8,7 @@ import { CarSharingReservation, ReservationEvent } from '../../client/gui';
 import useResponsiveScreen from '../../utils/responsiveUtils';
 import { Content, Heading, TextHeading } from '../../components/MainLayout';
 import i18n from '../../i18n';
-import { ReservationAccordionPanel, Confirmation } from './ReservationAccordionPanel';
+import { ReservationAccordionPanel, isUserTaskForDriver } from './ReservationAccordionPanel';
 import { useAppContext } from '../../AppContext';
 import { EventSourceMessage, WakeupSseCallback } from '../../components/SseProvider';
 import { useGuiSse } from '../../client/guiClient';
@@ -20,10 +20,6 @@ i18n.addResources('en', 'driver/car-sharings', {
       "new-reservation_first": "You currently have no Car-Sharing reservations.",
       "hint-reservation_another": "To do this, switch to the planner",
       "hint-reservation_first": "Go to the planner for a new reservation",
-      "confirm-car-sharing_title": "Car-Sharing",
-      "confirm-car-sharing_lower-than-car": "The given value for kilometers is lower than already recorded for this car!",
-      "confirm-car-sharing_missing": "You have to fill the field 'Current Mileage'!",
-      "confirm-car-sharing_extend-not-possible": "Meanwhile someone else booked the requested period!",
     });
 i18n.addResources('de', 'driver/car-sharings', {
       "title": "Deine Reservierungen",
@@ -31,10 +27,6 @@ i18n.addResources('de', 'driver/car-sharings', {
       "new-reservation_first": "Aktuell hast du keine Car-Sharing Reservierungen.",
       "hint-reservation_another": "Wechsle dafür zum Planer",
       "hint-reservation_first": "Wechsle für eine neue Reservierung zum Planer",
-      "confirm-car-sharing_title": "Car-Sharing",
-      "confirm-car-sharing_lower-than-car": "Der angegebene KM-Stand ist niedriger als für das Auto bereits erfasst wurde!",
-      "confirm-car-sharing_missing": "Du musst das Feld 'Aktueller Kilometerstand' befüllen!",
-      "confirm-car-sharing_extend-not-possible": "Mittlerweile hat jemand anderes die Zeitspanne gebucht!!",
     });
 
 const CarSharings = () => {
@@ -43,7 +35,7 @@ const CarSharings = () => {
   const { t: tDriver } = useTranslation('driver');
   const { isPhone } = useResponsiveScreen();
   const navigate = useNavigate();
-  const { toast, state } = useAppContext();
+  const { state } = useAppContext();
   const wakeupSseCallback = useRef<WakeupSseCallback>(undefined);
   const carSharingApi = useCarSharingApi(wakeupSseCallback);
 
@@ -55,7 +47,7 @@ const CarSharings = () => {
       setReservations(r.reservations);
       const visible = r
           .reservations
-          .filter(reservation => reservation.userTaskId !== undefined)
+          .filter(reservation => isUserTaskForDriver(reservation.userTaskType))
           .map((_reservation, index) => index);
       setDetailsVisible(visible);
     }, [ carSharingApi, setReservations ]);
@@ -74,7 +66,7 @@ const CarSharings = () => {
 
   wakeupSseCallback.current = useGuiSse<ReservationEvent>(
       updateCarSharings,
-      "Reservation#CS"
+      "Reservation"
     );
 
   const goToPlanner = (reservation: CarSharingReservation) => {
@@ -88,7 +80,7 @@ const CarSharings = () => {
       carId: string,
       reservationId: string,
       userTaskId: string,
-      timestamp: Date): Promise<boolean> => {
+      timestamp: Date): Promise<{ [key in string]: string } | undefined> => {
     
     try {
       
@@ -102,43 +94,37 @@ const CarSharings = () => {
         });
       reservations![index] = reservation;
       setReservations([ ...reservations! ]);
-      return true;
+      return undefined;
         
     } catch (error) {
 
       if ((error.response?.status === 400)
           && (error.response?.json)) {
-        let violation = 'unknown_error';
-        violation = (await error.response.json()).timestamp;
-        toast({
-            namespace: 'driver/car-sharings',
-            title: t('confirm-car-sharing_title'),
-            message: t(`confirm-car-sharing_${violation}`),
-            status: 'critical'
-          });
+        const violations = await error.response.json();
+        return violations;
       }
-      return false;
+      return {'': 'unknown'};
       
     }
     
   };
   
-  const confirmStartOrStopOfCarSharing = async (
+  const confirmBeginOfCarSharing = async (
       index: number,
       carId: string,
       reservationId: string,
       userTaskId: string,
-      km: number,
+      kmStart: number,
       timestamp: Date,
-      comment?: string): Promise<boolean> => {
+      comment?: string): Promise<{ [key in string]: string } | undefined> => {
     
     try {
       
-      const reservation = await carSharingApi.confirmStartOrStopOfCarSharing({
+      const reservation = await carSharingApi.confirmBeginOfCarSharing({
           carId,
           reservationId,
-          carSharingStarStopRequest: {
-            km,
+          carSharingStartRequest: {
+            kmStart,
             comment,
             userTaskId,
             timestamp
@@ -146,22 +132,61 @@ const CarSharings = () => {
         });
       reservations![index] = reservation;
       setReservations([ ...reservations! ]);
-      return true;
+      return undefined;
+        
+    } catch (error) {
+
+      if (error.response?.status === 404) {
+        // if start-form is outdated, then just close it:
+        // the start-missing mileage can be entered in end-dialog
+        return undefined;
+      }
+      if ((error.response?.status === 400)
+          && (error.response?.json)) {
+        const violations = await error.response.json();
+        return violations;
+      }
+      return {'': 'unknown'};
+      
+    }
+    
+  };
+
+  const confirmEndOfCarSharing = async (
+      index: number,
+      carId: string,
+      reservationId: string,
+      userTaskId: string,
+      kmStart: number,
+      kmEnd: number,
+      timestamp: Date,
+      comment?: string): Promise<{ [key in string]: string } | undefined> => {
+    
+    try {
+      
+      const reservation = await carSharingApi.confirmEndOfCarSharing({
+          carId,
+          reservationId,
+          carSharingStopRequest: {
+            kmStart,
+            kmEnd,
+            comment,
+            userTaskId,
+            timestamp
+          }
+        });
+      reservations![index] = reservation;
+      setReservations([ ...reservations! ]);
+      return undefined;
         
     } catch (error) {
 
       if ((error.response?.status === 400)
           && (error.response?.json)) {
-        let violation = 'unknown_error';
-        violation = (await error.response.json()).km;
-        toast({
-            namespace: 'driver/car-sharings',
-            title: t('confirm-car-sharing_title'),
-            message: t(`confirm-car-sharing_${violation}`),
-            status: 'critical'
-          });
+        const violations = await error.response.json();
+        return violations;
       }
-      return false;
+      return {'': 'unknown'};
       
     }
     
@@ -210,7 +235,7 @@ const CarSharings = () => {
                                 index={ index }
                                 goToPlanner={ goToPlanner}
                                 confirmStartOrStopOfCarSharing={
-                                    (type, timestamp, km, comment) =>
+                                    (type, timestamp, kmStart, kmEnd, comment) =>
                                         type === 'extend'
                                             ? extendCarSharing(
                                                           index,
@@ -218,12 +243,22 @@ const CarSharings = () => {
                                                           reservation.id,
                                                           reservation.userTaskId!,
                                                           timestamp)
-                                            : confirmStartOrStopOfCarSharing(
+                                            : type === 'start'
+                                            ? confirmBeginOfCarSharing(
                                                           index,
                                                           reservation.carId,
                                                           reservation.id,
                                                           reservation.userTaskId!,
-                                                          km,
+                                                          kmStart,
+                                                          timestamp,
+                                                          comment)
+                                            : confirmEndOfCarSharing(
+                                                          index,
+                                                          reservation.carId,
+                                                          reservation.id,
+                                                          reservation.userTaskId!,
+                                                          kmStart,
+                                                          kmEnd,
                                                           timestamp,
                                                           comment) } />)
                   }
@@ -249,6 +284,7 @@ const CarSharings = () => {
               </Paragraph>
             </Box>
             <Box
+                style={ { minWidth: 'auto' } }
                 onClick={ () => navigate('.' + tDriver('url-planner')) }
                 focusIndicator={ false }
                 direction="row">

@@ -356,12 +356,12 @@ paths:
           description: Car not found
         409:
           description: Reservation declined due to other reservations
-  /gui/car-sharing/{carId}/reservation/{reservationId}:
+  /gui/car-sharing/{carId}/reservation/{reservationId}/start:
     put:
       tags:
         - car-sharing
-      summary: Confirm start or end of car-sharing
-      operationId: confirmStartOrStopOfCarSharing
+      summary: Confirm begin of car-sharing
+      operationId: confirmBeginOfCarSharing
       parameters:
         - in: path
           name: carId
@@ -377,7 +377,40 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CarSharingStarStopRequest'
+              $ref: '#/components/schemas/CarSharingStartRequest'
+      responses:
+        200:
+          description: Reservation confirmed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CarSharingReservation'
+        400:
+          description: Wrong parameters
+        404:
+          description: Reservation not found
+  /gui/car-sharing/{carId}/reservation/{reservationId}/stop:
+    put:
+      tags:
+        - car-sharing
+      summary: Confirm end of car-sharing
+      operationId: confirmEndOfCarSharing
+      parameters:
+        - in: path
+          name: carId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: reservationId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CarSharingStopRequest'
       responses:
         200:
           description: Reservation confirmed
@@ -492,6 +525,7 @@ components:
         - ONGOING
         - COMPLETED
         - CANCELLED
+        - NOT_CONFIRMED
     AppInformation:
       type: object
       properties:
@@ -882,13 +916,29 @@ components:
           format: date-time
         userTaskId:
           type: string
-    CarSharingStarStopRequest:
+    CarSharingStartRequest:
       type: object
       properties:
         timestamp:
           type: string
           format: date-time
-        km:
+        kmStart:
+          type: integer
+          format: int32
+        comment:
+          type: string
+        userTaskId:
+          type: string
+    CarSharingStopRequest:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        kmStart:
+          type: integer
+          format: int32
+        kmEnd:
           type: integer
           format: int32
         comment:

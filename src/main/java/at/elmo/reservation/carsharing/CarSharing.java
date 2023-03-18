@@ -22,7 +22,7 @@ public class CarSharing extends ReservationBase {
     public static final String TYPE = "CS";
     
     public static enum Status {
-        RESERVED, ONGOING, COMPLETED, CANCELLED
+        RESERVED, ONGOING, COMPLETED, CANCELLED, NOT_CONFIRMED
     };
 
     @ManyToOne()

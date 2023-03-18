@@ -5,7 +5,8 @@ import at.elmo.gui.api.v1.AddPlannerReservation;
 import at.elmo.gui.api.v1.CarSharingApi;
 import at.elmo.gui.api.v1.CarSharingReservation;
 import at.elmo.gui.api.v1.CarSharingReservations;
-import at.elmo.gui.api.v1.CarSharingStarStopRequest;
+import at.elmo.gui.api.v1.CarSharingStartRequest;
+import at.elmo.gui.api.v1.CarSharingStopRequest;
 import at.elmo.gui.api.v1.ExtendCarSharingRequest;
 import at.elmo.gui.api.v1.PlannerReservationType;
 import at.elmo.reservation.ReservationService;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Duration;
+import java.util.HashMap;
 
 @RestController("carSharingGuiApi")
 @RequestMapping("/api/v1")
@@ -234,10 +236,10 @@ public class GuiApiController implements CarSharingApi {
     }
     
     @Override
-    public ResponseEntity<CarSharingReservation> confirmStartOrStopOfCarSharing(
+    public ResponseEntity<CarSharingReservation> confirmBeginOfCarSharing(
             final String carId,
             final String reservationId,
-            final CarSharingStarStopRequest body) {
+            final CarSharingStartRequest body) {
         
         if (body == null) {
             return ResponseEntity.badRequest().build();
@@ -245,8 +247,8 @@ public class GuiApiController implements CarSharingApi {
         if (!StringUtils.hasText(body.getUserTaskId())) {
             return ResponseEntity.badRequest().build();
         }
-        if (body.getKm() == null) {
-            throw new ElmoValidationException("km", "missing");
+        if (body.getKmStart() == null) {
+            throw new ElmoValidationException("kmStart", "missing");
         }
 
         if (!StringUtils.hasText(carId)) {
@@ -258,8 +260,8 @@ public class GuiApiController implements CarSharingApi {
         }
         final var car = carFound.get();
 
-        if (body.getKm() < car.getKm()) {
-            throw new ElmoValidationException("km", "lower-than-car");
+        if (body.getKmStart() < car.getKm()) {
+            throw new ElmoValidationException("kmStart", "lower-than-car");
         }
         
         final var reservation = carSharingService.startOrStopCarSharing(
@@ -267,7 +269,8 @@ public class GuiApiController implements CarSharingApi {
                 reservationId,
                 body.getUserTaskId(),
                 body.getTimestamp(),
-                body.getKm(),
+                body.getKmStart(),
+                null,
                 body.getComment());
         
         if (reservation == null) {
@@ -278,4 +281,64 @@ public class GuiApiController implements CarSharingApi {
         
     }
     
+    @Override
+    public ResponseEntity<CarSharingReservation> confirmEndOfCarSharing(
+            final String carId,
+            final String reservationId,
+            final CarSharingStopRequest body) {
+        
+        if (body == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        if (!StringUtils.hasText(body.getUserTaskId())) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        if (!StringUtils.hasText(carId)) {
+            return ResponseEntity.badRequest().build();
+        }
+        final var carFound = carService.getCar(carId);
+        if (carFound.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        final var car = carFound.get();
+
+        final var violations = new HashMap<String, String>();
+        if (body.getKmEnd() == null) {
+            violations.put("kmEnd", "missing");
+        } else {
+            if (body.getKmEnd() < car.getKm()) {
+                violations.put("kmEnd", "lower-than-car");
+            }
+            if (body.getKmStart() != null) {
+                if (body.getKmStart() < car.getKm()) {
+                    violations.put("kmStart", "lower-than-car");
+                }
+                if (body.getKmStart() > body.getKmEnd()) {
+                    violations.put("kmStart", "higher-than-end");
+                }
+            }
+        }
+        
+        if (!violations.isEmpty()) {
+            throw new ElmoValidationException(violations);
+        }
+        
+        final var reservation = carSharingService.startOrStopCarSharing(
+                carId,
+                reservationId,
+                body.getUserTaskId(),
+                body.getTimestamp(),
+                body.getKmStart(),
+                null,
+                body.getComment());
+        
+        if (reservation == null) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        return ResponseEntity.ok(mapper.toApi(reservation));
+        
+    }
+
 }

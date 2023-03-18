@@ -96,19 +96,13 @@ const hoursBetween = (from: Date, to: Date): Array<Date> => {
       from.getMonth(),
       from.getDate(),
       from.getHours());
+  if (current.getTime() < from.getTime()) {
+    current = new Date(current.getTime() + 3600000);
+  }
 
   while (current.getTime() < to.getTime()) {
     
-    if (current.getTime() < from.getTime()) {
-      current = new Date(current.getTime() + 3600000);
-    }
-    
-    const item = new Date(
-        current.getFullYear(),
-        current.getMonth(),
-        current.getDate(),
-        current.getHours());
-    result.push(item);
+    result.push(current);
       
     current = new Date(current.getTime() + 3600000);
     

@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 @Service
 @WorkflowService(
         workflowAggregateClass = Shift.class,
-        bpmnProcess = { @BpmnProcess(bpmnProcessId = "ShiftLifecycle") })
+        bpmnProcess = @BpmnProcess(bpmnProcessId = "ShiftLifecycle"))
 @Transactional
 public class ShiftService {
 

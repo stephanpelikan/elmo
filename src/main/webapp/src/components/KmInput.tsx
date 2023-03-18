@@ -1,5 +1,5 @@
 import { Box, MaskedInput } from 'grommet';
-import React, { forwardRef, useState } from 'react';
+import React, { ChangeEventHandler, forwardRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 
@@ -22,13 +22,15 @@ const formatKm = (km: number | string | undefined, thousandSeparator: string) =>
 };
 
 interface KmInputProps {
-  km: number | undefined,
-  setKm: (km: number | undefined) => void
+  km: number | undefined;
+  setKm: (km: number | undefined) => void;
+  onChange?: (km: number | undefined) => void;
 };
 
 const KmInput = forwardRef<HTMLInputElement, KmInputProps>(({
     km,
-    setKm
+    setKm,
+    onChange,
   }: KmInputProps, ref) => {
     
   const { t } = useTranslation('km-input');
@@ -86,14 +88,19 @@ const KmInput = forwardRef<HTMLInputElement, KmInputProps>(({
                 if (!Boolean(event.target.value)) {
                   setKmStr('');
                   setKm(undefined);
-                  return
+                  if (onChange) onChange(undefined);
+                  return;
                 }
                 const kmInput = parseInt(event.target.value
                     // @ts-ignore
                     .replaceAll(thousandSeparator, ''));
-                if (kmInput > 999999) return;
+                if (kmInput > 999999) {
+                  if (onChange) onChange(undefined);
+                  return;
+                }
                 setKmStr(formatKm(kmInput, thousandSeparator));
                 setKm(kmInput);
+                if (onChange) onChange(kmInput);
               } } />
       km
     </Box>);

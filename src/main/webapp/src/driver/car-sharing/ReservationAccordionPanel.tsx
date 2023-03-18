@@ -14,6 +14,16 @@ import { normalizeColor } from 'grommet/utils';
 import { useDriverApi } from '../DriverAppContext';
 import { UserAvatar } from '../../components/UserAvatar';
 
+const USERTASK_CONFIRMSTARTOFUSAGE = 'confirmStartOfUsage';
+const USERTASK_CONFIRMENDOFUSAGE = 'confirmEndOfUsage';
+
+const isUserTaskForDriver = (type: string | undefined) => {
+  if (!Boolean(type)) return false;
+  if (type === USERTASK_CONFIRMSTARTOFUSAGE) return true;
+  if (type === USERTASK_CONFIRMENDOFUSAGE) return true;
+  return false;
+};
+
 export type Confirmation = 'start' | 'stop' | 'extend' | undefined;
 
 type ExtendOption = {
@@ -40,7 +50,13 @@ i18n.addResources('en', 'driver/car-sharings/reservation', {
       "dismiss-button": "Dismiss",
       "comment-placeholder": "Leave blank unless charge level is not 100%, noticed damages to vehicle, etc.",
       "comment-title": "Comment",
+      "km-start-title": "Mileage at start",
       "km-title": "Current Mileage",
+      "km-end_missing": "Please fill the current mileage!",
+      "km-end_lower-than-car": "The given mileage is lower than a previously given mileage!",
+      "km-start_missing": "Please fill the mileage at start!",
+      "km-start_lower-than-car": "The given mileage is lower than a previously given mileage!",
+      "km-start_higher-than-end": "The given mileage is higher than the current mileage!",
     });
 i18n.addResources('de', 'driver/car-sharings/reservation', {
       "from": "Von",
@@ -60,7 +76,13 @@ i18n.addResources('de', 'driver/car-sharings/reservation', {
       "dismiss-button": "Doch nicht",
       "comment-placeholder": "Leer lassen, außer wenn Ladestand nicht 100%, aufgefallene Schäden am Fahrzeug, etc.",
       "comment-title": "Kommentar",
+      "km-start-title": "Kilometerstand zu Beginn",
       "km-title": "Aktueller Kilometerstand",
+      "km-end_missing": "Der aktuelle Kilometerstand muss angegeben werden!",
+      "km-end_lower-than-car": "Der angegebene Kilometerstand ist niedriger als für dieses Fahrzeug bereits registriert wurde!",
+      "km-start_missing": "Der Start-Kilometerstand muss angegeben werden!",
+      "km-start_lower-than-car": "Der angegebene Kilometerstand ist niedriger als für dieses Fahrzeug bereits registriert wurde!",
+      "km-start_higher-than-end": "Der angegebene Start-Kilometerstand ist höher als der angegebene aktuelle Kilometerstand!",
     });
 
 const blinkAnimation = (props: any) => keyframes`
@@ -83,65 +105,88 @@ const ReservationAccordionPanel = ({
     reservation: CarSharingReservation,
     index: number,
     goToPlanner: (reservation: CarSharingReservation) => void,
-    confirmStartOrStopOfCarSharing: (type: Confirmation, timestamp: Date, km: number, comment: string) => Promise<boolean>,
+    confirmStartOrStopOfCarSharing: (type: Confirmation, timestamp: Date, kmStart: number, kmEnd: number, comment: string) => Promise<{ [key in string]: string } | undefined>,
   }) => {
 
   const { t } = useTranslation('driver/car-sharings/reservation');
   const driverApi = useDriverApi();
 
   const [ confirmation, setConfirmation ] = useState<Confirmation>(undefined);
+  const [ violations, setViolations ] = useState<{ [key in string]: string } | undefined>(undefined);  
   const [ timestamp, setTimestamp ] = useState<Date | undefined>(undefined);
-  const [ km, setKm ] = useState<number | undefined>(reservation.carKm);
+  const [ kmStart, setKmStart ] = useState<number | undefined>(reservation.carKm);
+  const [ kmEnd, setKmEnd ] = useState<number | undefined>(reservation.carKm);
   const [ comment, setComment ] = useState<string | undefined>(reservation.comment);
   
   const showConfirmStartModal = (km?: number) => {
-    setKm(km);
+    setKmStart(km);
     setComment(reservation.comment);
     setConfirmation('start');
     setTimestamp(nextHours(now, 1, false));
+    setViolations(undefined);
   };
   
   const [ extendOptions, setExtendOptions ] = useState<Array<ExtendOption>>([]);
   const extendModal = useCallback(async (type: Confirmation) => {
       const calendar = await driverApi.getPlannerCalendar({
           plannerCalendarRequest: {
-            startsAt: now,
+            startsAt: type === 'extend' ? reservation.endsAt : now,
             endsAt: nextHours(reservation.endsAt, 8, false)
           }
         });
       const reservations = calendar
           .cars[ calendar.cars.findIndex(car => car.id === reservation.carId) ]
           .reservations;
-      const newExtendOptions = hoursBetween(now, nextHours(reservation.endsAt, 48, false))
+      const conflictingReservationFound = { found: false };
+      const newExtendOptions = hoursBetween(
+              type === 'extend'
+                  ? reservation.endsAt
+                  : now.getTime() < reservation.endsAt.getTime()
+                  ? now
+                  : reservation.endsAt,
+              nextHours(reservation.endsAt, 48, false))
           .map(hour => {
               const conflictingReservation = reservations
                   .find(r => (r.id !== reservation.id)
-                      && (r.startsAt.getTime() <= hour.getTime())
-                      && (r.endsAt.getTime() > hour.getTime()));
+                      && (r.startsAt.getTime() < hour.getTime())
+                      && (r.endsAt.getTime() >= hour.getTime()));
               const hourReservation = reservations
-                  .find(r => (r.startsAt.getTime() <= hour.getTime())
-                      && (r.endsAt.getTime() > hour.getTime()))
+                  .find(r => (r.startsAt.getTime() < hour.getTime())
+                      && (r.endsAt.getTime() >= hour.getTime()))
               const driver = calendar.drivers.find(d => d.memberId === hourReservation?.driverMemberId);
               return {
                   timestamp: hour,
                   booked: Boolean(conflictingReservation),
                   driver
                 };
-            });
+            })
+          .filter(option => {
+                if (conflictingReservationFound.found) return false;
+                const lastOption = option.booked;
+                conflictingReservationFound.found = lastOption;
+                return true;
+              });
       setExtendOptions(newExtendOptions);
-      setKm(undefined);
+      setKmStart(undefined);
+      setKmEnd(undefined);
       setComment(reservation.comment);
-      setTimestamp(nextHours(now, 1, false));
+      setTimestamp(reservation.endsAt);
       setConfirmation(type);
-    }, [ driverApi, reservation, setConfirmation, setTimestamp, setComment, setKm, setExtendOptions ]);
+      setViolations(undefined);
+    }, [ driverApi, reservation, setConfirmation, setTimestamp, setComment, setKmStart, setKmEnd, setExtendOptions, setViolations ]);
   const showExtendModal = () => extendModal('extend');
   
   const showConfirmStopModal = () => extendModal('stop');
 
   const confirm = async (type: Confirmation) => {
-      const success = await confirmStartOrStopOfCarSharing(type, timestamp!, km!, comment!);
-      if (!success) return;
-      setConfirmation(undefined);
+      const result = await confirmStartOrStopOfCarSharing(type, timestamp!, kmStart!, kmEnd!, comment!);
+      if ((result === undefined)
+          || (Object.keys(result).length === 0)) {
+        setViolations(undefined);
+        setConfirmation(undefined);
+      } else {
+        setViolations(result);
+      }
     };
 
   return (
@@ -239,9 +284,15 @@ const ReservationAccordionPanel = ({
                         { t('usage-from') }:
                       </TableCell>
                       <TableCell>
-                        { reservation.startUsage!.toLocaleDateString() }
-                        &nbsp;
-                        { toLocaleTimeStringWithoutSeconds(reservation.startUsage!) }
+                        {
+                          Boolean(reservation.startUsage)
+                              ? <>
+                                  { reservation.startUsage!.toLocaleDateString() }
+                                  &nbsp;
+                                  { toLocaleTimeStringWithoutSeconds(reservation.startUsage!) }
+                                </>
+                              : <>Beginn nicht bestätigt</>
+                        }
                         <br/>
                         { reservation.kmAtStart!.toLocaleString() }
                         &nbsp;km
@@ -278,7 +329,7 @@ const ReservationAccordionPanel = ({
                   : undefined
             }
             {
-              Boolean(reservation.userTaskId) && Boolean(reservation.userTaskType === 'confirmStartOfUsage')
+              Boolean(reservation.userTaskId) && Boolean(reservation.userTaskType === USERTASK_CONFIRMSTARTOFUSAGE)
                   ? <TableRow>
                       <TableCell colSpan={ 2 }>
                         <BlinkingButton
@@ -287,7 +338,7 @@ const ReservationAccordionPanel = ({
                             label={ t('start-usage') } />
                       </TableCell>
                     </TableRow>
-                  : Boolean(reservation.userTaskId) && Boolean(reservation.userTaskType === 'confirmEndOfUsage')
+                  : Boolean(reservation.userTaskId) && Boolean(reservation.userTaskType === USERTASK_CONFIRMENDOFUSAGE)
                   ? <>
                       <TableRow>
                         <TableCell colSpan={ 2 }>
@@ -319,14 +370,26 @@ const ReservationAccordionPanel = ({
                     action={ () => confirm(confirmation) }
                     actionLabel='start-button'
                     header='start-usage'
+                    width="medium"
                     t={ t }>
                   <Box
                       gap="small"
                       margin={ { bottom: 'large' } }>
                     <SubHeading>{ t('km-title') }:</SubHeading>
                     <KmInput
-                        km={ km }
-                        setKm={ setKm } />
+                        km={ kmStart }
+                        setKm={ setKmStart }
+                        onChange={ (km) => {
+                              if (violations?.kmStart) delete violations!.kmStart;
+                            } } />
+                    {
+                      Boolean(violations?.kmStart)
+                        ? <Text
+                              color="status-error">
+                            { t( `km-start_${violations!.kmStart}` ) }
+                          </Text>
+                        : undefined
+                    }
                     <SubHeading>{ t('comment-title') }:</SubHeading>
                     <TextArea
                         value={ comment }
@@ -343,68 +406,112 @@ const ReservationAccordionPanel = ({
                     action={ () => confirm(confirmation) }
                     actionLabel={ `${confirmation}-button` }
                     header={ `${confirmation}-usage` }
+                    width="medium"
                     t={ t }>
                   <Box
-                      gap="small"
-                      margin={ { bottom: 'large' } }>
+                      margin={ { bottom: 'small' } }>
                     <SubHeading>{ t('usage-until') } ({ t('including-charging') }):</SubHeading>
-                    <Select
-                        dropHeight="small"
-                        height="3rem"
-                        options={ extendOptions }
-                        disabledKey='booked'
-                        labelKey={ o => o.timestamp }
-                        valueLabel={ v => (
-                            <Box
-                                pad="xsmall">
-                              { toLocaleTimeStringWithoutSeconds(v) }
-                            </Box>)
-                          }
-                        children={ (v, _index, _options, mode) => (
-                            <Box
-                                direction="row"
-                                gap="xsmall"
-                                align="center"
-                                height="2.2rem"
-                                background={ mode.disabled
-                                    ? '#dddddd'
-                                    : v.timestamp.getTime() !== timestamp?.getTime()
+                    <Box
+                        margin={ { bottom: 'small' } }>
+                      <Select
+                          dropHeight="small"
+                          height="3rem"
+                          options={ extendOptions }
+                          disabledKey='booked'
+                          labelKey={ o => o.timestamp }
+                          valueLabel={ v => (
+                              <Box
+                                  pad="xsmall">
+                                { toLocaleTimeStringWithoutSeconds(v) }
+                              </Box>)
+                            }
+                          children={ (v, _index, _options, mode) => (
+                              <Box
+                                  direction="row"
+                                  gap="xsmall"
+                                  align="center"
+                                  height="2.2rem"
+                                  background={ mode.disabled
+                                      ? '#dddddd'
+                                      : v.timestamp.getTime() !== timestamp?.getTime()
+                                      ? undefined
+                                      : 'brand' }
+                                  pad="xsmall">
+                                { toLocaleTimeStringWithoutSeconds(v.timestamp) }
+                                { v.driver === undefined
                                     ? undefined
-                                    : 'brand' }
-                                pad="xsmall">
-                              { toLocaleTimeStringWithoutSeconds(v.timestamp) }
-                              { v.driver === undefined
-                                  ? undefined
-                                  : <Box
-                                        direction="row"
-                                        gap="xsmall">
-                                      <UserAvatar
-                                          size='small'
-                                          border={ { color: 'dark-4', size: '1px' }}
-                                          user={ v.driver } />
-                                      <Text truncate>
-                                        { v.driver.firstName }&nbsp;
-                                        { v.driver.lastName }
-                                      </Text>
-                                    </Box>                              
-                              }
-                            </Box>)
-                          }
-                        value={ timestamp }
-                        onChange={ ({ option }) => setTimestamp(option.timestamp) } />
+                                    : <Box
+                                          direction="row"
+                                          gap="xsmall">
+                                        <UserAvatar
+                                            size='small'
+                                            border={ { color: 'dark-4', size: '1px' }}
+                                            user={ v.driver } />
+                                        <Text truncate>
+                                          { v.driver.firstName }&nbsp;
+                                          { v.driver.lastName }
+                                        </Text>
+                                      </Box>                              
+                                }
+                              </Box>)
+                            }
+                          value={ timestamp }
+                          onChange={ ({ option }) => setTimestamp(option.timestamp) } />
+                      </Box>
                     {
                       confirmation === 'stop'
                           ? <>
+                              {
+                                Boolean(reservation.kmAtStart)
+                                    ? undefined
+                                    : <>
+                                        <SubHeading>{ t('km-start-title') }:</SubHeading>
+                                        <Box
+                                            margin={ { bottom: 'small' } }>
+                                          <KmInput
+                                              km={ kmStart }
+                                              setKm={ setKmStart }
+                                              onChange={ (km) => {
+                                                    if (violations?.kmStart) delete violations!.kmStart;
+                                                  } } />
+                                          {
+                                            Boolean(violations?.kmStart)
+                                              ? <Text
+                                                    color="status-error">
+                                                  { t( `km-start_${violations!.kmStart}` ) }
+                                                </Text>
+                                              : undefined
+                                          }
+                                        </Box>
+                                      </>
+                              }
                               <SubHeading>{ t('km-title') }:</SubHeading>
-                              <KmInput
-                                  km={ km }
-                                  setKm={ setKm } />
+                              <Box
+                                  margin={ { bottom: 'small' } }>
+                                <KmInput
+                                    km={ kmEnd }
+                                    setKm={ setKmEnd }
+                                    onChange={ (km) => {
+                                          if (violations?.kmEnd) delete violations!.kmEnd;
+                                        } } />
+                                {
+                                  Boolean(violations?.kmEnd)
+                                    ? <Text
+                                          color="status-error">
+                                        { t( `km-end_${violations!.kmEnd}` ) }
+                                      </Text>
+                                    : undefined
+                                }
+                              </Box>
                               <SubHeading>{ t('comment-title') }:</SubHeading>
-                              <TextArea
-                                  value={ comment }
-                                  onChange={event => setComment(event.target.value)}
-                                  style={ { height: '7rem' } }
-                                  placeholder={ t('comment-placeholder') } />
+                              <Box
+                                  margin={ { bottom: 'small' } }>
+                                <TextArea
+                                    value={ comment }
+                                    onChange={event => setComment(event.target.value)}
+                                    style={ { height: '7rem' } }
+                                    placeholder={ t('comment-placeholder') } />
+                              </Box>
                             </>
                           : undefined
                     }
@@ -417,4 +524,4 @@ const ReservationAccordionPanel = ({
 
 };
 
-export { ReservationAccordionPanel };
+export { ReservationAccordionPanel, isUserTaskForDriver };
