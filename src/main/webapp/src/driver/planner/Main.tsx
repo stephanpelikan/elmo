@@ -3,23 +3,23 @@ import { useTranslation } from "react-i18next";
 import i18n from '../../i18n';
 import { debounceByKey } from '../../utils/debounce';
 import useResponsiveScreen from '../../utils/responsiveUtils';
-import { currentHour, nextHours, timeAsString, numberOfHoursBetween } from '../../utils/timeUtils';
+import { currentHour, nextHours, numberOfHoursBetween } from '../../utils/timeUtils';
 import { SnapScrollingDataTable } from '../../components/SnapScrollingDataTable';
-import { UserAvatar } from '../../components/UserAvatar';
 import { LoadingIndicator } from '../../components/LoadingIndicator';
 import { useCarSharingApi, usePlannerApi } from '../DriverAppContext';
-import { PlannerApi, PlannerCar, PlannerDriver, PlannerReservation, PlannerReservationType, ReservationEvent, User } from "../../client/gui";
-import React, { CSSProperties, memo, MouseEvent as ReactMouseEvent, MutableRefObject, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { PlannerApi, PlannerCar, PlannerReservation, PlannerReservationType, ReservationEvent, User } from "../../client/gui";
+import React, { memo, MouseEvent as ReactMouseEvent, MutableRefObject, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { BackgroundType, BorderType } from "grommet/utils";
 import { TFunction } from "i18next";
-import styled from "styled-components";
-import { normalizeColor,  } from "grommet/utils";
-import { Contract, DocumentTime, FormCheckmark, FormClose, FormDown, FormUp, History } from "grommet-icons";
+import { Contract, DocumentTime, History } from "grommet-icons";
 import { useAppContext } from "../../AppContext";
 import { CalendarHeader } from "../../components/CalendarHeader";
 import { useGuiSse } from '../../client/guiClient';
 import { now, registerEachSecondHook, unregisterEachSecondHook } from '../../utils/now-hook';
 import { EventSourceMessage, WakeupSseCallback } from "../../components/SseProvider";
+import { CalendarDay, CalendarHour, ReservationDrivers, Selection } from "./PlannerTypes";
+import { SelectionBox } from "./SelectionBox";
+import { CancellationBox, PlannerReservationBox } from "./PlannerReservationBox";
 
 i18n.addResources('en', 'driver/planner', {
       "title.long": 'Planner',
@@ -70,309 +70,11 @@ interface DayVersions {
   [key: string /* YYYYMMdd + '_' + car.id */]: number
 };
 
-interface ReservationDrivers {
-  [key: number /* member id */]: PlannerDriver
-};
-
-interface CalendarHours {
-  [key: string /* car id */]: Array<CalendarHour> /* hours of day */
-};
-
-interface CalendarDay {
-  startsAt: Date;
-  hours: CalendarHours;
-};
-
-interface CalendarHour {
-  index: number;
-  startsAt: Date;
-  endsAt: Date;
-  reservation: PlannerReservation | undefined;
-};
-
-interface Selection {
-  startedAtStarts: Date;
-  startedAtEnds: Date;
-  startsAt: Date;
-  endsAt: Date;
-  carId: string;
-};
-
 interface Restrictions {
   maxHours: number;
   remainingHours: number;
   allowPaidCarSharing: boolean;
 };
-
-const ButtonBox = styled(Box)`
-    position: absolute;
-    right: 5px;
-    bottom: -24px;
-  `;
-
-const DragBox = styled(Box)<{
-    top?: boolean,
-  }>`
-    position: absolute;
-    background-color: ${props => normalizeColor("brand", props.theme)};
-    ${props => !props.top ? 'left: 3.5rem' : 'right: 5px'};
-    ${props => props.top ? 'top: -16px' : 'bottom: -16px'};
-    border: solid 3px ${props => normalizeColor("accent-3", props.theme)};
-    width: 30px;
-    height: 30px;
-    border-radius: 15px;
-    display: inline-block;
-  `;
-
-const StyledSelectionBox = styled(Box)<{
-    selectionBorderRadius: CSSProperties,
-    isFirstHourOfSelection: boolean,
-    currentHour: number,
-  }>`
-    border-top-left-radius: ${props => props.selectionBorderRadius.borderTopLeftRadius};
-    border-top-right-radius: ${props => props.selectionBorderRadius.borderTopRightRadius};
-    border-bottom-left-radius: ${props => props.selectionBorderRadius.borderBottomLeftRadius};
-    border-bottom-right-radius: ${props => props.selectionBorderRadius.borderBottomRightRadius};
-    position: absolute;
-    box-sizing: content-box;
-    left: -3px;
-    top: ${props => props.isFirstHourOfSelection ? '-3px' : '0'};
-    min-height: 100%;
-    z-index: ${props => props.currentHour === 0 ? 2 : 1};
-  `;
-
-const SelectionBox = ({ hour, selection, mouseDownOnDrag, cancelSelection, acceptSelection, touchMove, touchEnd }: {
-    hour: CalendarHour,
-    selection: Selection,
-    cancelSelection: (event: ReactMouseEvent) => void,
-    acceptSelection: (event: ReactMouseEvent) => void,
-    mouseDownOnDrag: (event: ReactMouseEvent | TouchEvent, top: boolean) => void,
-    touchMove: (event: TouchEvent) => void,
-    touchEnd: (event: TouchEvent) => void,
-  }) => {
-
-    const { state } = useAppContext();
-
-    const isFirstHourOfSelection = selection.startsAt.getTime() === hour.startsAt.getTime();
-    const isLastHourOfSelection = selection.endsAt.getTime() === hour.endsAt.getTime();
-    const selectionBorderRadius: CSSProperties = {};
-    const selectionBorders: BorderType = [ {
-        color: 'accent-3',
-        style: "solid",
-        size: '3px',
-        side: 'vertical',
-      } ];
-    if (isFirstHourOfSelection) {
-      selectionBorders.push({
-          color: 'accent-3',
-          style: "solid",
-          size: '3px',
-          side: 'top',
-        });
-      selectionBorderRadius.borderTopLeftRadius = '7px';
-      selectionBorderRadius.borderTopRightRadius = '7px';
-    }
-    if (isLastHourOfSelection) {
-      selectionBorders.push({
-          color: 'accent-3',
-          style: "solid",
-          size: '3px',
-          side: 'bottom',
-        });
-      selectionBorderRadius.borderBottomLeftRadius = '7px';
-      selectionBorderRadius.borderBottomRightRadius = '7px';
-    }
-    const numberOfHours = numberOfHoursBetween(selection.startsAt, selection.endsAt);
-    const currentHour = numberOfHoursBetween(hour.startsAt, selection.startsAt);
-
-    return <StyledSelectionBox
-              selectionBorderRadius={ selectionBorderRadius }
-              isFirstHourOfSelection={ isFirstHourOfSelection }
-              background={ {
-                  color: 'brand',
-                  opacity: "medium",
-                } }
-              border={ selectionBorders }
-              currentHour={ currentHour }
-              direction="row"
-              align="center"
-              justify="between"
-              width="100%">{
-              isFirstHourOfSelection
-                  ? <>
-                      <Box
-                          style={ { position: 'relative' } }
-                          direction="row"
-                          gap="xsmall"
-                          pad={ { left: numberOfHours > 1 ? '3.5rem' : '5.5rem' } }>
-                        <Box
-                            style={ {
-                                position: 'absolute',
-                                left: '4px',
-                                top: '-50%',
-                              } }>
-                          <UserAvatar
-                              size='medium'
-                              border={ { color: 'accent-3', size: '3px' }}
-                              user={ state.currentUser! } />
-                        </Box>
-                        <Box>
-                          <Text>
-                            { numberOfHours }h
-                            {
-                              numberOfHours > 1 
-                                  ? <Text
-                                        margin='small'>{
-                                      timeAsString(selection.startsAt)
-                                    } - {
-                                      timeAsString(selection.endsAt)
-                                    }</Text>
-                                  : undefined
-                            }
-                          </Text>
-                        </Box>
-                      </Box>
-                      <DragBox
-                          id="dragbox-top"
-                          top
-                          ref={ element => {
-                              if (!element) return;
-                              element.addEventListener(
-                                  'touchstart',
-                                  event => mouseDownOnDrag(event, true),
-                                  { passive: false, capture: true });
-                              // https://stackoverflow.com/questions/56653453/why-touchmove-event-is-not-fired-after-dom-changes
-                              element.addEventListener(
-                                  'touchmove',
-                                  touchMove,
-                                  { passive: false, capture: true });
-                              element.addEventListener(
-                                  'touchend',
-                                  touchEnd,
-                                  { passive: false, capture: true });
-                            } }
-                          onMouseDownCapture={ event => mouseDownOnDrag(event, true) }>
-                        <FormUp color="white" />
-                      </DragBox>
-                    </>
-                  : <Text />
-            }{
-              isLastHourOfSelection
-                  ? <>
-                      <ButtonBox>
-                        <Box
-                            direction="row"
-                            gap="small">
-                          <Box
-                              onMouseDownCapture={ acceptSelection }
-                              round="full"
-                              overflow="hidden"
-                              border={ { color: 'accent-3', size: '3px' } }
-                              background='status-ok'>
-                            <FormCheckmark
-                                color="white"
-                                size="30rem" />
-                          </Box>
-                          <Box
-                              onMouseDownCapture={ cancelSelection }
-                              round="full"
-                              overflow="hidden"
-                              border={ { color: 'accent-3', size: '3px' } }
-                              background='status-critical'>
-                            <FormClose
-                                color="white"
-                                size="30rem" />
-                          </Box>
-                        </Box>
-                      </ButtonBox>
-                      <DragBox
-                          id="dragbox-bottom"
-                          ref={ element => {
-                              if (!element) return;
-                              element.addEventListener(
-                                  'touchstart',
-                                  event => mouseDownOnDrag(event, false),
-                                  { passive: false, capture: true });
-                              // https://stackoverflow.com/questions/56653453/why-touchmove-event-is-not-fired-after-dom-changes
-                              element.addEventListener(
-                                  'touchmove',
-                                  touchMove,
-                                  { passive: false, capture: true });
-                              element.addEventListener(
-                                  'touchend',
-                                  touchEnd,
-                                  { passive: false, capture: true });
-                            } }
-                          onMouseDownCapture={ event => mouseDownOnDrag(event, false) }>
-                        <FormDown color="white" />
-                      </DragBox>
-                    </>
-                  : <Text />
-            }
-          </StyledSelectionBox>  
-  };
-
-const CancellationBox = ({
-    carId,
-    reservation,
-    cancelReservation
-  }: {
-    carId: string,
-    reservation: PlannerReservation,
-    cancelReservation: (event: ReactMouseEvent, carId: string, reservationId: string) => void
-  }) => {
-    return <Box
-          style={ { position: 'relative' } }>
-        <Box
-            style={ { position: 'absolute', right: '2.5rem' } }
-            onMouseDownCapture={ (event) => cancelReservation(event, carId, reservation.id) }
-            round="full"
-            overflow="hidden"
-            border={ { color: 'accent-3', size: '3px' } }
-            background='status-critical'>
-          <FormClose
-              color="white"
-              size="30rem" />
-        </Box>
-      </Box>;
-  };
-
-const PlannerReservationBox = ({
-    drivers,
-    hour,
-    cancellationBox
-  }: {
-    drivers: ReservationDrivers,
-    hour: CalendarHour,
-    cancellationBox?: any,
-  }) => {
-    return (
-      <>
-        {
-          cancellationBox ? cancellationBox : undefined
-        }
-        <Box
-            pad={ {
-                horizontal: '0rem',
-                vertical: '1px'
-              } }
-            gap='xsmall'
-            direction="row">
-          <UserAvatar
-              size='small'
-              border={ { color: 'dark-4', size: '1px' }}
-              user={ drivers[ hour.reservation!.driverMemberId! ] } />
-          <Box>
-              <Text
-                  truncate>{
-                timeAsString(hour.reservation!.startsAt)
-              } - {
-                timeAsString(hour.reservation!.endsAt)
-              }</Text>
-          </Box>
-        </Box>
-      </>);
-  };
 
 const DayTable = memo<{
     t: TFunction,
@@ -404,14 +106,14 @@ const DayTable = memo<{
                 || (hour.reservation?.status === 'CANCELLED'));
             const borderColor = (hour.reservation?.driverMemberId === currentUser.memberId)
                     && !reservationIsInactive
-                ? 'accent-3'
-                : 'dark-4';
+                ? 'accent-3'  // car-sharing reservation
+                : 'dark-4';   // non car-sharing reservation
             const backgroundColor: BackgroundType | undefined = hour.reservation
                 ? (hour.reservation?.driverMemberId === currentUser.memberId)
                     && !reservationIsInactive
-                ? { color: 'accent-3', opacity: 'strong' }
-                : 'light-4'
-                : undefined;
+                ? { color: 'accent-3', opacity: 'strong' } // car-sharing reservation
+                : 'light-4'   // non car-sharing reservation
+                : undefined;  // no reservation
             const borders: BorderType = [];
             let hasTopBorder = false;
             let hasBottomBorder = false;

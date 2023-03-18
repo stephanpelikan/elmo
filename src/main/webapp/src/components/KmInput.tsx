@@ -1,5 +1,5 @@
 import { Box, MaskedInput } from 'grommet';
-import React, { ChangeEventHandler, forwardRef, useState } from 'react';
+import React, { forwardRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 

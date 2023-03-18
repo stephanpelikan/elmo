@@ -1,6 +1,6 @@
 import { User as UserDto, Sex, PlannerDriver, Member } from '../client/gui';
 import { User as UserMale, UserFemale } from 'grommet-icons';
-import { Anchor, Avatar, Box, Paragraph, Text } from 'grommet';
+import { Anchor, Avatar, Box, Text } from 'grommet';
 import { BorderType } from 'grommet/utils';
 import React, { useRef, useState } from 'react';
 import useOnClickOutside from '../utils/clickOutside';
