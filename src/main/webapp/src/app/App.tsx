@@ -261,6 +261,11 @@ const App: React.FC<AppProps> = (_props: AppProps): JSX.Element => {
                       </Box>
                     } />
                   </Routes>
+                  {
+                    state.loadingIndicator
+                        ? <LoadingIndicator />
+                        : <></>
+                  }
                 </CurrentUser>
               </Suspense>
             </Box>

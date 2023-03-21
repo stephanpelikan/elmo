@@ -10,7 +10,6 @@ import { CircleButton } from '../../components/CircleButton';
 import { MemberIdAvatar } from '../../components/MemberIdAvatar';
 import i18n from '../../i18n';
 import useResponsiveScreen from '../../utils/responsiveUtils';
-import { LoadingIndicator } from '../../components/LoadingIndicator';
 
 i18n.addResources('en', 'administration/member', {
       "edit": "edit",
@@ -85,7 +84,7 @@ const loadData = async (
 const ListOfMembers = () => {
   
   const { isPhone, isNotPhone } = useResponsiveScreen();
-  const { toast } = useAppContext();
+  const { toast, showLoadingIndicator } = useAppContext();
   const memberApi = useMemberApi();
   const { t } = useTranslation('administration/member');
   const navigate = useNavigate();
@@ -94,9 +93,15 @@ const ListOfMembers = () => {
   const [ numberOfMembers, setNumberOfMembers ] = useState(0);
   
   useEffect(() => {
-    if (members === undefined) {
-      loadData(memberApi, setNumberOfMembers, setMembers, members);
+    if (members !== undefined) {
+      return;
     }
+    const initList = async () => {
+        showLoadingIndicator(true);
+        await loadData(memberApi, setNumberOfMembers, setMembers, members);
+        showLoadingIndicator(false);
+      };
+    initList();
   }, [ memberApi, setMembers, setNumberOfMembers, members ]);
   
   const uploadRef = useRef<HTMLInputElement>(null);
@@ -267,9 +272,6 @@ const ListOfMembers = () => {
           color='brand'
           icon={<Add color='white' />}
           onClick={ newMember } />
-      {
-        members === undefined ? <LoadingIndicator /> : undefined
-      }
     </>);
 }
 

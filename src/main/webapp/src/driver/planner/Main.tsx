@@ -373,7 +373,7 @@ const loadData = async (
 const Planner = () => {
   
   const { t } = useTranslation('driver/planner');
-  const { state, toast, setAppHeaderTitle } = useAppContext();
+  const { state, toast, setAppHeaderTitle, showLoadingIndicator } = useAppContext();
   const { isPhone, isNotPhone } = useResponsiveScreen();
   
   const wakeupSseCallback = useRef<WakeupSseCallback>(undefined);
@@ -440,10 +440,15 @@ const Planner = () => {
     }, [ restrictionsRef, _setRestrictions ]);
 
   useEffect(() => {
-      if (restrictions === undefined) {
-        const endsAt = nextHours(startsAt, (24 - startsAt.getHours()) + 24, false);
-        loadData(plannerApi, dayVersionsRef, updateDayVersions, setEndDate, startsAt, endsAt, days!, setDays, drivers!, setDrivers, setRestrictions, setCars);
-      }
+      const initPlanner = async () => {
+          if (restrictions === undefined) {
+            showLoadingIndicator(true);
+            const endsAt = nextHours(startsAt, (24 - startsAt.getHours()) + 24, false);
+            await loadData(plannerApi, dayVersionsRef, updateDayVersions, setEndDate, startsAt, endsAt, days!, setDays, drivers!, setDrivers, setRestrictions, setCars);
+            showLoadingIndicator(false);
+          }
+        };
+      initPlanner();
     }, [ plannerApi, days, restrictions, setRestrictions, drivers, startsAt ]);
   
   useEffect(() => {
@@ -466,14 +471,6 @@ const Planner = () => {
       _setSelection(s);
       setUseSearch(false);
     }, [ _setSelection, selection, setUseSearch ]);
-    
-  const [ waitingForUpdate, _setWaitingForUpdate ] = useState(false);
-  const waitingForUpdateRef = useRef(waitingForUpdate);
-  const setWaitingForUpdate = (w: boolean) => {
-      if (w === waitingForUpdateRef.current) return;
-      waitingForUpdateRef.current = w;
-      _setWaitingForUpdate(w);
-    }
   
   const mouseDownOnDrag = useCallback((event: ReactMouseEvent | TouchEvent, top: boolean) => {
       if (isMouseDown.current) return;
@@ -694,7 +691,7 @@ const Planner = () => {
       event.stopPropagation();
       const addPlannerReservation = async () => {
           try {
-            setWaitingForUpdate(true);
+            showLoadingIndicator(true);
             await carSharingApi.addCarSharingReservation({
                 carId: selection.current!.carId,
                 addPlannerReservation: {
@@ -706,7 +703,7 @@ const Planner = () => {
               });
             // selection will be cancelled by server-sent update
           } catch (error) {
-            setWaitingForUpdate(false);
+            showLoadingIndicator(false);
             // CONFLICT means there is another reservation
             if (error.response?.status === 409) {
               toast({
@@ -740,7 +737,7 @@ const Planner = () => {
       event.stopPropagation();
       const removePlannerReservation = async () => {
           try {
-            setWaitingForUpdate(true);
+            showLoadingIndicator(true);
             await carSharingApi.cancelCarSharingReservation({
                 carId,
                 reservationId,
@@ -748,7 +745,7 @@ const Planner = () => {
             // selection will be cancelled by server-sent update
           } catch (error) {
             console.log(error);
-            setWaitingForUpdate(false);
+            showLoadingIndicator(false);
           } 
         };
       removePlannerReservation();
@@ -776,7 +773,7 @@ const Planner = () => {
             `Reservation#${updateStartsAt.toString()}-${updateEndsAt.toString()}`,
             async () => {
                 await loadData(plannerApi, dayVersionsRef, updateDayVersions, setEndDate, updateStartsAt, updateEndsAt, daysRef.current!, setDays, driversRef.current!, setDrivers, setRestrictions);
-                setWaitingForUpdate(false);
+                showLoadingIndicator(false);
               }
           );
         
@@ -961,11 +958,6 @@ const Planner = () => {
             onMore={ loadMore }
             data={ days }
             replace={ true } />
-        {
-          waitingForUpdate || (days === undefined)
-              ? <LoadingIndicator />
-              : undefined
-        }
       </Box>);
       
 };

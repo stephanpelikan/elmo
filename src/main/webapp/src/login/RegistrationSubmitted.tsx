@@ -6,7 +6,6 @@ import { MemberApplicationForm, OnboardingApi, UserStatus } from '../client/gui'
 import React, { useEffect, useState } from 'react';
 import { parseLocalDate } from '../utils/timeUtils';
 import { Emoji, Halt } from 'grommet-icons';
-import { LoadingIndicator } from '../components/LoadingIndicator';
 import { MainLayout, Heading, Content } from '../components/MainLayout';
 
 i18n.addResources('en', 'login/registration/submitted', {
@@ -81,17 +80,22 @@ const loadData = async (
 };
 
 const RegistrationSubmitted = () => {
-  const { state, memberApplicationFormRevoked } = useAppContext();
+  const { state, memberApplicationFormRevoked, showLoadingIndicator } = useAppContext();
 
   const onboardingApi = useOnboardingGuiApi();
   
   const [ memberApplicationForm, setMemberApplicationForm ] = useState<MemberApplicationForm | undefined>(undefined);
 
-  const loading = memberApplicationForm === undefined;
   useEffect(() => {
-      if (memberApplicationForm === undefined) { 
-        loadData(onboardingApi, setMemberApplicationForm);
-      };
+      if (memberApplicationForm !== undefined) {
+        return;
+      }
+      const initRegistrationSubmitted = async () => { 
+          showLoadingIndicator(true);
+          await loadData(onboardingApi, setMemberApplicationForm);
+          showLoadingIndicator(false);
+        };
+      initRegistrationSubmitted();
     }, [ memberApplicationForm, onboardingApi, setMemberApplicationForm ]);
     
   const takeOver = async () => {
@@ -105,8 +109,8 @@ const RegistrationSubmitted = () => {
 
   const { t } = useTranslation('login/registration/submitted');
   
-  if (loading) {
-    return <LoadingIndicator />
+  if (memberApplicationForm === undefined) {
+    return <></>;
   }
   
   if (state.currentUser!.status ===  UserStatus.Rejected) {

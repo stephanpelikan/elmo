@@ -9,7 +9,6 @@ import { Car, CarApi } from "../../client/administration";
 import i18n from '../../i18n';
 import { useCarAdministrationApi } from "../AdminAppContext";
 import useResponsiveScreen from '../../utils/responsiveUtils';
-import { LoadingIndicator } from '../../components/LoadingIndicator';
 import { MainLayout, Heading } from "../../components/MainLayout";
 import { CodeButton } from "../../components/CodeButton";
 import { Modal } from "../../components/Modal";
@@ -102,7 +101,7 @@ const loadData = async (carApi: CarApi, carId: string, setCar: (car: Car) => voi
 const Details = () => {
   
   const { isPhone } = useResponsiveScreen();
-  const { toast } = useAppContext();
+  const { toast, showLoadingIndicator } = useAppContext();
   const carApi = useCarAdministrationApi();
   const { t } = useTranslation('administration/car-details');
   const navigate = useNavigate();
@@ -113,22 +112,24 @@ const Details = () => {
   const [ violations, setViolations ] = useState<any>({});
   const [ car, setCar ] = useState<Car | undefined>(undefined);
 
-  const loading = car === undefined;
-
   const [ activationCode, setActivationCode ] = useState<string | undefined>(undefined);
   
   const activateApp = async () => {
+    showLoadingIndicator(true);
     const code = await carApi.activateCarApp({ carId: car!.id! });
     setActivationCode(code);
     const updatedCar = await carApi.getCar({ carId: car!.id! });
     setCar(updatedCar);
+    showLoadingIndicator(false);
   };
 
   const deactivateApp = async () => {
+    showLoadingIndicator(true);
     await carApi.deactivateCarApp({ carId: car!.id! });
     setActivationCode(undefined);
     const updatedCar = await carApi.getCar({ carId: car!.id! });
     setCar(updatedCar);
+    showLoadingIndicator(false);
   };
   
   const dismissQrCode = () => {
@@ -138,7 +139,7 @@ const Details = () => {
   const testSms = async () => {
     
     try {
-      
+      showLoadingIndicator(true);
       await carApi.sendTestSms({
           carId: car!.id!,
           testTextMessage: {
@@ -165,6 +166,8 @@ const Details = () => {
           status: 'critical'
         });
       
+    } finally {
+      showLoadingIndicator(false);
     }
     
   };
@@ -173,6 +176,7 @@ const Details = () => {
 
     try {
       
+      showLoadingIndicator(true);
       const carId = await carApi.saveCar({ carId: params.carId!, car });
       if (carId !== params.carId) {
         navigate(`../${carId}`, { replace: true })
@@ -190,6 +194,8 @@ const Details = () => {
         setViolations(await error.response.json());
       }
       
+    } finally {
+      showLoadingIndicator(false);
     }
     
   };
@@ -197,25 +203,26 @@ const Details = () => {
   const deleteCar = async () => {
 
     try {
-      
+      showLoadingIndicator(true);
       await carApi.deleteCar({ carId: params.carId! });
       navigate('../');
-      
     } catch (error) {
-
       toast({
           namespace: 'administration/car-details',
           title: t('not-deleted_title'),
           message: t('not-deleted_message'),
           status: 'normal'
         });
-      
+    } finally {
+      showLoadingIndicator(false);
     }
     
   };
   
   const reset = async () => {
+    showLoadingIndicator(true);
     await loadData(carApi, params.carId!, setCar);
+    showLoadingIndicator(false);
     setDirty(false);
   };
   
@@ -235,7 +242,12 @@ const Details = () => {
         });
         return;
       }
-      loadData(carApi, params.carId!, setCar);
+      const initDetails = async () => {
+          showLoadingIndicator(true);
+          await loadData(carApi, params.carId!, setCar);
+          showLoadingIndicator(false);
+        };
+      initDetails();
     }, [ isNewCar, car, params.carId, setCar, carApi ]);
     
   const setCarValue = (data: any) => {
@@ -243,8 +255,8 @@ const Details = () => {
     setDirty(true);
   };
 
-  if (loading) {
-    return <LoadingIndicator />;
+  if (car === undefined) {
+    return <></>;
   }
   
   return (

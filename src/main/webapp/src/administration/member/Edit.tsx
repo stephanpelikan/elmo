@@ -144,7 +144,7 @@ const loadData = async (
 
 const EditMember = () => {
 
-  const { toast } = useAppContext();
+  const { toast, showLoadingIndicator } = useAppContext();
   const { isPhone } = useResponsiveScreen();
   const { t } = useTranslation('administration/member-details');
   const navigate = useNavigate();
@@ -161,13 +161,20 @@ const EditMember = () => {
       memberId: memberId,
     } as Member : undefined);
   const [ violations, setViolations ] = useState({});
+  
   const loading = !Boolean(formValue);
   
   useEffect(() => {
-    if (formValue === undefined) {
-      setFormValue(null);
-      loadData(memberApi, setFormValue, memberId);
+    if (formValue !== undefined) {
+      return;
     }
+    const initForm = async () => {
+        showLoadingIndicator(true);
+        setFormValue(null);
+        await loadData(memberApi, setFormValue, memberId);
+        showLoadingIndicator(false);
+      };
+    initForm();
   }, [ formValue, memberApi, setFormValue, memberId ]);
   
   const setSex = (sex: Sex) => {
@@ -207,6 +214,7 @@ const EditMember = () => {
   
   const saveMemberAndActivate = async () => {
     try {
+      showLoadingIndicator(true);
       const newFormValue = await memberApi.saveMember({
           memberId,
           member: {
@@ -225,11 +233,14 @@ const EditMember = () => {
       if (error.response?.json) {
         setViolations(await error.response.json());
       }
+    } finally {
+      showLoadingIndicator(false);
     }
   };
 
   const saveMember = async () => {
     try {
+      showLoadingIndicator(true);
       const newFormValue = await memberApi.saveMember({
           memberId,
           member: {
@@ -238,6 +249,7 @@ const EditMember = () => {
           },
         });
       setFormValue(newFormValue);
+      showLoadingIndicator(false);
       toast({
           namespace: 'administration/member-details',
           title: t('member-saved_title'),
@@ -245,6 +257,7 @@ const EditMember = () => {
           status: 'normal'
         });
     } catch (error) {
+      showLoadingIndicator(false);
       if (error.response?.json) {
         setViolations(await error.response.json());
       }
@@ -484,9 +497,6 @@ const EditMember = () => {
         <SubHeading>{ t('delete_question') }</SubHeading>
         <Paragraph><i>{ t('delete_hint_header') }</i> { t('delete_hint') }</Paragraph>
       </Modal>
-      {
-        loading ? <LoadingIndicator /> : undefined
-      }
     </MainLayout>);
     
 }

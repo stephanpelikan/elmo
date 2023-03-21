@@ -15,7 +15,6 @@ import { Copy } from "grommet-icons";
 import { useOnboardingAdministrationApi, useMemberApi } from '../AdminAppContext';
 import { parseLocalDate, toLocalDateString } from '../../utils/timeUtils';
 import useResponsiveScreen from '../../utils/responsiveUtils';
-import { LoadingIndicator } from "../../components/LoadingIndicator";
 import { Content, MainLayout, Heading } from "../../components/MainLayout";
 
 i18n.addResources('en', 'administration/onboarding/review', {
@@ -220,7 +219,7 @@ const theme: ThemeType = deepMerge(appTheme, {
 const ReviewForm = () => {
   
   const { isPhone } = useResponsiveScreen();
-  const { toast } = useAppContext();
+  const { toast, showLoadingIndicator } = useAppContext();
   const onboardingApi = useOnboardingAdministrationApi();
   const memberApi = useMemberApi();
   const navigate = useNavigate();
@@ -231,10 +230,17 @@ const ReviewForm = () => {
   const [ violations, setViolations ] = useState<Record<string, string>>({});
   
   const loading = formValue === undefined;
+  
   useEffect(() => {
-      if (formValue === undefined) { 
-        loadData(onboardingApi, setFormValue, params.applicationId!);
-      };
+      if (formValue !== undefined) {
+        return;
+      }
+      const initReviewForm = async () => {
+          showLoadingIndicator(true);
+          await loadData(onboardingApi, setFormValue, params.applicationId!);
+          showLoadingIndicator(false);
+        };
+      initReviewForm();
     }, [ formValue, onboardingApi, setFormValue, params.applicationId ]);
 
   const setBirthdate = (dateInput: string|Date) => {
@@ -609,9 +615,6 @@ const ReviewForm = () => {
         </Form>
         </ThemeContext.Extend>
       </Content>
-      {
-        loading ? <LoadingIndicator /> : undefined
-      }
     </MainLayout>
   );
 };

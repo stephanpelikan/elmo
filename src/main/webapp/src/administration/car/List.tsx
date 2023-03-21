@@ -8,7 +8,7 @@ import { CircleButton } from '../../components/CircleButton';
 import i18n from '../../i18n';
 import { Car, CarApi } from '../../client/administration';
 import useResponsiveScreen from '../../utils/responsiveUtils';
-import { LoadingIndicator } from '../../components/LoadingIndicator';
+import { useAppContext } from '../../AppContext';
 
 i18n.addResources('en', 'administration/car', {
       "edit": "edit",
@@ -60,6 +60,7 @@ const loadData = async (
 const ListOfCars = () => {
   
   const { isPhone } = useResponsiveScreen();
+  const { showLoadingIndicator } = useAppContext();
   const carAdministrationApi = useCarAdministrationApi();
   const { t } = useTranslation('administration/car');
   const navigate = useNavigate();
@@ -68,9 +69,15 @@ const ListOfCars = () => {
   const [ numberOfCars, setNumberOfCars ] = useState(0);
   
   useEffect(() => {
-    if (cars === undefined) {
-      loadData(carAdministrationApi, setNumberOfCars, setCars, cars);
+    if (cars !== undefined) {
+      return;
     }
+    const initList = async () => {
+        showLoadingIndicator(true);
+        await loadData(carAdministrationApi, setNumberOfCars, setCars, cars);
+        showLoadingIndicator(false);
+      };
+    initList();
   }, [ carAdministrationApi, setCars, setNumberOfCars, cars ]);
   
   const onEdit = async (car: Car) => {
@@ -162,9 +169,6 @@ const ListOfCars = () => {
           color='brand'
           icon={<Add color='white' />}
           onClick={ newCar } />
-      {
-        cars === undefined ? <LoadingIndicator /> : undefined
-      }
     </>);
 }
 

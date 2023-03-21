@@ -9,6 +9,7 @@ type Action =
     | { type: 'memberApplicationFormSubmitted' }
     | { type: 'memberApplicationFormRevoked' }
     | { type: 'showMenu', visibility: boolean }
+    | { type: 'loadingIndicator', show: boolean }
     | { type: 'toast', toast: Toast | undefined }
     | { type: 'updateTitle', title: string, intern?: boolean };
 export type Dispatch = (action: Action) => void;
@@ -26,6 +27,7 @@ type State = {
   title: string;
   intern: boolean;
   toast: Toast | undefined;
+  loadingIndicator: boolean;
 };
 
 const AppContext = React.createContext<{
@@ -42,6 +44,7 @@ const AppContext = React.createContext<{
   setAppHeaderTitle: (title: string, intern?: boolean) => void;
   memberApplicationFormSubmitted: () => void;
   memberApplicationFormRevoked: () => void;
+  showLoadingIndicator: (show: boolean) => void;
 } | undefined>(undefined);
 
 const appContextReducer: React.Reducer<State, Action> = (state, action) => {
@@ -81,6 +84,13 @@ const appContextReducer: React.Reducer<State, Action> = (state, action) => {
     newState = {
       ...state,
       showMenu: action.visibility,
+    };
+    break;
+  }
+  case 'loadingIndicator': {
+    newState = {
+      ...state,
+      loadingIndicator: action.show,
     };
     break;
   }
@@ -140,6 +150,7 @@ const AppContextProvider = ({ children }: AppContextProviderProps) => {
     title: 'app',
     toast: undefined,
     intern: false,
+    loadingIndicator: false,
   });
 
   const loginApi = useMemo(() => getLoginGuiApi(dispatch), [ dispatch ]);
@@ -158,6 +169,8 @@ const AppContextProvider = ({ children }: AppContextProviderProps) => {
       [ dispatch ]);
   const memberApplicationFormRevoked = useCallback(() => doMemberApplicationFormRevoked(dispatch),
       [ dispatch ]);
+  const showLoadingIndicator = useCallback((show: boolean) => setLoadingIndicator(dispatch, show),
+      [ dispatch ]);
   const value = {
     state,
     dispatch,
@@ -168,6 +181,7 @@ const AppContextProvider = ({ children }: AppContextProviderProps) => {
     fetchAppInformation,
     fetchCurrentUser,
     showMenu,
+    showLoadingIndicator,
     setAppHeaderTitle,
     memberApplicationFormSubmitted,
     memberApplicationFormRevoked,
@@ -223,6 +237,10 @@ const doMemberApplicationFormRevoked = (dispatch: Dispatch) => {
 
 const setShowMenu = (dispatch: Dispatch, visibility: boolean) => {
   dispatch({ type: 'showMenu', visibility });
+}
+
+const setLoadingIndicator = (dispatch: Dispatch, show: boolean) => {
+  dispatch({ type: 'loadingIndicator', show });
 }
 
 const updateTitle = (dispatch: Dispatch, title: string, intern?: boolean) => {

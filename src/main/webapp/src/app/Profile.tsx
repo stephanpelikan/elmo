@@ -11,7 +11,6 @@ import { CoatCheck, Contact, FormEdit, Home, User } from 'grommet-icons';
 import useResponsiveScreen from '../utils/responsiveUtils';
 import { Member, MemberApi } from '../client/gui';
 import { parseLocalDate } from '../utils/timeUtils';
-import { LoadingIndicator } from '../components/LoadingIndicator';
 import { CodeButton } from "../components/CodeButton";
 
 i18n.addResources('en', 'passanger/profile', {
@@ -116,7 +115,7 @@ const loadMember = async (memberApi: MemberApi, memberId: number, setMember: (me
 
 const Profile = () => {
   
-  const { setAppHeaderTitle } = useAppContext();
+  const { setAppHeaderTitle, showLoadingIndicator } = useAppContext();
   const { isPhone, isNotPhone } = useResponsiveScreen();
   const { t } = useTranslation('passanger/profile');
   const { state, toast, fetchCurrentUser } = useAppContext();
@@ -161,6 +160,7 @@ const Profile = () => {
     try {
       /* convert base64-url into Blob: */
       setSending(true);
+      showLoadingIndicator(true);
       const fetchBasedConverter = await fetch(uploadedAvatar!);
       const uploadedAvatarBlob = await fetchBasedConverter.blob();
       // upload Blob
@@ -177,6 +177,7 @@ const Profile = () => {
       console.log(e);
     } finally {
       setSending(false);
+      showLoadingIndicator(false);
     }
   };
   
@@ -613,11 +614,6 @@ const Profile = () => {
         </Anchor>
       </Content>
     </MainLayout>
-    {
-      sending
-          ? <LoadingIndicator />
-          : undefined
-    }
   </>);
 };
 
