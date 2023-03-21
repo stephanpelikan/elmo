@@ -5,11 +5,15 @@ import at.elmo.car.CarService;
 import at.elmo.gui.api.v1.PlannerApi;
 import at.elmo.gui.api.v1.PlannerCalendar;
 import at.elmo.gui.api.v1.PlannerCalendarRequest;
+import at.elmo.member.Role;
+import at.elmo.reservation.DriverBasedReservation;
 import at.elmo.reservation.ReservationService;
-import at.elmo.reservation.carsharing.CarSharing;
 import at.elmo.reservation.carsharing.CarSharingProperties;
+import at.elmo.reservation.passangerservice.shift.ShiftService;
+import at.elmo.reservation.passangerservice.shift.exceptions.UnknownShiftException;
 import at.elmo.util.UserContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,7 +42,62 @@ public class GuiApiController implements PlannerApi {
     
     @Autowired
     private UserContext userContext;
+    
+    @Autowired
+    private ShiftService shiftService;
 
+    @Override
+    public ResponseEntity<Void> claimShift(
+            final String shiftId) {
+        
+        final var driver = userContext
+                .getLoggedInMember();
+        if (!driver.hasRole(Role.DRIVER)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        
+        try {
+            
+            final var claimed = shiftService
+                    .claimShift(shiftId, driver);
+            if (claimed) {
+                return ResponseEntity.ok().build();
+            }
+            
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        
+        } catch (UnknownShiftException e) {
+            return ResponseEntity.notFound().build();
+        }
+
+    }
+    
+    @Override
+    public ResponseEntity<Void> unclaimShift(
+            final String shiftId) {
+        
+        final var driver = userContext
+                .getLoggedInMember();
+        if (!driver.hasRole(Role.DRIVER)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        
+        try {
+            
+            final var unclaimed = shiftService
+                    .unclaimShift(shiftId, driver);
+            if (unclaimed) {
+                return ResponseEntity.ok().build();
+            }
+            
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        
+        } catch (UnknownShiftException e) {
+            return ResponseEntity.notFound().build();
+        }
+
+    }
+    
     @Override
     public ResponseEntity<PlannerCalendar> getPlannerCalendar(
             final PlannerCalendarRequest request) {
@@ -69,8 +128,9 @@ public class GuiApiController implements PlannerApi {
             .peek(r -> carReservations
                     .get(r.getCar().getId())
                     .addReservationsItem(mapper.toApi(r)))
-            .filter(r -> (r instanceof CarSharing))
-            .map(r -> ((CarSharing) r).getDriver())
+            .filter(r -> r instanceof DriverBasedReservation)
+            .map(r ->  ((DriverBasedReservation) r).getDriver())
+            .filter(driver -> driver != null)
             .collect(Collectors.toSet());
 
         final var driver = userContext.getLoggedInMember();

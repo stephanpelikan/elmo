@@ -95,7 +95,7 @@ const UserAvatar = ({
                       weight="bold">{ user.memberId }</Text>
                   <Content>
                     <Text truncate="tip">
-                      { user.firstName } { user.lastName }
+                      { showDetails.firstName } { showDetails.lastName }
                     </Text>
                     <Anchor
                         href={ `tel:${ showDetails.phoneNumber }` }>

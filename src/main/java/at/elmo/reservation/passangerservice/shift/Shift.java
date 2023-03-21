@@ -1,6 +1,7 @@
 package at.elmo.reservation.passangerservice.shift;
 
 import at.elmo.member.Member;
+import at.elmo.reservation.DriverBasedReservation;
 import at.elmo.reservation.ReservationBase;
 
 import javax.persistence.DiscriminatorValue;
@@ -10,7 +11,7 @@ import javax.persistence.ManyToOne;
 
 @Entity
 @DiscriminatorValue(Shift.TYPE)
-public class Shift extends ReservationBase {
+public class Shift extends ReservationBase implements DriverBasedReservation {
     
     public static final String TYPE = "S";
 
@@ -20,6 +21,7 @@ public class Shift extends ReservationBase {
 
     //TODO add rides to this table later
 
+    @Override
     public Member getDriver() {
         return driver;
     }

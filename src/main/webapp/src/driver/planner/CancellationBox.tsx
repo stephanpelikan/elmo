@@ -15,7 +15,11 @@ const CancellationBox = ({
     return <Box
           style={ { position: 'relative' } }>
         <Box
-            style={ { position: 'absolute', right: '2.5rem' } }
+            style={ {
+                position: 'absolute',
+                right: '2.5rem',
+                top: '-0.15rem'
+              } }
             onMouseDownCapture={ (event) => cancelReservation(event, carId, reservation.id) }
             round="full"
             overflow="hidden"

@@ -1,11 +1,19 @@
 package at.elmo.reservation.passangerservice.shift;
 
 import at.elmo.car.Car;
+import at.elmo.config.db.DbNotification;
+import at.elmo.member.Member;
+import at.elmo.reservation.ReservationBase;
+import at.elmo.reservation.ReservationNotification;
 import at.elmo.reservation.ReservationService;
+import at.elmo.reservation.passangerservice.shift.exceptions.UnknownShiftException;
 import io.vanillabp.spi.process.ProcessService;
 import io.vanillabp.spi.service.BpmnProcess;
 import io.vanillabp.spi.service.WorkflowService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +32,9 @@ import java.util.stream.Collectors;
 public class ShiftService {
 
     @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
+
+    @Autowired
     private ShiftRepository shifts;
 
     @Autowired
@@ -31,6 +42,72 @@ public class ShiftService {
 
     @Autowired
     private ProcessService<Shift> processService;
+
+    @Async
+    @EventListener(
+            classes = ReservationNotification.class,
+            condition = "#notification.reservationType == '" + Shift.TYPE + "'")
+    public void processShiftUpdates(
+            final ReservationNotification notification) throws Exception {
+        
+        applicationEventPublisher
+                .publishEvent(new ShiftChangedNotification(
+                        notification.getType(),
+                        notification.getId()));
+        
+    }
+
+    public boolean claimShift(
+            final String shiftId,
+            final Member driver) throws UnknownShiftException {
+        
+        final var shiftFound = shifts.findById(shiftId);
+        if (shiftFound.isEmpty()) {
+            throw new UnknownShiftException();
+        }
+        
+        final var shift = shiftFound.get();
+        
+        if (shift.isCancelled()) {
+            throw new UnknownShiftException();
+        }
+        final var currentDriver = shift.getDriver();
+        if ((currentDriver != null)
+                && !currentDriver.equals(driver)) {
+            return false;
+        }
+        
+        shift.setDriver(driver);
+        
+        return true;
+        
+    }
+
+    public boolean unclaimShift(
+            final String shiftId,
+            final Member driver) throws UnknownShiftException {
+        
+        final var shiftFound = shifts.findById(shiftId);
+        if (shiftFound.isEmpty()) {
+            throw new UnknownShiftException();
+        }
+        
+        final var shift = shiftFound.get();
+        
+        if (shift.isCancelled()) {
+            throw new UnknownShiftException();
+        }
+        final var currentDriver = shift.getDriver();
+        if ((currentDriver == null)
+                || !currentDriver.equals(driver)) {
+            return false;
+        }
+        
+        shift.setDriver(null);
+        
+        return true;
+        
+    }
 
     public List<Shift> getShifts(){
         return shifts.findAll();

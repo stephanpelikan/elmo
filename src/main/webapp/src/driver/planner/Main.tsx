@@ -5,7 +5,6 @@ import { debounceByKey } from '../../utils/debounce';
 import useResponsiveScreen from '../../utils/responsiveUtils';
 import { currentHour, nextHours, numberOfHoursBetween } from '../../utils/timeUtils';
 import { SnapScrollingDataTable } from '../../components/SnapScrollingDataTable';
-import { LoadingIndicator } from '../../components/LoadingIndicator';
 import { useCarSharingApi, usePlannerApi } from '../DriverAppContext';
 import { PlannerApi, PlannerCar, PlannerReservation, PlannerReservationType, ReservationEvent } from "../../client/gui";
 import React, { memo, MouseEvent as ReactMouseEvent, MutableRefObject, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -14,8 +13,8 @@ import { useAppContext } from "../../AppContext";
 import { CalendarHeader } from "../../components/CalendarHeader";
 import { useGuiSse } from '../../client/guiClient';
 import { now, registerEachSecondHook, unregisterEachSecondHook } from '../../utils/now-hook';
-import { EventSourceMessage, WakeupSseCallback } from "../../components/SseProvider";
-import { CalendarDay, CalendarHour, ReservationDrivers, Selection } from "./utils";
+import { EventSourceMessage } from "../../components/SseProvider";
+import { CalendarDay, CalendarHour, ReservationDrivers, Selection, useWakeupSseCallback } from "./utils";
 import { SelectionBox } from "./SelectionBox";
 import { CarSharingBox } from "./CarSharingBox";
 import { BlockBox } from "./BlockBox";
@@ -192,6 +191,7 @@ const DayTable = memo<{
                               hour={ hour }
                               isFirstHourOfReservation={ isFirstHourOfReservation }
                               isLastHourOfReservation={ isLastHourOfReservation }
+                              drivers={ drivers }
                             />
                         : undefined // add new reservation types here
                     }
@@ -376,7 +376,7 @@ const Planner = () => {
   const { state, toast, setAppHeaderTitle, showLoadingIndicator } = useAppContext();
   const { isPhone, isNotPhone } = useResponsiveScreen();
   
-  const wakeupSseCallback = useRef<WakeupSseCallback>(undefined);
+  const wakeupSseCallback = useWakeupSseCallback();
   const carSharingApi = useCarSharingApi(wakeupSseCallback);
   const plannerApi = usePlannerApi(wakeupSseCallback);
 
@@ -446,10 +446,11 @@ const Planner = () => {
             const endsAt = nextHours(startsAt, (24 - startsAt.getHours()) + 24, false);
             await loadData(plannerApi, dayVersionsRef, updateDayVersions, setEndDate, startsAt, endsAt, days!, setDays, drivers!, setDrivers, setRestrictions, setCars);
             showLoadingIndicator(false);
+            setTimeout(() => setUseSearch(false), 1000);
           }
         };
       initPlanner();
-    }, [ plannerApi, days, restrictions, setRestrictions, drivers, startsAt ]);
+    }, [ plannerApi, days, restrictions, setRestrictions, drivers, startsAt, showLoadingIndicator ]);
   
   useEffect(() => {
       const rerenderPastHoursHook = (lastNow: Date) => {
@@ -730,7 +731,7 @@ const Planner = () => {
           } 
         };
       addPlannerReservation();
-    }, [ carSharingApi, t, toast, selection, state.currentUser ]);
+    }, [ carSharingApi, t, toast, selection, state.currentUser, showLoadingIndicator ]);
   
   const cancelReservation = useCallback((event: ReactMouseEvent, carId: string, reservationId: string) => {
       event.preventDefault();
@@ -749,7 +750,7 @@ const Planner = () => {
           } 
         };
       removePlannerReservation();
-    }, [ carSharingApi ]);
+    }, [ carSharingApi, showLoadingIndicator ]);
   
   useEffect(() => {
       window.addEventListener('mouseup', mouseUp);
@@ -798,7 +799,7 @@ const Planner = () => {
           setSelection(undefined);
         }
       },
-    [ plannerApi, setRestrictions, setSelection, state.currentUser, t, toast ]);
+    [ plannerApi, setRestrictions, setSelection, state.currentUser, t, toast, showLoadingIndicator ]);
     
   wakeupSseCallback.current = useGuiSse<ReservationEvent>(
       updateReservations,

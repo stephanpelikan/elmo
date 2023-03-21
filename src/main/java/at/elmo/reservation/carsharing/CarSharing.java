@@ -1,6 +1,7 @@
 package at.elmo.reservation.carsharing;
 
 import at.elmo.member.Member;
+import at.elmo.reservation.DriverBasedReservation;
 import at.elmo.reservation.ReservationBase;
 
 import java.time.LocalDateTime;
@@ -17,7 +18,7 @@ import javax.persistence.ManyToOne;
 
 @Entity
 @DiscriminatorValue(CarSharing.TYPE)
-public class CarSharing extends ReservationBase {
+public class CarSharing extends ReservationBase implements DriverBasedReservation {
 
     public static final String TYPE = "CS";
     
@@ -57,6 +58,7 @@ public class CarSharing extends ReservationBase {
     @Column(name = "END_KM")
     private Integer kmAtEnd;
 
+    @Override
     public Member getDriver() {
         return driver;
     }

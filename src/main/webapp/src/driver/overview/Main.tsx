@@ -1,13 +1,15 @@
 import { Box, Text } from 'grommet';
 import { Cycle, MapLocation } from 'grommet-icons';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ShiftOverview, ShiftOverviewWeek } from '../../client/gui';
+import { ShiftEvent, ShiftOverview, ShiftOverviewWeek } from '../../client/gui';
 import useResponsiveScreen from '../../utils/responsiveUtils';
 import { usePassangerServiceGuiApi } from '../../AppContext';
 import { Day } from './Day';
 import i18n from '../../i18n';
 import { Heading } from '../../components/MainLayout';
+import { useGuiSse } from '../../client/guiClient';
+import { EventSourceMessage } from '../../components/SseProvider';
 
 i18n.addResources('en', 'driver/overview', {
       "title": "Overview Passanger-Service",
@@ -67,6 +69,18 @@ const Overview = () => {
   const { isPhone } = useResponsiveScreen();
   const passangerServiceApi = usePassangerServiceGuiApi();
   
+  const updateOverview = useMemo(
+    () => async (ev: EventSourceMessage<ShiftEvent>) =>
+      {
+        const loadedOverview = await passangerServiceApi.getShiftOverview();
+        setOverview(loadedOverview);
+      },
+      [ passangerServiceApi ]);
+  useGuiSse<ShiftEvent>(
+      updateOverview,
+      /^Shift$/
+    );
+    
   const [ overview, setOverview ] = useState<ShiftOverview | undefined>(undefined);
   useEffect(() => {
       const loadOverview = async () => {

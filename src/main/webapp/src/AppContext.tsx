@@ -171,6 +171,7 @@ const AppContextProvider = ({ children }: AppContextProviderProps) => {
       [ dispatch ]);
   const showLoadingIndicator = useCallback((show: boolean) => setLoadingIndicator(dispatch, show),
       [ dispatch ]);
+
   const value = {
     state,
     dispatch,

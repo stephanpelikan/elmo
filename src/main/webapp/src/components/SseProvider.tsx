@@ -13,6 +13,17 @@ export interface EventSourceMessage<T> {
     retry?: number;
 }
 
+/**
+ * If SSE connection is lost (e.g. due to unreliable mobile network)
+ * then reconnect is retried every 15 seconds. In case of having
+ * a successful REST-call during that period, a SSE potientially
+ * caused by this REST-call would be lost. To avoid this situation
+ * the wakeup-callback can be used by REST-clients to trigger
+ * SSE reconnect immediatly instead of waiting to the end of the
+ * 15 seconds period. If network is available the SSE connection
+ * will be established before doing the REST-call and therefore
+ * any potentially triggered SSE can be received and processed.
+ */
 export type WakeupSseCallback = (() => void) | undefined;
 
 export type OnMessageFunction<T> = (ev: EventSourceMessage<T>) => void;

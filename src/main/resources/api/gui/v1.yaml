@@ -304,6 +304,44 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PlannerCalendar'
+  /gui/planner/shift/{shiftId}/claim:
+    patch:
+      tags:
+        - planner
+      summary: Claim a shift as a driver
+      operationId: claimShift
+      parameters:
+        - in: path
+          name: shiftId
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Claiming accepted
+        404:
+          description: Shift not found
+        409:
+          description: Shift claimed by someone else
+  /gui/planner/shift/{shiftId}/unclaim:
+    patch:
+      tags:
+        - planner
+      summary: Unclaim a shift as a driver
+      operationId: unclaimShift
+      parameters:
+        - in: path
+          name: shiftId
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Unclaiming accepted
+        404:
+          description: Shift not found
+        409:
+          description: Shift claimed by someone else
   /gui/passanger-service/shift-overview:
     get:
       tags:
@@ -829,6 +867,16 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ShiftOverviewWeek'
+    ShiftEvent:
+      type: object
+      required:
+        - id
+        - type
+      properties:
+        type:
+          type: string
+        id:
+          type: string
     ReservationEvent:
       type: object
       required:

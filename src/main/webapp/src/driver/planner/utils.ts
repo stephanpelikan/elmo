@@ -1,4 +1,6 @@
 import { PlannerDriver, PlannerReservation } from "client/gui";
+import { WakeupSseCallback } from "components/SseProvider";
+import React, { MutableRefObject, useContext } from "react";
 
 interface CalendarHours {
   [key: string /* car id */]: Array<CalendarHour> /* hours of day */
@@ -33,5 +35,13 @@ export type {
   CalendarHour,
   CalendarHours,
   Selection,
-  ReservationDrivers
+  ReservationDrivers,  
+};
+
+const WakeupSseCallbackContext = React.createContext<MutableRefObject<WakeupSseCallback>>({ current: undefined });
+
+const useWakeupSseCallback = () => useContext(WakeupSseCallbackContext);
+
+export {
+  useWakeupSseCallback
 };
