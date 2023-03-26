@@ -1,0 +1,1 @@
+${elmo.shortTitle} Next shift '${(shift.startsAt).format("MEDIUM_DATETIME")}' still unclaimed: Please take over if possible, otherwise the shift nieeds to be cancelled. Thank you!

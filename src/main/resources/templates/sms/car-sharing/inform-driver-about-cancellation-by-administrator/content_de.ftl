@@ -1,1 +1,1 @@
-${elmo.title} Car-Sharing: Deine Car-Sharing-Reservierung von ${carSharing.car.name} wurde einen Administrator storniert!
+${elmo.shortTitle} Car-Sharing: Deine Car-Sharing-Reservierung von ${carSharing.car.name} wurde einen Administrator storniert!

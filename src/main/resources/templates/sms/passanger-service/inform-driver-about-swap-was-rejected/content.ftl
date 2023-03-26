@@ -1,0 +1,1 @@
+${elmo.shortTitle} Swap of shift '${(shift.startsAt).format("MEDIUM_DATETIME")}': Unfortunately, your request to take over the shift was rejected.

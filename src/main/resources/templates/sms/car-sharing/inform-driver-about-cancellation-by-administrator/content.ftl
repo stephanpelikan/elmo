@@ -1,1 +1,1 @@
-${elmo.title} Car-Sharing: Your car-sharing-reservation of ${carSharing.car.name} was cancelled by an administrator!
+${elmo.shortTitle} Car-Sharing: Your car-sharing-reservation of ${carSharing.car.name} was cancelled by an administrator!

@@ -1,1 +1,1 @@
-${elmo.title}: Pleaes enter the code ${member.generatedPhoneConfirmationCode} into the form in which you entered your phone number. 
+${elmo.shortTitle}: Pleaes enter the code ${member.generatedPhoneConfirmationCode} into the form in which you entered your phone number. 

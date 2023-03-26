@@ -288,4 +288,10 @@
         <column name="PREVIOUS_RES" type="varchar(40)" />
     </addColumn> 
   </changeSet>
+  <changeSet id="passanger-service-introduce-swaps"
+             author="stephanpelikan">
+    <addColumn tableName="ELMO_RESERVATION">
+      <column name="MEMBER_FOR_SWAP" type="varchar(40)" />
+    </addColumn> 
+  </changeSet>
 </databaseChangeLog>

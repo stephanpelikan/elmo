@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1hkfyqv" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.7.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.18.0">
+  <bpmn:process id="ShiftSwapOfDriverNeeded" isExecutable="true">
+    <bpmn:sequenceFlow id="Flow_0sp9q81" sourceRef="StartEvent_1" targetRef="Activity_093xp1v" />
+    <bpmn:sendTask id="Activity_093xp1v" name="inform drivers about swap needed" camunda:expression="${informDriversAboutSwapNeeded}">
+      <bpmn:incoming>Flow_0sp9q81</bpmn:incoming>
+      <bpmn:incoming>Flow_16lfwdr</bpmn:incoming>
+      <bpmn:outgoing>Flow_0yco3qg</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:sequenceFlow id="Flow_0yco3qg" sourceRef="Activity_093xp1v" targetRef="Gateway_0w1069v" />
+    <bpmn:eventBasedGateway id="Gateway_0w1069v">
+      <bpmn:incoming>Flow_0yco3qg</bpmn:incoming>
+      <bpmn:outgoing>Flow_1kh9ho7</bpmn:outgoing>
+      <bpmn:outgoing>Flow_000f0nl</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1co3lhm</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1o0ji56</bpmn:outgoing>
+    </bpmn:eventBasedGateway>
+    <bpmn:intermediateCatchEvent id="Event_072oylb" name="shift claimed">
+      <bpmn:incoming>Flow_1kh9ho7</bpmn:incoming>
+      <bpmn:outgoing>Flow_09ld7mu</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_02bcyqa" messageRef="Message_3krmm48" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:sequenceFlow id="Flow_1kh9ho7" sourceRef="Gateway_0w1069v" targetRef="Event_072oylb" />
+    <bpmn:endEvent id="Event_02l7p9x" name="swap done">
+      <bpmn:incoming>Flow_1bbt4yx</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_09ld7mu" sourceRef="Event_072oylb" targetRef="Activity_0jbx2qh" />
+    <bpmn:intermediateCatchEvent id="SwapNeeded_threeHourBeforeStartOfShift" name="3 hours before start of shift">
+      <bpmn:incoming>Flow_000f0nl</bpmn:incoming>
+      <bpmn:outgoing>Flow_16lfwdr</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_18uzb3q">
+        <bpmn:timeDate xsi:type="bpmn:tFormalExpression">${threeHoursBeforeStart}</bpmn:timeDate>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:sequenceFlow id="Flow_000f0nl" sourceRef="Gateway_0w1069v" targetRef="SwapNeeded_threeHourBeforeStartOfShift" />
+    <bpmn:sequenceFlow id="Flow_16lfwdr" sourceRef="SwapNeeded_threeHourBeforeStartOfShift" targetRef="Activity_093xp1v" />
+    <bpmn:intermediateCatchEvent id="SwapNeeded_oneHourBeforeStartOfShift" name="1 hour before start of shift">
+      <bpmn:incoming>Flow_1co3lhm</bpmn:incoming>
+      <bpmn:outgoing>Flow_17epqw3</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_042mk15">
+        <bpmn:timeDate xsi:type="bpmn:tFormalExpression">${oneHourBeforeStart}</bpmn:timeDate>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:sequenceFlow id="Flow_1co3lhm" sourceRef="Gateway_0w1069v" targetRef="SwapNeeded_oneHourBeforeStartOfShift" />
+    <bpmn:sequenceFlow id="Flow_17epqw3" sourceRef="SwapNeeded_oneHourBeforeStartOfShift" targetRef="Event_1lot6ki" />
+    <bpmn:endEvent id="Event_1aatva3" name="swap not possible">
+      <bpmn:incoming>Flow_09sbcz4</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_09riqne" sourceRef="Event_1lot6ki" targetRef="Activity_0m1c4x2" />
+    <bpmn:intermediateThrowEvent id="Event_1lot6ki" name="shift unclaimed">
+      <bpmn:incoming>Flow_17epqw3</bpmn:incoming>
+      <bpmn:outgoing>Flow_09riqne</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_1ea0nj1" camunda:expression="${unclaimShiftDueToFailedSwap}" />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:sendTask id="Activity_0jbx2qh" name="inform drivers about swap done" camunda:expression="${informDriversAboutSwapDone}">
+      <bpmn:incoming>Flow_09ld7mu</bpmn:incoming>
+      <bpmn:outgoing>Flow_1bbt4yx</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:sequenceFlow id="Flow_1bbt4yx" sourceRef="Activity_0jbx2qh" targetRef="Event_02l7p9x" />
+    <bpmn:sendTask id="Activity_0m1c4x2" name="ask drivers to claim this shift" camunda:expression="${askDriversToClaimShift}">
+      <bpmn:incoming>Flow_09riqne</bpmn:incoming>
+      <bpmn:outgoing>Flow_09sbcz4</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:sequenceFlow id="Flow_09sbcz4" sourceRef="Activity_0m1c4x2" targetRef="Event_1aatva3" />
+    <bpmn:startEvent id="StartEvent_1" name="swap of driver needed">
+      <bpmn:outgoing>Flow_0sp9q81</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:intermediateCatchEvent id="Event_02poucr" name="swap cancelled">
+      <bpmn:incoming>Flow_1o0ji56</bpmn:incoming>
+      <bpmn:outgoing>Flow_1t3kyen</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_0iqz0ev" messageRef="Message_0c7s35t" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:sequenceFlow id="Flow_1o0ji56" sourceRef="Gateway_0w1069v" targetRef="Event_02poucr" />
+    <bpmn:sequenceFlow id="Flow_1t3kyen" sourceRef="Event_02poucr" targetRef="Activity_0nbhqkz" />
+    <bpmn:sendTask id="Activity_0nbhqkz" name="inform drivers about swap cancelled" camunda:expression="${informDriversAboutSwapCancelled}">
+      <bpmn:incoming>Flow_1t3kyen</bpmn:incoming>
+      <bpmn:outgoing>Flow_0nq7la1</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="Event_1nquqoh" name="swap not needed any more">
+      <bpmn:incoming>Flow_0nq7la1</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0nq7la1" sourceRef="Activity_0nbhqkz" targetRef="Event_1nquqoh" />
+  </bpmn:process>
+  <bpmn:message id="Message_3krmm48" name="ShiftClaimed" />
+  <bpmn:message id="Message_0c7s35t" name="SwapCancelled" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="ShiftSwapOfDriverNeeded">
+      <bpmndi:BPMNShape id="Activity_11kp1ez_di" bpmnElement="Activity_093xp1v">
+        <dc:Bounds x="290" y="317" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1toiok6_di" bpmnElement="Gateway_0w1069v">
+        <dc:Bounds x="465" y="332" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_072oylb_di" bpmnElement="Event_072oylb">
+        <dc:Bounds x="592" y="339" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="579" y="382" width="62" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0w8auzk_di" bpmnElement="SwapNeeded_threeHourBeforeStartOfShift">
+        <dc:Bounds x="592" y="452" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="574" y="496" width="71" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0f6oyx7_di" bpmnElement="SwapNeeded_oneHourBeforeStartOfShift">
+        <dc:Bounds x="592" y="222" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="565" y="266" width="90" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_16f9nbf_di" bpmnElement="Activity_0jbx2qh">
+        <dc:Bounds x="710" y="317" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_13mwwlg_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="179" y="339" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="163" y="382" width="69" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_02poucr_di" bpmnElement="Event_02poucr">
+        <dc:Bounds x="592" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="572" y="145" width="76" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0vjw4gn_di" bpmnElement="Activity_0nbhqkz">
+        <dc:Bounds x="710" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_02l7p9x_di" bpmnElement="Event_02l7p9x">
+        <dc:Bounds x="1042" y="339" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1033" y="382" width="54" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1aatva3_di" bpmnElement="Event_1aatva3">
+        <dc:Bounds x="1042" y="222" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1017" y="265" width="88" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1u8prid_di" bpmnElement="Event_1lot6ki">
+        <dc:Bounds x="742" y="222" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="723" y="265" width="74" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0ijxjfy" bpmnElement="Activity_0m1c4x2">
+        <dc:Bounds x="860" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1nquqoh_di" bpmnElement="Event_1nquqoh">
+        <dc:Bounds x="1042" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1018" y="145" width="84" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0sp9q81_di" bpmnElement="Flow_0sp9q81">
+        <di:waypoint x="215" y="357" />
+        <di:waypoint x="290" y="357" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0yco3qg_di" bpmnElement="Flow_0yco3qg">
+        <di:waypoint x="390" y="357" />
+        <di:waypoint x="465" y="357" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1kh9ho7_di" bpmnElement="Flow_1kh9ho7">
+        <di:waypoint x="515" y="357" />
+        <di:waypoint x="592" y="357" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_09ld7mu_di" bpmnElement="Flow_09ld7mu">
+        <di:waypoint x="628" y="357" />
+        <di:waypoint x="710" y="357" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_000f0nl_di" bpmnElement="Flow_000f0nl">
+        <di:waypoint x="490" y="382" />
+        <di:waypoint x="490" y="470" />
+        <di:waypoint x="592" y="470" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_16lfwdr_di" bpmnElement="Flow_16lfwdr">
+        <di:waypoint x="628" y="470" />
+        <di:waypoint x="710" y="470" />
+        <di:waypoint x="710" y="550" />
+        <di:waypoint x="340" y="550" />
+        <di:waypoint x="340" y="397" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1co3lhm_di" bpmnElement="Flow_1co3lhm">
+        <di:waypoint x="490" y="332" />
+        <di:waypoint x="490" y="240" />
+        <di:waypoint x="592" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_17epqw3_di" bpmnElement="Flow_17epqw3">
+        <di:waypoint x="628" y="240" />
+        <di:waypoint x="742" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1bbt4yx_di" bpmnElement="Flow_1bbt4yx">
+        <di:waypoint x="810" y="357" />
+        <di:waypoint x="1042" y="357" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1o0ji56_di" bpmnElement="Flow_1o0ji56">
+        <di:waypoint x="490" y="332" />
+        <di:waypoint x="490" y="120" />
+        <di:waypoint x="592" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1t3kyen_di" bpmnElement="Flow_1t3kyen">
+        <di:waypoint x="628" y="120" />
+        <di:waypoint x="710" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0nq7la1_di" bpmnElement="Flow_0nq7la1">
+        <di:waypoint x="810" y="120" />
+        <di:waypoint x="1042" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_09sbcz4_di" bpmnElement="Flow_09sbcz4">
+        <di:waypoint x="960" y="240" />
+        <di:waypoint x="1042" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_09riqne_di" bpmnElement="Flow_09riqne">
+        <di:waypoint x="778" y="240" />
+        <di:waypoint x="860" y="240" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -1,0 +1,1 @@
+${elmo.shortTitle} Nächste Schicht '${(shift.startsAt).format("MEDIUM_DATETIME")}' noch unbesetzt: Bitte übernimm sie wenn du kannst, ansonsten muss die Schicht abgesagt werden. Danke!

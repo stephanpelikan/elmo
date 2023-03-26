@@ -1,1 +1,1 @@
-${elmo.title} Car-Sharing: Deine Reservierung für ${carSharing.car.name} ist zu Ende. Bitte bestätige deine Nutzung in der App mit dem aktuellen Kilometerstand!
+${elmo.shortTitle} Car-Sharing: Deine Reservierung für ${carSharing.car.name} ist zu Ende. Bitte bestätige deine Nutzung in der App mit dem aktuellen Kilometerstand!

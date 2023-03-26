@@ -1,1 +1,1 @@
-${elmo.title} Car-Sharing: Du hast jetzt ${carSharing.car.name} für dich reserviert. Bitte bestätige deine Nutzung in der App mit dem aktuellen Kilometerstand, wenn du losfährst.
+${elmo.shortTitle} Car-Sharing: Du hast jetzt ${carSharing.car.name} für dich reserviert. Bitte bestätige deine Nutzung in der App mit dem aktuellen Kilometerstand, wenn du losfährst.

@@ -58,6 +58,7 @@ public class FreemarkerConfiguration {
 
                 final var elmoInformation = new ElmoEmailInformation();
                 elmoInformation.setTitle(properties.getTitleLong());
+                elmoInformation.setShortTitle(properties.getTitleShort());
                 elmoInformation.setGatewayUrl(properties.getGatewayUrl());
                 elmoInformation.setHomepage(properties.getHomepageUrl());
                 elmoInformation.setEmailSender(emailProperties.getSender());
@@ -78,6 +79,8 @@ public class FreemarkerConfiguration {
     public static class ElmoEmailInformation {
 
         private String title;
+        
+        private String shortTitle;
 
         private String gatewayUrl;
 
@@ -96,7 +99,15 @@ public class FreemarkerConfiguration {
         public void setTitle(String title) {
             this.title = title;
         }
-
+        
+        public String getShortTitle() {
+            return shortTitle;
+        }
+        
+        public void setShortTitle(String shortTitle) {
+            this.shortTitle = shortTitle;
+        }
+        
         public String getGatewayUrl() {
             return gatewayUrl;
         }

@@ -1,0 +1,1 @@
+${elmo.shortTitle} Schichttausch '${(shift.startsAt).format("MEDIUM_DATETIME")}': ${shift.driver.firstName!""} ${shift.driver.lastName!""} kann <#if shift.driver.sex == "FEMALE">ihre<#elseif shift.driver.sex == "MALE">seine<#else>die</#if> Schicht nicht durchführen und bittet um Ablöse! Bitte übernimm sie wenn du kannst. Danke!

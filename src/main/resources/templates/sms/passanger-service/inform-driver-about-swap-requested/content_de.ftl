@@ -1,0 +1,1 @@
+${elmo.shortTitle} Schichttausch '${(shift.startsAt).format("MEDIUM_DATETIME")}': ${shift.driverRequestingSwap.firstName!""} ${shift.driverRequestingSwap.lastName!""} bittet darum deine Schicht übernehmen zu dürfen! Akzeptiere oder weise die Anfrage in der ${elmo.shortTitle} App zurück.

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_13m8ofp" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.7.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.18.0">
+  <bpmn:process id="ShiftDue" name="Passanger Service Shift Due" isExecutable="true">
+    <bpmn:sendTask id="Activity_04dk5bt" name="inform passangers about unclaimed shift" camunda:expression="${informPassangerAboutShiftNotClaimedYet}">
+      <bpmn:incoming>Flow_1vxwq1q</bpmn:incoming>
+      <bpmn:outgoing>Flow_1tj780o</bpmn:outgoing>
+      <bpmn:multiInstanceLoopCharacteristics camunda:collection="${rides}" camunda:elementVariable="ride" />
+    </bpmn:sendTask>
+    <bpmn:eventBasedGateway id="Gateway_0fp1pqt">
+      <bpmn:incoming>Flow_1tj780o</bpmn:incoming>
+      <bpmn:outgoing>Flow_0bwf83n</bpmn:outgoing>
+      <bpmn:outgoing>Flow_067zb5u</bpmn:outgoing>
+    </bpmn:eventBasedGateway>
+    <bpmn:intermediateCatchEvent id="ShiftDue_EndOfShift" name="end of shift">
+      <bpmn:incoming>Flow_0bwf83n</bpmn:incoming>
+      <bpmn:outgoing>Flow_0d47tyx</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_11f7fmq">
+        <bpmn:timeDate xsi:type="bpmn:tFormalExpression">${endsAtDate}</bpmn:timeDate>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:intermediateCatchEvent id="Event_0qefsal" name="shift claimed">
+      <bpmn:incoming>Flow_067zb5u</bpmn:incoming>
+      <bpmn:outgoing>Flow_1y8ubqu</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_0q45hk7" messageRef="Message_1p05uj9" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:endEvent id="Event_0tn7er7" name="shift ended without doing passanger service">
+      <bpmn:incoming>Flow_0d47tyx</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:startEvent id="Event_024swto" name="shift due but not claimed yet">
+      <bpmn:outgoing>Flow_1vxwq1q</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_1vxwq1q" sourceRef="Event_024swto" targetRef="Activity_04dk5bt" />
+    <bpmn:sequenceFlow id="Flow_1tj780o" sourceRef="Activity_04dk5bt" targetRef="Gateway_0fp1pqt" />
+    <bpmn:sequenceFlow id="Flow_0bwf83n" sourceRef="Gateway_0fp1pqt" targetRef="ShiftDue_EndOfShift" />
+    <bpmn:sequenceFlow id="Flow_067zb5u" sourceRef="Gateway_0fp1pqt" targetRef="Event_0qefsal" />
+    <bpmn:sequenceFlow id="Flow_0d47tyx" sourceRef="ShiftDue_EndOfShift" targetRef="Event_0tn7er7" />
+    <bpmn:endEvent id="Event_0wzghbs" name="passanger service about to start">
+      <bpmn:incoming>Flow_1y8ubqu</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1y8ubqu" sourceRef="Event_0qefsal" targetRef="Event_0wzghbs" />
+  </bpmn:process>
+  <bpmn:message id="Message_1p05uj9" name="ShiftClaimed" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="ShiftDue">
+      <bpmndi:BPMNShape id="Activity_031ws1m_di" bpmnElement="Activity_04dk5bt">
+        <dc:Bounds x="300" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0tyu70r_di" bpmnElement="Gateway_0fp1pqt">
+        <dc:Bounds x="475" y="95" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0pxmyza_di" bpmnElement="ShiftDue_EndOfShift">
+        <dc:Bounds x="602" y="192" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="593" y="235" width="54" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0qefsal_di" bpmnElement="Event_0qefsal">
+        <dc:Bounds x="602" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="589" y="145" width="62" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0tn7er7_di" bpmnElement="Event_0tn7er7">
+        <dc:Bounds x="722" y="192" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="695" y="235" width="90" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_024swto_di" bpmnElement="Event_024swto">
+        <dc:Bounds x="182" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="161" y="145" width="79" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0wzghbs_di" bpmnElement="Event_0wzghbs">
+        <dc:Bounds x="722" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="695" y="145" width="90" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1vxwq1q_di" bpmnElement="Flow_1vxwq1q">
+        <di:waypoint x="218" y="120" />
+        <di:waypoint x="300" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1tj780o_di" bpmnElement="Flow_1tj780o">
+        <di:waypoint x="400" y="120" />
+        <di:waypoint x="475" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0bwf83n_di" bpmnElement="Flow_0bwf83n">
+        <di:waypoint x="500" y="145" />
+        <di:waypoint x="500" y="210" />
+        <di:waypoint x="602" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_067zb5u_di" bpmnElement="Flow_067zb5u">
+        <di:waypoint x="525" y="120" />
+        <di:waypoint x="602" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0d47tyx_di" bpmnElement="Flow_0d47tyx">
+        <di:waypoint x="638" y="210" />
+        <di:waypoint x="722" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1y8ubqu_di" bpmnElement="Flow_1y8ubqu">
+        <di:waypoint x="638" y="120" />
+        <di:waypoint x="722" y="120" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

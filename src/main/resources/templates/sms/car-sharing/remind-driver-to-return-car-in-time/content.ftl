@@ -1,1 +1,1 @@
-${elmo.title} Car-Sharing: ${carSharing.car.name} is reserved subsequently to your reservation at ${(carSharing.endsAt).format("SHORT_TIME")}. Please take care ${carSharing.car.name} is back and loaded on time!
+${elmo.shortTitle} Car-Sharing: ${carSharing.car.name} is reserved subsequently to your reservation at ${(carSharing.endsAt).format("SHORT_TIME")}. Please take care ${carSharing.car.name} is back and loaded on time!

@@ -1,1 +1,1 @@
-${elmo.title}: Test-SMS 
+${elmo.shortTitle}: Test-SMS 

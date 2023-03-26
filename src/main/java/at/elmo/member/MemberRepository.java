@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @Repository
 public interface MemberRepository extends JpaRepository<Member, String> {
@@ -27,6 +28,12 @@ public interface MemberRepository extends JpaRepository<Member, String> {
 
     List<Member> findByRoles_Role(Role role);
 
+    Stream<Member> findByStatusAndRoles_Role(Member.Status status, Role role);
+
+    default Stream<Member> findActiveDrivers() {
+        return findByStatusAndRoles_Role(Member.Status.ACTIVE, Role.DRIVER);
+    }
+    
     long countByStatus(Status status);
 
 }
