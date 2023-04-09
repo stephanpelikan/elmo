@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_0kj97uu" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.7.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.18.0">
+  <bpmn:process id="ShiftClaimReminder" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1" name="once a week remind drivers to claim shifts of the next week">
+      <bpmn:outgoing>Flow_1x4fgai</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_0dt804z">
+        <bpmn:timeCycle xsi:type="bpmn:tFormalExpression">R/2023-03-26T05:30:00Z/P1W</bpmn:timeCycle>
+      </bpmn:timerEventDefinition>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_1x4fgai" sourceRef="StartEvent_1" targetRef="Activity_1d7glet" />
+    <bpmn:sendTask id="Activity_1d7glet" name="ask drivers to claim any free shift" camunda:expression="${askDriversToClaimAnyFreeShiftOfNextWeek}">
+      <bpmn:incoming>Flow_1x4fgai</bpmn:incoming>
+      <bpmn:outgoing>Flow_1k3cbbq</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="Event_0kx3d5b" name="drivers reminded">
+      <bpmn:incoming>Flow_1k3cbbq</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1k3cbbq" sourceRef="Activity_1d7glet" targetRef="Event_0kx3d5b" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="ShiftClaimReminder">
+      <bpmndi:BPMNShape id="Event_1xjikel_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="179" y="77" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="156" y="120" width="82" height="53" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0twx4bc_di" bpmnElement="Activity_1d7glet">
+        <dc:Bounds x="290" y="55" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0kx3d5b_di" bpmnElement="Event_0kx3d5b">
+        <dc:Bounds x="472" y="77" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="449" y="120" width="82" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1x4fgai_di" bpmnElement="Flow_1x4fgai">
+        <di:waypoint x="215" y="95" />
+        <di:waypoint x="290" y="95" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1k3cbbq_di" bpmnElement="Flow_1k3cbbq">
+        <di:waypoint x="390" y="95" />
+        <di:waypoint x="472" y="95" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

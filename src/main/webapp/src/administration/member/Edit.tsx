@@ -11,7 +11,6 @@ import useResponsiveScreen from '../../utils/responsiveUtils';
 import { CalendarHeader } from '../../components/CalendarHeader';
 import { Modal } from '../../components/Modal';
 import { useAppContext } from '../../AppContext';
-import { LoadingIndicator } from '../../components/LoadingIndicator';
 import { MainLayout, Heading, Content, SubHeading } from '../../components/MainLayout';
 
 i18n.addResources('en', 'administration/member-details', {
@@ -175,7 +174,7 @@ const EditMember = () => {
         showLoadingIndicator(false);
       };
     initForm();
-  }, [ formValue, memberApi, setFormValue, memberId ]);
+  }, [ formValue, memberApi, setFormValue, memberId, showLoadingIndicator ]);
   
   const setSex = (sex: Sex) => {
     setFormValue({

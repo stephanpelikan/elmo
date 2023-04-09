@@ -61,8 +61,14 @@ public class EmailService {
             final Collection<String> toAddresses,
             final Object ...context) throws Exception {
         
-        final var body = processTemplate(templatePath + "/body.ftlh", context);
-        final var subject = processTemplate(templatePath + "/subject.ftl", context);
+        final var body = processTemplate(
+                templating,
+                templatePath + "/body.ftlh",
+                context);
+        final var subject = processTemplate(
+                templating,
+                templatePath + "/subject.ftl",
+                context);
         final var targetToAddresses = toAddresses
                 .stream()
                 .map(this::determineToAddress)
@@ -75,7 +81,7 @@ public class EmailService {
                 StandardCharsets.UTF_8.name());
         
         helper.setFrom(properties.getSender());
-        helper.setTo(targetToAddresses);
+        helper.setBcc(targetToAddresses);
         helper.setSubject(subject);
         helper.setText(body, true);
         Arrays
@@ -120,7 +126,8 @@ public class EmailService {
 
     }
     
-    private String processTemplate(
+    public static String processTemplate(
+            final Configuration templating,
             final String template,
             final Object ...context) throws Exception {
         

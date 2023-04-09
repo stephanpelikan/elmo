@@ -1,12 +1,18 @@
 package at.elmo.reservation.passangerservice.shift;
 
 import at.elmo.car.Car;
+import at.elmo.car.CarService;
 import at.elmo.config.ElmoProperties;
 import at.elmo.member.Member;
+import at.elmo.member.Member.Status;
 import at.elmo.member.MemberRepository;
+import at.elmo.member.Role;
 import at.elmo.reservation.ReservationNotification;
 import at.elmo.reservation.ReservationService;
 import at.elmo.reservation.passangerservice.shift.exceptions.UnknownShiftException;
+import at.elmo.reservation.passangerservice.shift.overview.ShiftOverviewHour;
+import at.elmo.reservation.passangerservice.shift.overview.ShiftStatus;
+import at.elmo.util.email.EmailService;
 import at.elmo.util.email.NamedObject;
 import at.elmo.util.sms.SmsService;
 import io.vanillabp.spi.process.ProcessService;
@@ -22,9 +28,14 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -38,7 +49,8 @@ import java.util.stream.Collectors;
                 @BpmnProcess(bpmnProcessId = "ShiftDue"),
                 @BpmnProcess(bpmnProcessId = "ShiftSwapOfDriverNeeded"),
                 @BpmnProcess(bpmnProcessId = "ShiftSwapOfDriverRequested"),
-                @BpmnProcess(bpmnProcessId = "WaitForStartOfShift")
+                @BpmnProcess(bpmnProcessId = "WaitForStartOfShift"),
+                @BpmnProcess(bpmnProcessId = "ShiftClaimReminder")
         })
 @Transactional
 public class ShiftService {
@@ -62,7 +74,13 @@ public class ShiftService {
     private ElmoProperties properties;
 
     @Autowired
+    private CarService carService;
+
+    @Autowired
     private SmsService smsService;
+    
+    @Autowired
+    private EmailService emailService;
 
     @Autowired
     private MemberRepository members;
@@ -363,8 +381,165 @@ public class ShiftService {
         
     }
     
+    public static int mapKeyOfHour(
+            final LocalDateTime startOfOverview,
+            final LocalDateTime hour) {
+        
+        return (hour.getYear() - startOfOverview.getYear()) * 366 * 24
+                + hour.getDayOfYear() * 24
+                + hour.getHour();
+        
+    }
+    
     @WorkflowTask
-    public void asDriverBeforeCancellationToClaimShift(
+    public void askDriversToClaimAnyFreeShiftOfNextWeek() throws Exception {
+        
+        final var now = LocalDateTime.now();
+        
+        final var startOfOverview = now
+                .truncatedTo(ChronoUnit.DAYS)
+                .minusDays(now.getDayOfWeek().getValue() - 1)
+                .plusWeeks(1);
+        final var endOfOverview = startOfOverview
+                .plusWeeks(1);
+
+        final var numberOfCars = carService.getCountOfPassangerServiceCars();
+
+        final var carCounters = new HashMap<Integer, Integer>();
+        final var cars = new HashMap<Integer, Car>();
+        final var shifts = new HashMap<Integer, Shift>();
+        
+        final var unclaimedShifts = new int[] { 0 };
+        getShifts(
+                startOfOverview,
+                endOfOverview)
+                .forEach(shift -> {
+                        shifts.put(
+                                mapKeyOfHour(startOfOverview, shift.getStartsAt()),
+                                shift);
+                        if (shift.getDriver() == null) {
+                            ++unclaimedShifts[0];
+                        }
+                        
+                        for (LocalDateTime hour = shift.getStartsAt()
+                                ; !hour.equals(shift.getEndsAt())
+                                ; hour = hour.plusHours(1)) {
+                            
+                            final var mapKeyOfHour = mapKeyOfHour(startOfOverview, hour);
+                            
+                            var counter = carCounters.getOrDefault(mapKeyOfHour, 0);
+                            if (shift.getDriver() != null) {
+                                counter += 1;
+                            }
+                            carCounters.put(mapKeyOfHour, counter);
+                            
+                            if (!cars.containsKey(mapKeyOfHour)) {
+                                cars.put(mapKeyOfHour, shift.getCar());
+                            }
+                            
+                        }
+                });
+        
+        if (unclaimedShifts[0] == 0) {
+            logger.info("All shifts are claimed by drivers - no reminder needs to be sent!");
+            return;
+        }
+        
+        final var startOfOverviewDay = startOfOverview
+                .truncatedTo(ChronoUnit.DAYS);
+        final var endOfOverviewDay = endOfOverview
+                .truncatedTo(ChronoUnit.DAYS);
+        final var daysInPeriod = Duration
+                .between(startOfOverviewDay, endOfOverviewDay)
+                .toDays();
+
+        final var days = new LinkedList<LocalDateTime>();
+        for (int day = 0; day < daysInPeriod; ++day) {
+            days.add(startOfOverviewDay.plusDays(day));
+        }
+        
+        final var hours = new LinkedHashMap<Integer, List<ShiftOverviewHour>>();
+
+        var hasPartials = false;
+        final var lastShifts = new HashMap<Integer, ShiftOverviewHour>();
+        for (int hour = 0; hour < 24; ++hour) {
+
+            final var overviewDays = new LinkedList<ShiftOverviewHour>();
+            hours.put(hour, overviewDays);
+            
+            for (int day = 0; day < daysInPeriod; ++day) {
+                
+                final var lastShift = lastShifts.get(day);
+                
+                final var currentHour = startOfOverviewDay
+                        .plusDays(day)
+                        .plusHours(hour);
+                
+                final var mapKeyOfHour = mapKeyOfHour(startOfOverview, currentHour);
+
+                final var shift = shifts.get(mapKeyOfHour);
+                if (shift != null) {
+
+                    final var shiftHour = new ShiftOverviewHour();
+                    shiftHour.setStartsAt(shift.getStartsAt());
+                    shiftHour.setEndsAt(shift.getEndsAt());
+                    shiftHour.setDurationInHours(
+                            (int) Duration
+                                    .between(shift.getStartsAt(), shift.getEndsAt())
+                                    .toHours());
+                    shiftHour.setDescription(Integer.toString(currentHour.getHour()));
+                    overviewDays.add(shiftHour);
+                    lastShifts.put(day, shiftHour);
+
+                    final var carCounter = carCounters.getOrDefault(mapKeyOfHour, -1);
+                    if (carCounter == 0) {
+                        shiftHour.setStatus(ShiftStatus.FREE);
+                    } else if (carCounter == numberOfCars) {
+                        shiftHour.setStatus(ShiftStatus.COMPLETE);
+                    } else {
+                        shiftHour.setStatus(ShiftStatus.PARTIAL);
+                        hasPartials = true;
+                    }
+                
+                    final var car = cars.get(mapKeyOfHour);
+                    if (car != null) {
+                        shiftHour.setCarId(car.getId());
+                    }
+                    
+                } else if ((lastShift == null)
+                        || !lastShift.getEndsAt().isAfter(currentHour)) {
+                    
+                    final var noShift = new ShiftOverviewHour();
+                    noShift.setStatus(ShiftStatus.NO_SHIFT);
+                    overviewDays.add(noShift);
+                    
+                } else {
+                    
+                    overviewDays.add(null);
+                    
+                }
+
+            }
+            
+        }
+                
+        final var driver = members
+                .findByStatusAndRoles_Role(Status.ACTIVE, Role.DRIVER)
+                .iterator()
+                .next();
+        
+        emailService.sendEmail(
+                "passanger-service/ask-drivers-to-claim-any-free-shift-of-next-week",
+                driver.getEmail(),
+                NamedObject.from(hours).as("hours"),
+                NamedObject.from(days).as("days"),
+                NamedObject.from(hasPartials).as("hasPartials"),
+                NamedObject.from(driver).as("driver"));
+
+    }
+        
+    @WorkflowTask
+    public void askDriverBeforeCancellationToClaimShift(
         final Shift shift) {
         
         members
@@ -373,7 +548,7 @@ public class ShiftService {
                         driver,
                         shift,
                         "passanger-service/as-driver-before-cancellation-to-claim-shift",
-                        "asDriverBeforeCancellationToClaimShift"));
+                        "askDriverBeforeCancellationToClaimShift"));
         
     }
     

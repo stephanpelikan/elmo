@@ -241,7 +241,7 @@ const ReviewForm = () => {
           showLoadingIndicator(false);
         };
       initReviewForm();
-    }, [ formValue, onboardingApi, setFormValue, params.applicationId ]);
+    }, [ formValue, onboardingApi, setFormValue, params.applicationId, showLoadingIndicator ]);
 
   const setBirthdate = (dateInput: string|Date) => {
     let date: Date | undefined;

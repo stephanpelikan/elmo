@@ -16,7 +16,7 @@ i18n.addResources('en', 'driver/overview', {
       "hint": "Click on a shift to go to the planner",
       "has-drivers": "Has driver",
       "has-partial-drivers": "Partial",
-      "has-no-drivers": "Unassigned",
+      "has-no-drivers": "Unclaimed",
       "calendar-week": "CW",
     });
 i18n.addResources('de', 'driver/overview', {

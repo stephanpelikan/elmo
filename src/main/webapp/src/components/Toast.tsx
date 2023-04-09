@@ -29,7 +29,7 @@ const MessageToast = ({ dispatch, msg }: MessageToastProps) => {
   return (
     <Notification
         toast={{ autoClose: false }}
-        title={msg.title ? t(msg.title as string) : undefined}
+        title={msg.title ? t(msg.title) as string : undefined}
         message={t(msg.message)}
         status={msg.status ? msg.status : 'unknown'}
         onClose={close}

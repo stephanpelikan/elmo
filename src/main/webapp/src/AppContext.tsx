@@ -15,7 +15,7 @@ type Action =
 export type Dispatch = (action: Action) => void;
 export type Toast = {
   namespace: string;
-  title: string | undefined;
+  title: string | undefined | null;
   message: string;
   status?: StatusType;
   timeout?: number;

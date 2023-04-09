@@ -248,7 +248,7 @@ const Details = () => {
           showLoadingIndicator(false);
         };
       initDetails();
-    }, [ isNewCar, car, params.carId, setCar, carApi ]);
+    }, [ isNewCar, car, params.carId, setCar, carApi, showLoadingIndicator ]);
     
   const setCarValue = (data: any) => {
     setCar({ ...car, ...data });

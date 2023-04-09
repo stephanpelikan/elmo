@@ -123,7 +123,7 @@
       <bpmn:endEvent id="Event_0rvepov" name="passangers informed">
         <bpmn:incoming>Flow_176raa6</bpmn:incoming>
       </bpmn:endEvent>
-      <bpmn:sendTask id="Activity_1hi0nt3" name="ask drivers to claim this shift" camunda:expression="${asDriverBeforeCancellationToClaimShift}">
+      <bpmn:sendTask id="Activity_1hi0nt3" name="ask drivers to claim this shift" camunda:expression="${askDriverBeforeCancellationToClaimShift}">
         <bpmn:incoming>Flow_0w3mcm9</bpmn:incoming>
         <bpmn:outgoing>Flow_176raa6</bpmn:outgoing>
       </bpmn:sendTask>

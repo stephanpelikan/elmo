@@ -49,6 +49,12 @@ public class ElmoProperties implements AsyncPropertiesAware {
 
     @NonNull
     private String adminIdentificationEmailAddress;
+    
+    @NonNull
+    private String brandColor;
+    
+    @NonNull
+    private String accentColor;
 
     @NonNull
     private int adminMemberId;
@@ -280,6 +286,22 @@ public class ElmoProperties implements AsyncPropertiesAware {
         this.carSharing = carSharing;
     }
 
+    public String getBrandColor() {
+        return brandColor;
+    }
+    
+    public void setBrandColor(String brandColor) {
+        this.brandColor = brandColor;
+    }
+    
+    public String getAccentColor() {
+        return accentColor;
+    }
+    
+    public void setAccentColor(String accentColor) {
+        this.accentColor = accentColor;
+    }
+    
     @PostConstruct
     public void setDefaultLocale() {
         

@@ -1,7 +1,6 @@
 package at.elmo.car;
 
 import at.elmo.member.login.ElmoOAuth2Provider;
-import at.elmo.reservation.passangerservice.shift.ShiftService;
 import at.elmo.util.refreshtoken.RefreshTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -28,9 +27,6 @@ public class CarService {
 
     @Autowired
     private CarRepository cars;
-
-    @Autowired
-    private ShiftService shiftService;
 
     public Optional<Car> getCar(
             final String carId) {
@@ -84,10 +80,6 @@ public class CarService {
 
     public boolean deleteCar(
             final String carId) {
-
-        if (shiftService.hasShifts(carId)) {
-            return false;
-        }
 
         cars.deleteById(carId);
 

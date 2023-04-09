@@ -64,6 +64,8 @@ public class FreemarkerConfiguration {
                 elmoInformation.setEmailSender(emailProperties.getSender());
                 elmoInformation.setPhoneNumber(properties.getPassanagerServicePhoneNumber());
                 elmoInformation.setGeneralEmailAddress(properties.getGeneralEmailAddress());
+                elmoInformation.setBrandColor(properties.getBrandColor());
+                elmoInformation.setAccentColor(properties.getAccentColor());
                 config.setSharedVariable("elmo", elmoInformation);
 
             }
@@ -91,6 +93,10 @@ public class FreemarkerConfiguration {
         private String phoneNumber;
 
         private String generalEmailAddress;
+        
+        private String brandColor;
+        
+        private String accentColor;
 
         public String getTitle() {
             return title;
@@ -148,8 +154,23 @@ public class FreemarkerConfiguration {
             this.generalEmailAddress = generalEmailAddress;
         }
 
-    }
+        public String getBrandColor() {
+            return brandColor;
+        }
 
+        public void setBrandColor(String brandColor) {
+            this.brandColor = brandColor;
+        }
+
+        public String getAccentColor() {
+            return accentColor;
+        }
+
+        public void setAccentColor(String accentColor) {
+            this.accentColor = accentColor;
+        }
+
+    }
 
     @Bean
     @Qualifier(SMS_TEMPLATES)
@@ -175,7 +196,8 @@ public class FreemarkerConfiguration {
                 config.setRecognizeStandardFileExtensions(true);
 
                 final var elmoInformation = new ElmoSmsInformation();
-                elmoInformation.setTitle(properties.getTitleShort());
+                elmoInformation.setTitle(properties.getTitleLong());
+                elmoInformation.setShortTitle(properties.getTitleShort());
                 elmoInformation.setGatewayUrl(properties.getGatewayUrl());
                 elmoInformation.setHomepage(properties.getHomepageUrl());
                 config.setSharedVariable("elmo", elmoInformation);
@@ -193,6 +215,8 @@ public class FreemarkerConfiguration {
     public static class ElmoSmsInformation {
 
         private String title;
+        
+        private String shortTitle;
 
         private String gatewayUrl;
 
@@ -206,6 +230,14 @@ public class FreemarkerConfiguration {
             this.title = title;
         }
 
+        public String getShortTitle() {
+            return shortTitle;
+        }
+        
+        public void setShortTitle(String shortTitle) {
+            this.shortTitle = shortTitle;
+        }
+        
         public String getGatewayUrl() {
             return gatewayUrl;
         }

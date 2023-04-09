@@ -78,7 +78,7 @@ const ListOfCars = () => {
         showLoadingIndicator(false);
       };
     initList();
-  }, [ carAdministrationApi, setCars, setNumberOfCars, cars ]);
+  }, [ carAdministrationApi, setCars, setNumberOfCars, cars, showLoadingIndicator ]);
   
   const onEdit = async (car: Car) => {
     navigate('./' + car.id);

@@ -102,7 +102,7 @@ const ListOfMembers = () => {
         showLoadingIndicator(false);
       };
     initList();
-  }, [ memberApi, setMembers, setNumberOfMembers, members ]);
+  }, [ memberApi, setMembers, setNumberOfMembers, members, showLoadingIndicator ]);
   
   const uploadRef = useRef<HTMLInputElement>(null);
   

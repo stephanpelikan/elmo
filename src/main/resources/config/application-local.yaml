@@ -4,6 +4,9 @@ elmo:
   title-long: ElektroMobil Gänserndorf
   homepage-url: https://www.elektromobil-gf.at
   homepage-service-conditions-url: https://www.elektromobil-gf.at/wp/kontakt-und-impressum
+  brand-color: "#ff9f00"
+  accent-color: "#348eda"
+    
   passanger-agreement-pdf-directory: src/test/attachments/agreement  
   driver-agreement-pdf-directory: src/test/attachments/agreement  
   gateway-url: http://localhost:3000

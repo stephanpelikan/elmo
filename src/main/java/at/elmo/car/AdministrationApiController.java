@@ -6,6 +6,7 @@ import at.elmo.administration.api.v1.Cars;
 import at.elmo.administration.api.v1.CountOfCars;
 import at.elmo.administration.api.v1.TestTextMessage;
 import at.elmo.member.login.ElmoOAuth2Provider;
+import at.elmo.reservation.passangerservice.shift.ShiftService;
 import at.elmo.util.exceptions.ElmoUserMessageException;
 import at.elmo.util.exceptions.ElmoValidationException;
 import at.elmo.util.refreshtoken.RefreshTokenService;
@@ -40,17 +41,20 @@ public class AdministrationApiController implements CarApi {
     @Autowired
     private SmsService smsService;
 
+    @Autowired
+    private ShiftService shiftService;
+    
     @Override
     public ResponseEntity<Void> deleteCar(
             final String carId) {
 
-        final var deleted = carService.deleteCar(carId);
-
-        if (deleted) {
-            return ResponseEntity.ok().build();
-        } else {
+        if (shiftService.hasShifts(carId)) {
             return ResponseEntity.badRequest().build();
         }
+        
+        carService.deleteCar(carId);
+
+        return ResponseEntity.ok().build();
 
     }
 

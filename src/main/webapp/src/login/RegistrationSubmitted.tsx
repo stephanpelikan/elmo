@@ -96,7 +96,7 @@ const RegistrationSubmitted = () => {
           showLoadingIndicator(false);
         };
       initRegistrationSubmitted();
-    }, [ memberApplicationForm, onboardingApi, setMemberApplicationForm ]);
+    }, [ memberApplicationForm, onboardingApi, setMemberApplicationForm, showLoadingIndicator ]);
     
   const takeOver = async () => {
     await onboardingApi.takeoverMemberApplicationForm({

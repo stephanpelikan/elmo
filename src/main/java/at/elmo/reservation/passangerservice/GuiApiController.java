@@ -1,5 +1,7 @@
 package at.elmo.reservation.passangerservice;
 
+import static at.elmo.reservation.passangerservice.shift.ShiftService.mapKeyOfHour;
+
 import at.elmo.car.Car;
 import at.elmo.car.CarService;
 import at.elmo.gui.api.v1.PassangerServiceApi;
@@ -10,7 +12,6 @@ import at.elmo.gui.api.v1.ShiftOverviewWeek;
 import at.elmo.gui.api.v1.ShiftStatus;
 import at.elmo.reservation.passangerservice.shift.Shift;
 import at.elmo.reservation.passangerservice.shift.ShiftService;
-import at.elmo.util.UserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
@@ -27,12 +28,6 @@ import java.util.Locale;
 @RequestMapping("/api/v1")
 @Secured("MEMBER")
 public class GuiApiController implements PassangerServiceApi {
-
-    @Autowired
-    private GuiApiMapper mapper;
-    
-    @Autowired
-    private UserContext userContext;
     
     @Autowired
     private ShiftService shiftService;
@@ -55,31 +50,29 @@ public class GuiApiController implements PassangerServiceApi {
         final var carCounters = new HashMap<Integer, Integer>();
         final var cars = new HashMap<Integer, Car>();
         final var shifts = new HashMap<Integer, Shift>();
-        final var hourCounters = new HashMap<Integer, Integer>();
+        
         shiftService.getShifts(
                 startOfOverview,
                 endOfOverview)
                 .forEach(shift -> {
                         shifts.put(
-                                shift.getStartsAt().getHour() + shift.getStartsAt().getDayOfYear() * 24,
+                                mapKeyOfHour(startOfOverview, shift.getStartsAt()),
                                 shift);
                         for (LocalDateTime hour = shift.getStartsAt()
                                 ; !hour.equals(shift.getEndsAt())
                                 ; hour = hour.plusHours(1)) {
                             
-                            final var currentHour = hour.getHour() + hour.getDayOfYear() * 24;
-                            var counter = carCounters.getOrDefault(currentHour, 0);
+                            final var mapKeyOfHour = mapKeyOfHour(startOfOverview, hour);
+                            
+                            var counter = carCounters.getOrDefault(mapKeyOfHour, 0);
                             if (shift.getDriver() != null) {
                                 counter += 1;
                             }
-                            carCounters.put(currentHour, counter);
+                            carCounters.put(mapKeyOfHour, counter);
                             
-                            if (!cars.containsKey(currentHour)) {
-                                cars.put(currentHour, shift.getCar());
+                            if (!cars.containsKey(mapKeyOfHour)) {
+                                cars.put(mapKeyOfHour, shift.getCar());
                             }
-                            
-                            var hourCounter = hourCounters.getOrDefault(hour.getHour(), 0);
-                            hourCounters.put(hour.getHour(), hourCounter + 1);
                             
                         }
                 });
@@ -88,7 +81,7 @@ public class GuiApiController implements PassangerServiceApi {
         final var days = new HashMap<Integer, ShiftOverviewDay>();
         final var hours = new HashMap<Integer, ShiftOverviewHour>();
         final var result = new ShiftOverview();
-        
+
         final var numberOfCars = carService.getCountOfPassangerServiceCars();
         result.setNumberOfCars(Integer.valueOf((int) numberOfCars));
         
@@ -118,19 +111,20 @@ public class GuiApiController implements PassangerServiceApi {
             }
             final var day = days.get(currentDay);
             
-            final var currentHour = hour.getHour() + hour.getDayOfYear() * 24;
-            if (! hours.containsKey(currentHour)) {
+            final var mapKeyOfHour = mapKeyOfHour(startOfOverview, hour);
+
+            if (! hours.containsKey(mapKeyOfHour)) {
                 final var newHour = new ShiftOverviewHour();
                 newHour.setStatus(ShiftStatus.NO_SHIFT);
-                if (shifts.containsKey(currentHour)) {
+                if (shifts.containsKey(mapKeyOfHour)) {
                     newHour.setDescription(Integer.toString(hour.getHour()));
                 }
-                hours.put(currentHour, newHour);
+                hours.put(mapKeyOfHour, newHour);
                 day.addHoursItem(newHour);
             }
-            final var shiftHour = hours.get(currentHour);
+            final var shiftHour = hours.get(mapKeyOfHour);
             
-            final var carCounter = carCounters.getOrDefault(currentHour, -1);
+            final var carCounter = carCounters.getOrDefault(mapKeyOfHour, -1);
             if (carCounter == -1) {
                 shiftHour.setStatus(ShiftStatus.NO_SHIFT);
             } else if (carCounter == 0) {
@@ -141,7 +135,7 @@ public class GuiApiController implements PassangerServiceApi {
                 shiftHour.setStatus(ShiftStatus.PARTIAL);
             }
             
-            final var car = cars.get(currentHour);
+            final var car = cars.get(mapKeyOfHour);
             if (car != null) {
                 shiftHour.setCarId(car.getId());
             }
@@ -151,5 +145,5 @@ public class GuiApiController implements PassangerServiceApi {
         return ResponseEntity.ok(result);
         
     }
-    
+
 }
