@@ -590,7 +590,7 @@ public class MemberOnboarding {
                     try {
                         emailService.sendEmail(
                                 "onboarding/inform-drivers-about-new-member",
-                                application.getEmail(),
+                                driver.getEmail(),
                                 application,
                                 NamedObject.from(driver).as("driver"));
                     } catch (Exception e) {

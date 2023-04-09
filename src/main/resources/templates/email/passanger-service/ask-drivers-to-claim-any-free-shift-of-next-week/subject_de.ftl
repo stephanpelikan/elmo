@@ -1,1 +1,1 @@
-${elmo.shortTitle}: Unbesetzte Schichten!
+Unbesetzte Schichten!

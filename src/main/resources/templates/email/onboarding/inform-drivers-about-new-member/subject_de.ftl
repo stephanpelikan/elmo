@@ -1,1 +1,1 @@
-Ein neues Elmo-Mitglied ist nun freigeschaltet!
+Ein neues Mitglied ist nun freigeschaltet!

@@ -1,1 +1,1 @@
-Deine Elmo-Anmeldung ist nun freigeschaltet!
+Deine Anmeldung bei ${elmo.title} ist nun freigeschaltet!

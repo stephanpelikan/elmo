@@ -1,1 +1,1 @@
-Reminder: Your Elmo registration is not complete!
+Reminder: Your registration at ${elmo.title} is not complete!

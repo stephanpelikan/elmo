@@ -1,1 +1,1 @@
-Use of Car-Sharing was not confirmed (Driver: ${carSharing.driver.memberId})!
+Usage of car-sharing was not confirmed (driver: ${carSharing.driver.memberId})!

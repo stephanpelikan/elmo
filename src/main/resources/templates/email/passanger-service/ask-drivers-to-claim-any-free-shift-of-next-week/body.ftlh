@@ -3,16 +3,16 @@
 <table role="presentation" style="width:100%;border-collapse:collapse;border:0;border-spacing:0;">
   <tr>
     <td style="padding:0;">
-      <p style="margin:0 0 15px 0;">
+      <p style="margin:0 0 16px 0;">
         <i>Hello ${driver.firstName!""}!</i>
       </p>
-      <p style="margin:0 0 15px 0;">
+      <p style="margin:0 0 16px 0;">
         There are still unclaimed shifts in the upcoming week:
       </p>
     </td>
   </tr>
   <tr>
-    <td style="padding:0 0 15px 0;" align="center">
+    <td style="padding:0 0 16px 0;" align="center">
       <table role="presentation" style="border-collapse:collapse;border:0;border-spacing:0;">
       <tr>
         <#list days as day>
@@ -36,7 +36,7 @@
             </b>
           </td>
           <#if !day?is_last>
-            <td style="width:5px;background:#b4b4b4;padding:0;" align="center">
+            <td style="width:4px;background:#b4b4b4;padding:0;" align="center">
               &nbsp;
             </td>
           </#if>
@@ -48,7 +48,7 @@
             ${day.dayOfMonth}
           </td>
           <#if !day?is_last>
-            <td style="width:5px;background:#b4b4b4;padding:0;" align="center">
+            <td style="width:4px;background:#b4b4b4;padding:0;" align="center">
               &nbsp;
             </td>
           </#if>
@@ -66,7 +66,7 @@
               <td style="padding:0;background:#dadada;"></td>
             </#if>
             <#if !day?is_last>
-              <td style="width:5px;background:#b4b4b4;padding:0;"></td>
+              <td style="width:4px;background:#b4b4b4;padding:0;"></td>
             </#if>
           </#list>
         </tr>
@@ -74,29 +74,29 @@
       </table>
       <table role="presentation" style="border-collapse:collapse;border:0;border-spacing:0;">
       <tr>
-        <td style="padding:5px;">
+        <td style="padding:4px;">
           <table role="presentation" style="border-collapse:collapse;border:0;border-spacing:0;">
           <tr>
             <td width="14" height="14" style="padding:0;background:#00c781;"></td>
-            <td style="padding:0px 0px 0px 5px;font-size:14px;">Has driver</td>
+            <td style="padding:0px 0px 0px 4px;font-size:14px;">Has driver</td>
           </tr>
           </table>
         </td>
         <#if hasPartials == true>
-          <td style="padding:5px;">
+          <td style="padding:4px;">
             <table role="presentation" style="border-collapse:collapse;border:0;border-spacing:0;">
             <tr>
               <td width="14" height="14" style="padding:0;background:#ffaa15;"></td>
-              <td style="padding:0px 0px 0px 5px;font-size:14px;">Partial</td>
+              <td style="padding:0px 0px 0px 4px;font-size:14px;">Partial</td>
             </tr>
             </table>
           </td>
         </#if>
-        <td style="padding:5px;">
+        <td style="padding:4px;">
           <table role="presentation" style="border-collapse:collapse;border:0;border-spacing:0;">
           <tr>
             <td width="14" height="14" style="padding:0;background:#ff4040;"></td>
-            <td style="padding:0px 0px 0px 5px;font-size:14px;">Unclaimed</td>
+            <td style="padding:0px 0px 0px 4px;font-size:14px;">Unclaimed</td>
           </tr>
           </table>
         </td>
@@ -109,13 +109,15 @@
   </tr>
   <tr>
     <td style="padding:0;">
-      <p style="margin:0 0 15px 0;">
+      <p style="margin:0 0 16px 0;">
         Please <b><a style="color:${elmo.brandColor};text-decoration:underline;" href="${elmo.gatewayUrl?no_esc}/fahrer">take over</a></b>,
         if you can drive one of these shifts.
       </p>
-      <p style="margin:0 0 15px 0;">
-        Thank you!<br>
-        Your <i>${elmo.title}</i> Team
+      <p style="margin:0 0 16px 0;">
+        <b>Thank you!</b>
+      </p>
+      <p style="margin:0 0 16px 0;">
+        Your <i>${elmo.title}</i> team
       </p>
     </td>
   </tr>

@@ -24,7 +24,7 @@
 <![endif]-->
   <style>
     table, td, div, h1, p {font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;}
-    .header {padding:15px 0px 15px 0px;}
+    .header {padding:16px 0px 16px 0px;}
     .content {width:602px;}
     @media only screen 
         and (min-device-width: 375px) 
@@ -55,14 +55,14 @@
           </td>
         </tr>
         <tr>
-          <td style="padding:25px 15px 25px 15px;">
+          <td style="padding:24px 16px 24px 16px;">
 </#macro>
 
 <#macro footer internal=false>
           </td>
         </tr>
         <tr>
-          <td align="center" style="background:#f6f6f6;padding:10px 15px 10px 15px; font-size:14px; color:#999999;">
+          <td align="center" style="background:#f6f6f6;padding:10px 16px 10px 16px; font-size:14px; color:#999999;">
             <a style="white-space:nowrap;color:#999999;text-decoration:underline;" href="${elmo.homepage?no_esc}">${elmo.homepage}</a>
           </td>
         </tr>

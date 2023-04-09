@@ -1,1 +1,1 @@
-Your Elmo registration has been accepted!
+Your registration at ${elmo.title} has been accepted!

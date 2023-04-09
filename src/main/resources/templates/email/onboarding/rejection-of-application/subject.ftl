@@ -1,1 +1,1 @@
-Your Elmo registration has been rejected!
+Your registration at ${elmo.title} has been rejected!

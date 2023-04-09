@@ -1,1 +1,1 @@
-${elmo.shortTitle}: Unclaimed shifts!
+Unclaimed shifts!

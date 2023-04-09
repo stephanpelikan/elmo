@@ -32,7 +32,6 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @WorkflowService(
@@ -328,18 +327,22 @@ public class CarSharingService {
     @WorkflowTask
     @WorkflowTask(taskDefinition = "informAboutUnconfirmedUsage")  // legacy
     public void informAdministratorAboutUnconfirmedUsage(
-            final CarSharing carSharing) throws Exception {
+            final CarSharing carSharing) {
 
-        final var adminMembersEmailAddresses = members
+        members
                 .findByRoles_Role(Role.ADMIN)
-                .stream()
-                .map(Member::getEmail)
-                .collect(Collectors.toList());
-        
-        emailService.sendEmail(
-                "car-sharing/inform-administrator-about-unconfirmed-usage",
-                adminMembersEmailAddresses,
-                NamedObject.from(carSharing).as("carSharing"));
+                .forEach(member -> {
+                    try {
+                        emailService.sendEmail(
+                                "car-sharing/inform-administrator-about-unconfirmed-usage",
+                                member.getEmail(),
+                                NamedObject.from(member).as("member"),
+                                NamedObject.from(carSharing).as("carSharing"));
+                    } catch (Exception e) {
+                        logger.warn("Could not send mail 'car-sharing/inform-administrator-about-unconfirmed-usage' to {}",
+                                member.getEmail(), e);
+                    }
+                });
         
     }
     

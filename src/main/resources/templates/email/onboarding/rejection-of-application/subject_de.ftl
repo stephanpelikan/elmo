@@ -1,1 +1,1 @@
-Deine Elmo-Anmeldung wurde nicht akzeptiert!
+Deine Anmeldung bei ${elmo.title} wurde nicht akzeptiert!

@@ -1,1 +1,1 @@
-A new Elmo member has joined!
+A new member has joined!

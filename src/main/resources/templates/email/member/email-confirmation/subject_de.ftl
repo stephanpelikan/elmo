@@ -1,1 +1,1 @@
-Elmo: Email-Bestätigung
+Email-Bestätigung für ${elmo.title}

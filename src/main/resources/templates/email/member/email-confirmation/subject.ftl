@@ -1,1 +1,1 @@
-Elmo: Email confirmation
+Email-address confirmation for ${elmo.title}

@@ -261,6 +261,7 @@ public class MemberService {
         emailService.sendEmail(
                 "member/email-confirmation",
                 emailAddress,
+                NamedObject.from(emailAddress).as("emailAddress"),
                 NamedObject.from(member).as("member"));
 
     }

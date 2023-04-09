@@ -1,1 +1,1 @@
-Erinnerung: Deine Elmo-Anmeldung ist noch unvollständig!
+Erinnerung: Deine Anmeldung bei ${elmo.title} ist noch unvollständig!
