@@ -151,7 +151,7 @@ public class GuiApiController implements MemberApi {
             violations.put("emailConfirmationCode", "missing");
         } else if (!StringUtils.hasText(emailConfirmationCode)) {
             violations.put("emailConfirmationCode", "enter");
-        } else if (!member.getGeneratedEmailConfirmationCode().equals(emailConfirmationCode)) {
+        } else if (!member.getGeneratedEmailConfirmationCode().trim().equals(emailConfirmationCode)) {
             violations.put("emailConfirmationCode", "mismatch");
         } else if (!member.getEmailForConfirmationCode().equals(email)) {
             violations.put("emailConfirmationCode", "mismatch");
@@ -229,7 +229,7 @@ public class GuiApiController implements MemberApi {
             violations.put("phoneConfirmationCode", "missing");
         } else if (!StringUtils.hasText(phoneConfirmationCode)) {
             violations.put("phoneConfirmationCode", "enter");
-        } else if (!member.getGeneratedPhoneConfirmationCode().equals(phoneConfirmationCode)) {
+        } else if (!member.getGeneratedPhoneConfirmationCode().trim().equals(phoneConfirmationCode)) {
             violations.put("phoneConfirmationCode", "mismatch");
         } else if (!member.getPhoneForConfirmationCode().equals(phoneNumber)) {
             violations.put("phoneConfirmationCode", "mismatch");

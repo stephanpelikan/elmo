@@ -6,7 +6,7 @@ import at.elmo.administration.api.v1.Cars;
 import at.elmo.administration.api.v1.CountOfCars;
 import at.elmo.administration.api.v1.TestTextMessage;
 import at.elmo.member.login.ElmoOAuth2Provider;
-import at.elmo.reservation.passangerservice.shift.ShiftService;
+import at.elmo.reservation.passengerservice.shift.ShiftService;
 import at.elmo.util.exceptions.ElmoUserMessageException;
 import at.elmo.util.exceptions.ElmoValidationException;
 import at.elmo.util.refreshtoken.RefreshTokenService;
@@ -67,7 +67,7 @@ public class AdministrationApiController implements CarApi {
             return ResponseEntity.badRequest().build();
         }
         final var violations = new HashMap<String, String>();
-        if (car.getPassangerService()
+        if (car.getPassengerService()
                 && !StringUtils.hasText(car.getPhoneNumber())) {
             violations.put("phoneNumber", "missing");
         }
@@ -89,7 +89,7 @@ public class AdministrationApiController implements CarApi {
 
             final var newCar = carService.createCar(
                     car.getCarSharing(),
-                    car.getPassangerService(),
+                    car.getPassengerService(),
                     car.getName(),
                     car.getShortcut(),
                     car.getPhoneNumber());
@@ -100,7 +100,7 @@ public class AdministrationApiController implements CarApi {
             carService.setCar(
                     carId,
                     car.getCarSharing(),
-                    car.getPassangerService(),
+                    car.getPassengerService(),
                     car.getName(),
                     car.getPhoneNumber());
             return ResponseEntity.ok(carId);

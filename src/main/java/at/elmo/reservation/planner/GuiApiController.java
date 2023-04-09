@@ -9,8 +9,8 @@ import at.elmo.member.Role;
 import at.elmo.reservation.DriverBasedReservation;
 import at.elmo.reservation.ReservationService;
 import at.elmo.reservation.carsharing.CarSharingProperties;
-import at.elmo.reservation.passangerservice.shift.ShiftService;
-import at.elmo.reservation.passangerservice.shift.exceptions.UnknownShiftException;
+import at.elmo.reservation.passengerservice.shift.ShiftService;
+import at.elmo.reservation.passengerservice.shift.exceptions.UnknownShiftException;
 import at.elmo.util.UserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 
 @RestController("plannerGuiApi")
 @RequestMapping("/api/v1")
-@Secured("DRIVER")
+@Secured({ Role.ROLE_DRIVER, Role.ROLE_MANAGER, Role.ROLE_ADMIN })
 public class GuiApiController implements PlannerApi {
 
     @Autowired
@@ -50,13 +50,10 @@ public class GuiApiController implements PlannerApi {
     public ResponseEntity<Void> claimShift(
             final String shiftId) {
         
-        final var driver = userContext
-                .getLoggedInMember();
-        if (!driver.hasRole(Role.DRIVER)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-        
         try {
+            
+            final var driver = userContext
+                    .getLoggedInMember();
             
             final var claimed = shiftService
                     .claimShift(shiftId, driver);
@@ -76,14 +73,11 @@ public class GuiApiController implements PlannerApi {
     public ResponseEntity<Void> unclaimShift(
             final String shiftId) {
         
-        final var driver = userContext
-                .getLoggedInMember();
-        if (!driver.hasRole(Role.DRIVER)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-        
         try {
             
+            final var driver = userContext
+                    .getLoggedInMember();
+
             final var unclaimed = shiftService
                     .unclaimShift(shiftId, driver);
             if (unclaimed) {
@@ -139,7 +133,7 @@ public class GuiApiController implements PlannerApi {
                 .drivers(mapper.toApi(drivers))
                 .cars(List.copyOf(carReservations.values()))
                 .remainingHours(
-                        driver.getHoursServedPassangerService()
+                        driver.getHoursServedPassengerService()
                         - driver.getHoursConsumedCarSharing())
                 .maxHours(csProperties.getMaxHours())
                 .allowPaidCarSharing(csProperties.isAllowPaidCarSharing());

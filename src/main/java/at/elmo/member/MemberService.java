@@ -74,7 +74,7 @@ public class MemberService {
             final String comment,
             final String iban,
             final Payment payment,
-            final int hoursServedPassangerService,
+            final int hoursServedPassengerService,
             final int hoursConsumedCarSharing) {
 
         if (members.findByMemberId(memberId).isPresent()) {
@@ -102,7 +102,7 @@ public class MemberService {
         member.setTitle(title);
         member.setZip(zip);
         member.setHoursConsumedCarSharing(hoursConsumedCarSharing);
-        member.setHoursServedPassangerService(hoursServedPassangerService);
+        member.setHoursServedPassengerService(hoursServedPassengerService);
 
         members.saveAndFlush(member);
 

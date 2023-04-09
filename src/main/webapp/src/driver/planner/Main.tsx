@@ -18,7 +18,7 @@ import { CalendarDay, CalendarHour, ReservationDrivers, Selection, useWakeupSseC
 import { SelectionBox } from "./SelectionBox";
 import { CarSharingBox } from "./CarSharingBox";
 import { BlockBox } from "./BlockBox";
-import { PassangerServiceBox } from "./PassangerServiceBox";
+import { PassengerServiceBox } from "./PassengerServiceBox";
 
 i18n.addResources('en', 'driver/planner', {
       "title.long": 'Planner',
@@ -35,8 +35,8 @@ i18n.addResources('en', 'driver/planner', {
       "conflicting-incoming_msg": "Another driver created a conflicting reservation. Your selection was removed.",
       "parallel-carsharing_title": "Planning",
       "parallel-carsharing_msg": "You have another reservation in parallel for '{{value}}'!",
-      "parallel-passangerservice_title": "Planning",
-      "parallel-passangerservice_msg": "You are planned yourself for passanger-service on '{{value}}' in parallel!",
+      "parallel-passengerservice_title": "Planning",
+      "parallel-passengerservice_msg": "You are planned yourself for passenger-service on '{{value}}' in parallel!",
       "date_format": "yyyy/mm/dd",
     });
 i18n.addResources('de', 'driver/planner', {
@@ -54,8 +54,8 @@ i18n.addResources('de', 'driver/planner', {
       "conflicting-incoming_msg": "Ein(e) andere(r) Fahrer(in) hat eine Reservierung in der Zeit deiner Auswahl eingetragen, weshalb sie entfernt wurde.",
       "parallel-carsharing_title": "Planning",
       "parallel-carsharing_msg": "Du hast zeitgleich eine andere Car-Sharing-Reservierung für '{{value}}'!",
-      "parallel-passangerservice_title": "Planning",
-      "parallel-passangerservice_msg": "Du bist hast dich zeitgleich für den Fahrtendienst mit '{{value}}' eingetragen!",
+      "parallel-passengerservice_title": "Planning",
+      "parallel-passengerservice_msg": "Du bist hast dich zeitgleich für den Fahrtendienst mit '{{value}}' eingetragen!",
       "date_format": "dd.mm.yyyy",
     });
 
@@ -187,7 +187,7 @@ const DayTable = memo<{
                               isLastHourOfReservation={ isLastHourOfReservation }
                             />
                         : hour.reservation?.type === PlannerReservationType.Ps
-                        ? <PassangerServiceBox
+                        ? <PassengerServiceBox
                               hour={ hour }
                               isFirstHourOfReservation={ isFirstHourOfReservation }
                               isLastHourOfReservation={ isLastHourOfReservation }

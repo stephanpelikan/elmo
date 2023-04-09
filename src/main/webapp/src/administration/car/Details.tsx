@@ -21,15 +21,15 @@ i18n.addResources('en', 'administration/car-details', {
       "save": "Save",
       "reset": "Reset",
       "delete": "Delete",
-      "passanger-service": "Passanger service",
+      "passenger-service": "Passenger service",
       "car-sharing": "Car-Sharing",
       "app": "Elmo-App on tablet",
       "app-description-inactive": `For some features of the Elmo-App installed on the
-        passanger service tablet (e.g. sending SMS text messages) the App has
+        passenger service tablet (e.g. sending SMS text messages) the App has
         to be activated first for security-reason. Click the 'Activate App'-button
         and scan the shown QR-code using the Elmo-App.`,
       "app-description-active": `Here you can deactivate the Elmo-App installed on the
-        passanger service tablet, e.g. if the tablet is lost. This is only about the
+        passenger service tablet, e.g. if the tablet is lost. This is only about the
         special features (e.g. sending SMS text messages).`,
       "activate": "Activate Elmo-App",
       "deactivate": "Deactivate Elmo-App",
@@ -49,7 +49,7 @@ i18n.addResources('en', 'administration/car-details', {
       "car-saved_message": "Changes were successfully persisted!",
       "not-deleted_title": "Delete",
       "not-deleted_message": `The car war not deleted, because it's already in use!
-However, it can be deactivated for passanger-service and car-sharing.`,
+However, it can be deactivated for passenger-service and car-sharing.`,
       "new": "New",
       "save-hint": "Please save changes to enable the 'Activate Elmo-App'-button.",
   });
@@ -61,7 +61,7 @@ i18n.addResources('de', 'administration/car-details', {
       "save": "Speichern",
       "reset": "Verwerfen",
       "delete": "Löschen",
-      "passanger-service": "Fahrtendienst",
+      "passenger-service": "Fahrtendienst",
       "car-sharing": "Car-Sharing",
       "app": "Elmo-App am Tablet",
       "app-description-inactive": `Für einige Funktionen der Elmo-App am Fahrtendienst-Tablet
@@ -237,7 +237,7 @@ const Details = () => {
           shortcut: '',
           phoneNumber: '',
           appActive: false,
-          passangerService: false,
+          passengerService: false,
           carSharing: false,
         });
         return;
@@ -267,9 +267,9 @@ const Details = () => {
       <CheckBox
           toggle
           pad={ { vertical: 'small' } }
-          checked={ car.passangerService }
-          label={ t('passanger-service') }
-          onChange={ event => setCarValue({ passangerService: event.target.checked }) }
+          checked={ car.passengerService }
+          label={ t('passenger-service') }
+          onChange={ event => setCarValue({ passengerService: event.target.checked }) }
         />
       <CheckBox
           toggle

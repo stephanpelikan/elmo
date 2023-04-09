@@ -1,9 +1,9 @@
-package at.elmo.reservation.passangerservice.shift;
+package at.elmo.reservation.passengerservice.shift;
 
 import at.elmo.car.Car;
 import at.elmo.car.CarService;
 import at.elmo.reservation.blocking.BlockingService;
-import at.elmo.reservation.passangerservice.PassangerServiceProperties;
+import at.elmo.reservation.passengerservice.PassengerServiceProperties;
 import at.elmo.util.config.ConfigService;
 import at.elmo.util.holiday.HolidayService;
 import org.slf4j.Logger;
@@ -26,7 +26,7 @@ public class ShiftGenerator {
     private Logger logger;
 
     @Autowired
-    private PassangerServiceProperties properties;
+    private PassengerServiceProperties properties;
 
     @Autowired
     private ConfigService configs;
@@ -56,7 +56,7 @@ public class ShiftGenerator {
     public void generateShifts() {
 
         carService
-                .getPassangerServiceCars()
+                .getPassengerServiceCars()
                 .stream()
                 .forEach(this::generateShiftsForCar);
 

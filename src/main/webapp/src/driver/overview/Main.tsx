@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ShiftEvent, ShiftOverview, ShiftOverviewWeek } from '../../client/gui';
 import useResponsiveScreen from '../../utils/responsiveUtils';
-import { usePassangerServiceGuiApi } from '../../AppContext';
+import { usePassengerServiceGuiApi } from '../../AppContext';
 import { Day } from './Day';
 import i18n from '../../i18n';
 import { Heading } from '../../components/MainLayout';
@@ -12,7 +12,7 @@ import { useGuiSse } from '../../client/guiClient';
 import { EventSourceMessage } from '../../components/SseProvider';
 
 i18n.addResources('en', 'driver/overview', {
-      "title": "Overview Passanger-Service",
+      "title": "Overview Passenger-Service",
       "hint": "Click on a shift to go to the planner",
       "has-drivers": "Has driver",
       "has-partial-drivers": "Partial",
@@ -67,15 +67,15 @@ const Overview = () => {
 
   const { t } = useTranslation('driver/overview');
   const { isPhone } = useResponsiveScreen();
-  const passangerServiceApi = usePassangerServiceGuiApi();
+  const passengerServiceApi = usePassengerServiceGuiApi();
   
   const updateOverview = useMemo(
     () => async (ev: EventSourceMessage<ShiftEvent>) =>
       {
-        const loadedOverview = await passangerServiceApi.getShiftOverview();
+        const loadedOverview = await passengerServiceApi.getShiftOverview();
         setOverview(loadedOverview);
       },
-      [ passangerServiceApi ]);
+      [ passengerServiceApi ]);
   useGuiSse<ShiftEvent>(
       updateOverview,
       /^Shift$/
@@ -84,11 +84,11 @@ const Overview = () => {
   const [ overview, setOverview ] = useState<ShiftOverview | undefined>(undefined);
   useEffect(() => {
       const loadOverview = async () => {
-          const loadedOverview = await passangerServiceApi.getShiftOverview();
+          const loadedOverview = await passengerServiceApi.getShiftOverview();
           setOverview(loadedOverview);
         };
       loadOverview();
-    }, [ passangerServiceApi, setOverview ]);
+    }, [ passengerServiceApi, setOverview ]);
     
   return <Box
              width={ isPhone ? '17.5rem' : '21rem'}

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_02335wb" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.7.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.18.0">
-  <bpmn:process id="ShiftLifecycle" name="Passanger Service Shift Lifecycle" isExecutable="true">
-    <bpmn:endEvent id="Event_0v2l5bj" name="shift ended without passanger service">
+  <bpmn:process id="ShiftLifecycle" name="Passenger Service Shift Lifecycle" isExecutable="true">
+    <bpmn:endEvent id="Event_0v2l5bj" name="shift ended without passenger service">
       <bpmn:incoming>Flow_0x6ats6</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:endEvent id="Event_09q5f5a" name="shift ended">
@@ -19,7 +19,7 @@
       <bpmn:incoming>Flow_1o04ajj</bpmn:incoming>
       <bpmn:outgoing>Flow_0hxb6pb</bpmn:outgoing>
     </bpmn:callActivity>
-    <bpmn:callActivity id="Activity_0yk5yjp" name="do passanger service" calledElement="PassangerService">
+    <bpmn:callActivity id="Activity_0yk5yjp" name="do passenger service" calledElement="PassengerService">
       <bpmn:extensionElements>
         <camunda:in businessKey="#{execution.processBusinessKey}" />
       </bpmn:extensionElements>
@@ -55,7 +55,7 @@
     <bpmn:sequenceFlow id="Flow_0dffhyi" sourceRef="Event_0yatdx0" targetRef="Activity_1gcii0o" />
     <bpmn:sequenceFlow id="Flow_19vy58y" sourceRef="Activity_1gcii0o" targetRef="Gateway_1qq7bok" />
     <bpmn:subProcess id="Activity_191bl29" name="cancellation of shift" triggeredByEvent="true">
-      <bpmn:sendTask id="Activity_1lt70v5" name="inform passangers about cancellation" camunda:expression="${informPassangerAboutShiftCancellation}">
+      <bpmn:sendTask id="Activity_1lt70v5" name="inform passengers about cancellation" camunda:expression="${informPassengerAboutShiftCancellation}">
         <bpmn:incoming>Flow_04gy8t5</bpmn:incoming>
         <bpmn:outgoing>Flow_1qov989</bpmn:outgoing>
         <bpmn:multiInstanceLoopCharacteristics camunda:collection="${rides}" camunda:elementVariable="ride" />

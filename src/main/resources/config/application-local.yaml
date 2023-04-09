@@ -7,7 +7,7 @@ elmo:
   brand-color: "#ff9f00"
   accent-color: "#348eda"
     
-  passanger-agreement-pdf-directory: src/test/attachments/agreement  
+  passenger-agreement-pdf-directory: src/test/attachments/agreement  
   driver-agreement-pdf-directory: src/test/attachments/agreement  
   gateway-url: http://localhost:3000
   default-locale: de_AT
@@ -25,7 +25,7 @@ elmo:
       - name: Elmo 3
         shortcut: ELMO3
         car-sharing: true
-        passanger-service: true
+        passenger-service: true
         phone-number: "+431234567890"
   cors:
     allowed-origins: "*"

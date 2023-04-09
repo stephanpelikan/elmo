@@ -3,6 +3,7 @@ package at.elmo.app.api;
 import at.elmo.app.api.v1.AppApi;
 import at.elmo.app.api.v1.TextMessages;
 import at.elmo.car.Car;
+import at.elmo.member.Role;
 import at.elmo.util.UserContext;
 import at.elmo.util.sms.SmsEvent;
 import at.elmo.util.sms.SmsService;
@@ -30,7 +31,7 @@ import java.util.UUID;
 
 @RestController("appApiController")
 @RequestMapping("/api/v1")
-@Secured("CAR")
+@Secured(Role.ROLE_CAR)
 public class AppApiController implements AppApi, AppApiControllerScheduledOrAsync {
 
     @Autowired

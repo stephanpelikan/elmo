@@ -1,4 +1,4 @@
-package at.elmo.reservation.passangerservice.shift.exceptions;
+package at.elmo.reservation.passengerservice.shift.exceptions;
 
 public class UnknownShiftException extends Exception {
 

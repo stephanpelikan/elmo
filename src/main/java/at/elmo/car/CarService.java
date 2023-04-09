@@ -37,7 +37,7 @@ public class CarService {
 
     public Car createCar(
             final boolean carSharing,
-            final boolean passangerService,
+            final boolean passengerService,
             final String name,
             final String shortcut,
             final String phoneNumber) {
@@ -45,7 +45,7 @@ public class CarService {
         final var newCar = new Car();
         newCar.setId(UUID.randomUUID().toString());
         newCar.setCarSharing(carSharing);
-        newCar.setPassangerService(passangerService);
+        newCar.setPassengerService(passengerService);
         newCar.setName(name);
         newCar.setShortcut(shortcut);
         newCar.setPhoneNumber(phoneNumber);
@@ -57,7 +57,7 @@ public class CarService {
     public void setCar(
             final String carId,
             final boolean carSharing,
-            final boolean passangerService,
+            final boolean passengerService,
             final String name,
             final String phoneNumber) {
 
@@ -71,7 +71,7 @@ public class CarService {
 
         final var changedCar = car.get();
         changedCar.setCarSharing(carSharing);
-        changedCar.setPassangerService(passangerService);
+        changedCar.setPassengerService(passengerService);
         changedCar.setName(name);
         changedCar.setPhoneNumber(StringUtils.hasText(phoneNumber) ? phoneNumber : null);
         cars.saveAndFlush(changedCar);
@@ -87,15 +87,15 @@ public class CarService {
 
     }
 
-    public List<Car> getPassangerServiceCars() {
+    public List<Car> getPassengerServiceCars() {
 
-        return cars.findByPassangerService(true);
+        return cars.findByPassengerService(true);
 
     }
     
-    public long getCountOfPassangerServiceCars() {
+    public long getCountOfPassengerServiceCars() {
         
-        return cars.countByPassangerService(true);
+        return cars.countByPassengerService(true);
         
     }
 

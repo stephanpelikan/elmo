@@ -15,7 +15,7 @@ import { MainLayout, Heading, Content, SubHeading } from '../../components/MainL
 
 i18n.addResources('en', 'administration/member-details', {
     "new": "new",
-    "hoursServedPassangerService": "Hours served passanger service",
+    "hoursServedPassengerService": "Hours served passenger service",
     "hoursConsumedCarSharing": "Hours consumed car-sharing",
     "person-title": "Title:",
     "first-name": "First name:",
@@ -47,7 +47,7 @@ i18n.addResources('en', 'administration/member-details', {
     "prefer-notifications-per-sms": "Notify by SMS instead email?",
     "roles": "Roles:",
     "roles_last-admin": "You cannot remove the Admin role, because this is user is the last admin.",
-    "PASSANGER": "Passanger",
+    "PASSENGER": "Passenger",
     "DRIVER": "Driver",
     "MANAGER": "Manager",
     "ADMIN": "Administrator",
@@ -73,7 +73,7 @@ i18n.addResources('en', 'administration/member-details', {
   });
 i18n.addResources('de', 'administration/member-details', {
     "new": "Neu",
-    "hoursServedPassangerService": "Geleiste Stunden Fahrtendienst",
+    "hoursServedPassengerService": "Geleiste Stunden Fahrtendienst",
     "hoursConsumedCarSharing": "Konsumierte Stunden Car-Sharing",
     "person-title": "Titel:",
     "first-name": "Vorname:",
@@ -105,7 +105,7 @@ i18n.addResources('de', 'administration/member-details', {
     "prefer-notifications-per-sms": "Hinweise per SMS statt Email?",
     "roles": "Rollen:",
     "roles_last-admin": "Du kannst die Administrator-Rolle kann nicht entfernt, weil dieser Benutzer der letzte Administrator ist.",
-    "PASSANGER": "Passagier",
+    "PASSENGER": "Passagier",
     "DRIVER": "FahrerIn",
     "MANAGER": "ManagerIn",
     "ADMIN": "AdministratorIn",
@@ -296,8 +296,8 @@ const EditMember = () => {
               ? <Table style={ { maxWidth: '23rem' } }>
                   <TableBody>
                     <TableRow>
-                      <TableCell>{ t('hoursServedPassangerService') }:</TableCell>
-                      <TableCell>{ formValue.hoursServedPassangerService }h</TableCell>
+                      <TableCell>{ t('hoursServedPassengerService') }:</TableCell>
+                      <TableCell>{ formValue.hoursServedPassengerService }h</TableCell>
                     </TableRow>
                     <TableRow>
                       <TableCell>{ t('hoursConsumedCarSharing') }:</TableCell>
@@ -434,7 +434,7 @@ const EditMember = () => {
           <Select
               id="rolesSelect"
               multiple
-              options={[ Role.Passanger, Role.Driver, Role.Manager, Role.Admin ]}
+              options={[ Role.Passenger, Role.Driver, Role.Manager, Role.Admin ]}
               value={ formValue?.roles }
               labelKey={ t }
               messages={ { multiple: formValue?.roles?.map(role => t(role)).join(', ') } }

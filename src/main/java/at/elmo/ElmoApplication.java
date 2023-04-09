@@ -4,7 +4,7 @@ import at.elmo.car.CarProperties;
 import at.elmo.config.ElmoProperties;
 import at.elmo.config.TranslationProperties;
 import at.elmo.reservation.carsharing.CarSharingProperties;
-import at.elmo.reservation.passangerservice.PassangerServiceProperties;
+import at.elmo.reservation.passengerservice.PassengerServiceProperties;
 import at.elmo.util.email.EmailProperties;
 import at.elmo.util.sms.SmsProperties;
 import io.vanillabp.springboot.ModuleAndWorkerAwareSpringApplication;
@@ -22,7 +22,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
         EmailProperties.class,
         SmsProperties.class,
         CarProperties.class,
-        PassangerServiceProperties.class,
+        PassengerServiceProperties.class,
         CarSharingProperties.class
     })
 @EnableAsync

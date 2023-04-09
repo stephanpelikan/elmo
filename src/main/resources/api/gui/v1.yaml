@@ -290,7 +290,7 @@ paths:
     post:
       tags:
         - planner
-      summary: The calendar for car-sharing/passanger-service
+      summary: The calendar for car-sharing/passenger-service
       operationId: getPlannerCalendar
       requestBody:
         content:
@@ -342,10 +342,10 @@ paths:
           description: Shift not found
         409:
           description: Shift claimed by someone else
-  /gui/passanger-service/shift-overview:
+  /gui/passenger-service/shift-overview:
     get:
       tags:
-        - passanger-service
+        - passenger-service
       summary: The shifts within the next two weeks
       operationId: getShiftOverview
       responses:
@@ -529,7 +529,7 @@ components:
     Role:
       type: string
       enum:
-        - PASSANGER
+        - PASSENGER
         - DRIVER
         - CAR
         - MANAGER
@@ -552,9 +552,9 @@ components:
     ShiftStatus:
       type: string
       enum:
-        - NO_SHIFT # hour has no passanger-service shift
+        - NO_SHIFT # hour has no passenger-service shift
         - FREE     # no car drivers set to shift
-        - PARTIAL  # in case of more cars for passanger-service if one car driver is set and the other not
+        - PARTIAL  # in case of more cars for passenger-service if one car driver is set and the other not
         - COMPLETE # all car drivers set to shift
     CarSharingStatus:
       type: string
@@ -787,6 +787,8 @@ components:
           $ref: '#/components/schemas/PlannerReservationType'
         driverMemberId:
           type: integer
+        hasRides:
+          type: boolean
     PlannerCalendar:
       type: object
       required:

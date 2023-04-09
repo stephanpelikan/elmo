@@ -182,8 +182,8 @@ const ListOfMembers = () => {
           { property: 'status', header: t('status'),
             render: member => <Text>{ t(`status_${member.status}`) }</Text>
           },
-          { property: 'member.hoursServedPassangerService', header: t('Fahrtendienst'),
-            render: member => <Text>{ member.hoursServedPassangerService }h</Text>
+          { property: 'member.hoursServedPassengerService', header: t('Fahrtendienst'),
+            render: member => <Text>{ member.hoursServedPassengerService }h</Text>
           },
           { property: 'member.hoursConsumedCarSharing', header: t('Car-Sharing'),
             render: member => <Text>{ member.hoursConsumedCarSharing }h</Text>

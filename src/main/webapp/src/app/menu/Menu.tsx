@@ -16,7 +16,7 @@ i18n.addResources('en', 'menu', {
       "user profile": "User profile",
       "administration": "Administration",
       "driver": "Driver",
-      "PASSANGER": "Passanger",
+      "PASSENGER": "Passenger",
       "DRIVER": "Driver",
       "MANAGER": "Manager",
       "ADMIN": "Administrator",
@@ -26,7 +26,7 @@ i18n.addResources('de', 'menu', {
       "user profile": "Benutzerprofil",
       "administration": "Verwaltung",
       "driver": "Fahrer",
-      "PASSANGER": "Passagier",
+      "PASSENGER": "Passagier",
       "DRIVER": "FahrerIn",
       "MANAGER": "ManagerIn",
       "ADMIN": "AdministratorIn",
@@ -35,7 +35,7 @@ i18n.addResources('de', 'menu', {
 const Menu = () => {
   
   const { state, showMenu } = useAppContext();
-  const { isPassangerOnly, isInRegistration } = useCurrentUserRoles();
+  const { isPassengerOnly, isInRegistration } = useCurrentUserRoles();
   const navigate = useNavigate();
   const { t } = useTranslation('menu');
   const { t: tApp } = useTranslation('app');
@@ -52,7 +52,7 @@ const Menu = () => {
             <User
                 user={ state.currentUser! } />
             {
-              !isPassangerOnly && !isInRegistration
+              !isPassengerOnly && !isInRegistration
                   ? <Box
                         align="center"
                         gap='small'

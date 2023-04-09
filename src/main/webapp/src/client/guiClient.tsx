@@ -1,4 +1,4 @@
-import { Configuration as GuiConfiguration, LoginApi, MemberApi, OnboardingApi, PassangerServiceApi } from './gui';
+import { Configuration as GuiConfiguration, LoginApi, MemberApi, OnboardingApi, PassengerServiceApi } from './gui';
 import { Dispatch, useAppContext } from '../AppContext';
 import { buildFetchApi, doLogout } from '../utils/fetchApi';
 import { OnMessageFunction, SseContextInterface, SseProvider, useSse, WakeupSseCallback } from '../components/SseProvider';
@@ -39,15 +39,15 @@ const getMemberGuiApi = (
   return new MemberApi(config);
 };
 
-const getPassangerServiceGuiApi = (
+const getPassengerServiceGuiApi = (
   dispatch: Dispatch,
   wakeupSseCallback?: WakeupSseCallback
-): PassangerServiceApi => {
+): PassengerServiceApi => {
   const config = new GuiConfiguration({
     basePath: '/api/v1',
     fetchApi: buildFetchApi(dispatch, wakeupSseCallback),
   });
-  return new PassangerServiceApi(config);
+  return new PassengerServiceApi(config);
 };
 
 interface GuiSseContextInterface extends SseContextInterface { };
@@ -91,7 +91,7 @@ export {
     getLoginGuiApi,
     getOnboardingGuiApi,
     getMemberGuiApi,
-    getPassangerServiceGuiApi,
+    getPassengerServiceGuiApi,
     doLogout,
   };
 

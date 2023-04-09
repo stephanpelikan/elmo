@@ -4,7 +4,7 @@ import { useAppContext } from '../AppContext';
 import { useCurrentUserRoles } from '../utils/roleUtils';
 import { Overview } from './overview/Main';
 import { CarSharings } from './car-sharing/Main';
-import { Shifts } from './passanger-service/Main';
+import { Shifts } from './passenger-service/Main';
 
 const Dashboard = () => {
   

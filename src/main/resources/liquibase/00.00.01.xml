@@ -193,7 +193,7 @@
         <constraints unique="true" />
       </column>
       <column name="PHONE_NUMBER" type="varchar(30)" />
-      <column name="PASSANGER_SERVICE" type="boolean" />
+      <column name="PASSENGER_SERVICE" type="boolean" />
       <column name="CAR_SHARING" type="boolean" />
       <column name="APP_ACTIVE" type="boolean" />
     </addColumn>
@@ -288,7 +288,7 @@
         <column name="PREVIOUS_RES" type="varchar(40)" />
     </addColumn> 
   </changeSet>
-  <changeSet id="passanger-service-introduce-swaps"
+  <changeSet id="passenger-service-introduce-swaps"
              author="stephanpelikan">
     <addColumn tableName="ELMO_RESERVATION">
       <column name="MEMBER_FOR_SWAP" type="varchar(40)" />

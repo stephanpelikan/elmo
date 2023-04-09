@@ -1,4 +1,4 @@
-package at.elmo.reservation.passangerservice.shift;
+package at.elmo.reservation.passengerservice.shift;
 
 import at.elmo.car.Car;
 import at.elmo.car.CarService;
@@ -9,9 +9,9 @@ import at.elmo.member.MemberRepository;
 import at.elmo.member.Role;
 import at.elmo.reservation.ReservationNotification;
 import at.elmo.reservation.ReservationService;
-import at.elmo.reservation.passangerservice.shift.exceptions.UnknownShiftException;
-import at.elmo.reservation.passangerservice.shift.overview.ShiftOverviewHour;
-import at.elmo.reservation.passangerservice.shift.overview.ShiftStatus;
+import at.elmo.reservation.passengerservice.shift.exceptions.UnknownShiftException;
+import at.elmo.reservation.passengerservice.shift.overview.ShiftOverviewHour;
+import at.elmo.reservation.passengerservice.shift.overview.ShiftStatus;
 import at.elmo.util.email.EmailService;
 import at.elmo.util.email.NamedObject;
 import at.elmo.util.sms.SmsService;
@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
         workflowAggregateClass = Shift.class,
         bpmnProcess = @BpmnProcess(bpmnProcessId = "ShiftLifecycle"),
         secondaryBpmnProcesses = {
-                @BpmnProcess(bpmnProcessId = "PassangerService"),
+                @BpmnProcess(bpmnProcessId = "PassengerService"),
                 @BpmnProcess(bpmnProcessId = "ShiftDue"),
                 @BpmnProcess(bpmnProcessId = "ShiftSwapOfDriverNeeded"),
                 @BpmnProcess(bpmnProcessId = "ShiftSwapOfDriverRequested"),
@@ -113,6 +113,7 @@ public class ShiftService {
         if (shift.isCancelled()) {
             throw new UnknownShiftException();
         }
+        
         final var currentDriver = shift.getDriver();
         if ((currentDriver != null)
                 && !currentDriver.equals(driver)) {
@@ -141,6 +142,11 @@ public class ShiftService {
         if (shift.isCancelled()) {
             throw new UnknownShiftException();
         }
+        
+        if (!shift.getRides().isEmpty()) {
+            return false;
+        }
+                
         final var currentDriver = shift.getDriver();
         if ((currentDriver == null)
                 || !currentDriver.equals(driver)) {
@@ -221,14 +227,14 @@ public class ShiftService {
     }
     
     @WorkflowTask
-    public void informPassangerAboutShiftNotClaimedYet() {
+    public void informPassengerAboutShiftNotClaimedYet() {
         
         throw new NotImplementedException();
         
     }
     
     @WorkflowTask
-    public void informPassangerAboutShiftCancellation() {
+    public void informPassengerAboutShiftCancellation() {
         
         throw new NotImplementedException();
         
@@ -243,7 +249,7 @@ public class ShiftService {
                 .forEach(driver -> sendDriverSms(
                         driver,
                         shift,
-                        "passanger-service/inform-driver-about-swap-needed",
+                        "passenger-service/inform-driver-about-swap-needed",
                         "informDriversAboutSwapNeeded"));
         
     }
@@ -280,7 +286,7 @@ public class ShiftService {
         sendDriverSms(
                 shift.getDriver(),
                 shift,
-                "passanger-service/inform-driver-about-swap-requested",
+                "passenger-service/inform-driver-about-swap-requested",
                 "informDriverAboutRequestForSwap");
 
     }
@@ -294,7 +300,7 @@ public class ShiftService {
                 .forEach(driver -> sendDriverSms(
                         driver,
                         shift,
-                        "passanger-service/inform-driver-about-swap-done",
+                        "passenger-service/inform-driver-about-swap-done",
                         "informDriversAboutSwapDone"));
         
     }
@@ -316,7 +322,7 @@ public class ShiftService {
         sendDriverSms(
                 shift.getDriver(),
                 shift,
-                "passanger-service/inform-driver-about-swap-was-rejected",
+                "passenger-service/inform-driver-about-swap-was-rejected",
                 "informDriverAboutSwapRejected");
         
         shift.setDriverRequestingSwap(null);
@@ -332,7 +338,7 @@ public class ShiftService {
                 .forEach(driver -> sendDriverSms(
                         driver,
                         shift,
-                        "passanger-service/inform-driver-about-swap-cancelled",
+                        "passenger-service/inform-driver-about-swap-cancelled",
                         "informDriversAboutSwapCancelled"));
         
     }
@@ -344,7 +350,7 @@ public class ShiftService {
         sendDriverSms(
                 shift.getDriver(),
                 shift,
-                "passanger-service/inform-driver-about-cancellation-of-swap",
+                "passenger-service/inform-driver-about-cancellation-of-swap",
                 "informDriverAboutCancellationOfSwap");
         
         shift.setDriverRequestingSwap(null);
@@ -358,7 +364,7 @@ public class ShiftService {
         sendDriverSms(
                 shift.getDriver(),
                 shift,
-                "passanger-service/inform-driver-about-swap-was-accepted",
+                "passenger-service/inform-driver-about-swap-was-accepted",
                 "informDriverAboutSwapAccepted");
         
         shift.setDriver(
@@ -376,7 +382,7 @@ public class ShiftService {
                 .forEach(driver -> sendDriverSms(
                         driver,
                         shift,
-                        "passanger-service/as-driver-to-claim-shift",
+                        "passenger-service/as-driver-to-claim-shift",
                         "askDriversToClaimShift"));
         
     }
@@ -403,7 +409,7 @@ public class ShiftService {
         final var endOfOverview = startOfOverview
                 .plusWeeks(1);
 
-        final var numberOfCars = carService.getCountOfPassangerServiceCars();
+        final var numberOfCars = carService.getCountOfPassengerServiceCars();
 
         final var carCounters = new HashMap<Integer, Integer>();
         final var cars = new HashMap<Integer, Car>();
@@ -529,7 +535,7 @@ public class ShiftService {
                 .next();
         
         emailService.sendEmail(
-                "passanger-service/ask-drivers-to-claim-any-free-shift-of-next-week",
+                "passenger-service/ask-drivers-to-claim-any-free-shift-of-next-week",
                 driver.getEmail(),
                 NamedObject.from(hours).as("hours"),
                 NamedObject.from(days).as("days"),
@@ -540,41 +546,27 @@ public class ShiftService {
         
     @WorkflowTask
     public void askDriverBeforeCancellationToClaimShift(
-        final Shift shift) {
+            final Shift shift) {
         
         members
                 .findActiveDrivers()
                 .forEach(driver -> sendDriverSms(
                         driver,
                         shift,
-                        "passanger-service/as-driver-before-cancellation-to-claim-shift",
+                        "passenger-service/as-driver-before-cancellation-to-claim-shift",
                         "askDriverBeforeCancellationToClaimShift"));
         
     }
     
     @WorkflowTask
-    public void markReservationAsConditionally() {
+    public void informPassengerAboutTurnedIntoConditionallyReservation() {
         
         throw new NotImplementedException();
         
     }
     
     @WorkflowTask
-    public void informPassangerAboutTurnedIntoConditionallyReservation() {
-        
-        throw new NotImplementedException();
-        
-    }
-    
-    @WorkflowTask
-    public void informPassangerAboutTurnedIntoSteadyReservation() {
-        
-        throw new NotImplementedException();
-        
-    }
-    
-    @WorkflowTask
-    public void markReservationAsSteady() {
+    public void informPassengerAboutTurnedIntoSteadyReservation() {
         
         throw new NotImplementedException();
         

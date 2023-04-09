@@ -19,7 +19,7 @@ elmo:
     - DELETE
     - PATCH
     maxAge: 43200
-  passanger-service:
+  passenger-service:
     days-for-initial-shift-creation: 90
     shifts:
       MONDAY:
@@ -149,7 +149,7 @@ logging:
 translations:
   general:
     en:
-      passangerAgreement: Agreement-Passanger
+      passengerAgreement: Agreement-Passenger
       driverAgreement: Agreement-Driver
       dateFormat: MM/dd/yyyy
       salutation:
@@ -161,12 +161,12 @@ translations:
         ANNUALLY: "annually"
         NONE: ""
       roleShortcuts:
-        PASSANGER: P
+        PASSENGER: P
         DRIVER: D
         MANAGER: M
         ADMIN: A
     de:
-      passangerAgreement: Anmeldeformular-Passagier
+      passengerAgreement: Anmeldeformular-Passagier
       driverAgreement: Anmeldeformular-Fahrer
       dateFormat: dd.MM.yyyy
       salutation:
@@ -178,7 +178,7 @@ translations:
         ANNUALLY: "Jährlich"
         NONE: ""
       roleShortcuts:
-        PASSANGER: P
+        PASSENGER: P
         DRIVER: F
         MANAGER: M
         ADMIN: V
@@ -200,7 +200,7 @@ translations:
       comment: Comment
       iban: IBAN
       payment: Payment
-      hoursServedPassangerService: Passanger-S.
+      hoursServedPassengerService: Passenger-S.
       hoursConsumedCarSharing: Car-Sharing
     de:
       members: Mitglieder
@@ -219,7 +219,7 @@ translations:
       comment: Kommenatar
       iban: IBAN
       payment: Zahlung
-      hoursServedPassangerService: Fahrtendienst
+      hoursServedPassengerService: Fahrtendienst
       hoursConsumedCarSharing: Car-Sharing
 
 ---

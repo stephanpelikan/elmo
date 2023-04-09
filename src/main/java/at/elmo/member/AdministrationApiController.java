@@ -282,22 +282,22 @@ public class AdministrationApiController implements MemberApi {
                             .findFirst()
                             .map(Entry::getKey)
                             .orElse(Payment.MONTHLY);
-                    final int hoursServedPassangerService;
-                    final var hoursServedPassangerServiceCell = NullableCell.from(row.getCell(15));
-                    if ((hoursServedPassangerServiceCell.getCellType() != CellType.NUMERIC)
-                            && !StringUtils.hasText(hoursServedPassangerServiceCell.getStringCellValue())) {
-                        throw new ElmoValidationException("hoursServedPassangerService", "missing");
-                    } else if (hoursServedPassangerServiceCell.getCellType() == CellType.NUMERIC) {
-                        hoursServedPassangerService = (int) hoursServedPassangerServiceCell.getNumericCellValue();
+                    final int hoursServedPassengerService;
+                    final var hoursServedPassengerServiceCell = NullableCell.from(row.getCell(15));
+                    if ((hoursServedPassengerServiceCell.getCellType() != CellType.NUMERIC)
+                            && !StringUtils.hasText(hoursServedPassengerServiceCell.getStringCellValue())) {
+                        throw new ElmoValidationException("hoursServedPassengerService", "missing");
+                    } else if (hoursServedPassengerServiceCell.getCellType() == CellType.NUMERIC) {
+                        hoursServedPassengerService = (int) hoursServedPassengerServiceCell.getNumericCellValue();
                     } else {
-                        hoursServedPassangerService = Integer
-                                .parseInt(hoursServedPassangerServiceCell.getStringCellValue());
+                        hoursServedPassengerService = Integer
+                                .parseInt(hoursServedPassengerServiceCell.getStringCellValue());
                     }
                     final int hoursConsumedCarSharing;
                     final var hoursConsumedCarSharingCell = NullableCell.from(row.getCell(16));
                     if ((hoursConsumedCarSharingCell.getCellType() != CellType.NUMERIC)
                             && !StringUtils.hasText(hoursConsumedCarSharingCell.getStringCellValue())) {
-                        throw new ElmoValidationException("hoursServedPassangerService", "missing");
+                        throw new ElmoValidationException("hoursServedPassengerService", "missing");
                     } else if (hoursConsumedCarSharingCell.getCellType() == CellType.NUMERIC) {
                         hoursConsumedCarSharing = (int) hoursConsumedCarSharingCell.getNumericCellValue();
                     } else {
@@ -321,7 +321,7 @@ public class AdministrationApiController implements MemberApi {
                             comment,
                             iban,
                             payment,
-                            hoursServedPassangerService,
+                            hoursServedPassengerService,
                             hoursConsumedCarSharing);
 
                 } catch (ElmoValidationException e) {
@@ -418,7 +418,7 @@ public class AdministrationApiController implements MemberApi {
                 headerRow.createCell(12).setCellValue(translation.getComment());
                 headerRow.createCell(13).setCellValue(translation.getIban());
                 headerRow.createCell(14).setCellValue(translation.getPayment());
-                headerRow.createCell(15).setCellValue(translation.getHoursServedPassangerService());
+                headerRow.createCell(15).setCellValue(translation.getHoursServedPassengerService());
                 headerRow.createCell(16).setCellValue(translation.getHoursConsumedCarSharing());
                 for (short i = headerRow.getFirstCellNum(); i < headerRow.getLastCellNum(); ++i) {
                     headerRow.getCell(i).setCellStyle(headerStyle);
@@ -457,7 +457,7 @@ public class AdministrationApiController implements MemberApi {
                         dataRow.createCell(13).setCellValue(member.getIban());
                         dataRow.createCell(14).setCellValue(
                                 gTranslation.getPayment().get(member.getPayment()));
-                        dataRow.createCell(15).setCellValue(member.getHoursServedPassangerService());
+                        dataRow.createCell(15).setCellValue(member.getHoursServedPassengerService());
                         dataRow.createCell(16).setCellValue(member.getHoursConsumedCarSharing());
 
                     }

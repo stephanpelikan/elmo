@@ -1,4 +1,4 @@
-package at.elmo.reservation.passangerservice.shift;
+package at.elmo.reservation.passengerservice.shift;
 
 public class ShiftProperties {
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useLayoutEffect } from 'react';
 import { useAppContext } from '../AppContext';
-import { Main as PassangerMain } from '../passanger/Main';
+import { Main as PassengerMain } from '../passenger/Main';
 import { RegistrationMain } from '../login/RegistrationMain';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -27,7 +27,7 @@ const Main = () => {
   
   return isInRegistration
       ? <RegistrationMain />
-      : <PassangerMain />;
+      : <PassengerMain />;
 
 }
 

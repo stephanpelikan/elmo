@@ -9,8 +9,9 @@ import at.elmo.gui.api.v1.CarSharingStartRequest;
 import at.elmo.gui.api.v1.CarSharingStopRequest;
 import at.elmo.gui.api.v1.ExtendCarSharingRequest;
 import at.elmo.gui.api.v1.PlannerReservationType;
+import at.elmo.member.Role;
 import at.elmo.reservation.ReservationService;
-import at.elmo.reservation.passangerservice.shift.Shift;
+import at.elmo.reservation.passengerservice.shift.Shift;
 import at.elmo.util.UserContext;
 import at.elmo.util.exceptions.ElmoException;
 import at.elmo.util.exceptions.ElmoValidationException;
@@ -28,7 +29,7 @@ import java.util.HashMap;
 
 @RestController("carSharingGuiApi")
 @RequestMapping("/api/v1")
-@Secured("DRIVER")
+@Secured({ Role.ROLE_DRIVER, Role.ROLE_MANAGER, Role.ROLE_ADMIN })
 public class GuiApiController implements CarSharingApi {
     
     @Autowired
@@ -112,7 +113,7 @@ public class GuiApiController implements CarSharingApi {
         final var newHoursConsumedCarSharing =
                 driver.getHoursConsumedCarSharing()
                 + hours;
-        if ((newHoursConsumedCarSharing > driver.getHoursServedPassangerService())
+        if ((newHoursConsumedCarSharing > driver.getHoursServedPassengerService())
                 && !properties.isAllowPaidCarSharing()) {
             return ResponseEntity.badRequest().build();
         }
@@ -148,7 +149,7 @@ public class GuiApiController implements CarSharingApi {
                             && ((Shift) reservation).getDriver().getId()
                             .equals(driver.getId())) {
                         throw new ElmoValidationException(
-                                "parallel-passangerservice",
+                                "parallel-passengerservice",
                                 reservation.getCar().getName());
                     }
                 });

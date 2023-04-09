@@ -10,15 +10,15 @@ import { PlannerButton } from './PlannerButton';
 import { usePlannerApi } from '../DriverAppContext';
 import { UserAvatar } from '../../components/UserAvatar';
 
-i18n.addResources('en', 'driver/planner/passangerservice', {
-      "reservation-type": "Passanger Service"
+i18n.addResources('en', 'driver/planner/passengerservice', {
+      "reservation-type": "Passenger Service"
     });
 
-i18n.addResources('de', 'driver/planner/passangerservice', {
+i18n.addResources('de', 'driver/planner/passengerservice', {
       "reservation-type": "Fahrtendienst"
     });
 
-const PassangerServiceBox = ({
+const PassengerServiceBox = ({
     hour,
     isFirstHourOfReservation,
     isLastHourOfReservation,
@@ -30,7 +30,7 @@ const PassangerServiceBox = ({
     drivers: ReservationDrivers,
   }) => {
     const { state, showLoadingIndicator } = useAppContext();
-    const { t } = useTranslation('driver/planner/passangerservice');
+    const { t } = useTranslation('driver/planner/passengerservice');
     const wakeupSseCallback = useWakeupSseCallback();
     const plannerApi = usePlannerApi(wakeupSseCallback);
 
@@ -119,4 +119,4 @@ const PassangerServiceBox = ({
         </>);
   };
 
-export { PassangerServiceBox };
+export { PassengerServiceBox };

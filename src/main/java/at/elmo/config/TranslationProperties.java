@@ -32,7 +32,7 @@ public class TranslationProperties {
         private String comment;
         private String iban;
         private String payment;
-        private String hoursServedPassangerService;
+        private String hoursServedPassengerService;
         private String hoursConsumedCarSharing;
 
         public String getMembers() {
@@ -171,31 +171,31 @@ public class TranslationProperties {
             this.hoursConsumedCarSharing = hoursConsumedCarSharing;
         }
 
-        public String getHoursServedPassangerService() {
-            return hoursServedPassangerService;
+        public String getHoursServedPassengerService() {
+            return hoursServedPassengerService;
         }
 
-        public void setHoursServedPassangerService(String hoursServedPassangerService) {
-            this.hoursServedPassangerService = hoursServedPassangerService;
+        public void setHoursServedPassengerService(String hoursServedPassengerService) {
+            this.hoursServedPassengerService = hoursServedPassengerService;
         }
 
     }
 
     public static class General {
 
-        private String passangerAgreement;
+        private String passengerAgreement;
         private String driverAgreement;
         private Map<Sex, String> salutation;
         private Map<Payment, String> payment;
         private Map<Role, String> roleShortcuts;
         private String dateFormat;
 
-        public String getPassangerAgreement() {
-            return passangerAgreement;
+        public String getPassengerAgreement() {
+            return passengerAgreement;
         }
 
-        public void setPassangerAgreement(String passangerAgreement) {
-            this.passangerAgreement = passangerAgreement;
+        public void setPassengerAgreement(String passengerAgreement) {
+            this.passengerAgreement = passengerAgreement;
         }
 
         public String getDriverAgreement() {

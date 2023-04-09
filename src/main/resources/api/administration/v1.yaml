@@ -434,7 +434,7 @@ components:
     Role:
       type: string
       enum:
-        - PASSANGER
+        - PASSENGER
         - DRIVER
         - CAR
         - MANAGER
@@ -547,7 +547,7 @@ components:
         - name
         - shortcut
         - appActive
-        - passangerService
+        - passengerService
         - carSharing
       properties:
         id:
@@ -564,7 +564,7 @@ components:
         lastAppActivity:
           type: string
           format: date-time
-        passangerService:
+        passengerService:
           type: boolean
         carSharing:
           type: boolean
@@ -694,7 +694,7 @@ components:
           type: string
         comment:
           type: string
-        hoursServedPassangerService:
+        hoursServedPassengerService:
           type: integer
           format: int32
         hoursConsumedCarSharing:

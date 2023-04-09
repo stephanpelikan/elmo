@@ -1,4 +1,4 @@
-package at.elmo.reservation.passangerservice.shift.overview;
+package at.elmo.reservation.passengerservice.shift.overview;
 
 import java.time.LocalDateTime;
 

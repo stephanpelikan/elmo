@@ -9,7 +9,7 @@ import at.elmo.reservation.ReservationNeighborChangedNotification;
 import at.elmo.reservation.ReservationService;
 import at.elmo.reservation.blocking.BlockingReservation;
 import at.elmo.reservation.carsharing.CarSharing.Status;
-import at.elmo.reservation.passangerservice.shift.Shift;
+import at.elmo.reservation.passengerservice.shift.Shift;
 import at.elmo.util.email.EmailService;
 import at.elmo.util.email.NamedObject;
 import at.elmo.util.exceptions.ElmoException;

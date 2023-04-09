@@ -605,12 +605,12 @@ public class MemberOnboarding {
             final MemberApplication application) throws Exception {
 
         final NamedObject agreement;
-        if (application.getInitialRole() == Role.PASSANGER) {
-            final var dir = new File(properties.getPassangerAgreementPdfDirectory());
+        if (application.getInitialRole() == Role.PASSENGER) {
+            final var dir = new File(properties.getPassengerAgreementPdfDirectory());
             agreement = buildAgreementPdf(
                     application,
                     dir,
-                    Role.PASSANGER.name());
+                    Role.PASSENGER.name());
         } else if (application.getInitialRole() == Role.DRIVER) {
             final var dir = new File(properties.getDriverAgreementPdfDirectory());
             agreement = buildAgreementPdf(

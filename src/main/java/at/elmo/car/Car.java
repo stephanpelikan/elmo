@@ -28,8 +28,8 @@ public class Car extends PersistenceBase<String> {
     @Column(name = "PHONE_NUMBER")
     private String phoneNumber;
 
-    @Column(name = "PASSANGER_SERVICE")
-    private boolean passangerService;
+    @Column(name = "PASSENGER_SERVICE")
+    private boolean passengerService;
 
     @Column(name = "CAR_SHARING")
     private boolean carSharing;
@@ -103,12 +103,12 @@ public class Car extends PersistenceBase<String> {
         this.phoneNumber = phoneNumber;
     }
 
-    public boolean isPassangerService() {
-        return passangerService;
+    public boolean isPassengerService() {
+        return passengerService;
     }
 
-    public void setPassangerService(boolean passangerService) {
-        this.passangerService = passangerService;
+    public void setPassengerService(boolean passengerService) {
+        this.passengerService = passengerService;
     }
 
     public boolean isCarSharing() {

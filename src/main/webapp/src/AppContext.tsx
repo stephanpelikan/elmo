@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
-import { User, UserStatus, LoginApi, AppInformation, OnboardingApi, MemberApi, Oauth2Client, PassangerServiceApi } from './client/gui';
-import { getLoginGuiApi, getMemberGuiApi, getOnboardingGuiApi, getPassangerServiceGuiApi } from './client/guiClient';
+import { User, UserStatus, LoginApi, AppInformation, OnboardingApi, MemberApi, Oauth2Client, PassengerServiceApi } from './client/gui';
+import { getLoginGuiApi, getMemberGuiApi, getOnboardingGuiApi, getPassengerServiceGuiApi } from './client/guiClient';
 import { StatusType } from 'grommet';
 
 type Action =
@@ -134,10 +134,10 @@ const useMemberGuiApi = (): MemberApi => {
   
 };
 
-const usePassangerServiceGuiApi = (): PassangerServiceApi => {
+const usePassengerServiceGuiApi = (): PassengerServiceApi => {
 
   const { dispatch } = useAppContext();
-  const api = useMemo(() => getPassangerServiceGuiApi(dispatch), [ dispatch ]);
+  const api = useMemo(() => getPassengerServiceGuiApi(dispatch), [ dispatch ]);
   return api;
   
 };
@@ -295,5 +295,5 @@ export {
   supportSuspense,
   useOnboardingGuiApi,
   useMemberGuiApi,
-  usePassangerServiceGuiApi,
+  usePassengerServiceGuiApi,
 }

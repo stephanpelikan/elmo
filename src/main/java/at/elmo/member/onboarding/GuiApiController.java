@@ -106,16 +106,22 @@ public class GuiApiController implements OnboardingApi {
         if (!StringUtils.hasText(memberApplicationForm.getEmailConfirmationCode())) {
             violations.put("emailConfirmationCode", "missing");
             throw new ElmoValidationException(violations); // going ahead would cause DB failure
-        } else if (memberApplicationForm.getEmailConfirmationCode().length() > 4) {
+        } else if (memberApplicationForm.getEmailConfirmationCode().trim().length() > 4) {
             violations.put("emailConfirmationCode", "format");
             throw new ElmoValidationException(violations); // going ahead would cause DB failure
+        } else {
+            memberApplicationForm.setEmailConfirmationCode(
+                    memberApplicationForm.getEmailConfirmationCode().trim());
         }
         if (!StringUtils.hasText(memberApplicationForm.getPhoneConfirmationCode())) {
             violations.put("phoneConfirmationCode", "missing");
             throw new ElmoValidationException(violations); // going ahead would cause DB failure
-        } else if (memberApplicationForm.getPhoneConfirmationCode().length() > 4) {
+        } else if (memberApplicationForm.getPhoneConfirmationCode().trim().length() > 4) {
             violations.put("phoneConfirmationCode", "format");
             throw new ElmoValidationException(violations); // going ahead would cause DB failure
+        } else {
+            memberApplicationForm.setPhoneConfirmationCode(
+                    memberApplicationForm.getPhoneConfirmationCode().trim());
         }
 
         final var referNotificationsPerSms =

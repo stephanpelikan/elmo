@@ -13,7 +13,7 @@ import { Member, MemberApi } from '../client/gui';
 import { parseLocalDate } from '../utils/timeUtils';
 import { CodeButton } from "../components/CodeButton";
 
-i18n.addResources('en', 'passanger/profile', {
+i18n.addResources('en', 'passenger/profile', {
     "title.short": "Profile",
     "title.long": "User profile",
     "avatar_title": "Avatar",
@@ -60,7 +60,7 @@ i18n.addResources('en', 'passanger/profile', {
     "birthday": "Born:",
     "birthdate_format": "yyyy/m/d",
   });
-i18n.addResources('de', 'passanger/profile', {
+i18n.addResources('de', 'passenger/profile', {
     "title.short": "Profil",
     "title.long": "Benutzerprofil",
     "avatar_title": "Avatar",
@@ -117,7 +117,7 @@ const Profile = () => {
   
   const { setAppHeaderTitle, showLoadingIndicator } = useAppContext();
   const { isPhone, isNotPhone } = useResponsiveScreen();
-  const { t } = useTranslation('passanger/profile');
+  const { t } = useTranslation('passenger/profile');
   const { state, toast, fetchCurrentUser } = useAppContext();
   const memberApi = useMemberGuiApi();
   
@@ -139,7 +139,7 @@ const Profile = () => {
     if(elem.target.files![0].size > 12 * 1024 * 1024){
       elem.target.value = "";
       toast({
-        namespace: 'passanger/profile',
+        namespace: 'passenger/profile',
         title: 'avatar_title',
         message:'avatar_upload_toobig',
         status: 'warning'
@@ -249,7 +249,7 @@ const Profile = () => {
         });
       setViolations({ ...violations, email: undefined });
       toast({
-          namespace: 'passanger-profile',
+          namespace: 'passenger-profile',
           title: t('email-confirmation-code-title'),
           message: t('email-confirmation-code-message'),
         });
@@ -310,7 +310,7 @@ const Profile = () => {
         });
       setViolations({ ...violations, phone: undefined });
       toast({
-          namespace: 'passanger-profile',
+          namespace: 'passenger-profile',
           title: t('phone-confirmation-code-title'),
           message: t('phone-confirmation-code-message'),
         });
@@ -332,7 +332,7 @@ const Profile = () => {
   }, [ memberApi, state.currentUser, member, setMember ]);
   
   useLayoutEffect(() => {
-    setAppHeaderTitle('passanger/profile', false);
+    setAppHeaderTitle('passenger/profile', false);
   }, [ setAppHeaderTitle ]);
   
   return (

@@ -4,7 +4,7 @@ import at.elmo.car.CarProperties;
 import at.elmo.config.async.AsyncProperties;
 import at.elmo.config.async.AsyncPropertiesAware;
 import at.elmo.reservation.carsharing.CarSharingProperties;
-import at.elmo.reservation.passangerservice.PassangerServiceProperties;
+import at.elmo.reservation.passengerservice.PassengerServiceProperties;
 import at.elmo.util.email.EmailProperties;
 import at.elmo.util.sms.SmsProperties;
 import org.slf4j.Logger;
@@ -63,7 +63,7 @@ public class ElmoProperties implements AsyncPropertiesAware {
     private int initialNewMemberId;
 
     @NonNull
-    private String passangerAgreementPdfDirectory;
+    private String passengerAgreementPdfDirectory;
 
     @NonNull
     private String driverAgreementPdfDirectory;
@@ -86,7 +86,7 @@ public class ElmoProperties implements AsyncPropertiesAware {
 
     private CarProperties cars;
 
-    private PassangerServiceProperties passangerService;
+    private PassengerServiceProperties passengerService;
     
     private CarSharingProperties carSharing;
 
@@ -198,12 +198,12 @@ public class ElmoProperties implements AsyncPropertiesAware {
         this.sms = sms;
     }
 
-    public String getPassangerAgreementPdfDirectory() {
-        return passangerAgreementPdfDirectory;
+    public String getPassengerAgreementPdfDirectory() {
+        return passengerAgreementPdfDirectory;
     }
 
-    public void setPassangerAgreementPdfDirectory(String passangerAgreementPdfDirectory) {
-        this.passangerAgreementPdfDirectory = passangerAgreementPdfDirectory;
+    public void setPassengerAgreementPdfDirectory(String passengerAgreementPdfDirectory) {
+        this.passengerAgreementPdfDirectory = passengerAgreementPdfDirectory;
     }
 
     public String getGeneralEmailAddress() {
@@ -270,12 +270,12 @@ public class ElmoProperties implements AsyncPropertiesAware {
         this.cars = cars;
     }
 
-    public PassangerServiceProperties getPassangerService() {
-        return passangerService;
+    public PassengerServiceProperties getPassengerService() {
+        return passengerService;
     }
 
-    public void setPassangerService(PassangerServiceProperties passangerService) {
-        this.passangerService = passangerService;
+    public void setPassengerService(PassengerServiceProperties passengerService) {
+        this.passengerService = passengerService;
     }
 
     public CarSharingProperties getCarSharing() {

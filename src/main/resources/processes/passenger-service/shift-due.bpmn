@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_13m8ofp" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.7.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.18.0">
-  <bpmn:process id="ShiftDue" name="Passanger Service Shift Due" isExecutable="true">
-    <bpmn:sendTask id="Activity_04dk5bt" name="inform passangers about unclaimed shift" camunda:expression="${informPassangerAboutShiftNotClaimedYet}">
+  <bpmn:process id="ShiftDue" name="Passenger Service Shift Due" isExecutable="true">
+    <bpmn:sendTask id="Activity_04dk5bt" name="inform passengers about unclaimed shift" camunda:expression="${informPassengerAboutShiftNotClaimedYet}">
       <bpmn:incoming>Flow_1vxwq1q</bpmn:incoming>
       <bpmn:outgoing>Flow_1tj780o</bpmn:outgoing>
       <bpmn:multiInstanceLoopCharacteristics camunda:collection="${rides}" camunda:elementVariable="ride" />
@@ -23,7 +23,7 @@
       <bpmn:outgoing>Flow_1y8ubqu</bpmn:outgoing>
       <bpmn:messageEventDefinition id="MessageEventDefinition_0q45hk7" messageRef="Message_1p05uj9" />
     </bpmn:intermediateCatchEvent>
-    <bpmn:endEvent id="Event_0tn7er7" name="shift ended without doing passanger service">
+    <bpmn:endEvent id="Event_0tn7er7" name="shift ended without doing passenger service">
       <bpmn:incoming>Flow_0d47tyx</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:startEvent id="Event_024swto" name="shift due but not claimed yet">
@@ -34,7 +34,7 @@
     <bpmn:sequenceFlow id="Flow_0bwf83n" sourceRef="Gateway_0fp1pqt" targetRef="ShiftDue_EndOfShift" />
     <bpmn:sequenceFlow id="Flow_067zb5u" sourceRef="Gateway_0fp1pqt" targetRef="Event_0qefsal" />
     <bpmn:sequenceFlow id="Flow_0d47tyx" sourceRef="ShiftDue_EndOfShift" targetRef="Event_0tn7er7" />
-    <bpmn:endEvent id="Event_0wzghbs" name="passanger service about to start">
+    <bpmn:endEvent id="Event_0wzghbs" name="passenger service about to start">
       <bpmn:incoming>Flow_1y8ubqu</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="Flow_1y8ubqu" sourceRef="Event_0qefsal" targetRef="Event_0wzghbs" />

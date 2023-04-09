@@ -1,4 +1,4 @@
-package at.elmo.reservation.passangerservice.shift;
+package at.elmo.reservation.passengerservice.shift;
 
 import at.elmo.member.Role;
 import at.elmo.util.spring.NotificationEvent;
@@ -18,7 +18,7 @@ public class ShiftChangedNotification extends NotificationEvent {
         super(
                 "Shift",
                 type,
-                List.of(Role.ADMIN, Role.MANAGER, Role.DRIVER, Role.PASSANGER));
+                List.of(Role.ADMIN, Role.MANAGER, Role.DRIVER, Role.PASSENGER));
         this.id = id;
         
     }

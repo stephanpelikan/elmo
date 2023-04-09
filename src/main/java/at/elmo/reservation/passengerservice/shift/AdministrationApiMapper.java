@@ -1,4 +1,4 @@
-package at.elmo.reservation.passangerservice.shift;
+package at.elmo.reservation.passengerservice.shift;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

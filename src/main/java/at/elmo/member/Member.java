@@ -37,7 +37,7 @@ public class Member extends MemberBase {
     private Integer timestampOfAvatar;
 
     @Column(name = "PS_HOURS")
-    private int hoursServedPassangerService;
+    private int hoursServedPassengerService;
 
     @Column(name = "CS_HOURS")
     private int hoursConsumedCarSharing;
@@ -85,12 +85,12 @@ public class Member extends MemberBase {
         this.hoursConsumedCarSharing = hoursConsumedCarSharing;
     }
 
-    public int getHoursServedPassangerService() {
-        return hoursServedPassangerService;
+    public int getHoursServedPassengerService() {
+        return hoursServedPassengerService;
     }
 
-    public void setHoursServedPassangerService(int hoursServedPassangerService) {
-        this.hoursServedPassangerService = hoursServedPassangerService;
+    public void setHoursServedPassengerService(int hoursServedPassengerService) {
+        this.hoursServedPassengerService = hoursServedPassengerService;
     }
 
     public void addRoles(

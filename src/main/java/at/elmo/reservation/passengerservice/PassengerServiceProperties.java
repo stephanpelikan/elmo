@@ -1,6 +1,6 @@
-package at.elmo.reservation.passangerservice;
+package at.elmo.reservation.passengerservice;
 
-import at.elmo.reservation.passangerservice.shift.ShiftProperties;
+import at.elmo.reservation.passengerservice.shift.ShiftProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.lang.NonNull;
 
@@ -8,8 +8,8 @@ import java.time.DayOfWeek;
 import java.util.List;
 import java.util.Map;
 
-@ConfigurationProperties(prefix = "elmo.passanger-service", ignoreUnknownFields = false)
-public class PassangerServiceProperties {
+@ConfigurationProperties(prefix = "elmo.passenger-service", ignoreUnknownFields = false)
+public class PassengerServiceProperties {
 
     @NonNull
     private int daysForInitialShiftCreation;

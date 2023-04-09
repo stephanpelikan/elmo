@@ -28,7 +28,7 @@ i18n.addResources('de', 'administration/car', {
       "action": "Aktion",
       "status": "Status",
       "appActive": "FD-App",
-      "passanger-service": "Fahrtendienst",
+      "passenger-service": "Fahrtendienst",
       "car-sharing": "Car-Sharing",
     });
     
@@ -95,7 +95,7 @@ const ListOfCars = () => {
           { property: 'status', header: t('status'), size: '4rem',
             render: car => <Box direction='row' gap='xxsmall'>
                 { car.carSharing ? <ShareOption /> : '' }
-                { car.passangerService ? <CarIcon /> : '' }
+                { car.passengerService ? <CarIcon /> : '' }
                 { car.appActive ? <PhoneVertical /> : '' }
               </Box> },
           { property: 'edit', header: t('action'), align: 'center', size: '4rem',
@@ -111,8 +111,8 @@ const ListOfCars = () => {
           { property: 'name', header: t('name') },
           { property: 'carSharing', header: <Text truncate>{ t('car-sharing') }</Text>, size: '5rem',
             render: car => car.carSharing ? <ShareOption /> : '' },
-          { property: 'passangerService', header: <Text truncate>{ t('passanger-service') }</Text>, size: '5rem',
-            render: car => car.passangerService ? <CarIcon /> : '' },
+          { property: 'passengerService', header: <Text truncate>{ t('passenger-service') }</Text>, size: '5rem',
+            render: car => car.passengerService ? <CarIcon /> : '' },
           { property: 'appActive', header: t('appActive'), size: '5rem',
             render: car => car.appActive ? <PhoneVertical /> : '' },
           { property: 'edit', header: t('action'), align: 'center', size: '8rem',

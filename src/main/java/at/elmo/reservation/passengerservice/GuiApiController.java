@@ -1,17 +1,18 @@
-package at.elmo.reservation.passangerservice;
+package at.elmo.reservation.passengerservice;
 
-import static at.elmo.reservation.passangerservice.shift.ShiftService.mapKeyOfHour;
+import static at.elmo.reservation.passengerservice.shift.ShiftService.mapKeyOfHour;
 
 import at.elmo.car.Car;
 import at.elmo.car.CarService;
-import at.elmo.gui.api.v1.PassangerServiceApi;
+import at.elmo.gui.api.v1.PassengerServiceApi;
 import at.elmo.gui.api.v1.ShiftOverview;
 import at.elmo.gui.api.v1.ShiftOverviewDay;
 import at.elmo.gui.api.v1.ShiftOverviewHour;
 import at.elmo.gui.api.v1.ShiftOverviewWeek;
 import at.elmo.gui.api.v1.ShiftStatus;
-import at.elmo.reservation.passangerservice.shift.Shift;
-import at.elmo.reservation.passangerservice.shift.ShiftService;
+import at.elmo.member.Role;
+import at.elmo.reservation.passengerservice.shift.Shift;
+import at.elmo.reservation.passengerservice.shift.ShiftService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
@@ -24,10 +25,10 @@ import java.time.temporal.WeekFields;
 import java.util.HashMap;
 import java.util.Locale;
 
-@RestController("passangerServiceGuiApi")
+@RestController("passengerServiceGuiApi")
 @RequestMapping("/api/v1")
-@Secured("MEMBER")
-public class GuiApiController implements PassangerServiceApi {
+@Secured(Role.ROLE_PASSENGER)
+public class GuiApiController implements PassengerServiceApi {
     
     @Autowired
     private ShiftService shiftService;
@@ -82,7 +83,7 @@ public class GuiApiController implements PassangerServiceApi {
         final var hours = new HashMap<Integer, ShiftOverviewHour>();
         final var result = new ShiftOverview();
 
-        final var numberOfCars = carService.getCountOfPassangerServiceCars();
+        final var numberOfCars = carService.getCountOfPassengerServiceCars();
         result.setNumberOfCars(Integer.valueOf((int) numberOfCars));
         
         for (LocalDateTime hour = startOfOverview

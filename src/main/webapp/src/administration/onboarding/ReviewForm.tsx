@@ -30,7 +30,7 @@ i18n.addResources('en', 'administration/onboarding/review', {
       "FEMALE": "Female",
       "OTHER": "Other",
       "initial-role": "Initial role:",
-      "PASSANGER": "Passanger",
+      "PASSENGER": "Passenger",
       "DRIVER": "Driver",
       "MANAGER": "Manager",
       "ADMIN": "Administrator",
@@ -72,7 +72,7 @@ i18n.addResources('de', 'administration/onboarding/review', {
       "FEMALE": "Frau",
       "OTHER": "Andere",
       "initial-role": "Role des Mitglieds:",
-      "PASSANGER": "Passagier",
+      "PASSENGER": "Passagier",
       "DRIVER": "FahrerIn",
       "MANAGER": "ManagerIn",
       "ADMIN": "AdministratorIn",
@@ -147,7 +147,7 @@ const setFormValueByApplication = (
     preferNotificationsPerSms: application.preferNotificationsPerSms ?? false,
     comment: application.comment ?? '',
     applicationComment: application.applicationComment ?? '',
-    initialRole: application.initialRole ? application.initialRole : Role.Passanger,
+    initialRole: application.initialRole ? application.initialRole : Role.Passenger,
   };
   setFormValue(formValue);
   
@@ -566,7 +566,7 @@ const ReviewForm = () => {
                 htmlFor="initialRoleSelect">
               <Select
                   id="initialRoleSelect"
-                  options={[ Role.Passanger, Role.Driver, Role.Manager, Role.Admin ]}
+                  options={[ Role.Passenger, Role.Driver, Role.Manager, Role.Admin ]}
                   value={ formValue?.initialRole }
                   labelKey={ t }
                   onChange={({ value }) => setInitialRole(value)}
