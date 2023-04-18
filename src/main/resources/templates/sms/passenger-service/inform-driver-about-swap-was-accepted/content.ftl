@@ -1,1 +1,1 @@
-${elmo.shortTitle} Swap of shift '${(shift.startsAt).format("MEDIUM_DATETIME")}': Your request to take over the shift has been accepted. You are now a registered driver of this shift.
+Swap of shift '${(shift.startsAt).format("MEDIUM_DATETIME")}': Your request to take over the shift has been accepted. You are now a registered driver of this shift.

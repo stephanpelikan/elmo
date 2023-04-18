@@ -1,5 +1,6 @@
 package at.elmo.reservation.passengerservice.shift;
 
+import static at.elmo.reservation.passengerservice.shift.Shift.Status.*;
 import at.elmo.car.Car;
 import at.elmo.car.CarService;
 import at.elmo.config.ElmoProperties;
@@ -121,13 +122,25 @@ public class ShiftService {
         }
         
         shift.setDriver(driver);
+        shift.setStatus(CLAIMED);
         
-        processService.correlateMessage(shift, "ShiftClaimed");
+        final var driverRequestingSwap = shift.getDriverRequestingSwap();
+        shift.setDriverRequestingSwap(null);
+        
+        if (driverRequestingSwap != null) {
+            processService.correlateMessage(
+                    shift,
+                    "ShiftReclaimed");
+        } else {
+            processService.correlateMessage(
+                    shift,
+                    "ShiftClaimed");
+        }
         
         return true;
         
     }
-
+    
     public boolean unclaimShift(
             final String shiftId,
             final Member driver) throws UnknownShiftException {
@@ -143,19 +156,19 @@ public class ShiftService {
             throw new UnknownShiftException();
         }
         
-        if (!shift.getRides().isEmpty()) {
-            return false;
-        }
-                
         final var currentDriver = shift.getDriver();
         if ((currentDriver == null)
                 || !currentDriver.equals(driver)) {
             return false;
         }
-        
+
+        shift.setDriverRequestingSwap(currentDriver);
         shift.setDriver(null);
-        
-        processService.correlateMessage(shift, "ShiftUnclaimed");
+        shift.setStatus(UNCLAIMED);
+
+        processService.correlateMessage(
+                shift,
+                "ShiftUnclaimed");
         
         return true;
         
@@ -212,6 +225,7 @@ public class ShiftService {
         newShift.setEndsAt(endsAt);
         newShift.setNextReservation(nextReservation);
         newShift.setPreviousReservation(previousReservation);
+        newShift.setStatus(UNCLAIMED);
 
         final var shift = processService.startWorkflow(newShift);
         
@@ -278,7 +292,7 @@ public class ShiftService {
         }
         
     }
-    
+
     @WorkflowTask
     public void informDriverAboutRequestForSwap(
             final Shift shift) {
@@ -306,16 +320,6 @@ public class ShiftService {
     }
     
     @WorkflowTask
-    public void unclaimShiftDueToFailedSwap(
-            final Shift shift) throws UnknownShiftException {
-        
-        unclaimShift(
-                shift.getId(),
-                shift.getDriver());
-        
-    }
-    
-    @WorkflowTask
     public void informDriverAboutSwapRejected(
             final Shift shift) {
         
@@ -326,20 +330,6 @@ public class ShiftService {
                 "informDriverAboutSwapRejected");
         
         shift.setDriverRequestingSwap(null);
-        
-    }
-    
-    @WorkflowTask
-    public void informDriversAboutSwapCancelled(
-            final Shift shift) {
-        
-        members
-                .findActiveDrivers()
-                .forEach(driver -> sendDriverSms(
-                        driver,
-                        shift,
-                        "passenger-service/inform-driver-about-swap-cancelled",
-                        "informDriversAboutSwapCancelled"));
         
     }
     
@@ -382,7 +372,7 @@ public class ShiftService {
                 .forEach(driver -> sendDriverSms(
                         driver,
                         shift,
-                        "passenger-service/as-driver-to-claim-shift",
+                        "passenger-service/ask-driver-to-claim-shift",
                         "askDriversToClaimShift"));
         
     }
@@ -528,19 +518,27 @@ public class ShiftService {
             }
             
         }
-                
-        final var driver = members
-                .findByStatusAndRoles_Role(Status.ACTIVE, Role.DRIVER)
-                .iterator()
-                .next();
         
-        emailService.sendEmail(
-                "passenger-service/ask-drivers-to-claim-any-free-shift-of-next-week",
-                driver.getEmail(),
-                NamedObject.from(hours).as("hours"),
-                NamedObject.from(days).as("days"),
-                NamedObject.from(hasPartials).as("hasPartials"),
-                NamedObject.from(driver).as("driver"));
+        final var includesPartials = new boolean[] { hasPartials };
+        members
+                .findByStatusAndRoles_Role(Status.ACTIVE, Role.DRIVER)
+                .forEach(driver -> {
+                    try {
+                        emailService.sendEmail(
+                                "passenger-service/ask-drivers-to-claim-any-free-shift-of-next-week",
+                                driver.getEmail(),
+                                NamedObject.from(hours).as("hours"),
+                                NamedObject.from(days).as("days"),
+                                NamedObject.from(includesPartials[0]).as("hasPartials"),
+                                NamedObject.from(driver).as("driver"));
+                    } catch (Exception e) {
+                        logger.warn(
+                                "Could not send email '{}' to {}!",
+                                "askDriversToClaimAnyFreeShiftOfNextWeek",
+                                driver.getMemberId(),
+                                e);
+                    }
+                });
 
     }
         
@@ -553,8 +551,32 @@ public class ShiftService {
                 .forEach(driver -> sendDriverSms(
                         driver,
                         shift,
-                        "passenger-service/as-driver-before-cancellation-to-claim-shift",
+                        "passenger-service/ask-driver-before-cancellation-to-claim-shift",
                         "askDriverBeforeCancellationToClaimShift"));
+        
+    }
+
+    @WorkflowTask
+    public void shiftInProgress(
+            final Shift shift) {
+
+        shift.setStatus(IN_PROGRESS);
+        
+    }
+    
+    @WorkflowTask
+    public void shiftDone(
+            final Shift shift) {
+
+        shift.setStatus(DONE);
+        
+    }
+    
+    @WorkflowTask
+    public void shiftCancelled(
+            final Shift shift) {
+
+        shift.setStatus(CANCELLED);
         
     }
     

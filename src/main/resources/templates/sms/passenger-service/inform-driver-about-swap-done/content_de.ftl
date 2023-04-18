@@ -1,1 +1,1 @@
-${elmo.shortTitle} Schichttausch '${(shift.startsAt).format("MEDIUM_DATETIME")}': Die Schicht wurde von ${shift.driver.firstName!""} ${shift.driver.lastName!""} übernommen. Danke dafür!
+Die ausstehende Schicht '${(shift.startsAt).format("MEDIUM_DATETIME")}' wurde von ${shift.driver.firstName!""} ${shift.driver.lastName!""} übernommen. Danke dafür!

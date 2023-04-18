@@ -1,1 +1,1 @@
-${elmo.shortTitle} Swap of shift '${(shift.startsAt).format("MEDIUM_DATETIME")}': The shift was taken over by ${shift.driver.firstName!""} ${shift.driver.lastName!""}. thanks for that!
+The outstanding shift '${(shift.startsAt).format("MEDIUM_DATETIME")}' was taken over by ${shift.driver.firstName!""} ${shift.driver.lastName!""}. thanks for that!

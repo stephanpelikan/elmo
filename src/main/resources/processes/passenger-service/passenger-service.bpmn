@@ -1,51 +1,83 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1o3wfgr" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.7.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.18.0">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1o3wfgr" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.7.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.18.0">
   <bpmn:process id="PassengerService" name="Passenger Service" isExecutable="true">
     <bpmn:startEvent id="Event_1uqxv6v" name="passenger service started">
       <bpmn:outgoing>Flow_14rqne4</bpmn:outgoing>
     </bpmn:startEvent>
     <bpmn:intermediateCatchEvent id="PassenderService_EndOfShift">
-      <bpmn:incoming>Flow_14rqne4</bpmn:incoming>
+      <bpmn:incoming>Flow_0rxm3ia</bpmn:incoming>
       <bpmn:outgoing>Flow_0p19yj0</bpmn:outgoing>
       <bpmn:timerEventDefinition id="TimerEventDefinition_079dyzs">
         <bpmn:timeDate xsi:type="bpmn:tFormalExpression">${endsAtDate}</bpmn:timeDate>
       </bpmn:timerEventDefinition>
     </bpmn:intermediateCatchEvent>
     <bpmn:endEvent id="Event_1u136pf" name="passenger service ended">
-      <bpmn:incoming>Flow_0p19yj0</bpmn:incoming>
+      <bpmn:incoming>Flow_0qj9mm6</bpmn:incoming>
     </bpmn:endEvent>
-    <bpmn:sequenceFlow id="Flow_14rqne4" name="end time of shift" sourceRef="Event_1uqxv6v" targetRef="PassenderService_EndOfShift" />
-    <bpmn:sequenceFlow id="Flow_0p19yj0" sourceRef="PassenderService_EndOfShift" targetRef="Event_1u136pf" />
+    <bpmn:sequenceFlow id="Flow_14rqne4" name="end time of shift" sourceRef="Event_1uqxv6v" targetRef="Event_10nx96x" />
+    <bpmn:sequenceFlow id="Flow_0p19yj0" sourceRef="PassenderService_EndOfShift" targetRef="Event_0x9mhmg" />
+    <bpmn:sequenceFlow id="Flow_0rxm3ia" sourceRef="Event_10nx96x" targetRef="PassenderService_EndOfShift" />
+    <bpmn:intermediateThrowEvent id="Event_10nx96x" name="shift in progress">
+      <bpmn:incoming>Flow_14rqne4</bpmn:incoming>
+      <bpmn:outgoing>Flow_0rxm3ia</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_0n84upo" camunda:expression="${shiftInProgress}" />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:intermediateThrowEvent id="Event_0x9mhmg" name="shift done">
+      <bpmn:incoming>Flow_0p19yj0</bpmn:incoming>
+      <bpmn:outgoing>Flow_0qj9mm6</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_0jl72h2" camunda:expression="${shiftDone}" />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:sequenceFlow id="Flow_0qj9mm6" sourceRef="Event_0x9mhmg" targetRef="Event_1u136pf" />
   </bpmn:process>
   <bpmn:message id="Message_0tm4seo" name="ShiftCancelled" />
   <bpmn:error id="Error_1dqjcwb" name="ShiftCancelled" errorCode="ShiftCancelled" />
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="PassengerService">
-      <bpmndi:BPMNShape id="Event_11u0iz0_di" bpmnElement="PassenderService_EndOfShift">
-        <dc:Bounds x="302" y="92" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_1u136pf_di" bpmnElement="Event_1u136pf">
-        <dc:Bounds x="422" y="92" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="406" y="135" width="69" height="27" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_1uqxv6v_di" bpmnElement="Event_1uqxv6v">
         <dc:Bounds x="182" y="92" width="36" height="36" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="156" y="135" width="90" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_11u0iz0_di" bpmnElement="PassenderService_EndOfShift">
+        <dc:Bounds x="422" y="92" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0cev4om_di" bpmnElement="Event_10nx96x">
+        <dc:Bounds x="302" y="92" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="281" y="135" width="79" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1hw3lt1" bpmnElement="Event_0x9mhmg">
+        <dc:Bounds x="542" y="92" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="537" y="135" width="48" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1u136pf_di" bpmnElement="Event_1u136pf">
+        <dc:Bounds x="662" y="92" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="646" y="135" width="69" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_14rqne4_di" bpmnElement="Flow_14rqne4">
         <di:waypoint x="218" y="110" />
         <di:waypoint x="302" y="110" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="281" y="133" width="78" height="14" />
+          <dc:Bounds x="392.99999999999994" y="133" width="78" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0p19yj0_di" bpmnElement="Flow_0p19yj0">
+        <di:waypoint x="458" y="110" />
+        <di:waypoint x="542" y="110" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0rxm3ia_di" bpmnElement="Flow_0rxm3ia">
         <di:waypoint x="338" y="110" />
         <di:waypoint x="422" y="110" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0qj9mm6_di" bpmnElement="Flow_0qj9mm6">
+        <di:waypoint x="578" y="110" />
+        <di:waypoint x="662" y="110" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

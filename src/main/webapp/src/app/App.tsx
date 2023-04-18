@@ -217,6 +217,7 @@ const App: React.FC<AppProps> = (_props: AppProps): JSX.Element => {
 
   return (
     <Grommet
+        options={{ box: { cssGap: true } }}
         theme={theme}
         full>
       {state.toast && (

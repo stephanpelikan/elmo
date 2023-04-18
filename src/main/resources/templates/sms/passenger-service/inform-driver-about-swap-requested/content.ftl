@@ -1,1 +1,1 @@
-${elmo.shortTitle} Swap of shift '${(shift.startsAt).format("MEDIUM_DATETIME")}': ${shift.driverRequestingSwap.firstName!""} ${shift.driverRequestingSwap.lastName!""} asks to take over your shift! Accept or reject the request in the ${elmo.shortTitle} app.
+Swap of shift '${(shift.startsAt).format("MEDIUM_DATETIME")}': ${shift.driverRequestingSwap.firstName!""} ${shift.driverRequestingSwap.lastName!""} asks to take over your shift! Accept or reject the request in the ${elmo.shortTitle} app.

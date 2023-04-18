@@ -1,14 +1,17 @@
 import { Box, Text } from 'grommet';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
-import React from "react";
+import React, { useRef, useState } from "react";
 import { CalendarHour, ReservationDrivers, useWakeupSseCallback } from './utils';
 import { BackgroundType, BorderType } from 'grommet/utils';
 import { useAppContext } from '../../AppContext';
-import { Close, SchedulePlay } from 'grommet-icons';
+import { Clear, Configure, SchedulePlay, Transaction } from 'grommet-icons';
 import { PlannerButton } from './PlannerButton';
 import { usePlannerApi } from '../DriverAppContext';
 import { UserAvatar } from '../../components/UserAvatar';
+import { PlannerContextMenu } from './PlannerContextMenu';
+import { useOnClickOutside } from 'usehooks-ts';
+import { ShiftStatus } from '../../client/gui';
 
 i18n.addResources('en', 'driver/planner/passengerservice', {
       "reservation-type": "Passenger Service"
@@ -53,8 +56,17 @@ const PassengerServiceBox = ({
     
     const hasDriver = hour.reservation!.driverMemberId !== undefined;
     const ownedByCurrentUser = hour.reservation!.driverMemberId === state.currentUser!.memberId;
-    const claimable = !hasDriver;
-    const unclaimable = hasDriver && ownedByCurrentUser;
+    const claimable = hour.reservation!.status === ShiftStatus.Unclaimed;
+    const unclaimable = hour.reservation!.status === ShiftStatus.Claimed;
+    const editable = unclaimable;
+    const [ showEditMenu, setShowEditMenu ] = useState(false);
+    const ref = useRef(null);
+    useOnClickOutside(ref, event => {
+        if (!showEditMenu) return;
+        event.preventDefault();
+        event.stopPropagation();
+        setShowEditMenu(false);
+      });
  
     const borderColor = 'dark-4';
     const borders: BorderType = [];
@@ -83,11 +95,48 @@ const PassengerServiceBox = ({
                 : undefined
           }
           {
-            isFirstHourOfReservation && unclaimable
+            isFirstHourOfReservation && editable
                 ? <PlannerButton
-                      action={ unclaim }
-                      background='status-critical'
-                      icon={ Close } />
+                      action={ () => setShowEditMenu(true) }
+                      background='dark-4'
+                      icon={ Configure } />
+                : undefined
+          }
+          {
+            showEditMenu
+                ? <PlannerContextMenu
+                      ref={ ref }>
+                    <PlannerButton
+                        inContextMenu
+                        action={ () => setShowEditMenu(false) }
+                        background='dark-4'
+                        showBorder={false}
+                        icon={ Configure } />
+                    {
+                      unclaimable && ownedByCurrentUser
+                          ? <PlannerButton
+                               inContextMenu
+                               action={ () => {
+                                   unclaim();
+                                   setShowEditMenu(false);
+                                 } }
+                               background='status-critical'
+                               icon={ Clear } />
+                          : undefined
+                    }
+                    {
+                      unclaimable && !ownedByCurrentUser
+                          ? <PlannerButton
+                               inContextMenu
+                               action={ () => {
+                                   unclaim();
+                                   setShowEditMenu(false);
+                                 } }
+                               background='status-warning'
+                               icon={ Transaction } />
+                          : undefined
+                    }
+                  </PlannerContextMenu>
                 : undefined
           }
           <Box

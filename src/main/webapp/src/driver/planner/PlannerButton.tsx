@@ -4,10 +4,14 @@ import { Icon } from "grommet-icons";
 import { BackgroundType } from "grommet/utils";
 
 const PlannerButton = ({
+    inContextMenu = false,
+    showBorder = true,
     icon,
     action,
     background = 'status-ok'
   }: {
+    inContextMenu?: boolean,
+    showBorder?: boolean,
     icon: Icon,
     action: (event: MouseEvent) => void,
     background?: BackgroundType,
@@ -16,12 +20,16 @@ const PlannerButton = ({
     return <Box
           style={ { position: 'relative' } }>
         <Box
-            style={ {
-                position: 'absolute',
-                right: '2.5rem',
-                top: '-0.15rem',
-                zIndex: 1
-              } }
+            style={
+                inContextMenu
+                    ? undefined
+                    : {
+                        position: 'absolute',
+                        right: '2.5rem',
+                        top: '-0.15rem',
+                        zIndex: 1
+                      }
+                }
             onMouseDownCapture={ (event) => action(event) }
             round="full"
             overflow="hidden"
@@ -29,7 +37,10 @@ const PlannerButton = ({
             justify="center"
             width="2.2rem"
             height="2.2rem"
-            border={ { color: 'accent-3', size: '3px' } }
+            border={ {
+                color: showBorder ? 'accent-3' : 'transparent',
+                size: '3px'
+              } }
             background={ background }>
           <IconTag
               color="white"

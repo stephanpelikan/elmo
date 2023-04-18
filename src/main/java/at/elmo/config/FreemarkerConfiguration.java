@@ -18,6 +18,8 @@ import java.io.IOException;
 @Configuration
 public class FreemarkerConfiguration {
 
+    private final static Version FREEMARKER_VERSION = freemarker.template.Configuration.VERSION_2_3_31;
+    
     public static final String EMAIL_TEMPLATES = "email";
 
     public static final String SMS_TEMPLATES = "sms";
@@ -38,8 +40,6 @@ public class FreemarkerConfiguration {
 
         final var result = new FreeMarkerConfigurationFactoryBean() {
 
-            private final static Version FREEMARKER_VERSION = freemarker.template.Configuration.VERSION_2_3_31;
-            
             @Override
             protected freemarker.template.Configuration newConfiguration() throws IOException, TemplateException {
 
@@ -182,8 +182,7 @@ public class FreemarkerConfiguration {
             @Override
             protected freemarker.template.Configuration newConfiguration() throws IOException, TemplateException {
 
-                return new freemarker.template.Configuration(
-                        freemarker.template.Configuration.VERSION_2_3_31);
+                return new freemarker.template.Configuration(FREEMARKER_VERSION);
 
             }
 
@@ -194,6 +193,7 @@ public class FreemarkerConfiguration {
                 config.setTemplateLookupStrategy(TemplateLookupStrategy.DEFAULT_2_3_0);
                 config.setLocalizedLookup(true);
                 config.setRecognizeStandardFileExtensions(true);
+                config.setObjectWrapper(new Java8ObjectWrapper(FREEMARKER_VERSION));
 
                 final var elmoInformation = new ElmoSmsInformation();
                 elmoInformation.setTitle(properties.getTitleLong());

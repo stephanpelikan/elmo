@@ -1,8 +1,9 @@
 import { Box, Text } from 'grommet';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { ShiftOverviewDay, ShiftOverviewHour } from '../../client/gui';
+import { now, registerEachSecondHook, unregisterEachSecondHook } from '../../utils/now-hook';
 
 const Day = ({
     dayIndex,
@@ -23,6 +24,18 @@ const Day = ({
       } while ((hourIndex > 0) && (hour.description === undefined));
       navigate(`.${t('url-planner')}?${day.date}_${hour.carId}_${hour.description}`);
     };
+    
+  const [ forceRefresh, setForceRefresh ] = useState(0);
+  
+  useEffect(() => {
+      const rerenderOverview = (lastNow: Date) => {
+          if (now.getHours() !== lastNow.getHours()) {
+            setForceRefresh(forceRefresh + 1);
+          }
+        };
+      registerEachSecondHook(rerenderOverview);
+      return () => unregisterEachSecondHook(rerenderOverview);
+    }, [ forceRefresh, setForceRefresh]);
   
   let shiftCounter = 0;
   return (
@@ -70,11 +83,10 @@ const Day = ({
                         key={ `${day.description}#${hourIndex}` }
                         onClick={ clickTarget }
                         focusIndicator={ false }
-                        style={ { zIndex: `calc(24 - ${hour.description})` } }
+                        style={ { zIndex: `calc(24 - ${hour.description})`, position: 'relative' } }
                         pad={ { top: 'xxxsmall' } }
                         width="100%"
                         height="4%"
-                        align="center"
                         round={ {
                             corner: (dayIndex === 0) && (hourIndex === 23)
                                 ? 'bottom-left'
@@ -89,7 +101,17 @@ const Day = ({
                             color: bgColor,
                             opacity: bgOpacity
                           } }>
-                      { hour.description }
+                      <Box
+                          align="center"
+                          fill
+                          background={ hour.endsAt.getTime() <= now.getTime()
+                              ? {
+                                  color: "dark-4",
+                                  opacity: 'strong'
+                                }
+                              : undefined }>
+                        { hour.description }
+                      </Box>
                     </Box>);
               })
         }

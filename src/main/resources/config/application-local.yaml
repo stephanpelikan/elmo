@@ -6,7 +6,6 @@ elmo:
   homepage-service-conditions-url: https://www.elektromobil-gf.at/wp/kontakt-und-impressum
   brand-color: "#ff9f00"
   accent-color: "#348eda"
-    
   passenger-agreement-pdf-directory: src/test/attachments/agreement  
   driver-agreement-pdf-directory: src/test/attachments/agreement  
   gateway-url: http://localhost:3000
@@ -14,6 +13,10 @@ elmo:
   sms:
     supported: false
   passanagerServicePhoneNumber: "+431234567890"
+  passenger-service:
+    days-for-initial-shift-creation: 4
+  car-sharing:
+    allow-paid-car-sharing: true
   cars:
     predefined:
       - name: Elmo 1

@@ -1,0 +1,1 @@
+Unclaimed shift '${shift.startsAt.format("MEDIUM_DATETIME")}': Please take over if possible. Thank you!

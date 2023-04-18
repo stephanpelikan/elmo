@@ -4,11 +4,15 @@ import at.elmo.member.Member;
 import at.elmo.reservation.DriverBasedReservation;
 import at.elmo.reservation.ReservationBase;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
@@ -18,6 +22,14 @@ public class Shift extends ReservationBase implements DriverBasedReservation {
     
     public static final String TYPE = "S";
 
+    public static enum Status {
+        UNCLAIMED, CLAIMED, IN_PROGRESS, CANCELLED, DONE
+    };
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "STATUS")
+    private Status status;
+
     @ManyToOne()
     @JoinColumn(name = "MEMBER", referencedColumnName = "ID")
     private Member driver;
@@ -26,10 +38,23 @@ public class Shift extends ReservationBase implements DriverBasedReservation {
     @JoinColumn(name = "MEMBER_FOR_SWAP", referencedColumnName = "ID")
     private Member driverRequestingSwap;
     
-    //TODO add rides to this table later
+    private transient List<String> rides = List.of(); // TODO add rides to this table later
+    
+    public Status getStatus() {
+        return status;
+    }
+    
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+    
     public List<String> getRides() {
-        return List.of();
-    }    
+        return rides;
+    }
+
+    public void setRides(List<String> rides) {
+        this.rides = rides;
+    }
 
     @Override
     public Member getDriver() {
@@ -69,6 +94,14 @@ public class Shift extends ReservationBase implements DriverBasedReservation {
         return getStartsAt()
                 .minusDays(1)
                 .format(DateTimeFormatter.ISO_DATE_TIME);
+        
+    }
+    
+    public boolean isWithinTwoDaysBeforeStart() {
+        
+        return getStartsAt()
+                .minusDays(2)
+                .isBefore(LocalDateTime.now());
         
     }
     

@@ -8,8 +8,8 @@ import at.elmo.gui.api.v1.PassengerServiceApi;
 import at.elmo.gui.api.v1.ShiftOverview;
 import at.elmo.gui.api.v1.ShiftOverviewDay;
 import at.elmo.gui.api.v1.ShiftOverviewHour;
+import at.elmo.gui.api.v1.ShiftOverviewStatus;
 import at.elmo.gui.api.v1.ShiftOverviewWeek;
-import at.elmo.gui.api.v1.ShiftStatus;
 import at.elmo.member.Role;
 import at.elmo.reservation.passengerservice.shift.Shift;
 import at.elmo.reservation.passengerservice.shift.ShiftService;
@@ -86,6 +86,8 @@ public class GuiApiController implements PassengerServiceApi {
         final var numberOfCars = carService.getCountOfPassengerServiceCars();
         result.setNumberOfCars(Integer.valueOf((int) numberOfCars));
         
+        var hasPartials = false;
+        
         for (LocalDateTime hour = startOfOverview
                 ; !hour.equals(endOfOverview)
                 ; hour = hour.plusHours(1)) {
@@ -116,7 +118,8 @@ public class GuiApiController implements PassengerServiceApi {
 
             if (! hours.containsKey(mapKeyOfHour)) {
                 final var newHour = new ShiftOverviewHour();
-                newHour.setStatus(ShiftStatus.NO_SHIFT);
+                newHour.setEndsAt(hour.plusHours(1));
+                newHour.setStatus(ShiftOverviewStatus.NO_SHIFT);
                 if (shifts.containsKey(mapKeyOfHour)) {
                     newHour.setDescription(Integer.toString(hour.getHour()));
                 }
@@ -127,13 +130,14 @@ public class GuiApiController implements PassengerServiceApi {
             
             final var carCounter = carCounters.getOrDefault(mapKeyOfHour, -1);
             if (carCounter == -1) {
-                shiftHour.setStatus(ShiftStatus.NO_SHIFT);
+                shiftHour.setStatus(ShiftOverviewStatus.NO_SHIFT);
             } else if (carCounter == 0) {
-                shiftHour.setStatus(ShiftStatus.FREE);
+                shiftHour.setStatus(ShiftOverviewStatus.FREE);
             } else if (carCounter == numberOfCars) {
-                shiftHour.setStatus(ShiftStatus.COMPLETE);
+                shiftHour.setStatus(ShiftOverviewStatus.COMPLETE);
             } else {
-                shiftHour.setStatus(ShiftStatus.PARTIAL);
+                shiftHour.setStatus(ShiftOverviewStatus.PARTIAL);
+                hasPartials = true;
             }
             
             final var car = cars.get(mapKeyOfHour);
@@ -142,6 +146,8 @@ public class GuiApiController implements PassengerServiceApi {
             }
             
         }
+        
+        result.setHasPartials(hasPartials);
         
         return ResponseEntity.ok(result);
         

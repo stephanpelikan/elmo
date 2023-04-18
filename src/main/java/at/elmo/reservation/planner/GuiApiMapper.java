@@ -54,6 +54,7 @@ public abstract class GuiApiMapper extends ReservationMapperBase {
         } else if (result.getType() == PlannerReservationType.PS) {
             
             final var shift = (Shift) reservation;
+            result.setStatus(shift.getStatus().name());
             if (shift.getDriver() != null) {
                 result.setDriverMemberId(shift.getDriver().getMemberId());
             }

@@ -14,17 +14,19 @@ import { EventSourceMessage } from '../../components/SseProvider';
 i18n.addResources('en', 'driver/overview', {
       "title": "Overview Passenger-Service",
       "hint": "Click on a shift to go to the planner",
-      "has-drivers": "Has driver",
-      "has-partial-drivers": "Partial",
-      "has-no-drivers": "Unclaimed",
+      "has-drivers": "has driver",
+      "has-partial-drivers": "partial",
+      "has-no-drivers": "unclaimed",
+      "past": "expired",
       "calendar-week": "CW",
     });
 i18n.addResources('de', 'driver/overview', {
       "title": "Überblick Fahrtendienst",
       "hint": "Klicke auf eine Schicht, um zum Planer zu gelangen",
-      "has-drivers": "Mit Fahrer",
-      "has-partial-drivers": "Teilweise",
-      "has-no-drivers": "Offen",
+      "has-drivers": "mit Fahrer",
+      "has-partial-drivers": "teilweise",
+      "has-no-drivers": "offen",
+      "past": "vergangen",
       "calendar-week": "KW",
     });
 
@@ -142,16 +144,16 @@ const Overview = () => {
                     gap="xsmall"
                     align="center">
                  <Box background="status-ok" width="1rem" height="1rem"></Box>
-                 <Text>{ t('has-drivers') }</Text>
+                 <Text size="xsmall">{ t('has-drivers') }</Text>
                </Box>
                {
-                 overview?.numberOfCars ?? 0 > 1
+                 overview?.hasPartials
                     ? <Box
                           direction="row"
                           gap="xsmall"
                           align="center">
                        <Box background="status-warning" width="1rem" height="1rem"></Box>
-                       <Text>{ t('has-partial-drivers') }</Text>
+                       <Text size="xsmall">{ t('has-partial-drivers') }</Text>
                      </Box>
                    : undefined
                }
@@ -160,7 +162,14 @@ const Overview = () => {
                    gap="xsmall"
                    align="center">
                  <Box background="status-critical" width="1rem" height="1rem"></Box>
-                 <Text>{ t('has-no-drivers') }</Text>
+                 <Text size="xsmall">{ t('has-no-drivers') }</Text>
+               </Box>
+               <Box
+                   direction="row"
+                   gap="xsmall"
+                   align="center">
+                 <Box background="dark-4" width="1rem" height="1rem"></Box>
+                 <Text size="xsmall">{ t('past') }</Text>
                </Box>
              </Box>
              <Text>{ t('hint') }</Text>

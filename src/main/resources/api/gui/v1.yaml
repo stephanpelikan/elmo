@@ -549,13 +549,21 @@ components:
         - CS # shortcut of CarSharing
         - BLOCK
         - PS # shortcut of PassanagerService
-    ShiftStatus:
+    ShiftOverviewStatus:
       type: string
       enum:
         - NO_SHIFT # hour has no passenger-service shift
         - FREE     # no car drivers set to shift
         - PARTIAL  # in case of more cars for passenger-service if one car driver is set and the other not
         - COMPLETE # all car drivers set to shift
+    ShiftStatus:
+      type: string
+      enum:
+        - UNCLAIMED
+        - CLAIMED
+        - IN_PROGRESS
+        - CANCELLED
+        - DONE
     CarSharingStatus:
       type: string
       enum:
@@ -849,22 +857,32 @@ components:
             $ref: '#/components/schemas/ShiftOverviewHour'
     ShiftOverviewHour:
       type: object
+      required:
+        - carId
+        - status
+        - endsAt
       properties:
         description:
           type: string
         carId:
           type: string
         status:
-          $ref: '#/components/schemas/ShiftStatus'
+          $ref: '#/components/schemas/ShiftOverviewStatus'
+        endsAt:
+          type: string
+          format: date-time
     ShiftOverview:
       type: object
       required:
         - numberOfCars
         - weeks
+        - hasPartials
       properties:
         numberOfCars:
           type: integer
           format: int32
+        hasPartials:
+          type: boolean
         weeks:
           type: array
           items:
@@ -900,6 +918,45 @@ components:
           type: string
         carId:
           type: string
+    ShiftReservation:
+      type: object
+      required:
+        - id
+        - carId
+        - startsAt
+        - endsAt
+        - status
+      properties:
+        id:
+          type: string
+        driverMemberId:
+          type: integer
+          format: int32
+        startsAt:
+          type: string
+          format: date-time
+        kmAtStart:
+          type: integer
+          format: int32
+        endsAt:
+          type: string
+          format: date-time
+        kmAtEnd:
+          type: integer
+          format: int32
+        carId:
+          type: string
+        carName:
+          type: string
+        carKm:
+          type: integer
+          format: int32
+        status:
+          $ref: '#/components/schemas/ShiftStatus'
+        userTaskType:
+          type: string
+        userTaskId:
+          type: string
     CarSharingReservation:
       type: object
       required:
@@ -907,6 +964,7 @@ components:
         - carId
         - startsAt
         - endsAt
+        - status
       properties:
         id:
           type: string

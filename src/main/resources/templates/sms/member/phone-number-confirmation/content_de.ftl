@@ -1,1 +1,1 @@
-${elmo.shortTitle}: Bitte trage den Code ${member.generatedPhoneConfirmationCode} in das Formular ein, in dem du deine Telefonnummer angegeben hast. 
+Bitte trage den Code ${member.generatedPhoneConfirmationCode} in das Formular ein, in dem du deine Telefonnummer angegeben hast. 

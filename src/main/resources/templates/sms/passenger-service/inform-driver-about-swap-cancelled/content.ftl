@@ -1,1 +1,0 @@
-${elmo.shortTitle} Swap of shift '${(shift.startsAt).format("MEDIUM_DATETIME")}': Swapping is no longer necessary. Thank you for your willingness!

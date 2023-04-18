@@ -1,1 +1,0 @@
-${elmo.shortTitle} Schichttausch '${(shift.startsAt).format("MEDIUM_DATETIME")}': Der Tausch ist nicht länger nötig. Danke für deine Bereitschaft!

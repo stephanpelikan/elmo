@@ -493,7 +493,6 @@ const Planner = () => {
       if (isMouseDown.current) return;
       if (hour.endsAt.getTime() < now.getTime()) return;
       event.preventDefault();
-      event.stopPropagation();
       if ((restrictionsRef.current!.remainingHours < 1)
           && !restrictionsRef.current!.allowPaidCarSharing) {
         toast({
