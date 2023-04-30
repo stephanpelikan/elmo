@@ -331,7 +331,7 @@ public class GuiApiController implements CarSharingApi {
                 body.getUserTaskId(),
                 body.getTimestamp(),
                 body.getKmStart(),
-                null,
+                body.getKmEnd(),
                 body.getComment());
         
         if (reservation == null) {

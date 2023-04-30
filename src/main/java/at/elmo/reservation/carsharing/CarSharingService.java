@@ -522,6 +522,8 @@ public class CarSharingService {
             carSharing.setKmAtStart(kmStart);
             carSharing.setStatus(Status.ONGOING);
             
+            car.setKm(kmStart);
+            
         } else {
             
             final var endOfUsage = timestamp == null
@@ -539,6 +541,8 @@ public class CarSharingService {
             }
             carSharing.setKmAtEnd(kmEnd);
             carSharing.setStatus(Status.COMPLETED);
+            
+            car.setKm(kmEnd);
             
         }
         

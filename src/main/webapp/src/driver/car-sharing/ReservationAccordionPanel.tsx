@@ -115,11 +115,10 @@ const ReservationAccordionPanel = ({
   const [ violations, setViolations ] = useState<{ [key in string]: string } | undefined>(undefined);  
   const [ timestamp, setTimestamp ] = useState<Date | undefined>(undefined);
   const [ kmStart, setKmStart ] = useState<number | undefined>(reservation.carKm);
-  const [ kmEnd, setKmEnd ] = useState<number | undefined>(reservation.carKm);
+  const [ kmEnd, setKmEnd ] = useState<number | undefined>(undefined);
   const [ comment, setComment ] = useState<string | undefined>(reservation.comment);
   
-  const showConfirmStartModal = (km?: number) => {
-    setKmStart(km);
+  const showConfirmStartModal = () => {
     setComment(reservation.comment);
     setConfirmation('start');
     setTimestamp(nextHours(now, 1, false));
@@ -141,9 +140,9 @@ const ReservationAccordionPanel = ({
       const newExtendOptions = hoursBetween(
               type === 'extend'
                   ? reservation.endsAt
-                  : now.getTime() < reservation.endsAt.getTime()
-                  ? now
-                  : reservation.endsAt,
+                  : now.getTime() > reservation.endsAt.getTime()
+                  ? reservation.endsAt
+                  : now,
               nextHours(reservation.endsAt, 48, false))
           .map(hour => {
               const conflictingReservation = reservations
@@ -167,7 +166,6 @@ const ReservationAccordionPanel = ({
                 return true;
               });
       setExtendOptions(newExtendOptions);
-      setKmStart(undefined);
       setKmEnd(undefined);
       setComment(reservation.comment);
       setTimestamp(reservation.endsAt);
@@ -334,7 +332,7 @@ const ReservationAccordionPanel = ({
                       <TableCell colSpan={ 2 }>
                         <BlinkingButton
                             primary
-                            onClick={ () => showConfirmStartModal(reservation.carKm) }
+                            onClick={ () => showConfirmStartModal() }
                             label={ t('start-usage') } />
                       </TableCell>
                     </TableRow>
