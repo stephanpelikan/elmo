@@ -274,7 +274,7 @@ public class CarSharingService {
         smsService.sendSms(
                 "car-sharing/remind-driver-to-confirm-start-of-usage",
                 CarSharingService.class.getSimpleName() + "#remindDriverToConfirmStartOfUsage",
-                properties.getPassanagerServicePhoneNumber(),
+                properties.getPassenagerServicePhoneNumber(),
                 carSharing.getDriver().getMemberId().toString(),
                 carSharing.getDriver().getPhoneNumber(),
                 NamedObject.from(carSharing).as("carSharing"));
@@ -288,7 +288,7 @@ public class CarSharingService {
         smsService.sendSms(
                 "car-sharing/remind-driver-to-return-car-in-time",
                 CarSharingService.class.getSimpleName() + "#remindDriverToReturnCarInTime",
-                properties.getPassanagerServicePhoneNumber(),
+                properties.getPassenagerServicePhoneNumber(),
                 carSharing.getDriver().getMemberId().toString(),
                 carSharing.getDriver().getPhoneNumber(),
                 NamedObject.from(carSharing).as("carSharing"));
@@ -302,7 +302,7 @@ public class CarSharingService {
         smsService.sendSms(
                 "car-sharing/remind-driver-to-confirm-end-of-usage",
                 CarSharingService.class.getSimpleName() + "#remindDriverToConfirmEndOfUsage",
-                properties.getPassanagerServicePhoneNumber(),
+                properties.getPassenagerServicePhoneNumber(),
                 carSharing.getDriver().getMemberId().toString(),
                 carSharing.getDriver().getPhoneNumber(),
                 NamedObject.from(carSharing).as("carSharing"));
@@ -317,7 +317,7 @@ public class CarSharingService {
         smsService.sendSms(
                 "car-sharing/inform-driver-about-cancellation-by-administrator",
                 CarSharingService.class.getSimpleName() + "#informDriverAboutCancellationByAdministrator",
-                properties.getPassanagerServicePhoneNumber(),
+                properties.getPassenagerServicePhoneNumber(),
                 carSharing.getDriver().getMemberId().toString(),
                 carSharing.getDriver().getPhoneNumber(),
                 NamedObject.from(carSharing).as("carSharing"));
@@ -377,7 +377,7 @@ public class CarSharingService {
                         smsService.sendSms(
                                 "car-sharing/inform-next-driver-about-delay",
                                 CarSharingService.class.getSimpleName() + "#informNextDriverAboutDelay",
-                                properties.getPassanagerServicePhoneNumber(),
+                                properties.getPassenagerServicePhoneNumber(),
                                 driver.getMemberId().toString(),
                                 driver.getPhoneNumber(),
                                 NamedObject.from(carSharing).as("carSharing"));

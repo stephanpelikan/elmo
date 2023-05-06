@@ -326,7 +326,7 @@ public class MemberService {
         smsService.sendSms(
                 "member/phone-number-confirmation",
                 null,
-                properties.getPassanagerServicePhoneNumber(),
+                properties.getPassenagerServicePhoneNumber(),
                 member.getId(),
                 phoneNumber,
                 NamedObject.from(member).as("member"));

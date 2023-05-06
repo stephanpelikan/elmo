@@ -10,9 +10,12 @@ import at.elmo.gui.api.v1.ShiftOverviewDay;
 import at.elmo.gui.api.v1.ShiftOverviewHour;
 import at.elmo.gui.api.v1.ShiftOverviewStatus;
 import at.elmo.gui.api.v1.ShiftOverviewWeek;
+import at.elmo.gui.api.v1.ShiftReservation;
+import at.elmo.gui.api.v1.Shifts;
 import at.elmo.member.Role;
 import at.elmo.reservation.passengerservice.shift.Shift;
 import at.elmo.reservation.passengerservice.shift.ShiftService;
+import at.elmo.util.UserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
@@ -23,7 +26,10 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.WeekFields;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+
+import javax.validation.Valid;
 
 @RestController("passengerServiceGuiApi")
 @RequestMapping("/api/v1")
@@ -31,11 +37,17 @@ import java.util.Locale;
 public class GuiApiController implements PassengerServiceApi {
     
     @Autowired
+    private UserContext userContext;
+    
+    @Autowired
     private ShiftService shiftService;
 
     @Autowired
     private CarService carService;
 
+    @Autowired
+    private GuiApiMapper mapper;
+    
     @Override
     public ResponseEntity<ShiftOverview> getShiftOverview() {
         
@@ -153,4 +165,38 @@ public class GuiApiController implements PassengerServiceApi {
         
     }
 
+    @Override
+    @Secured(Role.ROLE_DRIVER)
+    public ResponseEntity<Shifts> getMyShifts(
+            final @Valid Integer pageNumber,
+            final @Valid Integer pageSize) {
+
+        final var shifts = shiftService.getShifts(
+                pageNumber,
+                pageSize,
+                userContext.getLoggedInMember());
+                
+        final var result = new Shifts();
+        result.setShifts(
+                mapper.toApi(shifts.getContent()));
+        result.setPage(
+                mapper.toApi(shifts));
+
+        return ResponseEntity.ok(result);
+
+    }
+    
+    @Override
+    public ResponseEntity<List<ShiftReservation>> getUpcomingPassengerServiceShifts() {
+
+        final var driver = userContext.getLoggedInMember();
+        
+        final var shifts = shiftService.getUpcomingPassengerServicesShifts(driver);
+        
+        final var result = mapper.toApi(shifts);
+        
+        return ResponseEntity.ok(result);
+
+    }
+    
 }

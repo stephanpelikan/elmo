@@ -44,9 +44,8 @@ const CarSharings = () => {
 
   const loadCarSharings = useCallback(async () => {
       const r = await carSharingApi.getCarSharingReservations();
-      setReservations(r.reservations);
+      setReservations(r);
       const visible = r
-          .reservations
           .filter(reservation => isUserTaskForDriver(reservation.userTaskType))
           .map((_reservation, index) => index);
       setDetailsVisible(visible);

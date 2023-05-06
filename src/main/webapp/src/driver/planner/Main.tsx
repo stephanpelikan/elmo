@@ -36,7 +36,7 @@ i18n.addResources('en', 'driver/planner', {
       "parallel-carsharing_title": "Planning",
       "parallel-carsharing_msg": "You have another reservation in parallel for '{{value}}'!",
       "parallel-passengerservice_title": "Planning",
-      "parallel-passengerservice_msg": "You are planned yourself for passenger-service on '{{value}}' in parallel!",
+      "parallel-passengerservice_msg": "You are planned for passenger-service on '{{value}}' in parallel!",
       "date_format": "yyyy/mm/dd",
     });
 i18n.addResources('de', 'driver/planner', {
@@ -55,7 +55,7 @@ i18n.addResources('de', 'driver/planner', {
       "parallel-carsharing_title": "Planning",
       "parallel-carsharing_msg": "Du hast zeitgleich eine andere Car-Sharing-Reservierung für '{{value}}'!",
       "parallel-passengerservice_title": "Planning",
-      "parallel-passengerservice_msg": "Du bist hast dich zeitgleich für den Fahrtendienst mit '{{value}}' eingetragen!",
+      "parallel-passengerservice_msg": "Du hast zeitgleich Fahrtendienst mit '{{value}}' eingetragen!",
       "date_format": "dd.mm.yyyy",
     });
 

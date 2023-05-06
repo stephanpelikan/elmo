@@ -1,6 +1,11 @@
 package at.elmo.reservation.passengerservice.shift;
 
-import static at.elmo.reservation.passengerservice.shift.Shift.Status.*;
+import static at.elmo.reservation.passengerservice.shift.Shift.Status.CANCELLED;
+import static at.elmo.reservation.passengerservice.shift.Shift.Status.CLAIMED;
+import static at.elmo.reservation.passengerservice.shift.Shift.Status.DONE;
+import static at.elmo.reservation.passengerservice.shift.Shift.Status.IN_PROGRESS;
+import static at.elmo.reservation.passengerservice.shift.Shift.Status.UNCLAIMED;
+
 import at.elmo.car.Car;
 import at.elmo.car.CarService;
 import at.elmo.config.ElmoProperties;
@@ -25,6 +30,9 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +46,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -118,7 +127,7 @@ public class ShiftService {
         final var currentDriver = shift.getDriver();
         if ((currentDriver != null)
                 && !currentDriver.equals(driver)) {
-            return false;
+            return true;
         }
         
         shift.setDriver(driver);
@@ -173,9 +182,40 @@ public class ShiftService {
         return true;
         
     }
+    
+    public Page<Shift> getShifts(
+            final int page,
+            final int amount,
+            final Member driver) {
+        
+        final var pageable =
+                PageRequest.of(page, amount, Direction.ASC, "startsAt");
+        
+        return shifts.findByDriver(driver, pageable);
+        
+    }
+    
+    public List<Shift> getUpcomingPassengerServicesShifts(
+            final Member driver) {
+        
+        return shifts.findByDriver_IdAndStatusNotInOrderByStartsAtAsc(
+                driver.getId(),
+                List.of(at.elmo.reservation.passengerservice.shift.Shift.Status.CANCELLED,
+                        at.elmo.reservation.passengerservice.shift.Shift.Status.DONE));
+        
+    }
 
+    public Optional<Shift> getShift(
+            final String id) {
+
+        return shifts.findById(id);
+        
+    }
+    
     public List<Shift> getShifts(){
+        
         return shifts.findAll();
+        
     }
 
     public List<Shift> getShifts(
@@ -278,7 +318,7 @@ public class ShiftService {
             smsService.sendSms(
                     template,
                     ShiftService.class.getSimpleName() + "#" + fromMethod,
-                    properties.getPassanagerServicePhoneNumber(),
+                    properties.getPassenagerServicePhoneNumber(),
                     driver.getMemberId().toString(),
                     driver.getPhoneNumber(),
                     NamedObject.from(shift).as("shift"),

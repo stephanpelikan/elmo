@@ -4,7 +4,6 @@ import at.elmo.car.CarService;
 import at.elmo.gui.api.v1.AddPlannerReservation;
 import at.elmo.gui.api.v1.CarSharingApi;
 import at.elmo.gui.api.v1.CarSharingReservation;
-import at.elmo.gui.api.v1.CarSharingReservations;
 import at.elmo.gui.api.v1.CarSharingStartRequest;
 import at.elmo.gui.api.v1.CarSharingStopRequest;
 import at.elmo.gui.api.v1.ExtendCarSharingRequest;
@@ -26,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.List;
 
 @RestController("carSharingGuiApi")
 @RequestMapping("/api/v1")
@@ -182,14 +182,13 @@ public class GuiApiController implements CarSharingApi {
     }
 
     @Override
-    public ResponseEntity<CarSharingReservations> getCarSharingReservations() {
+    public ResponseEntity<List<CarSharingReservation>> getCarSharingReservations() {
         
         final var driver = userContext.getLoggedInMember();
         
         final var carSharings = carSharingService.getOutstandingReservations(driver);
         
-        final var result = new CarSharingReservations()
-                .reservations(mapper.toApi(carSharings));
+        final var result = mapper.toApi(carSharings);
         
         return ResponseEntity.ok(result);
         

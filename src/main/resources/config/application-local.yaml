@@ -12,7 +12,7 @@ elmo:
   default-locale: de_AT
   sms:
     supported: false
-  passanagerServicePhoneNumber: "+431234567890"
+  passenagerServicePhoneNumber: "+431234567890"
   passenger-service:
     days-for-initial-shift-creation: 4
   car-sharing:

@@ -355,6 +355,44 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ShiftOverview'
+  /gui/passenger-service/my-shifts:
+    get:
+      tags:
+        - passenger-service
+      operationId: getUpcomingPassengerServiceShifts
+      summary: All upcoming shifts of the member logged in
+      responses:
+        200:
+          description: My shifts planned
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ShiftReservation'
+    post:
+      tags:
+        - passenger-service
+      summary: All shifts of the member logged in
+      operationId: getMyShifts
+      parameters:
+        - in: query
+          name: pageNumber
+          schema:
+            type: integer
+            format: int32
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+            format: int32
+      responses:
+        200:
+          description: My shifts planned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shifts'
   /gui/car-sharing/reservations:
     get:
       tags:
@@ -367,7 +405,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CarSharingReservations'
+                type: array
+                items:
+                  $ref: '#/components/schemas/CarSharingReservation'
   /gui/car-sharing/{carId}/reservation:
     post:
       tags:
@@ -548,7 +588,7 @@ components:
       enum:
         - CS # shortcut of CarSharing
         - BLOCK
-        - PS # shortcut of PassanagerService
+        - PS # shortcut of PassenagerService
     ShiftOverviewStatus:
       type: string
       enum:
@@ -572,6 +612,26 @@ components:
         - COMPLETED
         - CANCELLED
         - NOT_CONFIRMED
+    Page:
+      type: object
+      required:
+        - totalElements
+        - totalPages
+        - number
+        - size
+      properties:
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+        number:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
     AppInformation:
       type: object
       properties:
@@ -1007,15 +1067,6 @@ components:
           type: string
         userTaskId:
           type: string
-    CarSharingReservations:
-      type: object
-      required:
-        - reservations
-      properties:
-        reservations:
-          type: array
-          items:
-            $ref: '#/components/schemas/CarSharingReservation'
     ExtendCarSharingRequest:
       type: object
       properties:
@@ -1053,3 +1104,15 @@ components:
           type: string
         userTaskId:
           type: string
+    Shifts:
+      type: object
+      required:
+        - page
+        - shifts
+      properties:
+        page:
+          $ref: '#/components/schemas/Page'
+        shifts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShiftReservation'

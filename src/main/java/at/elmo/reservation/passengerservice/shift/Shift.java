@@ -1,8 +1,7 @@
 package at.elmo.reservation.passengerservice.shift;
 
 import at.elmo.member.Member;
-import at.elmo.reservation.DriverBasedReservation;
-import at.elmo.reservation.ReservationBase;
+import at.elmo.reservation.ConsumingReservation;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -18,7 +17,7 @@ import javax.persistence.ManyToOne;
 
 @Entity
 @DiscriminatorValue(Shift.TYPE)
-public class Shift extends ReservationBase implements DriverBasedReservation {
+public class Shift extends ConsumingReservation {
     
     public static final String TYPE = "S";
 
@@ -29,10 +28,6 @@ public class Shift extends ReservationBase implements DriverBasedReservation {
     @Enumerated(EnumType.STRING)
     @Column(name = "STATUS")
     private Status status;
-
-    @ManyToOne()
-    @JoinColumn(name = "MEMBER", referencedColumnName = "ID")
-    private Member driver;
     
     @ManyToOne()
     @JoinColumn(name = "MEMBER_FOR_SWAP", referencedColumnName = "ID")
@@ -54,15 +49,6 @@ public class Shift extends ReservationBase implements DriverBasedReservation {
 
     public void setRides(List<String> rides) {
         this.rides = rides;
-    }
-
-    @Override
-    public Member getDriver() {
-        return driver;
-    }
-
-    public void setDriver(Member driver) {
-        this.driver = driver;
     }
     
     public Member getDriverRequestingSwap() {

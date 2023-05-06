@@ -14,11 +14,23 @@ import { useOnClickOutside } from 'usehooks-ts';
 import { ShiftStatus } from '../../client/gui';
 
 i18n.addResources('en', 'driver/planner/passengerservice', {
-      "reservation-type": "Passenger Service"
+      "reservation-type": "Passenger Service",
+      "conflicting-driver_title": "Passenger Service",
+      "conflicting-driver_msg": "This view is not up to date! Meanwhile another driver claimed the shift. Please go back and reenter to refresh the view.",
+      "parallel-carsharing_title": "Passenger Service",
+      "parallel-carsharing_msg": "You have another car-sharing reservation in parallel for '{{value}}'!",
+      "parallel-passengerservice_title": "Passenger Service",
+      "parallel-passengerservice_msg": "You are planned yourself for passenger-service on '{{value}}' in parallel!",
     });
 
 i18n.addResources('de', 'driver/planner/passengerservice', {
-      "reservation-type": "Fahrtendienst"
+      "reservation-type": "Fahrtendienst",
+      "conflicting-driver_title": "Fahrtendienst",
+      "conflicting-driver_msg": "Diese Ansicht ist nicht aktuell! Mittlerweile wurde der Fahrtendienst bereits übernommen. Bitte wechsle zur vorigen Ansicht steige neu ein, um die Ansicht zu aktualisieren.",
+      "parallel-carsharing_title": "Fahrtendienst",
+      "parallel-carsharing_msg": "Du hast zeitgleich eine andere Car-Sharing-Reservierung für '{{value}}'!",
+      "parallel-passengerservice_title": "Fahrtendienst",
+      "parallel-passengerservice_msg": "Du hast zeitgleich Fahrtendienst mit '{{value}}' eingetragen!",
     });
 
 const PassengerServiceBox = ({
@@ -32,7 +44,7 @@ const PassengerServiceBox = ({
     isLastHourOfReservation: boolean,
     drivers: ReservationDrivers,
   }) => {
-    const { state, showLoadingIndicator } = useAppContext();
+    const { state, toast, showLoadingIndicator } = useAppContext();
     const { t } = useTranslation('driver/planner/passengerservice');
     const wakeupSseCallback = useWakeupSseCallback();
     const plannerApi = usePlannerApi(wakeupSseCallback);
@@ -43,6 +55,29 @@ const PassengerServiceBox = ({
           await plannerApi.claimShift({ shiftId: hour.reservation!.id });
         } catch(error) {
           showLoadingIndicator(false);
+          // CONFLICT means there is another reservation
+          if (error.response?.status === 409) {
+            toast({
+                namespace: 'driver/planner/passengerservice',
+                title: t('conflicting-driver_title'),
+                message: t('conflicting-driver_msg'),
+                status: 'critical'
+              });
+            }
+          // violations response
+          else if (error.response?.json) {
+            const violations = await error.response?.json()
+            Object
+                .keys(violations)
+                .forEach(violation => {
+                    toast({
+                        namespace: 'driver/planner/passengerservice',
+                        title: t(`${violation}_title`),
+                        message: t(`${violation}_msg`, { value: violations[violation] }),
+                        status: 'critical'
+                      });
+                });
+          }
         }
       };
     const unclaim = async () => {

@@ -8,10 +8,13 @@ import at.elmo.gui.api.v1.PlannerCalendarRequest;
 import at.elmo.member.Role;
 import at.elmo.reservation.DriverBasedReservation;
 import at.elmo.reservation.ReservationService;
+import at.elmo.reservation.carsharing.CarSharing;
 import at.elmo.reservation.carsharing.CarSharingProperties;
+import at.elmo.reservation.passengerservice.shift.Shift;
 import at.elmo.reservation.passengerservice.shift.ShiftService;
 import at.elmo.reservation.passengerservice.shift.exceptions.UnknownShiftException;
 import at.elmo.util.UserContext;
+import at.elmo.util.exceptions.ElmoValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -55,13 +58,40 @@ public class GuiApiController implements PlannerApi {
             final var driver = userContext
                     .getLoggedInMember();
             
+            final var shiftFound = shiftService.getShift(shiftId);
+            if (shiftFound.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            final var shift = shiftFound.get();
+            
+            reservationService.findReservations(
+                    shift.getStartsAt(),
+                    shift.getEndsAt())
+                    .stream()
+                    .forEach(reservation -> {
+                        if ((reservation instanceof CarSharing)
+                                && ((CarSharing) reservation).getDriver().getId()
+                                        .equals(driver.getId())) {
+                            throw new ElmoValidationException(
+                                    "parallel-carsharing",
+                                    reservation.getCar().getName());
+                        } else if ((reservation instanceof Shift)
+                                && (((Shift) reservation).getDriver() != null)
+                                && ((Shift) reservation).getDriver().getId()
+                                .equals(driver.getId())) {
+                            throw new ElmoValidationException(
+                                    "parallel-passengerservice",
+                                    reservation.getCar().getName());
+                        }
+                    });
+
             final var claimed = shiftService
                     .claimShift(shiftId, driver);
-            if (claimed) {
-                return ResponseEntity.ok().build();
+            if (!claimed) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).build();
             }
             
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            return ResponseEntity.ok().build();
         
         } catch (UnknownShiftException e) {
             return ResponseEntity.notFound().build();
