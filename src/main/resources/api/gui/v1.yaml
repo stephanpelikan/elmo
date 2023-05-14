@@ -286,6 +286,21 @@ paths:
           description: Email is wrong format
         404:
           description: The member-id is unknown
+  /gui/member/driver-activities:
+    get:
+      tags:
+        - reservation
+      summary: Overview about reservation totals
+      operationId: getReservationOverviewTotals
+      responses:
+        200:
+          description: The overview
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReservationOverviewTotal'
   /gui/planner/calendar:
     post:
       tags:
@@ -1116,3 +1131,25 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ShiftReservation'
+    ReservationOverviewTotal:
+      type: object
+      required:
+        - year
+        - car-sharing-hours
+        - car-sharing-count
+        - passanger-service-hours
+        - passanger-service-count
+      properties:
+        year:
+          type: integer
+          format: int32
+        car-sharing-hours:
+          type: float
+        car-sharing-count:
+          type: integer
+          format: int32
+        passanger-service-hours:
+          type: float
+        passanger-service-count:
+          type: integer
+          format: int32

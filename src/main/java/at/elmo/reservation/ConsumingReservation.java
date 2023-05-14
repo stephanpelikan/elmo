@@ -5,11 +5,11 @@ import at.elmo.member.Member;
 import java.time.LocalDateTime;
 
 import javax.persistence.Column;
+import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.MappedSuperclass;
 
-@MappedSuperclass
+@Entity
 public abstract class ConsumingReservation extends ReservationBase implements DriverBasedReservation {
 
     @ManyToOne()

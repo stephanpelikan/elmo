@@ -3,6 +3,7 @@ import { Dispatch, useAppContext } from '../AppContext';
 import { buildFetchApi, doLogout } from '../utils/fetchApi';
 import { OnMessageFunction, SseContextInterface, SseProvider, useSse, WakeupSseCallback } from '../components/SseProvider';
 import { createContext } from 'react';
+import { ReservationApi } from './gui/apis/ReservationApi';
 
 const SSE_UPDATE_URL = "/api/v1/gui/updates";
 
@@ -37,6 +38,17 @@ const getMemberGuiApi = (
     fetchApi: buildFetchApi(dispatch, wakeupSseCallback),
   });
   return new MemberApi(config);
+};
+
+const getReservationGuiApi = (
+  dispatch: Dispatch,
+  wakeupSseCallback?: WakeupSseCallback
+): ReservationApi => {
+  const config = new GuiConfiguration({
+    basePath: '/api/v1',
+    fetchApi: buildFetchApi(dispatch, wakeupSseCallback),
+  });
+  return new ReservationApi(config);
 };
 
 const getPassengerServiceGuiApi = (
@@ -92,6 +104,7 @@ export {
     getOnboardingGuiApi,
     getMemberGuiApi,
     getPassengerServiceGuiApi,
+    getReservationGuiApi,
     doLogout,
   };
 

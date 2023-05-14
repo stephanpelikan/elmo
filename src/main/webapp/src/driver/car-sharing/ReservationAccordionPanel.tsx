@@ -1,6 +1,6 @@
 import { CarSharingReservation, PlannerDriver } from '../../client/gui';
 import { AccordionPanel, Box, Button, Select, Table, TableBody, TableCell, TableRow, Text, TextArea } from 'grommet';
-import { Car, Schedules } from 'grommet-icons';
+import { Schedules } from 'grommet-icons';
 import styled, { keyframes } from 'styled-components';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
@@ -171,7 +171,7 @@ const ReservationAccordionPanel = ({
       setTimestamp(reservation.endsAt);
       setConfirmation(type);
       setViolations(undefined);
-    }, [ plannerApi, reservation, setConfirmation, setTimestamp, setComment, setKmStart, setKmEnd, setExtendOptions, setViolations ]);
+    }, [ plannerApi, reservation, setConfirmation, setTimestamp, setComment, setKmEnd, setExtendOptions, setViolations ]);
   const showExtendModal = () => extendModal('extend');
   
   const showConfirmStopModal = () => extendModal('stop');
@@ -206,13 +206,6 @@ const ReservationAccordionPanel = ({
                   direction="row"
                   gap="xsmall"
                   align="center">
-                <Car
-                    color={
-                        reservation.userTaskId !== undefined
-                            ? 'accent-3'
-                            : undefined
-                    }
-                  />
                 <Text
                     weight={
                         reservation.userTaskId !== undefined

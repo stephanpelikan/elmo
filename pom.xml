@@ -322,7 +322,7 @@
     <dependency>
       <groupId>org.camunda.community.vanillabp</groupId>
       <artifactId>camunda7-spring-boot-adapter</artifactId>
-      <version>1.0.7-SNAPSHOT</version>
+      <version>1.0.7</version>
           <exclusions>
             <exclusion>
               <groupId>org.camunda.bpm.springboot</groupId>

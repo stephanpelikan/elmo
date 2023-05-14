@@ -1,6 +1,8 @@
 package at.elmo.reservation;
 
 import at.elmo.car.Car;
+import at.elmo.member.Member;
+import at.elmo.reservation.history.DriverConsumptionPerYear;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -33,5 +35,12 @@ public interface ReservationRepository extends JpaRepository<ReservationBase, St
     Optional<ReservationBase> findByCarAndStartsAtAndCancelled(Car car, LocalDateTime startsAt, boolean cancelled);
     
     Optional<ReservationBase> findByCarAndEndsAtAndCancelled(Car car, LocalDateTime endsAt, boolean cancelled);
+    
+    @Query("SELECT count(r) as count, YEAR(r.startsAt) AS year, SUM(EXTRACT(EPOCH FROM(r.endsAt - r.startsAt))) AS seconds, r.type AS type FROM ConsumingReservation r WHERE "
+            + "(r.driver = ?1) "
+            + "AND r.cancelled = false "
+            + "GROUP BY year, type "
+            + "ORDER BY year")
+    List<DriverConsumptionPerYear> findAllByDriver(Member driver);
     
 }

@@ -1,6 +1,6 @@
 import { ShiftReservation } from '../../client/gui';
 import { AccordionPanel, Box, Table, TableBody, TableCell, TableRow, Text } from 'grommet';
-import { Car, Schedules } from 'grommet-icons';
+import { Schedules } from 'grommet-icons';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
 import React from 'react';
@@ -90,13 +90,6 @@ const PassengerServiceAccordionPanel = ({
                   direction="row"
                   gap="xsmall"
                   align="center">
-                <Car
-                    color={
-                        shift.userTaskId !== undefined
-                            ? 'accent-3'
-                            : undefined
-                    }
-                  />
                 <Text
                     weight={
                         shift.userTaskId !== undefined

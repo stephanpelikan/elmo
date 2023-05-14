@@ -1,7 +1,8 @@
 import React, { useCallback, useMemo } from 'react';
 import { User, UserStatus, LoginApi, AppInformation, OnboardingApi, MemberApi, Oauth2Client, PassengerServiceApi } from './client/gui';
-import { getLoginGuiApi, getMemberGuiApi, getOnboardingGuiApi, getPassengerServiceGuiApi } from './client/guiClient';
+import { getLoginGuiApi, getMemberGuiApi, getOnboardingGuiApi, getPassengerServiceGuiApi, getReservationGuiApi } from './client/guiClient';
 import { StatusType } from 'grommet';
+import { ReservationApi } from 'client/gui/apis/ReservationApi';
 
 type Action =
     | { type: 'updateAppInformation', appInformation: AppInformation | null }
@@ -130,6 +131,14 @@ const useMemberGuiApi = (): MemberApi => {
 
   const { dispatch } = useAppContext();
   const api = useMemo(() => getMemberGuiApi(dispatch), [ dispatch ]);
+  return api;
+  
+};
+
+const useReservationGuiApi = (): ReservationApi => {
+
+  const { dispatch } = useAppContext();
+  const api = useMemo(() => getReservationGuiApi(dispatch), [ dispatch ]);
   return api;
   
 };
@@ -296,4 +305,5 @@ export {
   useOnboardingGuiApi,
   useMemberGuiApi,
   usePassengerServiceGuiApi,
+  useReservationGuiApi,
 }

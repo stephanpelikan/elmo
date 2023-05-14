@@ -24,7 +24,6 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.io.Encoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
-import org.camunda.bpm.engine.impl.util.StringUtil;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -485,7 +484,7 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
             return false;
         }
 
-        return StringUtil.hasText(request.getHeader(AUTH_HEADER));
+        return StringUtils.hasText(request.getHeader(AUTH_HEADER));
 
     }
 

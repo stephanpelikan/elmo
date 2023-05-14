@@ -24,13 +24,21 @@ import javax.persistence.Table;
 @Entity
 @Table(name = ReservationBase.TABLE_NAME)
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "TYPE", discriminatorType = DiscriminatorType.STRING)
+@DiscriminatorColumn(
+        name = ReservationBase.DISCRIMINATOR_COLUMN_NAME,
+        discriminatorType = DiscriminatorType.STRING)
 public abstract class ReservationBase extends PersistenceBase<String> {
 
     public static final String TABLE_NAME = "ELMO_RESERVATION";
+    
+    public static final String DISCRIMINATOR_COLUMN_NAME = "TYPE";
+    
     @Id
     @Column(name = "ID")
     private String id;
+    
+    @Column(name = DISCRIMINATOR_COLUMN_NAME, insertable = false, updatable = false)
+    private String type;
 
     @Column(name = "CANCELLED")
     private boolean cancelled;
@@ -154,6 +162,14 @@ public abstract class ReservationBase extends PersistenceBase<String> {
     
     public void setPreviousReservation(ReservationBase previousReservation) {
         this.previousReservation = previousReservation;
+    }
+    
+    public String getType() {
+        return type;
+    }
+    
+    public void setType(String type) {
+        this.type = type;
     }
     
 }

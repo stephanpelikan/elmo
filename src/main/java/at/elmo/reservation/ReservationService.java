@@ -3,7 +3,9 @@ package at.elmo.reservation;
 import at.elmo.car.Car;
 import at.elmo.config.db.DbNotification;
 import at.elmo.config.db.DbNotification.Action;
+import at.elmo.member.Member;
 import at.elmo.member.MemberRepository;
+import at.elmo.reservation.history.DriverConsumptionPerYear;
 import at.elmo.util.spring.NotificationEvent;
 import at.elmo.util.spring.NotificationEvent.Type;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -208,6 +210,13 @@ public class ReservationService {
         }
         return null;
 
-    }    
+    }
+    
+    public List<DriverConsumptionPerYear> getDriverConsumptionsPerYear(
+            final Member driver) {
+        
+        return reservations.findAllByDriver(driver);
+        
+    }
     
 }
