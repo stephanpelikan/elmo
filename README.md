@@ -2,12 +2,15 @@
 
 *ELMO* is an acronym for *El*ectro *Mo*bile. It is software for organizing regional social transport services using electric vehicles.
 
-### It implements these rules:
+It is meant to
+1. fill the gap of local public transportations in areas in which buses cannot be operated in the frequency needed.
+1. be used by non-profit organizations.
+1. use electric vehicles for transportation services.
 
-1. It is meant to
-     1. fill the gap of local public transportations in areas in which buses cannot be operated in the frequency needed.
-     1. be used by non-profit organizations.
-     1. use electric vehicles for transportation services.
+### It supports organizations which apply to these rules:
+
+1. An organization has at least one electric vehicle used for passenger services at business times.
+1. Beside the times of passenger service cars can be used for car-sharing.
 1. People can join as a passenger:
      1. Members can order cars to pick them up at a certain point and time and bring them to an individual destination.
      1. Only one ride and return can be ordered in advance to keep slots free for a fair distribution of the available capacity.
@@ -19,6 +22,8 @@
 1. People can join as a both passenger and driver at once:
       1. Typically, passengers are charged a flat fee.
       1. Drivers who also use the passenger service pay a lower fee.
+
+Fees are not calculated by the system, but statistics are provided to support charging passengers and drivers.
 
 ### Features available:
 
@@ -188,3 +193,15 @@ The free tool [OpenRouteService](https://openrouteservice.org/) is used to plan 
 ### Swagger-URL
 
 https://openrouteservice.org/wp-json/ors-api/v1/api-doc/source/V2
+
+# Noteworthy & Contributors
+
+*ELMO* was developed by Stephan Pelikan to support the non-profit organization [ElektroMobil Gänserndorf](https://www.elektromobil-gf.at).
+
+If you need support to operate the system, feel free to create an Github issue having a label `help wanted`. If you don't have the technical skills to operate this system get in contact with [Phactum Softwareentwicklung GmbH](https://phactum.at/) which is a supporter of the project.
+
+# License
+
+Copyright 2023 Stephan Pelikan
+
+Licensed under the Apache License, Version 2.0
