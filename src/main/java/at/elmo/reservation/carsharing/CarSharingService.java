@@ -28,6 +28,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -274,7 +275,7 @@ public class CarSharingService {
         smsService.sendSms(
                 "car-sharing/remind-driver-to-confirm-start-of-usage",
                 CarSharingService.class.getSimpleName() + "#remindDriverToConfirmStartOfUsage",
-                properties.getPassenagerServicePhoneNumber(),
+                properties.getPassengerServicePhoneNumber(),
                 carSharing.getDriver().getMemberId().toString(),
                 carSharing.getDriver().getPhoneNumber(),
                 NamedObject.from(carSharing).as("carSharing"));
@@ -288,7 +289,7 @@ public class CarSharingService {
         smsService.sendSms(
                 "car-sharing/remind-driver-to-return-car-in-time",
                 CarSharingService.class.getSimpleName() + "#remindDriverToReturnCarInTime",
-                properties.getPassenagerServicePhoneNumber(),
+                properties.getPassengerServicePhoneNumber(),
                 carSharing.getDriver().getMemberId().toString(),
                 carSharing.getDriver().getPhoneNumber(),
                 NamedObject.from(carSharing).as("carSharing"));
@@ -302,7 +303,7 @@ public class CarSharingService {
         smsService.sendSms(
                 "car-sharing/remind-driver-to-confirm-end-of-usage",
                 CarSharingService.class.getSimpleName() + "#remindDriverToConfirmEndOfUsage",
-                properties.getPassenagerServicePhoneNumber(),
+                properties.getPassengerServicePhoneNumber(),
                 carSharing.getDriver().getMemberId().toString(),
                 carSharing.getDriver().getPhoneNumber(),
                 NamedObject.from(carSharing).as("carSharing"));
@@ -317,7 +318,7 @@ public class CarSharingService {
         smsService.sendSms(
                 "car-sharing/inform-driver-about-cancellation-by-administrator",
                 CarSharingService.class.getSimpleName() + "#informDriverAboutCancellationByAdministrator",
-                properties.getPassenagerServicePhoneNumber(),
+                properties.getPassengerServicePhoneNumber(),
                 carSharing.getDriver().getMemberId().toString(),
                 carSharing.getDriver().getPhoneNumber(),
                 NamedObject.from(carSharing).as("carSharing"));
@@ -377,7 +378,7 @@ public class CarSharingService {
                         smsService.sendSms(
                                 "car-sharing/inform-next-driver-about-delay",
                                 CarSharingService.class.getSimpleName() + "#informNextDriverAboutDelay",
-                                properties.getPassenagerServicePhoneNumber(),
+                                properties.getPassengerServicePhoneNumber(),
                                 driver.getMemberId().toString(),
                                 driver.getPhoneNumber(),
                                 NamedObject.from(carSharing).as("carSharing"));
@@ -568,7 +569,7 @@ public class CarSharingService {
         
         // cancelled before start of car-sharing
         if (carSharing.getStartsAt().isAfter(now)) {
-            
+
             carSharing.setCancelled(true);
             carSharing.setStatus(Status.CANCELLED);
             carSharing.getDriver().setHoursConsumedCarSharing(
@@ -578,6 +579,13 @@ public class CarSharingService {
         }
         // cancelled before end of car-sharing or completed normally
         else {
+
+            carSharing.setUsageMinutes(
+                    Duration
+                            .between(
+                                    carSharing.getStartsAt(),
+                                    carSharing.getEndsAt())
+                            .toMinutes());
             
             if (carSharing.getHours() != carSharing.getHoursPlanned()) {
                 

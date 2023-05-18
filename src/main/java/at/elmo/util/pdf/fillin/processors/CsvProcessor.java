@@ -31,19 +31,19 @@ public class CsvProcessor {
      */
     protected static final String CONFIG_ENCODING = "UTF-8";
 
-    public static final String COLUMN_NAME_TEXT = "Inhalt";
+    public static final String COLUMN_NAME_TEXT = "content";
 
-    public static final String COLUMN_NAME_MAXSIZE = "maximaleLaenge";
+    public static final String COLUMN_NAME_MAXSIZE = "max_length";
 
-    public static final String COLUMN_NAME_FONTSIZE = "Schriftgroesze";
+    public static final String COLUMN_NAME_FONTSIZE = "font_size";
 
-    public static final String COLUMN_NAME_FONT = "Schriftart";
+    public static final String COLUMN_NAME_FONT = "font";
 
-    public static final String COLUMN_NAME_Y = "Y";
+    public static final String COLUMN_NAME_Y = "y";
 
-    public static final String COLUMN_NAME_X = "X";
+    public static final String COLUMN_NAME_X = "x";
 
-    public static final String COLUMN_NAME_PAGE = "Seite";
+    public static final String COLUMN_NAME_PAGE = "pdf_page";
     
     public static final Pattern quotesAtTheBeginPattern = Pattern.compile("^(?:\"{1}|\"{3}|\"{5}|\"{7}|\"{9})");
     

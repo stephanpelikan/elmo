@@ -1,5 +1,6 @@
 package at.elmo.reservation;
 
+import at.elmo.gui.api.v1.DriverActivities;
 import at.elmo.gui.api.v1.ReservationApi;
 import at.elmo.gui.api.v1.ReservationOverviewTotal;
 import at.elmo.member.Role;
@@ -13,8 +14,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
 
 @RestController("reservationGuiApi")
 @RequestMapping("/api/v1")
@@ -25,10 +24,10 @@ public class GuiApiController implements ReservationApi {
     
     @Autowired
     private ReservationService reservationService;
-    
+
     @Override
     @Secured(Role.ROLE_DRIVER)
-    public ResponseEntity<List<ReservationOverviewTotal>> getReservationOverviewTotals() {
+    public ResponseEntity<DriverActivities> getDriverActivities() {
         
         final var driver = userContext.getLoggedInMember();
         
@@ -42,6 +41,8 @@ public class GuiApiController implements ReservationApi {
                     final var year = (Integer) key;
                     result = new ReservationOverviewTotal();
                     result.setYear(year);
+                    result.setCarSharingHours(0f);
+                    result.setPassangerServiceHours(0f);
                     super.put(year, result);
                 }
                 return result;
@@ -53,18 +54,31 @@ public class GuiApiController implements ReservationApi {
                 .forEach(year -> {
                     final var result = years.get(year.getYear());
                     if (year.getType().equals(CarSharing.TYPE)) {
-                        result.setCarSharingHours(year.getSeconds() / 3600f);
-                        result.setCarSharingCount(year.getCount());
+                        result.setCarSharingHours(year.getMinutes() / 60f);
                     } else if (year.getType().equals(Shift.TYPE)) {
-                        result.setPassangerServiceHours(year.getSeconds() / 3600f);
-                        result.setPassangerServiceCount(year.getCount());
+                        result.setPassangerServiceHours(year.getMinutes() / 60f);
                     } else {
                         throw new RuntimeException("Unsupported type '"
                                 + year.getType() + "'");
                     }
                 });
         
-        final var result = new LinkedList<>(years.values());
+        if (driver.getHoursServedPassengerServiceImportYear() != 0) {
+
+            final var importYear = driver
+                    .getCreatedAt()
+                    .getYear();
+            final var year = years.get(importYear);
+            year.setPassangerServiceHours(
+                    year.getPassangerServiceHours()
+                    + driver.getHoursServedPassengerServiceImportYear());
+
+        }
+        
+        final var result = new DriverActivities();
+        years.values().forEach(result::addOverviewItem);
+        result.setCarSharingHours((float) driver.getHoursConsumedCarSharing());
+        result.setPassengerServiceHours((float) driver.getHoursServedPassengerService());
         
         return ResponseEntity.ok(result);
         

@@ -1,4 +1,4 @@
-Seite;X;Y;maximale Laenge;Schriftart;Schriftgroesze;Inhalt;Feld
+pdf_page;x;y;max_length;font;font_size;content;attribute
 1;170;30;42;HELVETICA;3.5;(Kann auch;foto1
 1;170;33.5;42;HELVETICA;3.5; in der App;foto2
 1;170;37;42;HELVETICA;3.5; hochgeladen;foto3

@@ -215,7 +215,7 @@ public class ReservationService {
     public List<DriverConsumptionPerYear> getDriverConsumptionsPerYear(
             final Member driver) {
         
-        return reservations.findAllByDriver(driver);
+        return reservations.aggregateConsumptionByDriver(driver);
         
     }
     

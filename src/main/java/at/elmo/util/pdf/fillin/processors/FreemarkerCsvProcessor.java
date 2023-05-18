@@ -25,7 +25,7 @@ import freemarker.template.TemplateException;
  */
 public class FreemarkerCsvProcessor extends CsvProcessor {
 
-    private static final String INTERNAL_TEMPLATENAME = "Inhalt";
+    private static final String INTERNAL_TEMPLATENAME = "template";
     
     public FreemarkerCsvProcessor(File configFile) throws Exception {
         super(configFile);

@@ -69,8 +69,10 @@ MAVEN_OPTS=--add-opens=java.base/java.util=ALL-UNNAMED mvn -Dorg.slf4j.simpleLog
 ### Run
 
 ```sh
-java -jar target/elmo-*-runnable.jar
+java -Dspring.active.profile=production -jar target/elmo-*-runnable.jar
 ```
+
+Define a Spring profile `production` similar to the development profile [local](./tree/main/src/main/resources/config/application-local.yaml). Change existing values and add properties for social login, mailing and SMS texting as shown in section [development](#development).
 
 Open in browser: [http://localhost:8080](http://localhost:8080)
 
@@ -78,10 +80,52 @@ Hint: Social login on localhost only works using Webpack development server (see
 service and webapp have to use different hostnames what applies for development server since
 UI is started for localhost:3000 but Spring Boot container runs on localhost:8080.
 
-## Building PDF templates
+### Configure
 
-To fill PDFs (e.g. passenger agreement) one has to provide the PDF template and a CSV file
-containing descriptions were to put which field into the PDF template.
+Possible configuration attributes you can provide in a file `application-production.yaml` in the directory from which you start the application.
+
+Checkout the sections `elmo` and `translations` in the files [application.yaml](./tree/main/src/main/resources/config/application.yaml) and [application-local.yaml](./tree/main/src/main/resources/config/application-local.yaml). Most thing are self-explaining. For the rest read the listing underneath:
+
+1. `elmo.gateway-url`: The public URL which point to the Elmo application (e.g. `https://app.elmo.com`)
+1. `elmo.sms.support`: Whether to use a drivers cell-phone to send SMS (see App-Wrapper).
+1. `elmo.passenger-service-phone-number`: The drivers cell-phone's number.
+1. `elmo.admin-identification-email-address`: Once a new social login is registers having this email address, the account is created without onboarding and admin-permissions are given out.
+1. `elmo.admin-member-id`: A predefined member id of the administrator.
+1. `elmo.email.sender`: The sender address for emails sent (e.g. no-reply@address.com)
+1. `elmo.general-email-address`: The organisation's email address (e.g. your@address.com)
+
+#### Social login configuration:
+
+Spring Boot's built in mechanism is used for social logins. For each you have to provide these properties:
+
+1. Google:
+    1. `spring.security.oauth2.client.registration.google.client-id`: see [https://console.cloud.google.com/apis/credentials](https://console.cloud.google.com/apis/credentials)
+    1. `spring.security.oauth2.client.registration.google.client-secret`: see [https://console.cloud.google.com/apis/credentials](https://console.cloud.google.com/apis/credentials)
+    1. `spring.security.oauth2.client.registration.google.redirect-uri`: Use `${elmo.gateway-url}/{action}/oauth2/code/{registrationId}`
+    1. `spring.security.oauth2.client.registration.google.scope`: Use `["email", "profile"]`
+1. Amazon 
+    1. `spring.security.oauth2.client.registration.amazon.client-name`: Use  `Amazon`
+    1. `spring.security.oauth2.client.registration.amazon.client-id`: see [https://developer.amazon.com/loginwithamazon/console/site/lwa/overview.html](https://developer.amazon.com/loginwithamazon/console/site/lwa/overview.html)
+    1. `spring.security.oauth2.client.registration.amazon.client-secret`: see [https://developer.amazon.com/loginwithamazon/console/site/lwa/overview.html](https://developer.amazon.com/loginwithamazon/console/site/lwa/overview.html)
+    1. `spring.security.oauth2.client.registration.amazon.authorization-grant-type`: Use `authorization_code`
+    1. `spring.security.oauth2.client.registration.amazon.redirect-uri`: Use `${elmo.gateway-url}/{action}/oauth2/code/{registrationId}`
+    1. `spring.security.oauth2.client.registration.amazon.scope`: Use `["profile"]`
+
+For some providers, like Amazon-Login, the are no default-values known by Spring Boot so, also the provider's properties need to be set:
+
+1. Amazon:
+    1. `spring.security.oauth2.client.provider.amazon.id`: Use `amazon`
+    1. `spring.security.oauth2.client.provider.amazon.authorization-uri`: Use `https://www.amazon.com/ap/oa`
+    1. `spring.security.oauth2.client.provider.amazon.token-uri`: Use `https://api.amazon.co.uk/auth/o2/token`
+    1. `spring.security.oauth2.client.provider.amazon.user-info-uri`: Use `https://api.amazon.com/user/profile`
+    1. `spring.security.oauth2.client.provider.amazon.userNameAttribute`: Use `name`
+
+
+### Building PDF templates
+
+As a last step of the passenger registration a confirmation email is sent which also includes a passenger agreement to be signed and sent to the organisation's leader board. It is provided as a prefilled PDF attachment.
+
+Two PDF files has to be created manually, one for passenger registrations and one for driver registrations. This PDF should have spaces in which the registree has to fill her/his personal data. To prefill theses spaces with data recording during the online registration a CSV file has to be created containing descriptions were to put which data into the PDF.
 
 To test this, run this command:
 
@@ -91,15 +135,43 @@ java -jar target/pdf-tool.jar src/test/attachments/passenger-agreement/configura
 ```
 
 *Hint:* If you have limited space to place a certain text into PDF then you can limit the size
-by using the 'configuration.csv' column 'maximale Laenge'. Do test the limits use a very long value in the 'data.csv'.
+by using the 'config.csv' column 'max_length'. Do test the limits use a very long value in the 'data.csv'.
+
+Provide the directories containing the configuration files by using this properties:
+
+1. `elmo.passanger-agreement-pdf-directory`
+1. `elmo.driver-agreement-pdf-directory`
 
 ## Development
 
 ### Run
 
-Run class `at.elmo.ElmoApplication` from your favorite IDE.
+Run class `at.elmo.ElmoApplication` from your favorite IDE and add JVM parameters like this:
+
+```
+-Dspring.security.oauth2.client.registration.google.client-id=XXXXXXX
+-Dspring.security.oauth2.client.registration.google.client-secret=XXXXXXX
+-Dspring.security.oauth2.client.registration.amazon.client-id=YYYYYYY
+-Dspring.security.oauth2.client.registration.amazon.client-secret=YYYYYYY
+-Delmo.passanger-agreement-pdf-directory=/media/sf_Shared/elmo/passanger-agreement
+-Delmo.driver-agreement-pdf-directory=/media/sf_Shared/elmo/driver-agreement
+-Delmo.email.sender=your@address.com
+-Delmo.general-email-address=your@address.com
+-Delmo.email.redirect-all-to=your@address.com
+-Delmo.admin-identification-email-address=your@address.com
+-Delmo.initial-new-member-id=2
+-Delmo.admin-member-id=1
+-Delmo.sms.redirect-all-to='+436661234567'
+-Delmo.sms.dont-redirect='+436661234567,+436661234567'
+-Dspring.mail.host=my-smtp-host
+-Dspring.mail.port=25
+```
+
+Values `XXXXXXX` can be configured at [https://console.cloud.google.com](https://console.cloud.google.com) and for `YYYYYYY` at [https://developer.amazon.com/apps-and-games/login-with-amazon](https://developer.amazon.com/apps-and-games/login-with-amazon).
+
 
 Run Webpack development server:
+
 ```sh
 cd src/main/webapp
 npm run start
@@ -107,7 +179,7 @@ npm run start
 
 Open in browser: [http://localhost:3000](http://localhost:3000)
 
-Hot module replacement is active. All requests having not `Accept: text/html` will be proxied to `http://localhost:8080/`.
+Hot module replacement is active. All requests having pathes matching `/api`, `*oauth2*`, `/logout` will be proxied to `http://localhost:8080/`.
 
 ## OpenRouteService:
 

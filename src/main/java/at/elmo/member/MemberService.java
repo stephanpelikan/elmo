@@ -74,7 +74,8 @@ public class MemberService {
             final String comment,
             final String iban,
             final Payment payment,
-            final int hoursServedPassengerService,
+            final int hoursServedPassengerServiceImportYear,
+            final int hoursServedPassengerServiceTotal,
             final int hoursConsumedCarSharing) {
 
         if (members.findByMemberId(memberId).isPresent()) {
@@ -102,7 +103,8 @@ public class MemberService {
         member.setTitle(title);
         member.setZip(zip);
         member.setHoursConsumedCarSharing(hoursConsumedCarSharing);
-        member.setHoursServedPassengerService(hoursServedPassengerService);
+        member.setHoursServedPassengerService(hoursServedPassengerServiceTotal);
+        member.setHoursServedPassengerServiceImportYear(hoursServedPassengerServiceImportYear);
 
         members.saveAndFlush(member);
 
@@ -326,7 +328,7 @@ public class MemberService {
         smsService.sendSms(
                 "member/phone-number-confirmation",
                 null,
-                properties.getPassenagerServicePhoneNumber(),
+                properties.getPassengerServicePhoneNumber(),
                 member.getId(),
                 phoneNumber,
                 NamedObject.from(member).as("member"));

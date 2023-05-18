@@ -91,7 +91,7 @@ public class ElmoProperties implements AsyncPropertiesAware {
     private CarSharingProperties carSharing;
 
     @NonNull
-    private String passenagerServicePhoneNumber;
+    private String passengerServicePhoneNumber;
 
     @Override
     public AsyncProperties getAsync() {
@@ -166,12 +166,12 @@ public class ElmoProperties implements AsyncPropertiesAware {
         this.adminIdentificationEmailAddress = adminIdentificationEmailAddress;
     }
 
-    public String getPassenagerServicePhoneNumber() {
-        return passenagerServicePhoneNumber;
+    public String getPassengerServicePhoneNumber() {
+        return passengerServicePhoneNumber;
     }
 
-    public void setPassenagerServicePhoneNumber(String passenagerServicePhoneNumber) {
-        this.passenagerServicePhoneNumber = passenagerServicePhoneNumber;
+    public void setPassengerServicePhoneNumber(String passengerServicePhoneNumber) {
+        this.passengerServicePhoneNumber = passengerServicePhoneNumber;
     }
 
     public String getVersion() {

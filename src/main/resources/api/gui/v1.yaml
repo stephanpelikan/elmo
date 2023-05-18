@@ -290,17 +290,15 @@ paths:
     get:
       tags:
         - reservation
-      summary: Overview about reservation totals
-      operationId: getReservationOverviewTotals
+      summary: Overview about driver activies grouped by year
+      operationId: getDriverActivities
       responses:
         200:
           description: The overview
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ReservationOverviewTotal'
+                $ref: '#/components/schemas/DriverActivities'
   /gui/planner/calendar:
     post:
       tags:
@@ -1131,6 +1129,20 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ShiftReservation'
+    DriverActivities:
+      type: object
+      required:
+        - passengerServiceHours
+        - carSharingHours
+      properties:
+        overview:
+          type: list
+          items:
+            $ref: '#/components/schemas/ReservationOverviewTotal'
+        passengerServiceHours:
+          type: float
+        carSharingHours:
+          type: float
     ReservationOverviewTotal:
       type: object
       required:
@@ -1145,11 +1157,5 @@ components:
           format: int32
         car-sharing-hours:
           type: float
-        car-sharing-count:
-          type: integer
-          format: int32
         passanger-service-hours:
           type: float
-        passanger-service-count:
-          type: integer
-          format: int32

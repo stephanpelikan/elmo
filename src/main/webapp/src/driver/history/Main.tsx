@@ -1,4 +1,4 @@
-import { Accordion } from 'grommet';
+import { Accordion, Text } from 'grommet';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAppContext, useReservationGuiApi } from '../../AppContext';
@@ -16,6 +16,7 @@ i18n.addResources('en', 'driver/history', {
       "total": "Total",
       "passenger-service": "Passenger Service",
       "car-sharing": "Car-Sharing",
+      "no-completed-usage-yet": "So far you have not done any passenger-service shifts and have not used car sharing!",
     });
 i18n.addResources('de', 'driver/history', {
       "title": "Historie",
@@ -23,6 +24,7 @@ i18n.addResources('de', 'driver/history', {
       "total": "Gesamt",
       "passenger-service": "Fahrtendienst",
       "car-sharing": "Car-Sharing",
+      "no-completed-usage-yet": "Bislang hast du keine Fahrtendienstschichten geleistet und kein Car-Sharing genutzt!"
     });
 
 const Main = () => {
@@ -33,14 +35,18 @@ const Main = () => {
   const { isNotPhone } = useResponsiveScreen();
 
   const [ years, setYears ] = useState<Array<ReservationOverviewTotal> | undefined>(undefined);
+  const [ hoursServedPassengerService, setHoursServedPassengerService ] = useState(0);
+  const [ hoursConsumedCarSharing, setHoursConsumedCarSharing] = useState(0);
   const [ activeYear, setActiveYear ] = useState(-1);
   
   useEffect(() => {
     if (years === undefined) {
       showLoadingIndicator(true);
       const loadYears = async () => {
-        const result = await reservationGuiApi.getReservationOverviewTotals();
-        setYears(result);
+        const result = await reservationGuiApi.getDriverActivities();
+        setYears(result.overview);
+        setHoursConsumedCarSharing(result.carSharingHours);
+        setHoursServedPassengerService(result.passengerServiceHours);
         showLoadingIndicator(false);
       }
       loadYears();
@@ -55,20 +61,32 @@ const Main = () => {
           { t('title') }
         </Heading>
         <Content>
-          <Header />
-          <Accordion>
-            {
-              years?.
-                  map(
-                      (year, index) =>
-                      <HistoryAccordionPanel
-                          key={ year.year }
-                          index={ index } 
-                          year={ year } />)
-            }
-          </Accordion>
-          <Footer
-              years={ years } />
+          {
+              years?.length === 0
+                  ? <Text>
+                      { t('no-completed-usage-yet') }
+                    </Text>
+                  : <>
+                      <Header />
+                      <Accordion
+                          border={ {
+                              color: 'dark-4',
+                              side: 'top'
+                            } }>
+                        {
+                          years?.
+                              map(
+                                  (year, index) =>
+                                  <HistoryAccordionPanel
+                                      key={ year.year }
+                                      index={ index } 
+                                      year={ year } />)
+                        }
+                      </Accordion>
+                      <Footer
+                          years={ years } />
+                    </>
+          }
         </Content>
       </MainLayout>);
 };

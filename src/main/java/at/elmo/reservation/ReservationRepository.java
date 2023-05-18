@@ -36,11 +36,12 @@ public interface ReservationRepository extends JpaRepository<ReservationBase, St
     
     Optional<ReservationBase> findByCarAndEndsAtAndCancelled(Car car, LocalDateTime endsAt, boolean cancelled);
     
-    @Query("SELECT count(r) as count, YEAR(r.startsAt) AS year, SUM(EXTRACT(EPOCH FROM(r.endsAt - r.startsAt))) AS seconds, r.type AS type FROM ConsumingReservation r WHERE "
-            + "(r.driver = ?1) "
+    @Query("SELECT YEAR(r.startsAt) AS year, SUM(r.usageMinutes) AS minutes, r.type AS type FROM ConsumingReservation r WHERE "
+            + "(NOT r.usageMinutes IS NULL) "
+            + "AND (r.driver = ?1) "
             + "AND r.cancelled = false "
             + "GROUP BY year, type "
             + "ORDER BY year")
-    List<DriverConsumptionPerYear> findAllByDriver(Member driver);
+    List<DriverConsumptionPerYear> aggregateConsumptionByDriver(Member driver);
     
 }

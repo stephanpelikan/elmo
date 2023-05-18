@@ -8,9 +8,6 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <camunda-edition>ee</camunda-edition>
-    <camunda-version>7.18</camunda-version>
-    <camunda-version-minor>0</camunda-version-minor>
     <jackson.version>2.12.5</jackson.version>
     <mapstruct.version>1.5.2.Final</mapstruct.version>
     <okhttp.version>2.7.5</okhttp.version>
@@ -309,30 +306,10 @@
       <artifactId>h2</artifactId>
       <scope>provided</scope>
     </dependency>
-        <dependency>
-          <groupId>org.camunda.bpm.springboot</groupId>
-          <artifactId>camunda-bpm-spring-boot-starter</artifactId>
-          <version>7.17.6-ee</version>
-        </dependency>
-        <dependency>
-          <groupId>org.camunda.bpm.springboot</groupId>
-          <artifactId>camunda-bpm-spring-boot-starter-webapp-ee</artifactId>
-          <version>7.17.6-ee</version>
-        </dependency>
     <dependency>
       <groupId>org.camunda.community.vanillabp</groupId>
       <artifactId>camunda7-spring-boot-adapter</artifactId>
       <version>1.0.7</version>
-          <exclusions>
-            <exclusion>
-              <groupId>org.camunda.bpm.springboot</groupId>
-              <artifactId>camunda-bpm-spring-boot-starter</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.camunda.bpm.springboot</groupId>
-              <artifactId>camunda-bpm-spring-boot-starter-webapp</artifactId>
-            </exclusion>
-          </exclusions>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>

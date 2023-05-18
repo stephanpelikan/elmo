@@ -318,7 +318,7 @@ public class ShiftService {
             smsService.sendSms(
                     template,
                     ShiftService.class.getSimpleName() + "#" + fromMethod,
-                    properties.getPassenagerServicePhoneNumber(),
+                    properties.getPassengerServicePhoneNumber(),
                     driver.getMemberId().toString(),
                     driver.getPhoneNumber(),
                     NamedObject.from(shift).as("shift"),
@@ -607,6 +607,13 @@ public class ShiftService {
     @WorkflowTask
     public void shiftDone(
             final Shift shift) {
+
+        shift.setUsageMinutes(
+                Duration
+                        .between(
+                                shift.getStartsAt(),
+                                shift.getEndsAt())
+                        .toMinutes());
 
         shift.setStatus(DONE);
         

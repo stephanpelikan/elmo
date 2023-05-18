@@ -1,10 +1,9 @@
 package at.elmo.util.pdf.fillin;
 
-import java.io.File;
-import java.io.IOException;
-
 import at.elmo.util.pdf.fillin.processors.CsvProcessor;
 import at.elmo.util.pdf.fillin.processors.FreemarkerCsvProcessor;
+
+import java.io.File;
 
 public class PdfFillIn {
     
@@ -34,8 +33,18 @@ public class PdfFillIn {
             
             if (!filesExist) {
                 
-                System.out.println("Bitte prüfen Sie ob alle nötigen Dateien existieren!");
-                System.exit(0);
+                System.err.println("At least one of the given files does not exist:");
+                if (!configuration.exists()) {
+                    System.err.println(args[0]);
+                }
+                if (!data.exists()) {
+                    System.err.println(args[1]);
+                }
+                if (!inputPdf.exists()) {
+                    System.err.println(args[2]);
+                }
+                System.exit(1);
+                
             }
             
             try {
@@ -45,17 +54,13 @@ public class PdfFillIn {
                 newPdf.createNewFile();
                 processor.process(inputPdf, data, CSV_ENCODING, newPdf);
                 
-            } catch (IOException e) {
-                
-                System.out.println("Der neue Vertrag kann nicht in "
-                        + newPdf.getAbsolutePath()
-                        + " erschaffen werden!");
-                e.printStackTrace();
-                
             } catch (Exception e) {
                 
-                //System.out.println(e.getMessage());
+                System.err.println("The new PDF "
+                        + newPdf.getAbsolutePath()
+                        + " could not be created!");
                 e.printStackTrace();
+                System.exit(1);
                 
             }
             
@@ -64,11 +69,11 @@ public class PdfFillIn {
 
     }
     
-    private static void usage(){
+    private static void usage() {
         
-        final String message = "Bitte geben Sie die korrekten Parameter an:\n";
+        final String message = "Use the tool like this:\n";
         final String jarRun = "    java -jar pdf-fill-in-commandlinetool.jar";
-        final String parameters = "configuration.csv data.csv blank_vertrag.pdf neuer_vertrag.pdf";
+        final String parameters = "configuration.csv data.csv given_pdf.pdf filled_pdf.pdf";
         
         final String usageString =
                 message + "\n"

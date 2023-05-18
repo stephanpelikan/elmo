@@ -39,6 +39,9 @@ public class Member extends MemberBase {
     @Column(name = "PS_HOURS")
     private int hoursServedPassengerService;
 
+    @Column(name = "PS_HOURS_IMPORT_YEAR")
+    private int hoursServedPassengerServiceImportYear;
+
     @Column(name = "CS_HOURS")
     private int hoursConsumedCarSharing;
 
@@ -93,6 +96,14 @@ public class Member extends MemberBase {
         this.hoursServedPassengerService = hoursServedPassengerService;
     }
 
+    public int getHoursServedPassengerServiceImportYear() {
+        return hoursServedPassengerServiceImportYear;
+    }
+    
+    public void setHoursServedPassengerServiceImportYear(int hoursServedPassengerServiceImportYear) {
+        this.hoursServedPassengerServiceImportYear = hoursServedPassengerServiceImportYear;
+    }
+    
     public void addRoles(
             final List<Role> newRoles) {
 

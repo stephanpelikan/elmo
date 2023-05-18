@@ -110,6 +110,7 @@ camunda:
   bpm:
     default-number-of-retries: 1
     job-execution:
+      wakeup: true
       core-pool-size: 2
       max-pool-size: 2
       wait-time-in-millis: 2500

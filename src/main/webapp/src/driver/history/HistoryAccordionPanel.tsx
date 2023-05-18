@@ -1,6 +1,5 @@
 import React from 'react';
 import { AccordionPanel, Box, Text } from "grommet";
-import { Car, Schedule } from 'grommet-icons';
 import useResponsiveScreen from '../../utils/responsiveUtils';
 import { ReservationOverviewTotal } from '../../client/gui';
 
@@ -38,36 +37,16 @@ const HistoryAccordionPanel = ({
                     <Box
                         width={ isNotPhone ? '12rem' : '4.8rem' }
                         align="end">
-                      <Box
-                          direction="row"
-                          gap="xsmall">                      
-                        <Text>
-                          { year.carSharingCount}x
-                        </Text>
-                        <Text>
-                          =
-                        </Text>
-                        <Text>
-                          { year.carSharingHours }h
-                        </Text>
-                      </Box>
+                      <Text>
+                        { year.carSharingHours }h
+                      </Text>
                     </Box>
                     <Box
                         width={ isNotPhone ? '12rem' : '4.8rem' }
                         align="end">
-                      <Box
-                          direction="row"
-                          gap="xsmall">                      
-                        <Text>
-                          { year.passangerServiceCount }x
-                        </Text>
-                        <Text>
-                          =
-                        </Text>
-                        <Text>
-                          { year.passangerServiceHours }h
-                        </Text>
-                      </Box>
+                      <Text>
+                        { year.passangerServiceHours }h
+                      </Text>
                     </Box>
                     <Box
                         width={ isNotPhone ? '12rem' : '4.8rem' }

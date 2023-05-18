@@ -27,7 +27,10 @@ public abstract class ConsumingReservation extends ReservationBase implements Dr
 
     @Column(name = "END_KM")
     private Integer kmAtEnd;
-
+    
+    @Column(name = "USAGE_MINS")
+    private Long usageMinutes;
+    
     @Override
     public Member getDriver() {
         return driver;
@@ -69,4 +72,12 @@ public abstract class ConsumingReservation extends ReservationBase implements Dr
         this.kmAtEnd = kmAtEnd;
     }
 
+    public Long getUsageMinutes() {
+        return usageMinutes;
+    }
+    
+    public void setUsageMinutes(Long usageMinutes) {
+        this.usageMinutes = usageMinutes;
+    }
+    
 }

@@ -294,4 +294,19 @@
       <column name="MEMBER_FOR_SWAP" type="varchar(40)" />
     </addColumn> 
   </changeSet>
+  <changeSet id="track-usage-minutes-per-reservation"
+             author="stephanpelikan">
+    <addColumn tableName="ELMO_RESERVATION">
+      <column name="USAGE_MINS" type="long" />
+    </addColumn> 
+    <createIndex tableName="ELMO_RESERVATION" indexName="USAGE_MINS">
+      <column name="USAGE_MINS" />
+    </createIndex>
+  </changeSet>
+  <changeSet id="import-passenger-service-served-in-import-year"
+             author="stephanpelikan">
+    <addColumn tableName="ELMO_MEMBER">
+      <column name="PS_HOURS_IMPORT_YEAR" type="int" defaultValueNumeric="0" />
+    </addColumn>
+  </changeSet>
 </databaseChangeLog>

@@ -62,7 +62,7 @@ public class FreemarkerConfiguration {
                 elmoInformation.setGatewayUrl(properties.getGatewayUrl());
                 elmoInformation.setHomepage(properties.getHomepageUrl());
                 elmoInformation.setEmailSender(emailProperties.getSender());
-                elmoInformation.setPhoneNumber(properties.getPassenagerServicePhoneNumber());
+                elmoInformation.setPhoneNumber(properties.getPassengerServicePhoneNumber());
                 elmoInformation.setGeneralEmailAddress(properties.getGeneralEmailAddress());
                 elmoInformation.setBrandColor(properties.getBrandColor());
                 elmoInformation.setAccentColor(properties.getAccentColor());

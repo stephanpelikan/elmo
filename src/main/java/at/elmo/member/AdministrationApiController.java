@@ -282,19 +282,30 @@ public class AdministrationApiController implements MemberApi {
                             .findFirst()
                             .map(Entry::getKey)
                             .orElse(Payment.MONTHLY);
-                    final int hoursServedPassengerService;
-                    final var hoursServedPassengerServiceCell = NullableCell.from(row.getCell(15));
-                    if ((hoursServedPassengerServiceCell.getCellType() != CellType.NUMERIC)
-                            && !StringUtils.hasText(hoursServedPassengerServiceCell.getStringCellValue())) {
-                        throw new ElmoValidationException("hoursServedPassengerService", "missing");
-                    } else if (hoursServedPassengerServiceCell.getCellType() == CellType.NUMERIC) {
-                        hoursServedPassengerService = (int) hoursServedPassengerServiceCell.getNumericCellValue();
+                    final int hoursServedPassengerServiceImportYear;
+                    final var hoursServedPassengerServiceImportYearCell = NullableCell.from(row.getCell(15));
+                    if ((hoursServedPassengerServiceImportYearCell.getCellType() != CellType.NUMERIC)
+                            && !StringUtils.hasText(hoursServedPassengerServiceImportYearCell.getStringCellValue())) {
+                        throw new ElmoValidationException("hoursServedPassengerServiceImportYear", "missing");
+                    } else if (hoursServedPassengerServiceImportYearCell.getCellType() == CellType.NUMERIC) {
+                        hoursServedPassengerServiceImportYear = (int) hoursServedPassengerServiceImportYearCell.getNumericCellValue();
                     } else {
-                        hoursServedPassengerService = Integer
-                                .parseInt(hoursServedPassengerServiceCell.getStringCellValue());
+                        hoursServedPassengerServiceImportYear = Integer
+                                .parseInt(hoursServedPassengerServiceImportYearCell.getStringCellValue());
+                    }
+                    final int hoursServedPassengerServiceTotal;
+                    final var hoursServedPassengerServiceTotalCell = NullableCell.from(row.getCell(16));
+                    if ((hoursServedPassengerServiceTotalCell.getCellType() != CellType.NUMERIC)
+                            && !StringUtils.hasText(hoursServedPassengerServiceTotalCell.getStringCellValue())) {
+                        throw new ElmoValidationException("hoursServedPassengerServiceTotal", "missing");
+                    } else if (hoursServedPassengerServiceTotalCell.getCellType() == CellType.NUMERIC) {
+                        hoursServedPassengerServiceTotal = (int) hoursServedPassengerServiceTotalCell.getNumericCellValue();
+                    } else {
+                        hoursServedPassengerServiceTotal = Integer
+                                .parseInt(hoursServedPassengerServiceTotalCell.getStringCellValue());
                     }
                     final int hoursConsumedCarSharing;
-                    final var hoursConsumedCarSharingCell = NullableCell.from(row.getCell(16));
+                    final var hoursConsumedCarSharingCell = NullableCell.from(row.getCell(17));
                     if ((hoursConsumedCarSharingCell.getCellType() != CellType.NUMERIC)
                             && !StringUtils.hasText(hoursConsumedCarSharingCell.getStringCellValue())) {
                         throw new ElmoValidationException("hoursServedPassengerService", "missing");
@@ -321,7 +332,8 @@ public class AdministrationApiController implements MemberApi {
                             comment,
                             iban,
                             payment,
-                            hoursServedPassengerService,
+                            hoursServedPassengerServiceImportYear,
+                            hoursServedPassengerServiceTotal,
                             hoursConsumedCarSharing);
 
                 } catch (ElmoValidationException e) {
