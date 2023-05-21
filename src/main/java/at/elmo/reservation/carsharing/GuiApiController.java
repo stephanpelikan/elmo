@@ -7,7 +7,7 @@ import at.elmo.gui.api.v1.CarSharingReservation;
 import at.elmo.gui.api.v1.CarSharingStartRequest;
 import at.elmo.gui.api.v1.CarSharingStopRequest;
 import at.elmo.gui.api.v1.ExtendCarSharingRequest;
-import at.elmo.gui.api.v1.PlannerReservationType;
+import at.elmo.gui.api.v1.ReservationType;
 import at.elmo.member.Role;
 import at.elmo.reservation.ReservationService;
 import at.elmo.reservation.passengerservice.shift.Shift;
@@ -82,7 +82,7 @@ public class GuiApiController implements CarSharingApi {
             final AddPlannerReservation carSharingReservation) {
 
         if ((carSharingReservation == null)
-                || (carSharingReservation.getType() != PlannerReservationType.CS)) {
+                || (carSharingReservation.getType() != ReservationType.CS)) {
             return ResponseEntity.badRequest().build();
         }
 

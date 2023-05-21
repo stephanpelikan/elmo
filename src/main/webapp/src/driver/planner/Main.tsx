@@ -6,7 +6,7 @@ import useResponsiveScreen from '../../utils/responsiveUtils';
 import { currentHour, nextHours, numberOfHoursBetween } from '../../utils/timeUtils';
 import { SnapScrollingDataTable } from '../../components/SnapScrollingDataTable';
 import { useCarSharingApi, usePlannerApi } from '../DriverAppContext';
-import { PlannerApi, PlannerCar, PlannerReservation, PlannerReservationType, ReservationEvent } from "../../client/gui";
+import { PlannerApi, PlannerCar, PlannerReservation, ReservationType, ReservationEvent } from "../../client/gui";
 import React, { memo, MouseEvent as ReactMouseEvent, MutableRefObject, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Contract, DocumentTime, History } from "grommet-icons";
 import { useAppContext } from "../../AppContext";
@@ -171,7 +171,7 @@ const DayTable = memo<{
                                 touchEnd={ touchEnd } />
                         : !Boolean(hour.reservation) || (hour.reservation!.status === 'CANCELLED')
                         ? undefined
-                        : hour.reservation?.type === PlannerReservationType.Cs
+                        : hour.reservation?.type === ReservationType.Cs
                         ? <CarSharingBox
                               hour={ hour }
                               car={ car }
@@ -180,13 +180,13 @@ const DayTable = memo<{
                               drivers={ drivers }
                               cancelReservation={ cancelReservation }
                             />
-                        : hour.reservation?.type === PlannerReservationType.Block
+                        : hour.reservation?.type === ReservationType.Block
                         ? <BlockBox
                               hour={ hour }
                               isFirstHourOfReservation={ isFirstHourOfReservation }
                               isLastHourOfReservation={ isLastHourOfReservation }
                             />
-                        : hour.reservation?.type === PlannerReservationType.Ps
+                        : hour.reservation?.type === ReservationType.Ps
                         ? <PassengerServiceBox
                               hour={ hour }
                               isFirstHourOfReservation={ isFirstHourOfReservation }
@@ -698,7 +698,7 @@ const Planner = () => {
                   driverMemberId: state.currentUser!.memberId!,
                   startsAt: selection.current!.startsAt,
                   endsAt: selection.current!.endsAt,
-                  type: PlannerReservationType.Cs,
+                  type: ReservationType.Cs,
                 }
               });
             // selection will be cancelled by server-sent update

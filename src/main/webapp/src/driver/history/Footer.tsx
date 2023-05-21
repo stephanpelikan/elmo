@@ -21,7 +21,7 @@ const Footer = ({
      years
          ? years.reduce((result, year) => result + year.passangerServiceHours, 0)
          : 0;
-  const totalTotal = passangerServiceTotal - carSharingTotal;
+  const balanceTotal = passangerServiceTotal - carSharingTotal;
          
   return (
       <Box
@@ -41,7 +41,7 @@ const Footer = ({
             direction="row">
           <Box
               align='end'
-              width={ isNotPhone ? '12rem' : '4.8rem' }>
+              width={ isNotPhone ? '12rem' : '3.5rem' }>
             <Text
                 weight='bold'
                 color={ carSharingTotal < 0 ? 'status-critical' : 'undefined' }>
@@ -52,7 +52,7 @@ const Footer = ({
           </Box>
           <Box
               align='end'
-              width={ isNotPhone ? '12rem' : '4.8rem' }>
+              width={ isNotPhone ? '12rem' : '3.5rem' }>
             <Text
                 weight='bold'
                 color={ passangerServiceTotal < 0 ? 'status-critical' : 'undefined' }>
@@ -63,12 +63,12 @@ const Footer = ({
           </Box>
           <Box
               align='end'
-              width={ isNotPhone ? '12rem' : '4.8rem' }>
+              width={ isNotPhone ? '12rem' : '3.5rem' }>
             <Text
                 weight='bold'
-                color={ totalTotal < 0 ? 'status-critical' : 'undefined' }>
+                color={ balanceTotal < 0 ? 'status-critical' : 'undefined' }>
               {
-                totalTotal
+                balanceTotal
               }h
             </Text>
           </Box>

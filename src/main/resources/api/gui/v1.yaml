@@ -286,11 +286,41 @@ paths:
           description: Email is wrong format
         404:
           description: The member-id is unknown
+  /gui/member/driver-activities/{year}:
+    get:
+      tags:
+        - reservation
+      summary: All driver activities of one year
+      operationId: getDriverActivitiesOfYear
+      parameters:
+        - in: path
+          name: year
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        200:
+          description: The activities
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  anyOf:
+                    - $ref: '#/components/schemas/ShiftReservation'
+                    - $ref: '#/components/schemas/CarSharingReservation'
+                    - type: object
+                      required:
+                        - type
+                      properties:
+                        type:
+                          $ref: '#/components/schemas/ReservationType'
   /gui/member/driver-activities:
     get:
       tags:
         - reservation
-      summary: Overview about driver activies grouped by year
+      summary: Overview about driver activities grouped by year
       operationId: getDriverActivities
       responses:
         200:
@@ -596,7 +626,7 @@ components:
         - REJECTED
         - ACTIVE
         - INACTIVE
-    PlannerReservationType:
+    ReservationType:
       type: string
       enum:
         - CS # shortcut of CarSharing
@@ -844,7 +874,7 @@ components:
         driverMemberId:
           type: integer
         type:
-          $ref: '#/components/schemas/PlannerReservationType'
+          $ref: '#/components/schemas/ReservationType'
     PlannerReservation:
       type: object
       required:
@@ -865,7 +895,7 @@ components:
         status:
           type: string
         type:
-          $ref: '#/components/schemas/PlannerReservationType'
+          $ref: '#/components/schemas/ReservationType'
         driverMemberId:
           type: integer
         hasRides:
@@ -1030,6 +1060,9 @@ components:
           type: string
         userTaskId:
           type: string
+        usageMinutes:
+          type: integer
+          format: int64
     CarSharingReservation:
       type: object
       required:
@@ -1080,6 +1113,9 @@ components:
           type: string
         userTaskId:
           type: string
+        usageMinutes:
+          type: integer
+          format: int64
     ExtendCarSharingRequest:
       type: object
       properties:

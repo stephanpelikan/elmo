@@ -21,7 +21,7 @@ const Header = () => {
             direction="row">
           <Box
               align='end'
-              width={ isNotPhone ? '12rem' : '4.8rem' }>
+              width={ isNotPhone ? '12rem' : '3.5rem' }>
             <Box
                 gap="small"
                 direction="row">
@@ -35,7 +35,7 @@ const Header = () => {
           </Box>
           <Box
               align='end'
-              width={ isNotPhone ? '12rem' : '4.8rem' }>
+              width={ isNotPhone ? '12rem' : '3.5rem' }>
             <Box
                 gap="small"
                 direction="row">
@@ -49,14 +49,14 @@ const Header = () => {
           </Box>
           <Box
               align='end'
-              width={ isNotPhone ? '12rem' : '4.8rem' }>
+              width={ isNotPhone ? '12rem' : '3.5rem' }>
             <Box
                 gap="small"
                 direction="row">
               <Catalog />
               {
                 isNotPhone
-                    ? t('total')
+                    ? t('balance')
                     : undefined
               }
             </Box>

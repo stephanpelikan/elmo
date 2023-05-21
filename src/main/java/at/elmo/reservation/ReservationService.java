@@ -219,4 +219,12 @@ public class ReservationService {
         
     }
     
+    public List<ReservationBase> getDriverConsumptionsOfAYear(
+            final Member driver,
+            final int year) {
+        
+        return reservations.findByYear(driver, year);
+        
+    }
+    
 }

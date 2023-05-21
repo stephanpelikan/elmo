@@ -1,6 +1,7 @@
 package at.elmo.reservation;
 
 import at.elmo.gui.api.v1.DriverActivities;
+import at.elmo.gui.api.v1.GetDriverActivitiesOfYear200ResponseInner;
 import at.elmo.gui.api.v1.ReservationApi;
 import at.elmo.gui.api.v1.ReservationOverviewTotal;
 import at.elmo.member.Role;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 
 @RestController("reservationGuiApi")
 @RequestMapping("/api/v1")
@@ -24,6 +26,9 @@ public class GuiApiController implements ReservationApi {
     
     @Autowired
     private ReservationService reservationService;
+    
+    @Autowired
+    private GuiApiMapper mapper;
 
     @Override
     @Secured(Role.ROLE_DRIVER)
@@ -79,6 +84,22 @@ public class GuiApiController implements ReservationApi {
         years.values().forEach(result::addOverviewItem);
         result.setCarSharingHours((float) driver.getHoursConsumedCarSharing());
         result.setPassengerServiceHours((float) driver.getHoursServedPassengerService());
+        
+        return ResponseEntity.ok(result);
+        
+    }
+
+    @Override
+    @Secured(Role.ROLE_DRIVER)
+    public ResponseEntity<List<GetDriverActivitiesOfYear200ResponseInner>> getDriverActivitiesOfYear(
+            final Integer year) {
+
+        final var driver = userContext.getLoggedInMember();
+
+        final var consumptions = reservationService
+                .getDriverConsumptionsOfAYear(driver, year);
+        
+        final var result = mapper.toApi(consumptions);
         
         return ResponseEntity.ok(result);
         

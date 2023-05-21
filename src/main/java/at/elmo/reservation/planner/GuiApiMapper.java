@@ -4,11 +4,10 @@ import at.elmo.car.Car;
 import at.elmo.gui.api.v1.PlannerCar;
 import at.elmo.gui.api.v1.PlannerDriver;
 import at.elmo.gui.api.v1.PlannerReservation;
-import at.elmo.gui.api.v1.PlannerReservationType;
+import at.elmo.gui.api.v1.ReservationType;
 import at.elmo.member.Member;
 import at.elmo.reservation.ReservationBase;
 import at.elmo.reservation.ReservationMapperBase;
-import at.elmo.reservation.blocking.BlockingReservation;
 import at.elmo.reservation.carsharing.CarSharing;
 import at.elmo.reservation.passengerservice.shift.Shift;
 import org.mapstruct.Mapper;
@@ -43,15 +42,15 @@ public abstract class GuiApiMapper extends ReservationMapperBase {
         result.setId(reservation.getId());
         result.setStartsAt(reservation.getStartsAt());
         result.setEndsAt(reservation.getEndsAt());
-        result.setType(toPlannerReservationType(reservation));
+        result.setType(toReservationType(reservation));
         
-        if (result.getType() == PlannerReservationType.CS) {
+        if (result.getType() == ReservationType.CS) {
             
-            final var Planner = (CarSharing) reservation;
-            result.setDriverMemberId(Planner.getDriver().getMemberId());
-            result.setStatus(Planner.getStatus().name());
+            final var carSharing = (CarSharing) reservation;
+            result.setDriverMemberId(carSharing.getDriver().getMemberId());
+            result.setStatus(carSharing.getStatus().name());
             
-        } else if (result.getType() == PlannerReservationType.PS) {
+        } else if (result.getType() == ReservationType.PS) {
             
             final var shift = (Shift) reservation;
             result.setStatus(shift.getStatus().name());
@@ -81,27 +80,6 @@ public abstract class GuiApiMapper extends ReservationMapperBase {
         }
 
         return result;
-
-    }
-
-    public PlannerReservationType toPlannerReservationType(final ReservationBase reservation) {
-
-        if (reservation == null) {
-            return null;
-        }
-        if (reservation instanceof CarSharing) {
-            return PlannerReservationType.CS;
-        }
-        if (reservation instanceof BlockingReservation) {
-            return PlannerReservationType.BLOCK;
-        }
-        if (reservation instanceof Shift) {
-            return PlannerReservationType.PS;
-        }
-        throw new RuntimeException(
-                "Unknown reservation type '"
-                + reservation.toString()
-                + "'! Did you forget to extend this mapping-method?");
 
     }
 

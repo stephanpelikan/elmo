@@ -122,8 +122,10 @@ const ListOfMembers = () => {
     
     try {
       
+      showLoadingIndicator(true);
       await memberApi.uploadMembersExcelFile({ body: event.target.files[0] });
-  
+
+      showLoadingIndicator(false);
       toast({
           namespace: 'administration/member',
           title: t('upload_title'),
@@ -135,6 +137,7 @@ const ListOfMembers = () => {
     
     } catch (error) {
 
+      showLoadingIndicator(false);
       toast({
           namespace: 'administration/member',
           title: t('upload_title'),

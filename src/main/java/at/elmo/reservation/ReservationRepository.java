@@ -39,9 +39,16 @@ public interface ReservationRepository extends JpaRepository<ReservationBase, St
     @Query("SELECT YEAR(r.startsAt) AS year, SUM(r.usageMinutes) AS minutes, r.type AS type FROM ConsumingReservation r WHERE "
             + "(NOT r.usageMinutes IS NULL) "
             + "AND (r.driver = ?1) "
-            + "AND r.cancelled = false "
+            + "AND (r.cancelled = false) "
             + "GROUP BY year, type "
             + "ORDER BY year")
     List<DriverConsumptionPerYear> aggregateConsumptionByDriver(Member driver);
+
+    @Query("SELECT r FROM ReservationBase r WHERE "
+            + "(r.driver = ?1) "
+            + "AND (r.cancelled = false) "
+            + "AND (YEAR(r.startsAt) = ?2) "
+            + "ORDER BY r.startsAt")
+    List<ReservationBase> findByYear(Member driver, Integer year);
     
 }
