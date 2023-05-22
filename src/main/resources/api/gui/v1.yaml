@@ -1077,6 +1077,9 @@ components:
         driverMemberId:
           type: integer
           format: int32
+        createdAt:
+          type: string
+          format: date-time
         startsAt:
           type: string
           format: date-time

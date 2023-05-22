@@ -108,6 +108,7 @@ const Shifts = () => {
                     }
                   </TextHeading>
                   <Box
+                      gap="xsmall"
                       direction="row">
                     <Box>
                       <Paragraph>

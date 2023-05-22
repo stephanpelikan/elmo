@@ -30,6 +30,7 @@ public abstract class GuiApiMapper extends ReservationMapperBase {
 
             final var carSharing = (CarSharing) reservation;
             result.setDriverMemberId(carSharing.getDriver().getMemberId());
+            result.setCreatedAt(carSharing.getCreatedAt());
             result.setKmAtStart(carSharing.getKmAtStart());
             result.setKmAtEnd(carSharing.getKmAtEnd());
             result.setComment(carSharing.getComment());

@@ -272,6 +272,7 @@ const CarSharings = () => {
             }
           </TextHeading>
           <Box
+              gap="xsmall"
               direction="row">
             <Box>
               <Paragraph>

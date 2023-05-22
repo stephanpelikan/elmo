@@ -68,7 +68,7 @@ public class GuiApiController implements ReservationApi {
                     }
                 });
         
-        if (driver.getHoursServedPassengerServiceImportYear() != 0) {
+        if (driver.getHoursServedPassengerServiceImportYear() != null) {
 
             final var importYear = driver
                     .getCreatedAt()
@@ -79,7 +79,19 @@ public class GuiApiController implements ReservationApi {
                     + driver.getHoursServedPassengerServiceImportYear());
 
         }
-        
+
+        if (driver.getHoursConsumedCarSharingImportYear() != null) {
+
+            final var importYear = driver
+                    .getCreatedAt()
+                    .getYear();
+            final var year = years.get(importYear);
+            year.setCarSharingHours(
+                    year.getCarSharingHours()
+                    + driver.getHoursConsumedCarSharingImportYear());
+
+        }
+
         final var result = new DriverActivities();
         years.values().forEach(result::addOverviewItem);
         result.setCarSharingHours((float) driver.getHoursConsumedCarSharing());

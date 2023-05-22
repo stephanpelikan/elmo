@@ -6,22 +6,16 @@ import { Car, Catalog, Schedule } from 'grommet-icons';
 import { ReservationOverviewTotal } from '../../client/gui';
 
 const Footer = ({
-  years
+  hoursServedPassengerService,
+  hoursConsumedCarSharing
 }: {
-  years?: Array<ReservationOverviewTotal>,
+  hoursServedPassengerService?: number,
+  hoursConsumedCarSharing?: number
 }) => {
   const { isNotPhone } = useResponsiveScreen();
   const { t } = useTranslation('driver/history');
 
-  const carSharingTotal = 
-     years
-         ? years.reduce((result, year) => result + year.carSharingHours, 0)
-         : 0;
-  const passangerServiceTotal = 
-     years
-         ? years.reduce((result, year) => result + year.passangerServiceHours, 0)
-         : 0;
-  const balanceTotal = passangerServiceTotal - carSharingTotal;
+  const balanceTotal = hoursServedPassengerService! - hoursConsumedCarSharing!;
          
   return (
       <Box
@@ -43,22 +37,24 @@ const Footer = ({
               align='end'
               width={ isNotPhone ? '12rem' : '3.5rem' }>
             <Text
-                weight='bold'
-                color={ carSharingTotal < 0 ? 'status-critical' : 'undefined' }>
+                weight='bold'>
               {
-                carSharingTotal
-              }h
+                hoursConsumedCarSharing === undefined
+                    ? undefined
+                    : `${hoursConsumedCarSharing!}h`
+              }
             </Text>
           </Box>
           <Box
               align='end'
               width={ isNotPhone ? '12rem' : '3.5rem' }>
             <Text
-                weight='bold'
-                color={ passangerServiceTotal < 0 ? 'status-critical' : 'undefined' }>
+                weight='bold'>
               {
-                passangerServiceTotal
-              }h
+                hoursServedPassengerService === undefined
+                    ? undefined
+                    : `${hoursServedPassengerService!}h`
+              }
             </Text>
           </Box>
           <Box

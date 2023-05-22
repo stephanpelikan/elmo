@@ -1,5 +1,5 @@
 import { Box, Button, ColumnConfig, DataTable, Grid, Text } from 'grommet';
-import { Add, Download, FormEdit, Upload } from 'grommet-icons';
+import { Add, CircleInformation, Download, FormEdit, Schedule, Upload } from 'grommet-icons';
 import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -22,6 +22,8 @@ i18n.addResources('en', 'administration/member', {
       "last-name": "Firstname",
       "name": "Name",
       "first-name": "Lastname",
+      "car-sharing": "Car-Sharing",
+      "passenger-service": "Passenger-Service",
       "roles": "Roles",
       "member-id.short": "M-ID",
       "member-id.long": "Member-ID",
@@ -44,6 +46,8 @@ i18n.addResources('de', 'administration/member', {
       "last-name": "Zuname",
       "name": "Name",
       "first-name": "Vorname",
+      "car-sharing": "Car-Sharing",
+      "passenger-service": "Fahrtendienst",
       "roles": "Rolen",
       "member-id.short": "M-NR",
       "member-id.long": "Mitgliedsnummer",
@@ -169,7 +173,11 @@ const ListOfMembers = () => {
   };
   
   const edit = (member: Member) => {
-    navigate('./' + member.memberId);
+    navigate(`./${ member.memberId } `);
+  };
+  
+  const history = (member: Member) => {
+    navigate(`.${ t('url-history') }${ member.memberId }`);
   };
 
   const columns: ColumnConfig<Member>[] = isNotPhone
@@ -185,11 +193,19 @@ const ListOfMembers = () => {
           { property: 'status', header: t('status'),
             render: member => <Text>{ t(`status_${member.status}`) }</Text>
           },
-          { property: 'member.hoursServedPassengerService', header: t('Fahrtendienst'),
-            render: member => <Text>{ member.hoursServedPassengerService }h</Text>
+          { property: 'member.hoursServedPassengerService', header: t('passenger-service'),
+            render: member =>
+                member.hoursServedPassengerService !== undefined
+                    && member.hoursConsumedCarSharing !== undefined
+                    ? <Text>{ member.hoursServedPassengerService }h</Text>
+                    : <></>
           },
-          { property: 'member.hoursConsumedCarSharing', header: t('Car-Sharing'),
-            render: member => <Text>{ member.hoursConsumedCarSharing }h</Text>
+          { property: 'member.hoursConsumedCarSharing', header: t('car-sharing'),
+            render: member =>
+                member.hoursServedPassengerService !== undefined
+                    && member.hoursConsumedCarSharing !== undefined
+                    ? <Text>{ member.hoursConsumedCarSharing }h</Text>
+                    : <></>
           },
           { property: 'xxxx', header: t('action'), align: 'center',
             render: member => (
@@ -199,7 +215,7 @@ const ListOfMembers = () => {
           },
         ]
       : [
-          { property: 'memberId', header: t('member-id.short'),
+          { property: 'memberId', header: t('member-id.short'), size: '4rem',
             render: member => (
               <Box direction='row'>
                 <MemberIdAvatar memberId={ member.memberId } sex={ member.sex } avatar={ member.avatar } />
@@ -207,11 +223,22 @@ const ListOfMembers = () => {
           },
           { property: 'lastName', header: t('name'),
             render: member => `${member.lastName} ${member.firstName ? member.firstName.substring(0, 1) + '.' : ''}`},
-          { property: 'status', header: t('action'), align: 'center',
+          { property: 'status', header: t('action'), align: 'center', size: '6rem',
             render: member => (
-              <>
+              <Box
+                  direction="row"
+                  align="center"
+                  width="6rem"
+                  justify='end'
+                  gap="small">
+                {
+                  member.hoursServedPassengerService !== undefined
+                      && member.hoursConsumedCarSharing !== undefined
+                      ? undefined /* <CircleInformation onClick={ () => history(member) } /> */
+                      : undefined
+                }
                 <Button icon={<FormEdit />} onClick={ () => edit(member) } />
-              </>)
+              </Box>)
           },
         ];
   

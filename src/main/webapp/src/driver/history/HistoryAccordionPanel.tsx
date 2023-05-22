@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { AccordionPanel, Box, Text } from "grommet";
+import { AccordionPanel, Box, Grid, Text } from "grommet";
 import useResponsiveScreen from '../../utils/responsiveUtils';
 import { GetDriverActivitiesOfYear200ResponseInner, ReservationOverviewTotal, ReservationType } from '../../client/gui';
 import { useAppContext, useReservationGuiApi } from '../../AppContext';
-import { toLocalDateString, toLocaleTimeStringWithoutSeconds } from '../../utils/timeUtils';
-import { CircleInformation } from 'grommet-icons';
+import { toLocaleTimeStringWithoutSeconds } from '../../utils/timeUtils';
+import { Car, CircleInformation, Schedule } from 'grommet-icons';
+import { Modal } from '../../components/Modal';
+import { useTranslation } from 'react-i18next';
+import { Heading } from '../../components/MainLayout';
 
 const HistoryAccordionPanel = ({
   year,
@@ -19,8 +22,10 @@ const HistoryAccordionPanel = ({
   const { isNotPhone } = useResponsiveScreen();
   const reservationGuiApi = useReservationGuiApi();
   const { showLoadingIndicator } = useAppContext();
-  
+  const { t } = useTranslation('driver/history');
+
   const [ details, setDetails ] = useState<Array<GetDriverActivitiesOfYear200ResponseInner> | undefined | null>(undefined);
+  const [ modal, setModal ] = useState<GetDriverActivitiesOfYear200ResponseInner | undefined>(undefined);
   
   const balance = year.passangerServiceHours
       - year.carSharingHours;
@@ -96,6 +101,7 @@ const HistoryAccordionPanel = ({
               ? undefined
               : details!.map((detail, no) => (
                   <Box
+                      key={ detail.id }
                       direction="row"
                       justify='between'
                       gap="small"
@@ -112,15 +118,17 @@ const HistoryAccordionPanel = ({
                         }>
                     <Box
                         direction="row"
-                        align="middle"
-                        gap="xsmall">
+                        align="center"
+                        gap="medium">
                       <Text>{ detail!.startsAt.toLocaleDateString() }</Text>
                       {
                         isNotPhone
                             ? <Text>{ toLocaleTimeStringWithoutSeconds(detail!.startsAt) }</Text>
                             : undefined
                       }
-                      <CircleInformation />
+                      <CircleInformation
+                          onClick={ () => setModal(detail) }
+                          size="18rem" />
                     </Box>
                     <Box
                         gap="medium"
@@ -157,6 +165,86 @@ const HistoryAccordionPanel = ({
                       </Box>
                     </Box>
                   </Box>))
+        }
+        {
+          modal !== undefined
+              ? <Modal
+                  show
+                  t={t}
+                  abort={ () => setModal(undefined) }
+                  abortLabel='OK'
+                  header={
+                    <Box
+                        direction='row'
+                        gap="medium"
+                        align="center">
+                      <Heading
+                          icon={
+                              modal.type === ReservationType.Cs
+                                  ? <Car size={ isNotPhone ? '30rem' : undefined } />
+                                  : modal.type === ReservationType.Ps
+                                  ? <Schedule size={ isNotPhone ? '30rem' : undefined } />
+                                  : undefined
+                            }>
+                        {
+                          t(modal.type === ReservationType.Cs
+                              ? 'car-sharing'
+                              : modal.type === ReservationType.Ps
+                              ? 'passenger-service'
+                              : 'unknown')
+                        }
+                      </Heading>
+                    </Box> }>
+                 <Grid
+                     columns={ [ 'auto', 'flex' ] }
+                     pad={ { vertical: 'medium' } }
+                     gap="xsmall">
+                   <Text><i>{ t('detail-modal-from') }</i></Text>
+                   <Text textAlign="end">{ modal!.startsAt.toLocaleString() }</Text>
+                   <Text><i>{ t('detail-modal-until') }</i></Text>
+                   <Text textAlign="end">{ modal!.endsAt.toLocaleString() }</Text>
+                   <Text><i>{ t('detail-modal-duration') }</i></Text>
+                   <Text textAlign="end">{ modal!.usageMinutes! / 60 }h</Text>
+                   <Text><i>{ t('detail-modal-car') }</i></Text>
+                   <Text textAlign="end">{ modal!.carName }</Text>
+                   <Text><i>{ t('detail-modal-distance') }</i></Text>
+                   <Text textAlign="end">{ modal!.kmAtEnd! - modal!.kmAtStart! }km</Text>
+                 </Grid>
+                 <Heading
+                     level='3'>
+                   Details:
+                </Heading>
+                {
+                  modal.type === ReservationType.Cs
+                      ? <Grid
+                            columns={ [ 'auto', 'flex' ] }
+                            pad={ { vertical: 'medium' } }
+                            gap="xsmall">
+                          <Text><i>{ t('detail-modal-reserved-at') }</i></Text>
+                          <Text textAlign="end">{ modal!.createdAt?.toLocaleString() }</Text>
+                          <Text><i>{ t('detail-modal-usage-from') }</i></Text>
+                          <Text textAlign="end">{ modal!.startUsage?.toLocaleString() }</Text>
+                          <Text><i>{ t('detail-modal-usage-until') }</i></Text>
+                          <Text textAlign="end">{ modal!.endUsage?.toLocaleString() }</Text>
+                          <Text><i>{ t('detail-modal-km-start') }</i></Text>
+                          <Text textAlign="end">{ modal!.kmAtStart }km</Text>
+                          <Text><i>{ t('detail-modal-km-end') }</i></Text>
+                          <Text textAlign="end">{ modal!.kmAtEnd }km</Text>
+                        </Grid>
+                      : modal.type === ReservationType.Ps
+                      ? <Grid
+                            columns={ [ 'auto', 'flex' ] }
+                            pad={ { vertical: 'medium' } }
+                            gap="xsmall">
+                          <Text><i>{ t('detail-modal-km-start') }</i></Text>
+                          <Text textAlign="end">{ modal!.kmAtStart }km</Text>
+                          <Text><i>{ t('detail-modal-km-end') }</i></Text>
+                          <Text textAlign="end">{ modal!.kmAtEnd }km</Text>
+                        </Grid>
+                      : undefined
+                }                  
+                </Modal>
+              : undefined
         }
       </AccordionPanel>);
 };

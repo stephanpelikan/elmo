@@ -2,10 +2,11 @@ import React, { useLayoutEffect } from 'react';
 import { Box } from 'grommet';
 import { useAppContext } from '../AppContext';
 import { useCurrentUserRoles } from '../utils/roleUtils';
-import { Overview } from './overview/Main';
-import { CarSharings } from './car-sharing/Main';
-import { Shifts } from './passenger-service/Main';
+import { Overview } from './overview/DashboardItem';
+import { CarSharings } from './car-sharing/DashboardItem';
+import { Shifts } from './passenger-service/DashboardItem';
 import useResponsiveScreen from '../utils/responsiveUtils';
+import { History } from './history/DashboardItem';
 
 const Dashboard = () => {
   
@@ -29,6 +30,7 @@ const Dashboard = () => {
       <Box>
         <Shifts />
         <CarSharings />
+        <History />
       </Box>
     </Box>);
 }

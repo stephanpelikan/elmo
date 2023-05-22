@@ -74,9 +74,10 @@ public class MemberService {
             final String comment,
             final String iban,
             final Payment payment,
-            final int hoursServedPassengerServiceImportYear,
-            final int hoursServedPassengerServiceTotal,
-            final int hoursConsumedCarSharing) {
+            final Integer hoursServedPassengerServiceImportYear,
+            final Integer hoursServedPassengerServiceTotal,
+            final Integer hoursConsumedCarSharingImportYear,
+            final Integer hoursConsumedCarSharing) {
 
         if (members.findByMemberId(memberId).isPresent()) {
             return;
@@ -103,9 +104,10 @@ public class MemberService {
         member.setTitle(title);
         member.setZip(zip);
         member.setHoursConsumedCarSharing(hoursConsumedCarSharing);
+        member.setHoursConsumedCarSharingImportYear(hoursConsumedCarSharingImportYear);
         member.setHoursServedPassengerService(hoursServedPassengerServiceTotal);
         member.setHoursServedPassengerServiceImportYear(hoursServedPassengerServiceImportYear);
-
+        
         members.saveAndFlush(member);
 
     }

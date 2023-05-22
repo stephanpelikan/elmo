@@ -282,33 +282,43 @@ public class AdministrationApiController implements MemberApi {
                             .findFirst()
                             .map(Entry::getKey)
                             .orElse(Payment.MONTHLY);
-                    final int hoursServedPassengerServiceImportYear;
+                    final Integer hoursServedPassengerServiceImportYear;
                     final var hoursServedPassengerServiceImportYearCell = NullableCell.from(row.getCell(15));
                     if ((hoursServedPassengerServiceImportYearCell.getCellType() != CellType.NUMERIC)
                             && !StringUtils.hasText(hoursServedPassengerServiceImportYearCell.getStringCellValue())) {
-                        throw new ElmoValidationException("hoursServedPassengerServiceImportYear", "missing");
+                        hoursServedPassengerServiceImportYear = null;
                     } else if (hoursServedPassengerServiceImportYearCell.getCellType() == CellType.NUMERIC) {
                         hoursServedPassengerServiceImportYear = (int) hoursServedPassengerServiceImportYearCell.getNumericCellValue();
                     } else {
                         hoursServedPassengerServiceImportYear = Integer
                                 .parseInt(hoursServedPassengerServiceImportYearCell.getStringCellValue());
                     }
-                    final int hoursServedPassengerServiceTotal;
+                    final Integer hoursServedPassengerServiceTotal;
                     final var hoursServedPassengerServiceTotalCell = NullableCell.from(row.getCell(16));
                     if ((hoursServedPassengerServiceTotalCell.getCellType() != CellType.NUMERIC)
                             && !StringUtils.hasText(hoursServedPassengerServiceTotalCell.getStringCellValue())) {
-                        throw new ElmoValidationException("hoursServedPassengerServiceTotal", "missing");
+                        hoursServedPassengerServiceTotal = null;
                     } else if (hoursServedPassengerServiceTotalCell.getCellType() == CellType.NUMERIC) {
                         hoursServedPassengerServiceTotal = (int) hoursServedPassengerServiceTotalCell.getNumericCellValue();
                     } else {
                         hoursServedPassengerServiceTotal = Integer
                                 .parseInt(hoursServedPassengerServiceTotalCell.getStringCellValue());
                     }
-                    final int hoursConsumedCarSharing;
-                    final var hoursConsumedCarSharingCell = NullableCell.from(row.getCell(17));
+                    final Integer hoursConsumedCarSharingImportYear;
+                    final var hoursConsumedCarSharingImportYearCell = NullableCell.from(row.getCell(17));
+                    if ((hoursConsumedCarSharingImportYearCell.getCellType() != CellType.NUMERIC)
+                            && !StringUtils.hasText(hoursConsumedCarSharingImportYearCell.getStringCellValue())) {
+                        hoursConsumedCarSharingImportYear = null;
+                    } else if (hoursConsumedCarSharingImportYearCell.getCellType() == CellType.NUMERIC) {
+                        hoursConsumedCarSharingImportYear = (int) hoursConsumedCarSharingImportYearCell.getNumericCellValue();
+                    } else {
+                        hoursConsumedCarSharingImportYear = Integer.parseInt(hoursConsumedCarSharingImportYearCell.getStringCellValue());
+                    }
+                    final Integer hoursConsumedCarSharing;
+                    final var hoursConsumedCarSharingCell = NullableCell.from(row.getCell(18));
                     if ((hoursConsumedCarSharingCell.getCellType() != CellType.NUMERIC)
                             && !StringUtils.hasText(hoursConsumedCarSharingCell.getStringCellValue())) {
-                        throw new ElmoValidationException("hoursServedPassengerService", "missing");
+                        hoursConsumedCarSharing = null;
                     } else if (hoursConsumedCarSharingCell.getCellType() == CellType.NUMERIC) {
                         hoursConsumedCarSharing = (int) hoursConsumedCarSharingCell.getNumericCellValue();
                     } else {
@@ -334,6 +344,7 @@ public class AdministrationApiController implements MemberApi {
                             payment,
                             hoursServedPassengerServiceImportYear,
                             hoursServedPassengerServiceTotal,
+                            hoursConsumedCarSharingImportYear,
                             hoursConsumedCarSharing);
 
                 } catch (ElmoValidationException e) {
@@ -407,8 +418,10 @@ public class AdministrationApiController implements MemberApi {
                 sheet.setColumnWidth(12, 7000);
                 sheet.setColumnWidth(13, 7000);
                 sheet.setColumnWidth(14, 3000);
-                sheet.setColumnWidth(15, 3500);
+                sheet.setColumnWidth(15, 7000);
                 sheet.setColumnWidth(16, 3500);
+                sheet.setColumnWidth(17, 7000);
+                sheet.setColumnWidth(18, 3500);
                 sheet.createFreezePane(0, 1);
 
                 int rowNo = 0;
@@ -430,8 +443,10 @@ public class AdministrationApiController implements MemberApi {
                 headerRow.createCell(12).setCellValue(translation.getComment());
                 headerRow.createCell(13).setCellValue(translation.getIban());
                 headerRow.createCell(14).setCellValue(translation.getPayment());
-                headerRow.createCell(15).setCellValue(translation.getHoursServedPassengerService());
-                headerRow.createCell(16).setCellValue(translation.getHoursConsumedCarSharing());
+                headerRow.createCell(15).setCellValue(translation.getHoursServedPassengerServiceImportYear());
+                headerRow.createCell(16).setCellValue(translation.getHoursServedPassengerService());
+                headerRow.createCell(17).setCellValue(translation.getHoursConsumedCarSharingImportYear());
+                headerRow.createCell(18).setCellValue(translation.getHoursConsumedCarSharing());
                 for (short i = headerRow.getFirstCellNum(); i < headerRow.getLastCellNum(); ++i) {
                     headerRow.getCell(i).setCellStyle(headerStyle);
                 }
@@ -469,8 +484,18 @@ public class AdministrationApiController implements MemberApi {
                         dataRow.createCell(13).setCellValue(member.getIban());
                         dataRow.createCell(14).setCellValue(
                                 gTranslation.getPayment().get(member.getPayment()));
-                        dataRow.createCell(15).setCellValue(member.getHoursServedPassengerService());
-                        dataRow.createCell(16).setCellValue(member.getHoursConsumedCarSharing());
+                        if (member.getHoursServedPassengerServiceImportYear() != null) {
+                            dataRow.createCell(15).setCellValue(member.getHoursServedPassengerServiceImportYear());
+                        }
+                        if (member.getHoursServedPassengerService() != null) {
+                            dataRow.createCell(16).setCellValue(member.getHoursServedPassengerService());
+                        }
+                        if (member.getHoursConsumedCarSharingImportYear() != null) {
+                            dataRow.createCell(17).setCellValue(member.getHoursConsumedCarSharingImportYear());
+                        }
+                        if (member.getHoursConsumedCarSharing() != null) {
+                            dataRow.createCell(18).setCellValue(member.getHoursConsumedCarSharing());
+                        }
 
                     }
 

@@ -303,10 +303,11 @@
       <column name="USAGE_MINS" />
     </createIndex>
   </changeSet>
-  <changeSet id="import-passenger-service-served-in-import-year"
+  <changeSet id="import-member-driver-import-year"
              author="stephanpelikan">
     <addColumn tableName="ELMO_MEMBER">
-      <column name="PS_HOURS_IMPORT_YEAR" type="int" defaultValueNumeric="0" />
+      <column name="PS_HOURS_IMPORT_YEAR" type="int" />
+      <column name="CS_HOURS_IMPORT_YEAR" type="int" />
     </addColumn>
   </changeSet>
 </databaseChangeLog>

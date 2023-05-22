@@ -202,7 +202,9 @@ translations:
       iban: IBAN
       payment: Payment
       hoursServedPassengerService: Passenger-S.
+      hoursServedPassengerServiceImportYear: Passenger-S. current year
       hoursConsumedCarSharing: Car-Sharing
+      hoursConsumedCarSharingImportYear: Car-Sharing current year
     de:
       members: Mitglieder
       memberId: Mitgliedsnummer
@@ -221,7 +223,9 @@ translations:
       iban: IBAN
       payment: Zahlung
       hoursServedPassengerService: Fahrtendienst
+      hoursServedPassengerServiceImportYear: Fahrtendienst aktuelles Jahr
       hoursConsumedCarSharing: Car-Sharing
+      hoursConsumedCarSharingImportYear: Car-Sharing aktuelles Jahr
 
 ---
 spring:

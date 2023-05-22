@@ -37,13 +37,16 @@ public class Member extends MemberBase {
     private Integer timestampOfAvatar;
 
     @Column(name = "PS_HOURS")
-    private int hoursServedPassengerService;
+    private Integer hoursServedPassengerService;
 
     @Column(name = "PS_HOURS_IMPORT_YEAR")
-    private int hoursServedPassengerServiceImportYear;
+    private Integer hoursServedPassengerServiceImportYear;
 
     @Column(name = "CS_HOURS")
-    private int hoursConsumedCarSharing;
+    private Integer hoursConsumedCarSharing;
+
+    @Column(name = "CS_HOURS_IMPORT_YEAR")
+    private Integer hoursConsumedCarSharingImportYear;
 
     @OneToMany(mappedBy = "member", fetch = FetchType.EAGER, cascade = { CascadeType.ALL }, orphanRemoval = true)
     private List<RoleMembership> roles = new LinkedList<>();
@@ -80,28 +83,36 @@ public class Member extends MemberBase {
         this.timestampOfAvatar = timestampOfAvatar;
     }
 
-    public int getHoursConsumedCarSharing() {
+    public Integer getHoursConsumedCarSharing() {
         return hoursConsumedCarSharing;
     }
 
-    public void setHoursConsumedCarSharing(int hoursConsumedCarSharing) {
+    public void setHoursConsumedCarSharing(Integer hoursConsumedCarSharing) {
         this.hoursConsumedCarSharing = hoursConsumedCarSharing;
     }
 
-    public int getHoursServedPassengerService() {
+    public Integer getHoursServedPassengerService() {
         return hoursServedPassengerService;
     }
 
-    public void setHoursServedPassengerService(int hoursServedPassengerService) {
+    public void setHoursServedPassengerService(Integer hoursServedPassengerService) {
         this.hoursServedPassengerService = hoursServedPassengerService;
     }
 
-    public int getHoursServedPassengerServiceImportYear() {
+    public Integer getHoursServedPassengerServiceImportYear() {
         return hoursServedPassengerServiceImportYear;
     }
     
-    public void setHoursServedPassengerServiceImportYear(int hoursServedPassengerServiceImportYear) {
+    public void setHoursServedPassengerServiceImportYear(Integer hoursServedPassengerServiceImportYear) {
         this.hoursServedPassengerServiceImportYear = hoursServedPassengerServiceImportYear;
+    }
+    
+    public Integer getHoursConsumedCarSharingImportYear() {
+        return hoursConsumedCarSharingImportYear;
+    }
+    
+    public void setHoursConsumedCarSharingImportYear(Integer hoursConsumedCarSharingImportYear) {
+        this.hoursConsumedCarSharingImportYear = hoursConsumedCarSharingImportYear;
     }
     
     public void addRoles(

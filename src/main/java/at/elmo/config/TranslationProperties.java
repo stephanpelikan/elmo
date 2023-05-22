@@ -32,7 +32,9 @@ public class TranslationProperties {
         private String comment;
         private String iban;
         private String payment;
+        private String hoursServedPassengerServiceImportYear;
         private String hoursServedPassengerService;
+        private String hoursConsumedCarSharingImportYear;
         private String hoursConsumedCarSharing;
 
         public String getMembers() {
@@ -177,6 +179,22 @@ public class TranslationProperties {
 
         public void setHoursServedPassengerService(String hoursServedPassengerService) {
             this.hoursServedPassengerService = hoursServedPassengerService;
+        }
+
+        public String getHoursServedPassengerServiceImportYear() {
+            return hoursServedPassengerServiceImportYear;
+        }
+
+        public void setHoursServedPassengerServiceImportYear(String hoursServedPassengerServiceImportYear) {
+            this.hoursServedPassengerServiceImportYear = hoursServedPassengerServiceImportYear;
+        }
+
+        public String getHoursConsumedCarSharingImportYear() {
+            return hoursConsumedCarSharingImportYear;
+        }
+
+        public void setHoursConsumedCarSharingImportYear(String hoursConsumedCarSharingImportYear) {
+            this.hoursConsumedCarSharingImportYear = hoursConsumedCarSharingImportYear;
         }
 
     }
