@@ -197,7 +197,7 @@ public class CarSharingService {
         
     }
 
-    public boolean cancelCarSharingByUser(
+    private boolean cancelCarSharingByUser(
             final String reservationId,
             final String comment,
             final String eventName) {

@@ -50,7 +50,7 @@ public class AdministrationApiController implements MemberApi {
 
     @Autowired
     private MemberService memberService;
-
+    
     @Autowired
     private AdministrationApiMapper mapper;
 
@@ -487,13 +487,13 @@ public class AdministrationApiController implements MemberApi {
                         if (member.getHoursServedPassengerServiceImportYear() != null) {
                             dataRow.createCell(15).setCellValue(member.getHoursServedPassengerServiceImportYear());
                         }
-                        if (member.getHoursServedPassengerService() != null) {
+                        if (member.getHoursServedPassengerService() != 0) {
                             dataRow.createCell(16).setCellValue(member.getHoursServedPassengerService());
                         }
                         if (member.getHoursConsumedCarSharingImportYear() != null) {
                             dataRow.createCell(17).setCellValue(member.getHoursConsumedCarSharingImportYear());
                         }
-                        if (member.getHoursConsumedCarSharing() != null) {
+                        if (member.getHoursConsumedCarSharing() != 0) {
                             dataRow.createCell(18).setCellValue(member.getHoursConsumedCarSharing());
                         }
 

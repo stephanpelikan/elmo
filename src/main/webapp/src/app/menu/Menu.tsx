@@ -13,9 +13,11 @@ import { doLogout } from '../../client/guiClient';
 
 i18n.addResources('en', 'menu', {
       "logout": "Logout",
-      "user profile": "User profile",
+      "user profile": "Profile",
       "administration": "Administration",
-      "driver": "Driver",
+      "driver-MALE": "Driver",
+      "driver-FEMALE": "Driver",
+      "driver-OTHER": "Driver",
       "PASSENGER": "Passenger",
       "DRIVER": "Driver",
       "MANAGER": "Manager",
@@ -23,9 +25,11 @@ i18n.addResources('en', 'menu', {
     });
 i18n.addResources('de', 'menu', {
       "logout": "Abmelden",
-      "user profile": "Benutzerprofil",
+      "user profile": "Profil",
       "administration": "Verwaltung",
-      "driver": "Fahrer",
+      "driver-MALE": "Fahrer",
+      "driver-FEMALE": "Fahrerin",
+      "driver-OTHER": "FahrerIn",
       "PASSENGER": "Passagier",
       "DRIVER": "FahrerIn",
       "MANAGER": "ManagerIn",
@@ -89,7 +93,7 @@ const Menu = () => {
                     ? <UserFemale />
                     : <UserMale />
               }
-              <Text>{t('driver')}</Text>
+              <Text>{t(`driver-${state.currentUser!.sex}`)}</Text>
             </MenuItem>
             <MenuItem
                 roles={[ Role.Admin ]}

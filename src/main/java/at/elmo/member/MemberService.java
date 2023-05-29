@@ -75,7 +75,7 @@ public class MemberService {
             final String iban,
             final Payment payment,
             final Integer hoursServedPassengerServiceImportYear,
-            final Integer hoursServedPassengerServiceTotal,
+            final Integer hoursServedPassengerService,
             final Integer hoursConsumedCarSharingImportYear,
             final Integer hoursConsumedCarSharing) {
 
@@ -103,10 +103,17 @@ public class MemberService {
         member.setStreetNumber(streetNumber);
         member.setTitle(title);
         member.setZip(zip);
-        member.setHoursConsumedCarSharing(hoursConsumedCarSharing);
-        member.setHoursConsumedCarSharingImportYear(hoursConsumedCarSharingImportYear);
-        member.setHoursServedPassengerService(hoursServedPassengerServiceTotal);
-        member.setHoursServedPassengerServiceImportYear(hoursServedPassengerServiceImportYear);
+        if ((hoursConsumedCarSharing != null)
+                || (hoursServedPassengerService != null)) {
+            final var hccs = hoursConsumedCarSharing == null ? 0 : hoursConsumedCarSharing;
+            member.setHoursConsumedCarSharing(hccs);
+            member.setHoursConsumedCarSharingImported(hccs);
+            member.setHoursConsumedCarSharingImportYear(hoursConsumedCarSharingImportYear);
+            final var hsps = hoursServedPassengerService == null ? 0 : hoursServedPassengerService;
+            member.setHoursServedPassengerService(hsps);
+            member.setHoursServedPassengerServiceImported(hsps);
+            member.setHoursServedPassengerServiceImportYear(hoursServedPassengerServiceImportYear);
+        }
         
         members.saveAndFlush(member);
 

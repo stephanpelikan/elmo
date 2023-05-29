@@ -215,8 +215,8 @@
       <column name="HOURS_PLANNED" type="int" />
     </addColumn>
     <addColumn tableName="ELMO_MEMBER">
-      <column name="PS_HOURS" type="int" />
-      <column name="CS_HOURS" type="int" />
+      <column name="PS_HOURS" type="int" defaultValueNumeric="0" />
+      <column name="CS_HOURS" type="int" defaultValueNumeric="0" />
     </addColumn>
   </changeSet>
   <changeSet id="introduce-reservation-notifications"
@@ -307,7 +307,9 @@
              author="stephanpelikan">
     <addColumn tableName="ELMO_MEMBER">
       <column name="PS_HOURS_IMPORT_YEAR" type="int" />
+      <column name="PS_HOURS_IMPORTED" type="int" />
       <column name="CS_HOURS_IMPORT_YEAR" type="int" />
+      <column name="CS_HOURS_IMPORTED" type="int" />
     </addColumn>
   </changeSet>
 </databaseChangeLog>

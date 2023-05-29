@@ -37,16 +37,22 @@ public class Member extends MemberBase {
     private Integer timestampOfAvatar;
 
     @Column(name = "PS_HOURS")
-    private Integer hoursServedPassengerService;
+    private int hoursServedPassengerService;
 
     @Column(name = "PS_HOURS_IMPORT_YEAR")
     private Integer hoursServedPassengerServiceImportYear;
 
+    @Column(name = "PS_HOURS_IMPORTED")
+    private Integer hoursServedPassengerServiceImported;
+
     @Column(name = "CS_HOURS")
-    private Integer hoursConsumedCarSharing;
+    private int hoursConsumedCarSharing;
 
     @Column(name = "CS_HOURS_IMPORT_YEAR")
     private Integer hoursConsumedCarSharingImportYear;
+
+    @Column(name = "CS_HOURS_IMPORTED")
+    private Integer hoursConsumedCarSharingImported;
 
     @OneToMany(mappedBy = "member", fetch = FetchType.EAGER, cascade = { CascadeType.ALL }, orphanRemoval = true)
     private List<RoleMembership> roles = new LinkedList<>();
@@ -83,19 +89,19 @@ public class Member extends MemberBase {
         this.timestampOfAvatar = timestampOfAvatar;
     }
 
-    public Integer getHoursConsumedCarSharing() {
+    public int getHoursConsumedCarSharing() {
         return hoursConsumedCarSharing;
     }
 
-    public void setHoursConsumedCarSharing(Integer hoursConsumedCarSharing) {
+    public void setHoursConsumedCarSharing(int hoursConsumedCarSharing) {
         this.hoursConsumedCarSharing = hoursConsumedCarSharing;
     }
 
-    public Integer getHoursServedPassengerService() {
+    public int getHoursServedPassengerService() {
         return hoursServedPassengerService;
     }
 
-    public void setHoursServedPassengerService(Integer hoursServedPassengerService) {
+    public void setHoursServedPassengerService(int hoursServedPassengerService) {
         this.hoursServedPassengerService = hoursServedPassengerService;
     }
 
@@ -107,12 +113,28 @@ public class Member extends MemberBase {
         this.hoursServedPassengerServiceImportYear = hoursServedPassengerServiceImportYear;
     }
     
+    public Integer getHoursServedPassengerServiceImported() {
+        return hoursServedPassengerServiceImported;
+    }
+    
+    public void setHoursServedPassengerServiceImported(Integer hoursServedPassengerServiceImported) {
+        this.hoursServedPassengerServiceImported = hoursServedPassengerServiceImported;
+    }
+    
     public Integer getHoursConsumedCarSharingImportYear() {
         return hoursConsumedCarSharingImportYear;
     }
     
     public void setHoursConsumedCarSharingImportYear(Integer hoursConsumedCarSharingImportYear) {
         this.hoursConsumedCarSharingImportYear = hoursConsumedCarSharingImportYear;
+    }
+    
+    public Integer getHoursConsumedCarSharingImported() {
+        return hoursConsumedCarSharingImported;
+    }
+    
+    public void setHoursConsumedCarSharingImported(Integer hoursConsumedCarSharingImported) {
+        this.hoursConsumedCarSharingImported = hoursConsumedCarSharingImported;
     }
     
     public void addRoles(
