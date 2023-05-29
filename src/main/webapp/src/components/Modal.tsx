@@ -7,6 +7,7 @@ interface ModalProperties extends BoxProps {
   header?: string | JSX.Element;
   abort?: () => void;
   action?: () => void;
+  actionDisabled?: boolean;
   t: TFunction;
   actionLabel?: string;
   abortLabel?: string;
@@ -17,6 +18,7 @@ const Modal = ({
     header,
     abort,
     abortLabel = 'abort',
+    actionDisabled = false,
     action,
     actionLabel,
     t,
@@ -33,7 +35,8 @@ const Modal = ({
         background={ { color: 'dark-1', opacity: true } }
         onEsc={ abort }
         responsive={true}
-        modal={true}>
+        modal={true}
+        onMouseDown={ event => event.stopPropagation() }>
       <Box
           height='100%'
           justify="center"
@@ -73,6 +76,7 @@ const Modal = ({
                         action && actionLabel
                           ? <Button
                                 label={ t(actionLabel) }
+                                disabled={ actionDisabled }
                                 onClick={ action }
                                 primary />
                           : undefined

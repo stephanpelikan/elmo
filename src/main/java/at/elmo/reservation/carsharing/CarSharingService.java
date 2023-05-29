@@ -176,37 +176,23 @@ public class CarSharingService {
         
     }
 
-    public boolean cancelCarSharingByDriver(
-            final String reservationId) {
-        
-        return cancelCarSharingByUser(
-                reservationId,
-                null,
-                "CancelledByDriver");
-        
-    }
-
-    public boolean cancelCarSharingByAdministrator(
+    public boolean cancelCarSharingByUser(
             final String reservationId,
+            final Member user,
             final String comment) {
-
-        return cancelCarSharingByUser(
-                reservationId,
-                comment,
-                "CancelledByAdministrator");
-        
-    }
-
-    private boolean cancelCarSharingByUser(
-            final String reservationId,
-            final String comment,
-            final String eventName) {
         
         final var carSharingFound = carSharings.findById(reservationId);
         if (carSharingFound.isEmpty()) {
             return false;
         }
         final var carSharing = carSharingFound.get();
+        
+        final String eventName;
+        if (carSharing.getDriver().equals(user)) {
+            eventName = "CancelledByDriver";
+        } else {
+            eventName = "CancelledByAdministrator";
+        }
         
         final var now = LocalDateTime.now();
 

@@ -166,86 +166,83 @@ const HistoryAccordionPanel = ({
                     </Box>
                   </Box>))
         }
-        {
-          modal !== undefined
-              ? <Modal
-                  show
-                  t={t}
-                  abort={ () => setModal(undefined) }
-                  abortLabel='OK'
-                  header={
-                    <Box
-                        direction='row'
-                        gap="medium"
-                        align="center">
-                      <Heading
-                          icon={
-                              modal.type === ReservationType.Cs
-                                  ? <Car size={ isNotPhone ? '30rem' : undefined } />
-                                  : modal.type === ReservationType.Ps
-                                  ? <Schedule size={ isNotPhone ? '30rem' : undefined } />
-                                  : undefined
-                            }>
-                        {
-                          t(modal.type === ReservationType.Cs
-                              ? 'car-sharing'
-                              : modal.type === ReservationType.Ps
-                              ? 'passenger-service'
-                              : 'unknown')
-                        }
-                      </Heading>
-                    </Box> }>
-                 <Grid
-                     columns={ [ 'auto', 'flex' ] }
-                     pad={ { vertical: 'medium' } }
-                     gap="xsmall">
-                   <Text><i>{ t('detail-modal-from') }</i></Text>
-                   <Text textAlign="end">{ modal!.startsAt.toLocaleString() }</Text>
-                   <Text><i>{ t('detail-modal-until') }</i></Text>
-                   <Text textAlign="end">{ modal!.endsAt.toLocaleString() }</Text>
-                   <Text><i>{ t('detail-modal-duration') }</i></Text>
-                   <Text textAlign="end">{ modal!.usageMinutes! / 60 }h</Text>
-                   <Text><i>{ t('detail-modal-car') }</i></Text>
-                   <Text textAlign="end">{ modal!.carName }</Text>
-                   <Text><i>{ t('detail-modal-distance') }</i></Text>
-                   <Text textAlign="end">{ modal!.kmAtEnd! - modal!.kmAtStart! }km</Text>
-                 </Grid>
-                 <Heading
-                     level='3'>
-                   Details:
+      <Modal
+            show={ Boolean(modal) }
+            t={t}
+            abort={ () => setModal(undefined) }
+            abortLabel='OK'
+            header={
+              <Box
+                  direction='row'
+                  gap="medium"
+                  align="center">
+                <Heading
+                    icon={
+                        modal!.type === ReservationType.Cs
+                            ? <Car size={ isNotPhone ? '30rem' : undefined } />
+                            : modal!.type === ReservationType.Ps
+                            ? <Schedule size={ isNotPhone ? '30rem' : undefined } />
+                            : undefined
+                      }>
+                  {
+                    t(modal!.type === ReservationType.Cs
+                        ? 'car-sharing'
+                        : modal!.type === ReservationType.Ps
+                        ? 'passenger-service'
+                        : 'unknown')
+                  }
                 </Heading>
-                {
-                  modal.type === ReservationType.Cs
-                      ? <Grid
-                            columns={ [ 'auto', 'flex' ] }
-                            pad={ { vertical: 'medium' } }
-                            gap="xsmall">
-                          <Text><i>{ t('detail-modal-reserved-at') }</i></Text>
-                          <Text textAlign="end">{ modal!.createdAt?.toLocaleString() }</Text>
-                          <Text><i>{ t('detail-modal-usage-from') }</i></Text>
-                          <Text textAlign="end">{ modal!.startUsage?.toLocaleString() }</Text>
-                          <Text><i>{ t('detail-modal-usage-until') }</i></Text>
-                          <Text textAlign="end">{ modal!.endUsage?.toLocaleString() }</Text>
-                          <Text><i>{ t('detail-modal-km-start') }</i></Text>
-                          <Text textAlign="end">{ modal!.kmAtStart }km</Text>
-                          <Text><i>{ t('detail-modal-km-end') }</i></Text>
-                          <Text textAlign="end">{ modal!.kmAtEnd }km</Text>
-                        </Grid>
-                      : modal.type === ReservationType.Ps
-                      ? <Grid
-                            columns={ [ 'auto', 'flex' ] }
-                            pad={ { vertical: 'medium' } }
-                            gap="xsmall">
-                          <Text><i>{ t('detail-modal-km-start') }</i></Text>
-                          <Text textAlign="end">{ modal!.kmAtStart }km</Text>
-                          <Text><i>{ t('detail-modal-km-end') }</i></Text>
-                          <Text textAlign="end">{ modal!.kmAtEnd }km</Text>
-                        </Grid>
-                      : undefined
-                }                  
-                </Modal>
-              : undefined
-        }
+              </Box>
+            }>
+          <Grid
+              columns={ [ 'auto', 'flex' ] }
+              pad={ { vertical: 'medium' } }
+              gap="xsmall">
+            <Text><i>{ t('detail-modal-from') }</i></Text>
+            <Text textAlign="end">{ modal!.startsAt.toLocaleString() }</Text>
+            <Text><i>{ t('detail-modal-until') }</i></Text>
+            <Text textAlign="end">{ modal!.endsAt.toLocaleString() }</Text>
+            <Text><i>{ t('detail-modal-duration') }</i></Text>
+            <Text textAlign="end">{ modal!.usageMinutes! / 60 }h</Text>
+            <Text><i>{ t('detail-modal-car') }</i></Text>
+            <Text textAlign="end">{ modal!.carName }</Text>
+            <Text><i>{ t('detail-modal-distance') }</i></Text>
+            <Text textAlign="end">{ modal!.kmAtEnd! - modal!.kmAtStart! }km</Text>
+          </Grid>
+          <Heading
+              level='3'>
+            Details:
+          </Heading>
+          {
+            modal!.type === ReservationType.Cs
+                ? <Grid
+                      columns={ [ 'auto', 'flex' ] }
+                      pad={ { vertical: 'medium' } }
+                      gap="xsmall">
+                    <Text><i>{ t('detail-modal-reserved-at') }</i></Text>
+                    <Text textAlign="end">{ modal!.createdAt?.toLocaleString() }</Text>
+                    <Text><i>{ t('detail-modal-usage-from') }</i></Text>
+                    <Text textAlign="end">{ modal!.startUsage?.toLocaleString() }</Text>
+                    <Text><i>{ t('detail-modal-usage-until') }</i></Text>
+                    <Text textAlign="end">{ modal!.endUsage?.toLocaleString() }</Text>
+                    <Text><i>{ t('detail-modal-km-start') }</i></Text>
+                    <Text textAlign="end">{ modal!.kmAtStart }km</Text>
+                    <Text><i>{ t('detail-modal-km-end') }</i></Text>
+                    <Text textAlign="end">{ modal!.kmAtEnd }km</Text>
+                  </Grid>
+                : modal!.type === ReservationType.Ps
+                ? <Grid
+                      columns={ [ 'auto', 'flex' ] }
+                      pad={ { vertical: 'medium' } }
+                      gap="xsmall">
+                    <Text><i>{ t('detail-modal-km-start') }</i></Text>
+                    <Text textAlign="end">{ modal!.kmAtStart }km</Text>
+                    <Text><i>{ t('detail-modal-km-end') }</i></Text>
+                    <Text textAlign="end">{ modal!.kmAtEnd }km</Text>
+                  </Grid>
+                : undefined
+          }                  
+        </Modal>
       </AccordionPanel>);
 };
 

@@ -26,7 +26,8 @@ const Card = ({ children, title, icon, onClick }: PropsWithChildren<CardProps>) 
       <Box
           align="center"
           justify="center"
-          pad="xsmall"
+          pad="sxsmall"
+          gap="xsmall"
           margin={{ top: 'medium' }}>
         <CardIcon size='large' color='accent-1' />
         <Paragraph

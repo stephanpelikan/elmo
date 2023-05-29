@@ -10,8 +10,8 @@ import { PlannerButton } from './PlannerButton';
 import { usePlannerApi } from '../DriverAppContext';
 import { UserAvatar } from '../../components/UserAvatar';
 import { PlannerContextMenu } from './PlannerContextMenu';
-import { useOnClickOutside } from 'usehooks-ts';
 import { ShiftStatus } from '../../client/gui';
+import useOnClickOutside from '../../utils/clickOutside';
 
 i18n.addResources('en', 'driver/planner/passengerservice', {
       "reservation-type": "Passenger Service",
@@ -119,18 +119,18 @@ const PassengerServiceBox = ({
             : hasDriver
             ? { color: 'light-4', opacity: 'strong' }
             : { color: 'status-critical', opacity: 'medium' };
-  
+            
     return (
         <>
           {
-            isFirstHourOfReservation && claimable
+            !showEditMenu && isFirstHourOfReservation && claimable
                 ? <PlannerButton
                       action={ claim }
                       icon={ SchedulePlay } />
                 : undefined
           }
           {
-            isFirstHourOfReservation && editable
+            !showEditMenu && isFirstHourOfReservation && editable
                 ? <PlannerButton
                       action={ () => setShowEditMenu(true) }
                       background='dark-4'

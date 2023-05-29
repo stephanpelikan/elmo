@@ -12,6 +12,7 @@
     <mapstruct.version>1.5.2.Final</mapstruct.version>
     <okhttp.version>2.7.5</okhttp.version>
     <m2e.apt.activation>jdt_apt</m2e.apt.activation>
+    <openapigenerator.version>6.0.0</openapigenerator.version>
     <node.version>v18.11.0</node.version>
     <npm.version>8.19.2</npm.version>
   </properties>
@@ -49,7 +50,7 @@
       <plugin>
         <groupId>org.openapitools</groupId>
         <artifactId>openapi-generator-maven-plugin</artifactId>
-        <version>6.0.0</version>
+        <version>${openapigenerator.version}</version>
         <executions>
           <execution>
             <id>generate-gui-api</id>
@@ -307,9 +308,29 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
+      <groupId>org.camunda.bpm.springboot</groupId>
+      <artifactId>camunda-bpm-spring-boot-starter</artifactId>
+      <version>7.17.6-ee</version>
+    </dependency>
+    <dependency>
+      <groupId>org.camunda.bpm.springboot</groupId>
+      <artifactId>camunda-bpm-spring-boot-starter-webapp-ee</artifactId>
+      <version>7.17.6-ee</version>
+    </dependency>
+    <dependency>
       <groupId>org.camunda.community.vanillabp</groupId>
       <artifactId>camunda7-spring-boot-adapter</artifactId>
       <version>1.0.7</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.camunda.bpm.springboot</groupId>
+          <artifactId>camunda-bpm-spring-boot-starter</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.camunda.bpm.springboot</groupId>
+          <artifactId>camunda-bpm-spring-boot-starter-webapp</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>

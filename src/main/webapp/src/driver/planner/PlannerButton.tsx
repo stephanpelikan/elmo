@@ -7,12 +7,14 @@ const PlannerButton = ({
     inContextMenu = false,
     showBorder = true,
     icon,
+    iconSize = '18rem',
     action,
     background = 'status-ok'
   }: {
     inContextMenu?: boolean,
     showBorder?: boolean,
     icon: Icon,
+    iconSize?: "small" | "medium" | "large" | "xlarge" | string,
     action: (event: MouseEvent) => void,
     background?: BackgroundType,
   }) => {
@@ -44,7 +46,7 @@ const PlannerButton = ({
             background={ background }>
           <IconTag
               color="white"
-              size="18rem" />
+              size={ iconSize } />
         </Box>
       </Box>;
   };

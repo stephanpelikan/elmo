@@ -15,7 +15,7 @@ const PlannerContextMenu = React.forwardRef(({
               position: 'absolute',
               right: '2.125rem',
               top: '-0.525rem',
-              zIndex: 1,
+              zIndex: 2,
             } }
           elevation="large"
           round={ isPhone ? 'large' : 'medium' }

@@ -56,7 +56,8 @@ public class GuiApiController implements CarSharingApi {
     @Override
     public ResponseEntity<Void> cancelCarSharingReservation(
             final String carId,
-            final String reservationId) {
+            final String reservationId,
+            final String comment) {
         
         if (!StringUtils.hasText(carId)) {
             return ResponseEntity.badRequest().build();
@@ -66,8 +67,25 @@ public class GuiApiController implements CarSharingApi {
             return ResponseEntity.notFound().build();
         }
         
+        // see https://github.com/OpenAPITools/openapi-generator/issues/13456
+        final String fixedComment;
+        if (comment == null) {
+            fixedComment = null;
+        } else {
+            if (comment.startsWith("\"")
+                    && comment.endsWith("\"")
+                    && (comment.length() > 2)) {
+                fixedComment = comment.substring(1, comment.length() - 1);
+            } else {
+                fixedComment = comment;
+            }
+        }
+                
         final var cancelled = carSharingService
-                .cancelCarSharingByDriver(reservationId);
+                .cancelCarSharingByUser(
+                        reservationId,
+                        userContext.getLoggedInMember(),
+                        fixedComment);
         if (!cancelled) {
             return ResponseEntity.badRequest().build();
         }

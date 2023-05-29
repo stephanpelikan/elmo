@@ -81,7 +81,7 @@ const DayTable = memo<{
     selection: Selection,
     cancelSelection: (event: ReactMouseEvent) => void,
     acceptSelection: (event: ReactMouseEvent) => void,
-    cancelReservation: (event: ReactMouseEvent, carId: string, reservationId: string) => void,
+    cancelReservation: (event: ReactMouseEvent | undefined, carId: string, reservationId: string, comment?: string) => void,
     mouseDownOnDrag: (event: ReactMouseEvent | TouchEvent, top: boolean) => void,
     mouseDownOnHour: (event: ReactMouseEvent, car: PlannerCar, hour: CalendarHour) => void,
     mouseEnterHour: (event: ReactMouseEvent | Event, car: PlannerCar, days: CalendarDay[], day: CalendarDay, hour: CalendarHour) => void,
@@ -732,15 +732,18 @@ const Planner = () => {
       addPlannerReservation();
     }, [ carSharingApi, t, toast, selection, state.currentUser, showLoadingIndicator ]);
   
-  const cancelReservation = useCallback((event: ReactMouseEvent, carId: string, reservationId: string) => {
-      event.preventDefault();
-      event.stopPropagation();
+  const cancelReservation = useCallback((event: ReactMouseEvent | undefined, carId: string, reservationId: string, comment?: string) => {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
       const removePlannerReservation = async () => {
           try {
             showLoadingIndicator(true);
             await carSharingApi.cancelCarSharingReservation({
                 carId,
                 reservationId,
+                body: comment
               });
             // selection will be cancelled by server-sent update
           } catch (error) {

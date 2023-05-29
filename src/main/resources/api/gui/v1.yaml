@@ -575,6 +575,7 @@ paths:
           description: Wrong parameters
         404:
           description: Reservation not found
+  /gui/car-sharing/{carId}/reservation/{reservationId}/cancel:
     delete:
       tags:
         - car-sharing
@@ -591,6 +592,11 @@ paths:
           required: true
           schema:
             type: string
+      requestBody:
+        content:
+          text/plain:
+            schema:
+              type: string
       responses:
         200:
           description: Reservation removed

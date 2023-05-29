@@ -1,1 +1,1 @@
-Deine Car-Sharing-Reservierung von ${carSharing.car.name} wurde einen Administrator storniert!
+Dein Car-Sharing von ${carSharing.car.name} am ${(carSharing.startsAt).format("MEDIUM_DATETIME")} wurde durch einen Administrator storniert!<#if carSharing.comment??> Begründung: ${carSharing.comment}</#if>

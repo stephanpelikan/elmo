@@ -1,1 +1,1 @@
-Your car-sharing-reservation of ${carSharing.car.name} was cancelled by an administrator!
+Your car-sharing of ${carSharing.car.name} at ${(carSharing.startsAt).format("MEDIUM_DATETIME")} was cancelled by an administrator!<#if carSharing.comment??> Reason: ${carSharing.comment}</#if>

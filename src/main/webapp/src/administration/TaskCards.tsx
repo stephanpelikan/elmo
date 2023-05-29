@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import { Box } from 'grommet';
-import { Car, DocumentUser, Group } from 'grommet-icons';
+import { Car, DocumentUser, Group, Schedules } from 'grommet-icons';
 import { CardBadge } from './CardBadge';
 import { Card } from './Card';
 import { useNavigate } from 'react-router-dom';
@@ -81,8 +81,12 @@ const TaskCards = () => {
       </Card>
       <Card
           title={ t('card-cars') }
-          icon={Car}
+          icon={ Car }
           onClick={ () => navigate('.' + t('url-cars')) } />
+      <Card
+          title={ t('card-planner') }
+          icon={ Schedules }
+          onClick={ () => navigate('.' + t('url-planner')) } />
     </Box>);
 }
 
