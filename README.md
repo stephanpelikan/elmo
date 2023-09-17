@@ -33,35 +33,53 @@ Fees are not calculated by the system, but statistics are provided to support ch
     1. Onboarding
     1. Administration
     1. Bulk imports
+    1. Self-management (avatar, email-address, phone-number, personal settings)
+1. Car management:
+    1. Define cars
+    1. Define car's roles (car-sharing, passenger-service)
 1. Passenger service:
     1. Rule based shift planning
     1. Taking over shifts by drivers
 1. Car-sharing:
     1. Planning of rides
     1. Doing rides
-    
+1. User-interface
+    1. Optimized for phones, tablets and PCs
+    1. Organisation's details can be defined by configuration: brand-colors, icon, name, homepage, etc.
+    1. Social login (currently available: Google, Amazon; planned: Apple)
+
 ### Planned features:
 
 1. Passenger service:
     1. Manual shift planning
     1. Statistics for billing
     1. Management of rides by drivers
-    1. Self management of rides by passengers
+    1. Self-management of rides by passengers
 1. Car-sharing:
-    1. Change car-sharings by administrators (e.g. in case of car outages)
+    1. Change car-sharing by administrators (e.g. in case of car outages)
     1. Statistics for billing
 1. App-Wrapper:
     1. For Android and iOS
     1. Special mode for tablets used in cars:
         1. Optimized to support drivers during the shift
-        1. Used as a SMS gateway to not be dependent on expensive text service providers.
+        1. Used as an SMS gateway to not be dependent on expensive text service providers.
     1. Not yet scheduled: Recording GPS to calculate accurate durations of rides planned.
+1. Multilingual user-interface
+   2. English
+   3. German
     
-### Workflows:
+## Screenshots
 
-This software's architecture is based on [BPMN processes](https://www.google.com/search?q=bpmn). To view [the models](./tree/main/src/main/resources/processes) use [an online viewer](https://demo.bpmn.io/).
+- [Login page](./screenshots/login.png) ([mobile version](./screenshots/login_mobile.png))
+- [Drivers dashboard](./screenshots/driver.png) ([english version](./screenshots/driver_english.png))
+- [Planner view](./screenshots/planner.png), showing three cars:
+   - Elmo 1 & 2 are used for car-sharing, Elmo 3 is used for passenger-service
+   - Elmo 1 shows a temporary/interactive selection used for defining periods of car-sharing
+   - Elmo 2 shows an already reserved car-sharing
+   - Elmo 3 shows shifts of passenger-service
+- [Administration](./screenshots/administration.png)
 
-To run the workflows the Open-Source BPMN engine [Camunda Platform 7](https://docs.camunda.org) is used which is loose coupled by using [VanillaBP](https://vanillabp.io). For editing the models [Camunda's free modeler](https://camunda.com/de/download/modeler/) is available.
+*Hint:* Screenshots show German language
 
 ## Production
 
@@ -148,6 +166,12 @@ Provide the directories containing the configuration files by using this propert
 1. `elmo.driver-agreement-pdf-directory`
 
 ## Development
+
+### Workflows:
+
+This software's architecture is based on [BPMN processes](https://www.google.com/search?q=bpmn). To view [the models](./tree/main/src/main/resources/processes) use [an online viewer](https://demo.bpmn.io/).
+
+To run the workflows the Open-Source BPMN engine [Camunda Platform 7](https://docs.camunda.org) is used which is loose coupled by using [VanillaBP](https://vanillabp.io). For editing the models [Camunda's free modeler](https://camunda.com/de/download/modeler/) is available.
 
 ### Run
 
