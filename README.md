@@ -78,6 +78,9 @@ Fees are not calculated by the system, but statistics are provided to support ch
    - Elmo 2 shows an already reserved car-sharing
    - Elmo 3 shows shifts of passenger-service
 - [Administration](./screenshots/administration.png)
+- Emails
+   - [Welcome](./screenshots/email_welcome.png)
+   - [Driver's reminder to claim a shift](./screenshots/email_shifts_of_next_week.png)
 
 *Hint:* Screenshots show German language
 
