@@ -98,7 +98,7 @@ MAVEN_OPTS=--add-opens=java.base/java.util=ALL-UNNAMED mvn -Dorg.slf4j.simpleLog
 java -Dspring.active.profile=production -jar target/elmo-*-runnable.jar
 ```
 
-Define a Spring profile `production` similar to the development profile [local](./tree/main/src/main/resources/config/application-local.yaml). Change existing values and add properties for social login, mailing and SMS texting as shown in section [development](#development).
+Define a Spring profile `production` similar to the development profile [local](./src/main/resources/config/application-local.yaml). Change existing values and add properties for social login, mailing and SMS texting as shown in section [development](#development).
 
 Open in browser: [http://localhost:8080](http://localhost:8080)
 
@@ -110,7 +110,7 @@ UI is started for localhost:3000 but Spring Boot container runs on localhost:808
 
 Possible configuration attributes you can provide in a file `application-production.yaml` in the directory from which you start the application.
 
-Checkout the sections `elmo` and `translations` in the files [application.yaml](./tree/main/src/main/resources/config/application.yaml) and [application-local.yaml](./tree/main/src/main/resources/config/application-local.yaml). Most thing are self-explaining. For the rest read the listing underneath:
+Checkout the sections `elmo` and `translations` in the files [application.yaml](./src/main/resources/config/application.yaml) and [application-local.yaml](./src/main/resources/config/application-local.yaml). Most thing are self-explaining. For the rest read the listing underneath:
 
 1. `elmo.gateway-url`: The public URL which point to the Elmo application (e.g. `https://app.elmo.com`)
 1. `elmo.sms.support`: Whether to use a drivers cell-phone to send SMS (see App-Wrapper).
@@ -172,7 +172,7 @@ Provide the directories containing the configuration files by using this propert
 
 ### Workflows:
 
-This software's architecture is based on [BPMN processes](https://www.google.com/search?q=bpmn). To view [the models](./tree/main/src/main/resources/processes) use [an online viewer](https://demo.bpmn.io/).
+This software's architecture is based on [BPMN processes](https://www.google.com/search?q=bpmn). To view [the models](./src/main/resources/processes) use [an online viewer](https://demo.bpmn.io/).
 
 To run the workflows the Open-Source BPMN engine [Camunda Platform 7](https://docs.camunda.org) is used which is loose coupled by using [VanillaBP](https://vanillabp.io). For editing the models [Camunda's free modeler](https://camunda.com/de/download/modeler/) is available.
 
