@@ -47,7 +47,7 @@ public class GuiApiController implements ReservationApi {
                     result = new ReservationOverviewTotal();
                     result.setYear(year);
                     result.setCarSharingHours(0f);
-                    result.setPassangerServiceHours(0f);
+                    result.setPassengerServiceHours(0f);
                     super.put(year, result);
                 }
                 return result;
@@ -61,7 +61,7 @@ public class GuiApiController implements ReservationApi {
                     if (year.getType().equals(CarSharing.TYPE)) {
                         result.setCarSharingHours(year.getMinutes() / 60f);
                     } else if (year.getType().equals(Shift.TYPE)) {
-                        result.setPassangerServiceHours(year.getMinutes() / 60f);
+                        result.setPassengerServiceHours(year.getMinutes() / 60f);
                     } else {
                         throw new RuntimeException("Unsupported type '"
                                 + year.getType() + "'");
@@ -74,8 +74,8 @@ public class GuiApiController implements ReservationApi {
                     .getCreatedAt()
                     .getYear();
             final var year = years.get(importYear);
-            year.setPassangerServiceHours(
-                    year.getPassangerServiceHours()
+            year.setPassengerServiceHours(
+                    year.getPassengerServiceHours()
                     + driver.getHoursServedPassengerServiceImportYear());
 
         }

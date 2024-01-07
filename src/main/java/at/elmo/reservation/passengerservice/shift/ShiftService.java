@@ -57,8 +57,6 @@ import java.util.stream.Collectors;
         secondaryBpmnProcesses = {
                 @BpmnProcess(bpmnProcessId = "PassengerService"),
                 @BpmnProcess(bpmnProcessId = "ShiftDue"),
-                @BpmnProcess(bpmnProcessId = "ShiftSwapOfDriverNeeded"),
-                @BpmnProcess(bpmnProcessId = "ShiftSwapOfDriverRequested"),
                 @BpmnProcess(bpmnProcessId = "WaitForStartOfShift"),
                 @BpmnProcess(bpmnProcessId = "ShiftClaimReminder")
         })
@@ -94,7 +92,7 @@ public class ShiftService {
 
     @Autowired
     private MemberRepository members;
-    
+
     @Async
     @EventListener(
             classes = ReservationNotification.class,
@@ -109,34 +107,135 @@ public class ShiftService {
         
     }
 
+    public boolean requestSwapOfShift(
+            final String shiftId,
+            final Member driverRequestingSwap) throws UnknownShiftException {
+
+        final var shift = getShiftIfActive(shiftId);
+        if (shift.getDriverRequestingSwap() != null) {
+            return false;
+        }
+
+        final var currentDriver = shift.getDriver();
+        if (currentDriver == null) {
+            return false;
+        }
+
+        shift.setDriverRequestingSwap(driverRequestingSwap);
+        processService.correlateMessage(
+                shift,
+                "SwapRequested");
+
+        return true;
+
+    }
+
+    public boolean confirmSwapOfShift(
+            final String shiftId,
+            final Member driverConfirmingSwap) throws UnknownShiftException {
+
+        final var shift = getShiftIfActive(shiftId);
+        if (shift.getDriverRequestingSwap() == null) {
+            return false;
+        }
+
+        final var currentDriver = shift.getDriver();
+        if (currentDriver == null) {
+            return false;
+        }
+
+        final var isShiftDriver = currentDriver.equals(driverConfirmingSwap);
+        if (!isShiftDriver
+                && !driverConfirmingSwap.hasAnyRole(Role.ADMIN, Role.MANAGER)) {
+            return false;
+        }
+
+        if (isShiftDriver) {
+            processService.correlateMessage(
+                    shift,
+                    "SwapConfirmed");
+        } else {
+            processService.correlateMessage(
+                    shift,
+                    "SwapConfirmedByAdministrator");
+        }
+
+        return true;
+
+    }
+
+    public boolean rejectRequestForSwapOfShift(
+            final String shiftId,
+            final Member driverRejectingSwap) throws UnknownShiftException {
+
+        final var shift = getShiftIfActive(shiftId);
+        if (shift.getDriverRequestingSwap() == null) {
+            return false;
+        }
+
+        final var currentDriver = shift.getDriver();
+        if (currentDriver == null) {
+            return false;
+        }
+
+        final var isShiftDriver = currentDriver.equals(driverRejectingSwap);
+        if (!isShiftDriver
+                && !driverRejectingSwap.hasAnyRole(Role.ADMIN, Role.MANAGER)) {
+            return false;
+        }
+
+        if (isShiftDriver) {
+            processService.correlateMessage(
+                    shift,
+                    "SwapRejected");
+        } else {
+            processService.correlateMessage(
+                    shift,
+                    "SwapRejectedByAdministrator");
+        }
+
+        return true;
+
+    }
+
+    public boolean cancelRequestForSwapOfShift(
+            final String shiftId,
+            final Member driverCancellingSwap) throws UnknownShiftException {
+
+        final var shift = getShiftIfActive(shiftId);
+        if (shift.getDriverRequestingSwap() == null) {
+            return false;
+        }
+        if (!driverCancellingSwap.equals(shift.getDriverRequestingSwap())) {
+            return false;
+        }
+
+        processService.correlateMessage(
+                shift,
+                "SwapCancelled");
+
+        return true;
+
+    }
+
     public boolean claimShift(
             final String shiftId,
             final Member driver) throws UnknownShiftException {
-        
-        final var shiftFound = shifts.findById(shiftId);
-        if (shiftFound.isEmpty()) {
-            throw new UnknownShiftException();
-        }
-        
-        final var shift = shiftFound.get();
-        
-        if (shift.isCancelled()) {
-            throw new UnknownShiftException();
-        }
+
+        final var shift = getShiftIfActive(shiftId);
         
         final var currentDriver = shift.getDriver();
-        if ((currentDriver != null)
-                && !currentDriver.equals(driver)) {
-            return true;
+        if (currentDriver != null) {
+            return false;
         }
-        
+
         shift.setDriver(driver);
         shift.setStatus(CLAIMED);
         
-        final var driverRequestingSwap = shift.getDriverRequestingSwap();
-        shift.setDriverRequestingSwap(null);
+        final var previousDriver = shift.getPreviousDriver();
+        shift.setPreviousDriver(null);
         
-        if (driverRequestingSwap != null) {
+        if (previousDriver != null) {
             processService.correlateMessage(
                     shift,
                     "ShiftReclaimed");
@@ -153,36 +252,72 @@ public class ShiftService {
     public boolean unclaimShift(
             final String shiftId,
             final Member driver) throws UnknownShiftException {
+
+        final var shift = getShiftIfActive(shiftId);
+
+        final var currentDriver = shift.getDriver();
+        if (currentDriver == null) {
+            return false;
+        }
+        final var isShiftDriver = currentDriver.equals(driver);
+        final var isAdmin = driver.hasAnyRole(Role.ADMIN, Role.MANAGER);
+        if (!isShiftDriver
+                && !isAdmin) {
+            return false;
+        }
+
+        if (shift.getDriverRequestingSwap() != null) { // swap in progress
+            rejectRequestForSwapOfShift(shiftId, driver);
+        }
+
+        shift.setPreviousDriver(currentDriver);
+        shift.setDriver(null);
+        shift.setStatus(UNCLAIMED);
+
+        if (isShiftDriver) {
+            processService.correlateMessage(
+                    shift,
+                    "ShiftUnclaimed");
+        } else {
+            processService.correlateMessage(
+                    shift,
+                    "ShiftUnclaimedByAdministrator");
+        }
+
+        return true;
         
+    }
+
+    @WorkflowTask
+    public void informDriverAboutUnclaimByAdministrator(
+            final Shift shift) {
+
+        sendDriverSms(
+                shift.getPreviousDriver(),
+                shift,
+                "passenger-service/inform-driver-about-unclaim-by-administrator",
+                "informDriverAboutUnclaimByAdministrator");
+
+    }
+
+    private Shift getShiftIfActive(
+            final String shiftId) throws UnknownShiftException {
+
         final var shiftFound = shifts.findById(shiftId);
         if (shiftFound.isEmpty()) {
             throw new UnknownShiftException();
         }
-        
+
         final var shift = shiftFound.get();
-        
+
         if (shift.isCancelled()) {
             throw new UnknownShiftException();
         }
-        
-        final var currentDriver = shift.getDriver();
-        if ((currentDriver == null)
-                || !currentDriver.equals(driver)) {
-            return false;
-        }
 
-        shift.setDriverRequestingSwap(currentDriver);
-        shift.setDriver(null);
-        shift.setStatus(UNCLAIMED);
+        return shift;
 
-        processService.correlateMessage(
-                shift,
-                "ShiftUnclaimed");
-        
-        return true;
-        
     }
-    
+
     public Page<Shift> getShifts(
             final int page,
             final int amount,
@@ -250,7 +385,7 @@ public class ShiftService {
                     + " -> "
                     + endsAt
                     + " due to existing overlapping reservations: "
-                    + overlappings.stream().collect(Collectors.joining(", ")));
+                    + String.join(", ", overlappings));
         }
 
         final var nextReservation = reservationService
@@ -279,23 +414,15 @@ public class ShiftService {
         return shift;
 
     }
-    
-    @WorkflowTask
-    public void informPassengerAboutShiftNotClaimedYet() {
-        
-        throw new NotImplementedException();
-        
-    }
-    
+
     @WorkflowTask
     public void informPassengerAboutShiftCancellation() {
-        
+
         throw new NotImplementedException();
-        
+
     }
-    
-    @WorkflowTask
-    public void informDriversAboutSwapNeeded(
+
+    public void askDriversToClaimShift(
             final Shift shift) {
 
         members
@@ -303,12 +430,12 @@ public class ShiftService {
                 .forEach(driver -> sendDriverSms(
                         driver,
                         shift,
-                        "passenger-service/inform-driver-about-swap-needed",
-                        "informDriversAboutSwapNeeded"));
-        
+                        "passenger-service/ask-driver-to-claim-shift",
+                        "askDriversToClaimShift"));
+
     }
-    
-    private void sendDriverSms(
+
+    public void sendDriverSms(
             final Member driver,
             final Shift shift,
             final String template,
@@ -333,90 +460,6 @@ public class ShiftService {
         
     }
 
-    @WorkflowTask
-    public void informDriverAboutRequestForSwap(
-            final Shift shift) {
-        
-        sendDriverSms(
-                shift.getDriver(),
-                shift,
-                "passenger-service/inform-driver-about-swap-requested",
-                "informDriverAboutRequestForSwap");
-
-    }
-    
-    @WorkflowTask
-    public void informDriversAboutSwapDone(
-            final Shift shift) {
-        
-        members
-                .findActiveDrivers()
-                .forEach(driver -> sendDriverSms(
-                        driver,
-                        shift,
-                        "passenger-service/inform-driver-about-swap-done",
-                        "informDriversAboutSwapDone"));
-        
-    }
-    
-    @WorkflowTask
-    public void informDriverAboutSwapRejected(
-            final Shift shift) {
-        
-        sendDriverSms(
-                shift.getDriver(),
-                shift,
-                "passenger-service/inform-driver-about-swap-was-rejected",
-                "informDriverAboutSwapRejected");
-        
-        shift.setDriverRequestingSwap(null);
-        
-    }
-    
-    @WorkflowTask
-    public void informDriverAboutCancellationOfSwap(
-            final Shift shift) {
-        
-        sendDriverSms(
-                shift.getDriver(),
-                shift,
-                "passenger-service/inform-driver-about-cancellation-of-swap",
-                "informDriverAboutCancellationOfSwap");
-        
-        shift.setDriverRequestingSwap(null);
-        
-    }
-
-    @WorkflowTask
-    public void informDriverAboutSwapAccepted(
-            final Shift shift) {
-        
-        sendDriverSms(
-                shift.getDriver(),
-                shift,
-                "passenger-service/inform-driver-about-swap-was-accepted",
-                "informDriverAboutSwapAccepted");
-        
-        shift.setDriver(
-                shift.getDriverRequestingSwap());
-        shift.setDriverRequestingSwap(null);
-        
-    }
-
-    @WorkflowTask
-    public void askDriversToClaimShift(
-        final Shift shift) {
-        
-        members
-                .findActiveDrivers()
-                .forEach(driver -> sendDriverSms(
-                        driver,
-                        shift,
-                        "passenger-service/ask-driver-to-claim-shift",
-                        "askDriversToClaimShift"));
-        
-    }
-    
     public static int mapKeyOfHour(
             final LocalDateTime startOfOverview,
             final LocalDateTime hour) {
@@ -626,19 +669,13 @@ public class ShiftService {
         shift.setStatus(CANCELLED);
         
     }
-    
+
     @WorkflowTask
-    public void informPassengerAboutTurnedIntoConditionallyReservation() {
-        
+    public void turnReservationsIntoConfirmed(
+            final Shift shift) {
+
         throw new NotImplementedException();
-        
-    }
-    
-    @WorkflowTask
-    public void informPassengerAboutTurnedIntoSteadyReservation() {
-        
-        throw new NotImplementedException();
-        
+
     }
 
 }

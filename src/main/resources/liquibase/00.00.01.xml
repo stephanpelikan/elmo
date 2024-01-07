@@ -292,7 +292,7 @@
              author="stephanpelikan">
     <addColumn tableName="ELMO_RESERVATION">
       <column name="MEMBER_FOR_SWAP" type="varchar(40)" />
-    </addColumn> 
+    </addColumn>
   </changeSet>
   <changeSet id="track-usage-minutes-per-reservation"
              author="stephanpelikan">
@@ -310,6 +310,12 @@
       <column name="PS_HOURS_IMPORTED" type="int" />
       <column name="CS_HOURS_IMPORT_YEAR" type="int" />
       <column name="CS_HOURS_IMPORTED" type="int" />
+    </addColumn>
+  </changeSet>
+  <changeSet id="passenger-service-introduce-previous-driver"
+             author="stephanpelikan">
+    <addColumn tableName="ELMO_RESERVATION">
+      <column name="PREVIOUS_DRIVER" type="varchar(40)" />
     </addColumn>
   </changeSet>
 </databaseChangeLog>

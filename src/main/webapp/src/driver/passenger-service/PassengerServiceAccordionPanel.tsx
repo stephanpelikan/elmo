@@ -1,10 +1,15 @@
 import { ShiftReservation } from '../../client/gui';
-import { AccordionPanel, Box, Table, TableBody, TableCell, TableRow, Text } from 'grommet';
-import { Schedules } from 'grommet-icons';
+import { AccordionPanel, Box, Button, Table, TableBody, TableCell, TableRow, Text } from 'grommet';
+import { Alert, Schedules } from 'grommet-icons';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
 import React from 'react';
 import { toLocaleTimeStringWithoutSeconds } from '../../utils/timeUtils';
+import styled, { keyframes } from "styled-components";
+import { normalizeColor } from "grommet/utils";
+import { useAppContext } from "../../AppContext";
+import { usePlannerApi } from "../DriverAppContext";
+import { useWakeupSseCallback } from "../planner/utils";
 
 i18n.addResources('en', 'driver/shift/claimed', {
       "from": "From",
@@ -20,6 +25,9 @@ i18n.addResources('en', 'driver/shift/claimed', {
       "extend-usage": "Extend usage",
       "start-button": "Start",
       "stop-button": "Stop",
+      "swap": "Swap requested",
+      "confirm-swap-button": "Accept",
+      "reject-swap-button": "Reject",
       "extend-button": "Extend",
       "dismiss-button": "Dismiss",
       "comment-placeholder": "Leave blank unless charge level is not 100%, noticed damages to vehicle, etc.",
@@ -46,6 +54,9 @@ i18n.addResources('de', 'driver/shift/claimed', {
       "extend-usage": "Nutzung verlängern",
       "start-button": "Starten",
       "stop-button": "Beenden",
+      "swap": "Wechsel angefordert",
+      "confirm-swap-button": "Akzeptieren",
+      "reject-swap-button": "Ablehnen",
       "extend-button": "Verlängern",
       "dismiss-button": "Doch nicht",
       "comment-placeholder": "Leer lassen, außer wenn Ladestand nicht 100%, aufgefallene Schäden am Fahrzeug, etc.",
@@ -59,6 +70,18 @@ i18n.addResources('de', 'driver/shift/claimed', {
       "km-start_higher-than-end": "Der angegebene Start-Kilometerstand ist höher als der angegebene aktuelle Kilometerstand!",
     });
 
+const blinkAnimation = (props: any) => keyframes`
+  50% {
+    stroke: ${normalizeColor('brand', props.theme)};
+  }
+`
+
+const BlinkingAlert = styled(Alert)`
+  animation-name: ${ blinkAnimation };
+  animation-duration: 1s;
+  animation-iteration-count: infinite;
+`;
+
 const PassengerServiceAccordionPanel = ({
     shift,
     index,
@@ -69,7 +92,28 @@ const PassengerServiceAccordionPanel = ({
     goToPlanner: (shift: ShiftReservation) => void,
   }) => {
 
+  const { showLoadingIndicator } = useAppContext();
   const { t } = useTranslation('driver/shift/claimed');
+  const plannerApi = usePlannerApi();
+  const swapInProgress = shift.swapInProgressMemberId !== undefined;
+
+  const confirmSwap = async () => {
+    try {
+      showLoadingIndicator(true);
+      await plannerApi.confirmSwapOfShift({ shiftId: shift.id })
+    } catch(error) {
+      showLoadingIndicator(false);
+    }
+  };
+
+  const rejectSwap = async () => {
+    try {
+      showLoadingIndicator(true);
+      await plannerApi.cancelOrRejectSwapOfShift({ shiftId: shift.id })
+    } catch(error) {
+      showLoadingIndicator(false);
+    }
+  };
 
   return (
       <AccordionPanel
@@ -143,6 +187,33 @@ const PassengerServiceAccordionPanel = ({
                 { toLocaleTimeStringWithoutSeconds(shift.endsAt) }
               </TableCell>
             </TableRow>
+            {
+              swapInProgress
+                  ? <TableRow>
+                      <TableCell
+                          verticalAlign="top">
+                        <Box
+                            direction="column"
+                            gap="xsmall">
+                          <BlinkingAlert />
+                          { t('swap') }:
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Box
+                            gap="xsmall">
+                          <Button
+                              primary
+                              onClick={ confirmSwap }
+                              label={ t('confirm-swap-button') } />
+                          <Button
+                              onClick={ rejectSwap }
+                              label={ t('reject-swap-button') } />
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  : undefined
+            }
           </TableBody>
         </Table>
       </AccordionPanel>

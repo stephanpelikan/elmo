@@ -1,4 +1,4 @@
-import React, { PropsWithChildren } from "react";
+import { PropsWithChildren } from "react";
 import { Box, BoxProps, Button, Heading, Layer } from "grommet";
 import { TFunction } from "i18next";
 

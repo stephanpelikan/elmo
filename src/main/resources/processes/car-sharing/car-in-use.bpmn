@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_0jikfoh" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.7.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.15.0">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_0jikfoh" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.14.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.15.0">
   <bpmn:collaboration id="Collaboration_0o6mceo">
     <bpmn:participant id="Participant_1ididnc" name="car-sharing driver" />
     <bpmn:participant id="Participant_16fk530" name="driver of subsequent reservation" />
@@ -37,14 +37,6 @@
       <bpmn:incoming>Flow_0z5dgv1</bpmn:incoming>
       <bpmn:outgoing>Flow_0rhnm7i</bpmn:outgoing>
     </bpmn:exclusiveGateway>
-    <bpmn:startEvent id="Event_1lwbu6z" name="car in use">
-      <bpmn:outgoing>Flow_022a48z</bpmn:outgoing>
-    </bpmn:startEvent>
-    <bpmn:parallelGateway id="Gateway_0pnjbfr">
-      <bpmn:incoming>Flow_022a48z</bpmn:incoming>
-      <bpmn:outgoing>Flow_0ccque5</bpmn:outgoing>
-      <bpmn:outgoing>Flow_0z5dgv1</bpmn:outgoing>
-    </bpmn:parallelGateway>
     <bpmn:subProcess id="Activity_14376hh">
       <bpmn:incoming>Flow_0rhnm7i</bpmn:incoming>
       <bpmn:startEvent id="Event_0sp0ixs" name="car in use">
@@ -160,6 +152,14 @@
     <bpmn:sequenceFlow id="Flow_0ccque5" sourceRef="Gateway_0pnjbfr" targetRef="Activity_0p14fad" />
     <bpmn:sequenceFlow id="Flow_0rbzla9" sourceRef="Activity_0p14fad" targetRef="Event_11oi11a" />
     <bpmn:sequenceFlow id="Flow_1ltik0w" sourceRef="Event_1gkv2gv" targetRef="Event_1ndtxim" />
+    <bpmn:startEvent id="Event_1lwbu6z" name="car in use">
+      <bpmn:outgoing>Flow_022a48z</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:parallelGateway id="Gateway_0pnjbfr">
+      <bpmn:incoming>Flow_022a48z</bpmn:incoming>
+      <bpmn:outgoing>Flow_0ccque5</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0z5dgv1</bpmn:outgoing>
+    </bpmn:parallelGateway>
     <bpmn:textAnnotation id="TextAnnotation_14z7wxq">
       <bpmn:text>interrupting event is necessary to recalculate timers on extending usage</bpmn:text>
     </bpmn:textAnnotation>
@@ -184,13 +184,13 @@
         <dc:Bounds x="435" y="475" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_1lwbu6z_di" bpmnElement="Event_1lwbu6z">
-        <dc:Bounds x="242" y="482" width="36" height="36" />
+        <dc:Bounds x="242" y="302" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="236" y="525" width="48" height="14" />
+          <dc:Bounds x="236" y="345" width="48" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_0vhbgr2_di" bpmnElement="Gateway_0pnjbfr">
-        <dc:Bounds x="335" y="475" width="50" height="50" />
+        <dc:Bounds x="335" y="295" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_14376hh_di" bpmnElement="Activity_14376hh" isExpanded="true">
         <dc:Bounds x="560" y="390" width="1040" height="440" />
@@ -373,7 +373,8 @@
         <di:waypoint x="460" y="525" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0z5dgv1_di" bpmnElement="Flow_0z5dgv1">
-        <di:waypoint x="385" y="500" />
+        <di:waypoint x="360" y="345" />
+        <di:waypoint x="360" y="500" />
         <di:waypoint x="435" y="500" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0rhnm7i_di" bpmnElement="Flow_0rhnm7i">
@@ -381,12 +382,11 @@
         <di:waypoint x="560" y="500" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_022a48z_di" bpmnElement="Flow_022a48z">
-        <di:waypoint x="278" y="500" />
-        <di:waypoint x="335" y="500" />
+        <di:waypoint x="278" y="320" />
+        <di:waypoint x="335" y="320" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0ccque5_di" bpmnElement="Flow_0ccque5">
-        <di:waypoint x="360" y="475" />
-        <di:waypoint x="360" y="320" />
+        <di:waypoint x="385" y="320" />
         <di:waypoint x="1100" y="320" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0rbzla9_di" bpmnElement="Flow_0rbzla9">

@@ -2,13 +2,18 @@ import { Cycle, FormNext, Schedule, Schedules } from 'grommet-icons';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Accordion, Box, Paragraph } from 'grommet';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import useResponsiveScreen from '../../utils/responsiveUtils';
 import { Content, Heading, TextHeading } from '../../components/MainLayout';
 import i18n from '../../i18n';
-import { ShiftReservation } from '../../client/gui';
-import { usePassengerServiceGuiApi } from '../../AppContext';
+import { ReservationEvent, ShiftReservation } from '../../client/gui';
+import { useAppContext, usePassengerServiceGuiApi } from '../../AppContext';
 import { PassengerServiceAccordionPanel } from './PassengerServiceAccordionPanel';
+import { isUserTaskForDriver } from "../car-sharing/ReservationAccordionPanel";
+import { EventSourceMessage, WakeupSseCallback } from "../../components/SseProvider";
+import { usePlannerApi } from "../DriverAppContext";
+import { useGuiSse } from "../../client/guiClient";
+import { debounce } from "../../utils/debounce";
 
 i18n.addResources('en', 'driver/shifts', {
       "title": "Your shifts",
@@ -31,7 +36,10 @@ const Shifts = () => {
   const { t: tDriver } = useTranslation('driver');
   const { isPhone } = useResponsiveScreen();
   const navigate = useNavigate();
+  const wakeupSseCallback = useRef<WakeupSseCallback>(undefined);
+  const plannerApi = usePlannerApi(wakeupSseCallback);
   const passengerServiceApi = usePassengerServiceGuiApi();
+  const { state, showLoadingIndicator } = useAppContext();
 
   const [ detailsVisible, setDetailsVisible ] = useState<Array<number>>([]);
   const [ shifts, setShifts ] = useState<Array<ShiftReservation> | undefined>(undefined);
@@ -39,12 +47,31 @@ const Shifts = () => {
   const loadClaimedShifts = useCallback(async () => {
       const s = await passengerServiceApi.getUpcomingPassengerServiceShifts();
       setShifts(s);
+      const visible = s
+          .filter(reservation => reservation.swapInProgressMemberId !== undefined)
+          .map((_reservation, index) => index);
+      setDetailsVisible(visible);
     }, [ passengerServiceApi, setShifts ]);
   
   useEffect(() => {
       loadClaimedShifts();
     }, [ loadClaimedShifts ]);
-  
+
+  const updatePassengerServices = useMemo(
+      () => debounce(
+          async (ev: EventSourceMessage<ReservationEvent>) => {
+            if ((ev.data.driverMemberId !== state.currentUser!.memberId)
+                && (shifts.find(r => r.id == ev.data.id) === undefined)) return;
+            await loadClaimedShifts();
+            showLoadingIndicator(false);
+          }),
+      [ loadClaimedShifts, state.currentUser, shifts ]);
+
+  wakeupSseCallback.current = useGuiSse<ReservationEvent>(
+      updatePassengerServices,
+      "Reservation"
+  );
+
   const goToPlanner = (shift: ShiftReservation) => {
       const day = shift.startsAt.toISOString().substring(0, 10);
       const hour = shift.startsAt.getHours();

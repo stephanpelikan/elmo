@@ -17,6 +17,7 @@ public abstract class GuiApiMapper extends ReservationMapperBase {
     @Mapping(target = "driverMemberId", source = "driver.memberId")
     @Mapping(target = "userTaskId", ignore = true)
     @Mapping(target = "userTaskType", ignore = true)
+    @Mapping(target = "swapInProgressMemberId", source = "driverRequestingSwap.memberId")
     public abstract ShiftReservation toApi(Shift shift);
     
     public abstract List<ShiftReservation> toApi(List<Shift> shifts);

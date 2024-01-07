@@ -43,7 +43,7 @@ public abstract class GuiApiMapper extends ReservationMapperBase {
         result.setStartsAt(reservation.getStartsAt());
         result.setEndsAt(reservation.getEndsAt());
         result.setType(toReservationType(reservation));
-        
+
         if (result.getType() == ReservationType.CS) {
             
             final var carSharing = (CarSharing) reservation;
@@ -68,15 +68,18 @@ public abstract class GuiApiMapper extends ReservationMapperBase {
                     .plusWeeks(1);
             final var endOfNextWeek = beginOfNextWeek
                     .plusWeeks(1);
-            if ((now.getDayOfWeek().compareTo(
-                    DayOfWeek.THURSDAY) == 1)
+            if ((now.getDayOfWeek() == DayOfWeek.THURSDAY)
                     && shift.getStartsAt().isAfter(beginOfNextWeek)
                     && shift.getStartsAt().isBefore(endOfNextWeek)) {
                 result.setHasRides(true);
             } else {
                 result.setHasRides(false);
             }
-            
+
+            if (shift.getDriverRequestingSwap() != null) {
+                result.setSwapInProgressMemberId(shift.getDriverRequestingSwap().getMemberId());
+            }
+
         }
 
         return result;

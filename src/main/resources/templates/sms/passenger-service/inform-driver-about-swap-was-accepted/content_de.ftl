@@ -1,1 +1,1 @@
-Schichttausch '${(shift.startsAt).format("MEDIUM_DATETIME")}': Deine Bitte die Schicht übernehmen zu dürfen wurde aktzeptiert. Du bist nun eingetragene<#if shift.driver.sex == "MALE">r</#if> Fahrer<#if shift.driver.sex == "FEMALE">in</#if> dieser Schicht.
+Schichttausch '${(shift.startsAt).format("MEDIUM_DATETIME")}': Deine Bitte, die Schicht übernehmen zu dürfen, wurde aktzeptiert. Du bist nun eingetragene<#if shift.driver.sex == "MALE">r</#if> Fahrer<#if shift.driver.sex == "FEMALE">in</#if> dieser Schicht.

@@ -140,7 +140,7 @@ public class Member extends MemberBase {
     public void addRoles(
             final List<Role> newRoles) {
 
-        newRoles.forEach(role -> addRole(role));
+        newRoles.forEach(this::addRole);
 
     }
 
@@ -150,7 +150,7 @@ public class Member extends MemberBase {
         Arrays
                 .stream(Role.values())
                 .filter(potentialRole -> !newRoles.contains(potentialRole))
-                .forEach(role -> removeRole(role));
+                .forEach(this::removeRole);
 
         addRoles(newRoles);
 
@@ -192,9 +192,16 @@ public class Member extends MemberBase {
 
         return roles
                 .stream()
-                .filter(membership -> membership.getRole().equals(role))
-                .findFirst()
-                .isPresent();
+                .anyMatch(membership -> membership.getRole().equals(role));
+
+    }
+
+    public boolean hasAnyRole(
+            final Role... requestedRoles) {
+
+        return Arrays
+                .stream(requestedRoles)
+                .anyMatch(role -> roles.stream().anyMatch(membership -> membership.getRole().equals(role)));
 
     }
 

@@ -32,7 +32,11 @@ public class Shift extends ConsumingReservation {
     @ManyToOne()
     @JoinColumn(name = "MEMBER_FOR_SWAP", referencedColumnName = "ID")
     private Member driverRequestingSwap;
-    
+
+    @ManyToOne()
+    @JoinColumn(name = "PREVIOUS_DRIVER", referencedColumnName = "ID")
+    private Member previousDriver;
+
     private transient List<String> rides = List.of(); // TODO add rides to this table later
     
     public Status getStatus() {
@@ -58,7 +62,15 @@ public class Shift extends ConsumingReservation {
     public void setDriverRequestingSwap(Member driverRequestingSwap) {
         this.driverRequestingSwap = driverRequestingSwap;
     }
-    
+
+    public Member getPreviousDriver() {
+        return previousDriver;
+    }
+
+    public void setPreviousDriver(Member previousDriver) {
+        this.previousDriver = previousDriver;
+    }
+
     public String getOneHourBeforeStart() {
         
         return getStartsAt()
@@ -66,7 +78,15 @@ public class Shift extends ConsumingReservation {
                 .format(DateTimeFormatter.ISO_DATE_TIME);
         
     }
-    
+
+    public boolean isWithinOneHourBeforeStart() {
+
+        return getStartsAt()
+                .minusHours(1)
+                .isBefore(LocalDateTime.now());
+
+    }
+
     public String getThreeHoursBeforeStart() {
         
         return getStartsAt()

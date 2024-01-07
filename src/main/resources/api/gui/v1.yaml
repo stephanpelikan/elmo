@@ -143,6 +143,7 @@ paths:
           required: true
           schema:
             type: integer
+            format: int32
       requestBody:
         content:
           text/plain:
@@ -165,6 +166,7 @@ paths:
           required: true
           schema:
             type: integer
+            format: int32
       responses:
         200:
           description: The avatar as PNG-stream
@@ -186,6 +188,7 @@ paths:
           required: true
           schema:
             type: integer
+            format: int32
       requestBody:
         content:
           image/png:
@@ -207,6 +210,7 @@ paths:
           required: true
           schema:
             type: integer
+            format: int32
       responses:
         200:
           description: The member details
@@ -385,6 +389,88 @@ paths:
           description: Shift not found
         409:
           description: Shift claimed by someone else
+  /gui/planner/shift/{shiftId}/request-swap:
+    patch:
+      tags:
+        - planner
+      summary: Request swap of drivers of a shift by current user
+      operationId: requestSwapOfShift
+      parameters:
+        - in: path
+          name: shiftId
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Swap initiated accepted
+        404:
+          description: Shift not found
+        409:
+          description: Swap already in progress
+    post:
+      tags:
+        - planner
+      summary: Confirm swap of drivers of a shift by current user
+      operationId: confirmSwapOfShift
+      parameters:
+        - in: path
+          name: shiftId
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Swap completed
+        404:
+          description: Shift not found
+        409:
+          description: No swap in progress
+    delete:
+      tags:
+        - planner
+      summary: cancel swap of drivers of a shift by current user or reject if current user is driver
+      operationId: cancelOrRejectSwapOfShift
+      parameters:
+        - in: path
+          name: shiftId
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Swap completed
+        404:
+          description: Shift not found
+        409:
+          description: No swap in progress
+  /gui/planner/shift/{shiftId}/request-swap/{driverMemberIdRequestingSwap}:
+    patch:
+      tags:
+        - planner
+      summary: Request swap of drivers of a shift by an administrator
+      operationId: requestSwapOfShiftByAdministrator
+      parameters:
+        - in: path
+          name: shiftId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: driverMemberIdRequestingSwap
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        200:
+          description: Swap initiated accepted
+        400:
+          description: Unknown member or member is not a driver
+        404:
+          description: Shift not found
+        409:
+          description: Swap already in progress
   /gui/passenger-service/shift-overview:
     get:
       tags:
@@ -733,7 +819,8 @@ components:
         status:
           $ref: '#/components/schemas/UserStatus'
         memberId:
-          type: int
+          type: integer
+          format: int32
         email:
           type: string
         lastName:
@@ -834,6 +921,7 @@ components:
       properties:
         memberId:
           type: integer
+          format: int32
         firstName:
           type: string
         lastName:
@@ -879,6 +967,7 @@ components:
           format: date-time
         driverMemberId:
           type: integer
+          format: int32
         type:
           $ref: '#/components/schemas/ReservationType'
     PlannerReservation:
@@ -904,8 +993,12 @@ components:
           $ref: '#/components/schemas/ReservationType'
         driverMemberId:
           type: integer
+          format: int32
         hasRides:
           type: boolean
+        swapInProgressMemberId:
+          type: integer
+          format: int32
     PlannerCalendar:
       type: object
       required:
@@ -1020,7 +1113,8 @@ components:
         id:
           type: string
         driverMemberId:
-          type: number
+          type: integer
+          format: int32
         startsAt:
           type: string
         endsAt:
@@ -1069,6 +1163,9 @@ components:
         usageMinutes:
           type: integer
           format: int64
+        swapInProgressMemberId:
+          type: integer
+          format: int32
     CarSharingReservation:
       type: object
       required:
@@ -1194,13 +1291,13 @@ components:
         - year
         - car-sharing-hours
         - car-sharing-count
-        - passanger-service-hours
-        - passanger-service-count
+        - passenger-service-hours
+        - passenger-service-count
       properties:
         year:
           type: integer
           format: int32
         car-sharing-hours:
           type: float
-        passanger-service-hours:
+        passenger-service-hours:
           type: float

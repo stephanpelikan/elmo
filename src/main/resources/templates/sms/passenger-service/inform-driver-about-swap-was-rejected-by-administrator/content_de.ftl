@@ -1,0 +1,1 @@
+Schichttausch '${(shift.startsAt).format("MEDIUM_DATETIME")}': Die Bitte von ${shift.driverRequestingSwap.firstName!""} ${shift.driverRequestingSwap.lastName!""}, deine Schicht übernehmen zu dürfen, wurde durch den Administrator abgelehnt.

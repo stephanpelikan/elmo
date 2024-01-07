@@ -12,11 +12,7 @@ import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.regex.Pattern;
 
 @Service
@@ -72,7 +68,7 @@ public class EmailService {
         final var targetToAddresses = toAddresses
                 .stream()
                 .map(this::determineToAddress)
-                .toArray(size -> new String[size]);
+                .toArray(String[]::new);
         
         final var mimeMessage = mailSender.createMimeMessage();
         final var helper = new MimeMessageHelper(
@@ -86,7 +82,7 @@ public class EmailService {
         helper.setText(body, true);
         Arrays
                 .stream(context)
-                .filter(c -> c != null)
+                .filter(Objects::nonNull)
                 .filter(c -> (c instanceof NamedObject))
                 .map(c -> (NamedObject) c)
                 .filter(c -> (c.getObject() instanceof File))
@@ -138,8 +134,8 @@ public class EmailService {
             // build context with e.g. 'member' -> Member
             Arrays
                     .stream(context)
-                    .filter(c -> c != null)
-                    .map(c -> NamedObject.from(c))
+                    .filter(Objects::nonNull)
+                    .map(NamedObject::from)
                     .filter(c -> !(c.getObject() instanceof File))
                     .forEach(c -> templateContext.put(c.getName(), c.getObject()));
             

@@ -1,0 +1,1 @@
+Swap of shift '${(shift.startsAt).format("MEDIUM_DATETIME")}': The request to take over your shift by ${shift.driverRequestingSwap.firstName!""} ${shift.driverRequestingSwap.lastName!""} was accepted by the administrator.

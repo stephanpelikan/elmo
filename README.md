@@ -165,7 +165,7 @@ by using the 'config.csv' column 'max_length'. Do test the limits use a very lon
 
 Provide the directories containing the configuration files by using this properties:
 
-1. `elmo.passanger-agreement-pdf-directory`
+1. `elmo.passenger-agreement-pdf-directory`
 1. `elmo.driver-agreement-pdf-directory`
 
 ## Development
@@ -185,7 +185,7 @@ Run class `at.elmo.ElmoApplication` from your favorite IDE and add JVM parameter
 -Dspring.security.oauth2.client.registration.google.client-secret=XXXXXXX
 -Dspring.security.oauth2.client.registration.amazon.client-id=YYYYYYY
 -Dspring.security.oauth2.client.registration.amazon.client-secret=YYYYYYY
--Delmo.passanger-agreement-pdf-directory=/media/sf_Shared/elmo/passanger-agreement
+-Delmo.passenger-agreement-pdf-directory=/media/sf_Shared/elmo/passenger-agreement
 -Delmo.driver-agreement-pdf-directory=/media/sf_Shared/elmo/driver-agreement
 -Delmo.email.sender=your@address.com
 -Delmo.general-email-address=your@address.com
