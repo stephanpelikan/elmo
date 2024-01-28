@@ -112,9 +112,11 @@ public class SmsService {
                                     fromNumber)),
                     Instant.now().plusSeconds(1));
 
+            logger.info("Sent SMS to {}: {}", targetToNumber, content);
+
         } else {
 
-            logger.info("Will not send SMS to {}: {}", targetToNumber, content);
+            logger.info("Will not send SMS to {}: {}", toNumber, content);
 
         }
         

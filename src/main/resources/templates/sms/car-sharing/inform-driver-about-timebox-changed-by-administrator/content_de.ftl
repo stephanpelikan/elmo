@@ -1,0 +1,1 @@
+Die Start- und/oder Endezeit deines Car-Sharings von ${carSharing.car.name} am ${(carSharing.startsAt).format("MEDIUM_DATE")} wurde durch einen Administrator geändert: ${(carSharing.startsAt).format("MEDIUM_DATETIME")} bis ${(carSharing.endsAt).format("MEDIUM_DATETIME")}!<#if carSharing.lastInteractionComment??> Begründung: ${carSharing.lastInteractionComment}</#if>

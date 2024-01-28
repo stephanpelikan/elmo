@@ -1,7 +1,7 @@
 import { Box, Paragraph, Text } from 'grommet';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
-import React, { useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { CalendarHour, ReservationDrivers, useWakeupSseCallback } from './utils';
 import { BackgroundType, BorderType } from 'grommet/utils';
 import { useAppContext } from '../../AppContext';
@@ -13,7 +13,6 @@ import { PlannerContextMenu } from './PlannerContextMenu';
 import {Role, ShiftStatus} from '../../client/gui';
 import useOnClickOutside from '../../utils/clickOutside';
 import { Modal } from "../../components/Modal";
-import { SubHeading } from "../../components/MainLayout";
 
 i18n.addResources('en', 'driver/planner/passengerservice', {
       "reservation-type": "Passenger Service",

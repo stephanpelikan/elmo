@@ -105,7 +105,7 @@ const ReservationAccordionPanel = ({
     reservation: CarSharingReservation,
     index: number,
     goToPlanner: (reservation: CarSharingReservation) => void,
-    confirmStartOrStopOfCarSharing: (type: Confirmation, timestamp: Date, kmStart: number, kmEnd: number, comment: string) => Promise<{ [key in string]: string } | undefined>,
+    confirmStartOrStopOfCarSharing: (type: Confirmation, timestamp: Date, kmStart: number, kmEnd: number, carStatusComment: string) => Promise<{ [key in string]: string } | undefined>,
   }) => {
 
   const { t } = useTranslation('driver/car-sharings/reservation');
@@ -116,10 +116,10 @@ const ReservationAccordionPanel = ({
   const [ timestamp, setTimestamp ] = useState<Date | undefined>(undefined);
   const [ kmStart, setKmStart ] = useState<number | undefined>(reservation.carKm);
   const [ kmEnd, setKmEnd ] = useState<number | undefined>(undefined);
-  const [ comment, setComment ] = useState<string | undefined>(reservation.comment);
+  const [ comment, setComment ] = useState<string | undefined>(reservation.carStatusComment);
   
   const showConfirmStartModal = () => {
-    setComment(reservation.comment);
+    setComment(reservation.carStatusComment);
     setConfirmation('start');
     setTimestamp(nextHours(now, 1, false));
     setViolations(undefined);
@@ -167,7 +167,7 @@ const ReservationAccordionPanel = ({
               });
       setExtendOptions(newExtendOptions);
       setKmEnd(undefined);
-      setComment(reservation.comment);
+      setComment(reservation.carStatusComment);
       setTimestamp(reservation.endsAt);
       setConfirmation(type);
       setViolations(undefined);
@@ -177,7 +177,7 @@ const ReservationAccordionPanel = ({
   const showConfirmStopModal = () => extendModal('stop');
 
   const confirm = async (type: Confirmation) => {
-      const result = await confirmStartOrStopOfCarSharing(type, timestamp!, kmStart!, kmEnd!, comment!);
+      const result = await confirmStartOrStopOfCarSharing(type, timestamp!, kmStart!, kmEnd!, carStatusComment!);
       if ((result === undefined)
           || (Object.keys(result).length === 0)) {
         setViolations(undefined);
@@ -310,11 +310,11 @@ const ReservationAccordionPanel = ({
                   : undefined
             }
             {
-              Boolean(reservation.comment)
+              Boolean(reservation.carStatusComment)
                   ? <TableRow>
                       <TableCell>{ t('comment') }:</TableCell>
                       <TableCell>
-                        { reservation.comment }
+                        { reservation.carStatusComment }
                       </TableCell>
                     </TableRow>
                   : undefined

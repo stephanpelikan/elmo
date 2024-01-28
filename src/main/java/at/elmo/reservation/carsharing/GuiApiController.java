@@ -8,7 +8,9 @@ import at.elmo.gui.api.v1.CarSharingStartRequest;
 import at.elmo.gui.api.v1.CarSharingStopRequest;
 import at.elmo.gui.api.v1.ExtendCarSharingRequest;
 import at.elmo.gui.api.v1.ReservationType;
+import at.elmo.gui.api.v1.ResizeCarSharingRequest;
 import at.elmo.member.Role;
+import at.elmo.reservation.DriverBasedReservation;
 import at.elmo.reservation.ReservationService;
 import at.elmo.reservation.passengerservice.shift.Shift;
 import at.elmo.util.UserContext;
@@ -95,6 +97,98 @@ public class GuiApiController implements CarSharingApi {
     }
 
     @Override
+    public ResponseEntity<Void> resizeCarSharingReservation(
+            final String carId,
+            final String reservationId,
+            final ResizeCarSharingRequest resizeCarSharingRequest) {
+
+        if ((resizeCarSharingRequest == null)
+                || (resizeCarSharingRequest.getStartsAt() == null)
+                || (resizeCarSharingRequest.getEndsAt() == null)) {
+            return ResponseEntity.badRequest().build();
+        }
+        if (!StringUtils.hasText(carId)) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        final var carSharingFound = reservationService.getReservation(reservationId);
+        if (carSharingFound == null) {
+            return ResponseEntity.notFound().build();
+        }
+        if (!(carSharingFound instanceof CarSharing carSharing)) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        if (!carSharing.getCar().getId().equals(carId)) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        try {
+            reservationService.findReservations(
+                            carSharing.getStartsAt(),
+                            carSharing.getEndsAt())
+                    .stream()
+                    .filter(reservation -> !reservation.getId().equals(reservationId))
+                    .filter(reservation -> reservation instanceof DriverBasedReservation)
+                    .map(reservation -> (DriverBasedReservation) reservation)
+                    .forEach(reservation -> {
+                        if (reservation.getCar().getId().equals(carSharing.getId())) {
+                            throw new ElmoException();
+                        }
+                        if ((reservation instanceof CarSharing)
+                                && reservation.getDriver().getId()
+                                .equals(carSharing.getDriver().getId())) {
+                            throw new ElmoValidationException(
+                                    "parallel-carsharing",
+                                    reservation.getCar().getName());
+                        } else if ((reservation instanceof Shift)
+                                && (reservation.getDriver() != null)
+                                && reservation.getDriver().getId()
+                                .equals(carSharing.getDriver().getId())) {
+                            throw new ElmoValidationException(
+                                    "parallel-passengerservice",
+                                    reservation.getCar().getName());
+                        }
+                    });
+        } catch (ElmoValidationException e) {
+            throw e;
+        } catch (ElmoException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+
+        try {
+
+            final var carSharingUpdated = carSharingService.resizeCarSharing(
+                    carId,
+                    reservationId,
+                    userContext.getLoggedInMember(),
+                    resizeCarSharingRequest.getStartsAt(),
+                    resizeCarSharingRequest.getEndsAt(),
+                    resizeCarSharingRequest.getComment());
+
+            if (carSharingUpdated == null) {
+                return ResponseEntity.badRequest().build();
+            }
+
+            // overlappings may happen by a small chance if a concurrent transaction is not committed
+            final var overlappingsAfterwards = reservationService.checkForOverlappings(
+                    carSharing.getCar(),
+                    resizeCarSharingRequest.getStartsAt(),
+                    resizeCarSharingRequest.getEndsAt());
+            if (overlappingsAfterwards.size() > 1) { // 1 ... the changed car-sharing session
+                return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            }
+
+        } catch (Exception e) {
+            logger.error("Could not resize car-sharing", e);
+            return ResponseEntity.internalServerError().build();
+        }
+
+        return ResponseEntity.ok().build();
+
+    }
+
+    @Override
     public ResponseEntity<Void> addCarSharingReservation(
             final String carId,
             final AddPlannerReservation carSharingReservation) {
@@ -103,10 +197,14 @@ public class GuiApiController implements CarSharingApi {
                 || (carSharingReservation.getType() != ReservationType.CS)) {
             return ResponseEntity.badRequest().build();
         }
-
+        if ((carSharingReservation.getStartsAt() == null)
+                || (carSharingReservation.getEndsAt() == null)) {
+            return ResponseEntity.badRequest().build();
+        }
         if (!StringUtils.hasText(carId)) {
             return ResponseEntity.badRequest().build();
         }
+
         final var car = carService.getCar(carId);
         if (car.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -118,11 +216,6 @@ public class GuiApiController implements CarSharingApi {
             return ResponseEntity.badRequest().build();
         }
 
-        if ((carSharingReservation.getStartsAt() == null)
-                || (carSharingReservation.getEndsAt() == null)) {
-            return ResponseEntity.badRequest().build();
-        }
-        
         final var hours = Duration
                 .between(
                         carSharingReservation.getStartsAt(),
@@ -142,36 +235,39 @@ public class GuiApiController implements CarSharingApi {
                     "max-reservations",
                     Long.toString(properties.getMaxReservations()));
         }
-        
-        final var overlappings = reservationService.checkForOverlappings(
-                car.get(),
-                carSharingReservation.getStartsAt(),
-                carSharingReservation.getEndsAt());
-        if (!overlappings.isEmpty()) {
+
+        try {
+            reservationService.findReservations(
+                            carSharingReservation.getStartsAt(),
+                            carSharingReservation.getEndsAt())
+                    .stream()
+                    .filter(reservation -> reservation instanceof DriverBasedReservation)
+                    .map(reservation -> (DriverBasedReservation) reservation)
+                    .forEach(reservation -> {
+                        if (reservation.getCar().getId().equals(carId)) {
+                            throw new ElmoException();
+                        }
+                        if ((reservation instanceof CarSharing)
+                                && reservation.getDriver().getId()
+                                        .equals(driver.getId())) {
+                            throw new ElmoValidationException(
+                                    "parallel-carsharing",
+                                    reservation.getCar().getName());
+                        } else if ((reservation instanceof Shift)
+                                && (reservation.getDriver() != null)
+                                && reservation.getDriver().getId()
+                                .equals(driver.getId())) {
+                            throw new ElmoValidationException(
+                                    "parallel-passengerservice",
+                                    reservation.getCar().getName());
+                        }
+                    });
+        } catch (ElmoValidationException e) {
+            throw e;
+        } catch (ElmoException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
-        
-        reservationService.findReservations(
-                carSharingReservation.getStartsAt(),
-                carSharingReservation.getEndsAt())
-                .stream()
-                .forEach(reservation -> {
-                    if ((reservation instanceof CarSharing)
-                            && ((CarSharing) reservation).getDriver().getId()
-                                    .equals(driver.getId())) {
-                        throw new ElmoValidationException(
-                                "parallel-carsharing",
-                                reservation.getCar().getName());
-                    } else if ((reservation instanceof Shift)
-                            && (((Shift) reservation).getDriver() != null)
-                            && ((Shift) reservation).getDriver().getId()
-                            .equals(driver.getId())) {
-                        throw new ElmoValidationException(
-                                "parallel-passengerservice",
-                                reservation.getCar().getName());
-                    }
-                });
-        
+
         try {
             
             final var carSharing = carSharingService.createCarSharing(
@@ -252,6 +348,8 @@ public class GuiApiController implements CarSharingApi {
         }
         
     }
+
+
     
     @Override
     public ResponseEntity<CarSharingReservation> confirmBeginOfCarSharing(
@@ -289,7 +387,7 @@ public class GuiApiController implements CarSharingApi {
                 body.getTimestamp(),
                 body.getKmStart(),
                 null,
-                body.getComment());
+                body.getCarStatusComment());
         
         if (reservation == null) {
             return ResponseEntity.notFound().build();
@@ -349,7 +447,7 @@ public class GuiApiController implements CarSharingApi {
                 body.getTimestamp(),
                 body.getKmStart(),
                 body.getKmEnd(),
-                body.getComment());
+                body.getCarStatusComment());
         
         if (reservation == null) {
             return ResponseEntity.notFound().build();

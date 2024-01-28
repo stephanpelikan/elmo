@@ -1,0 +1,1 @@
+The timebox of your car-sharing of ${carSharing.car.name} at ${(carSharing.startsAt).format("MEDIUM_DATE")} was cancelled by an administrator: ${(carSharing.startsAt).format("MEDIUM_DATETIME")} bis ${(carSharing.endsAt).format("MEDIUM_DATETIME")}!<#if carSharing.lastInteractionComment??> Reason: ${carSharing.lastInteractionComment}</#if>

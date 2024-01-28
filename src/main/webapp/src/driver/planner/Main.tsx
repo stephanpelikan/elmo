@@ -1,4 +1,4 @@
-import { Box, ColumnConfig, DataTable, DateInput, Text } from "grommet";
+import { Box, ColumnConfig, DataTable, DateInput, Text, TextArea } from "grommet";
 import { useTranslation } from "react-i18next";
 import i18n from '../../i18n';
 import { debounceByKey } from '../../utils/debounce';
@@ -7,7 +7,18 @@ import { currentHour, nextHours, numberOfHoursBetween } from '../../utils/timeUt
 import { SnapScrollingDataTable } from '../../components/SnapScrollingDataTable';
 import { useCarSharingApi, usePlannerApi } from '../DriverAppContext';
 import { PlannerApi, PlannerCar, PlannerReservation, ReservationType, ReservationEvent } from "../../client/gui";
-import React, { memo, MouseEvent as ReactMouseEvent, MutableRefObject, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  memo,
+  MouseEvent,
+  MouseEvent as ReactMouseEvent,
+  MutableRefObject,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState
+} from "react";
 import { Contract, DocumentTime, History } from "grommet-icons";
 import { useAppContext } from "../../AppContext";
 import { CalendarHeader } from "../../components/CalendarHeader";
@@ -19,6 +30,8 @@ import { SelectionBox } from "./SelectionBox";
 import { CarSharingBox } from "./CarSharingBox";
 import { BlockBox } from "./BlockBox";
 import { PassengerServiceBox } from "./PassengerServiceBox";
+import { Modal } from "../../components/Modal";
+import { TFunction } from "i18next";
 
 i18n.addResources('en', 'driver/planner', {
       "title.long": 'Planner',
@@ -79,15 +92,16 @@ const DayTable = memo<{
     day: CalendarDay,
     useSearch: boolean,
     selection: Selection,
-    cancelSelection: (event: ReactMouseEvent) => void,
-    acceptSelection: (event: ReactMouseEvent) => void,
+    acceptSelection: (event: MouseEvent) => void,
+    activateSelection: (reservation: PlannerReservation, carId: string, action: (startsAt: Date, endsAt: Date, comment?: string) => void, modalPrefix?: string, modalT?: TFunction) => void,
+    cancelSelection: (event?: ReactMouseEvent) => void,
     cancelReservation: (event: ReactMouseEvent | undefined, carId: string, reservationId: string, comment?: string) => void,
     mouseDownOnDrag: (event: ReactMouseEvent | TouchEvent, top: boolean) => void,
     mouseDownOnHour: (event: ReactMouseEvent, car: PlannerCar, hour: CalendarHour) => void,
     mouseEnterHour: (event: ReactMouseEvent | Event, car: PlannerCar, days: CalendarDay[], day: CalendarDay, hour: CalendarHour) => void,
     touchMove: (event: TouchEvent) => void,
     touchEnd: (event: TouchEvent) => void }>(
-  ({ drivers, car, days, day, useSearch, selection, cancelSelection, acceptSelection, cancelReservation, mouseDownOnHour, mouseEnterHour, mouseDownOnDrag, touchMove, touchEnd }) => {
+  ({ drivers, car, days, day, useSearch, selection, activateSelection, cancelSelection, acceptSelection, cancelReservation, mouseDownOnHour, mouseEnterHour, mouseDownOnDrag, touchMove, touchEnd }) => {
 
     const hours = day.hours[car.id];
 
@@ -99,7 +113,6 @@ const DayTable = memo<{
                         && (selection.carId === car.id)
                         && (selection.startsAt.getTime() <= hour.startsAt.getTime())
                         && (selection.endsAt.getTime() >= hour.endsAt.getTime());
-            
             const index = hours.indexOf(hour);
             
             const isFirstHourOfReservation =
@@ -108,7 +121,7 @@ const DayTable = memo<{
             
             const isLastHourOfReservation =
                 (hour.reservation?.endsAt.getTime() === hour.endsAt.getTime());
-            
+
             return (
                 <Box
                     id={ `${day.startsAt.toISOString().substring(0,10)}_${car.id}_${hour.startsAt.getHours() + 1}` }
@@ -124,7 +137,7 @@ const DayTable = memo<{
                           element.scrollIntoView({ behavior: 'smooth' });
                         }
                         const handler = (event: Event) => {
-                            if (hour.reservation) {
+                            if (hour.reservation && (selection?.editingReservation !== hour.reservation.id)) {
                               return;
                             }
                             mouseEnterHour(event, car, days, day, hour);
@@ -132,7 +145,7 @@ const DayTable = memo<{
                         element?.addEventListener('custommouseover', handler);
                       } }
                     onMouseOver={ event => {
-                        if (hour.reservation) {
+                        if (hour.reservation && (selection?.editingReservation !== hour.reservation.id)) {
                           event.preventDefault();
                           event.stopPropagation();
                           return;
@@ -164,12 +177,13 @@ const DayTable = memo<{
                         ? <SelectionBox
                                 hour={ hour }
                                 selection={ selection }
+                                drivers={ drivers }
                                 acceptSelection={ acceptSelection }
                                 cancelSelection={ cancelSelection }
                                 mouseDownOnDrag={ mouseDownOnDrag }
                                 touchMove={ touchMove }
                                 touchEnd={ touchEnd } />
-                        : !Boolean(hour.reservation) || (hour.reservation!.status === 'CANCELLED')
+                        : !Boolean(hour.reservation) || (hour.reservation!.status === 'CANCELLED') || (hour.reservation!.id === selection?.editingReservation)
                         ? undefined
                         : hour.reservation?.type === ReservationType.Cs
                         ? <CarSharingBox
@@ -178,6 +192,8 @@ const DayTable = memo<{
                               isFirstHourOfReservation={ isFirstHourOfReservation }
                               isLastHourOfReservation={ isLastHourOfReservation }
                               drivers={ drivers }
+                              activateSelection={ activateSelection }
+                              cancelSelection={ cancelSelection }
                               cancelReservation={ cancelReservation }
                             />
                         : hour.reservation?.type === ReservationType.Block
@@ -246,27 +262,27 @@ const getDayVersion = (
     if (result === undefined) return 0;
     return result;
   };
-  
+
+const increaseDayVersion = (
+    dayVersions: MutableRefObject<DayVersions>,
+    time: Date,
+    carId: string
+) => {
+  const key = dayVersionKey(time, carId);
+  const v = dayVersions.current[key];
+  if (v === undefined) {
+    dayVersions.current[key] = 1;
+  } else {
+    dayVersions.current[key] = v + 1;
+  }
+};
+
 const increaseDayVersions = (
     dayVersions: MutableRefObject<DayVersions>,
     time: Date,
     cars: Array<PlannerCar>
   ) => {
     cars.forEach(car => increaseDayVersion(dayVersions, time, car.id));
-  };   
-
-const increaseDayVersion = (
-    dayVersions: MutableRefObject<DayVersions>,
-    time: Date,
-    carId: string
-  ) => {
-    const key = dayVersionKey(time, carId);
-    const v = dayVersions.current[key];
-    if (v === undefined) {
-      dayVersions.current[key] = 1;
-    } else {
-      dayVersions.current[key] = v + 1;
-    }
   };
 
 const loadData = async (
@@ -386,11 +402,11 @@ const Planner = () => {
   
   const [ dayVersions, _setDayVersions ] = useState<DayVersions>({});
   const dayVersionsRef = useRef(dayVersions);
-  const updateDayVersions = (versions: DayVersions) => {
+  const updateDayVersions = useCallback((versions: DayVersions) => {
       const newVersions = { ...versions };
       dayVersionsRef.current = newVersions;
       _setDayVersions(newVersions);
-    };
+    }, [ _setDayVersions ]);
   
   const daySearchParam = document.location.search?.indexOf('_') || -1;
   const [ useSearch, setUseSearch ] = useState(true);
@@ -450,7 +466,7 @@ const Planner = () => {
           }
         };
       initPlanner();
-    }, [ plannerApi, days, restrictions, setRestrictions, drivers, startsAt, showLoadingIndicator ]);
+    }, [ plannerApi, days, restrictions, setRestrictions, drivers, startsAt, showLoadingIndicator, updateDayVersions ]);
   
   useEffect(() => {
       const rerenderPastHoursHook = (lastNow: Date) => {
@@ -461,7 +477,7 @@ const Planner = () => {
         };
       registerEachSecondHook(rerenderPastHoursHook);
       return () => unregisterEachSecondHook(rerenderPastHoursHook);
-    }, [ cars ]);
+    }, [ cars, updateDayVersions ]);
 
   const [ _isMouseDown, setMouseIsDown ] = useState(false);
   const isMouseDown = useRef(_isMouseDown);
@@ -472,18 +488,59 @@ const Planner = () => {
       _setSelection(s);
       setUseSearch(false);
     }, [ _setSelection, selection, setUseSearch ]);
-  
+  const increaseDayVersionsOfSelection = useCallback(() => {
+      if (selection.current !== undefined) {
+        for (let hour = selection.current.startsAt.getTime()
+            ; hour !== selection.current.endsAt.getTime()
+            ; hour += 3600000) {
+          increaseDayVersion(dayVersionsRef, new Date(hour), selection.current.carId);
+        }
+      }
+    }, [ selection ]);
+  const activateSelection = useCallback((
+      reservation: PlannerReservation,
+      carId: string,
+      editingAction?: (startsAt: Date, endsAt: Date, comment?: string) => void,
+      editingModalPrefix?: string,
+      editingModalT?: TFunction,
+    ) => {
+      if (isMouseDown.current) return;
+      increaseDayVersionsOfSelection();
+      const s: Selection = {
+        startedAtStarts: reservation.startsAt,
+        startedAtEnds: reservation.endsAt,
+        startsAt: reservation.startsAt,
+        endsAt: reservation.endsAt,
+        carId: carId,
+        ownerId: reservation.driverMemberId,
+        editingReservation: reservation.id,
+        editingAction: editingAction,
+        editingModalPrefix: editingModalPrefix,
+        editingModalT: editingModalT,
+      };
+      setSelection(s);
+      // minimize selection to start-hour or selection across different days
+      increaseDayVersion(dayVersionsRef, s.startsAt, carId);
+      increaseDayVersion(dayVersionsRef, new Date(s.endsAt.getTime() - 3600000), carId);
+      updateDayVersions(dayVersionsRef.current);
+    }, [ setSelection, updateDayVersions, increaseDayVersionsOfSelection ]);
+
   const mouseDownOnDrag = useCallback((event: ReactMouseEvent | TouchEvent, top: boolean) => {
       if (isMouseDown.current) return;
       if (selection.current === undefined) return;
       event.preventDefault();
       event.stopPropagation();
-      const s = {
+      const s: Selection = {
           startedAtStarts: top ? selection.current.endsAt : selection.current.startsAt,
           startedAtEnds: top ? selection.current.endsAt : selection.current.startsAt,
           startsAt: selection.current.startsAt,
           endsAt: selection.current.endsAt,
           carId: selection.current.carId,
+          ownerId: selection.current.ownerId,
+          editingReservation: selection.current.editingReservation,
+          editingAction: selection.current.editingAction,
+          editingModalPrefix: selection.current.editingModalPrefix,
+          editingModalT: selection.current.editingModalT,
         };
       setSelection(s);
       isMouseDown.current = true;
@@ -504,28 +561,22 @@ const Planner = () => {
         return;
       }
 
-      if (selection.current !== undefined) {
-        for (let hour = selection.current.startsAt.getTime()
-            ; hour !== selection.current.endsAt.getTime()
-            ; hour += 3600000) {
-          increaseDayVersion(dayVersionsRef, new Date(hour), selection.current.carId);
-        }
-      }
+      increaseDayVersionsOfSelection();
       increaseDayVersion(dayVersionsRef, hour.startsAt, car.id);
       increaseDayVersion(dayVersionsRef, hour.endsAt, car.id);
       updateDayVersions(dayVersionsRef.current);
-      const s = {
+      const s: Selection = {
           startedAtStarts: hour.startsAt,
           startedAtEnds: hour.endsAt,
           startsAt: hour.startsAt,
           endsAt: hour.endsAt,
-          carId: car.id
+          carId: car.id,
         };
       setSelection(s);
       isMouseDown.current = true;
       setMouseIsDown(true);
+    }, [ setMouseIsDown, t, toast, setSelection, updateDayVersions, increaseDayVersionsOfSelection ]);
 
-    }, [ setMouseIsDown, t, toast, selection, setSelection ]);
   const mouseEnterHour = useCallback((event: ReactMouseEvent | Event, car: PlannerCar, days: CalendarDay[], day: CalendarDay, hour: CalendarHour) => {
       if (!isMouseDown.current) return;
       if (selection.current === undefined) return;
@@ -538,6 +589,7 @@ const Planner = () => {
       const hours = day.hours[car.id];
       const indexOfHour = hours.indexOf(hour);
       const indexOfDay = days.indexOf(day);
+
       let startsAt = selection.current.startedAtStarts;
       // check for selection-rules of upper boundary:
       if (wasUpperBoundaryChanged) {
@@ -547,7 +599,7 @@ const Planner = () => {
         } else {
           const maxStartsAt = nextHours(
               selection.current.startedAtEnds,
-              Math.min(restrictionsRef.current!.remainingHours, restrictionsRef.current!.maxHours),
+              restrictionsRef.current!.allowPaidCarSharing ? restrictionsRef.current!.maxHours : Math.min(restrictionsRef.current!.remainingHours, restrictionsRef.current!.maxHours),
               true);
           const indexOfStartsAt = indexOfHour
               + numberOfHoursBetween(selection.current.startsAt, hour.startsAt);
@@ -572,7 +624,8 @@ const Planner = () => {
               indexOfHourToTest = (absoluteIndexToTest - firstDayOffset) % 24;
             }
             const hourToTest = days[ indexOfDayToTest ].hours[car.id][ indexOfHourToTest ];
-            if (hourToTest.reservation) break;
+            if (hourToTest.reservation &&
+                (hourToTest.reservation.id !== selection.current.editingReservation)) break;
             startsAt = nextHours(selection.current.startsAt, i, true);
           }
         }
@@ -588,7 +641,7 @@ const Planner = () => {
         } else {
           const maxEndsAt = nextHours(
               selection.current.startedAtStarts,
-              Math.min(restrictionsRef.current!.remainingHours, restrictionsRef.current!.maxHours),
+              restrictionsRef.current!.allowPaidCarSharing ? restrictionsRef.current!.maxHours : Math.min(restrictionsRef.current!.remainingHours, restrictionsRef.current!.maxHours),
               false);
           const indexOfEndsAt = indexOfHour
               - numberOfHoursBetween(selection.current.endsAt, hour.endsAt);
@@ -613,28 +666,34 @@ const Planner = () => {
               indexOfHourToTest = (absoluteIndexToTest - firstDayOffset) % 24;
             }
             const hourToTest = days[ indexOfDayToTest ].hours[car.id][ indexOfHourToTest ];
-            if (hourToTest.reservation) break;
+            if (hourToTest.reservation &&
+                (hourToTest.reservation.id !== selection.current.editingReservation)) break;
             endsAt = nextHours(selection.current.endsAt, i, false);
           }
         }
         increaseDayVersion(dayVersionsRef, new Date(selection.current.endsAt.getTime() - 3600000), car.id);
         increaseDayVersion(dayVersionsRef, endsAt, car.id);
       }
-      // minimize selection to start-hour or selection accross different days
+      // minimize selection to start-hour or selection across different days
       increaseDayVersion(dayVersionsRef, selection.current.startsAt, car.id);
       increaseDayVersion(dayVersionsRef, new Date(selection.current.endsAt.getTime() - 3600000), car.id);
 
       updateDayVersions(dayVersionsRef.current);
-      const s = {
+      const s: Selection = {
           startedAtStarts: selection.current.startedAtStarts,
           startedAtEnds: selection.current.startedAtEnds,
           startsAt,
           endsAt,
           carId: car.id,
+          ownerId: selection.current.ownerId,
+          editingReservation: selection.current.editingReservation,
+          editingAction: selection.current.editingAction,
+          editingModalPrefix: selection.current.editingModalPrefix,
+          editingModalT: selection.current.editingModalT,
         };
       setSelection(s);
-      
-    }, [ isMouseDown, setSelection, selection ]);
+  }, [ isMouseDown, setSelection, selection, updateDayVersions ]);
+
   const lastMoveElement = useRef<Element | null>(null);
   const mouseMove = useCallback((event: MouseEvent) => {
       if (!isMouseDown.current) return;
@@ -672,10 +731,14 @@ const Planner = () => {
   const touchEnd = useCallback(() => {
       mouseUp();
     }, [ mouseUp ]);
-  const cancelSelection = useCallback((event: ReactMouseEvent) => {
-      event.preventDefault();
-      event.stopPropagation();
-
+  const cancelSelection = useCallback((event?: ReactMouseEvent) => {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      if (selection.current === undefined) {
+        return;
+      }
       for (let hour = selection.current!.startsAt.getTime()
           ; hour !== selection.current!.endsAt.getTime()
           ; hour += 3600000) {
@@ -683,9 +746,9 @@ const Planner = () => {
       }
       updateDayVersions(dayVersionsRef.current);
       setSelection(undefined);
+    }, [ setSelection, selection, updateDayVersions ]);
 
-    }, [ setSelection, selection ]);
-  
+  const [ showAcceptModal, setShowAcceptModal ] = useState(false);
   const acceptSelection = useCallback((event: ReactMouseEvent) => {
       event.preventDefault();
       event.stopPropagation();
@@ -729,8 +792,20 @@ const Planner = () => {
             }
           } 
         };
-      addPlannerReservation();
-    }, [ carSharingApi, t, toast, selection, state.currentUser, showLoadingIndicator ]);
+      if (selection.current!.editingReservation === undefined) {
+        addPlannerReservation();
+        cancelSelection();
+        return;
+      }
+      if (selection.current!.editingModalPrefix === undefined) {
+        selection.current!.editingAction(
+            selection.current!.startsAt,
+            selection.current!.endsAt);
+        cancelSelection();
+        return;
+      }
+      setShowAcceptModal(true);
+    }, [ carSharingApi, t, toast, selection, state.currentUser, showLoadingIndicator, setShowAcceptModal, cancelSelection ]);
   
   const cancelReservation = useCallback((event: ReactMouseEvent | undefined, carId: string, reservationId: string, comment?: string) => {
       if (event) {
@@ -801,7 +876,7 @@ const Planner = () => {
           setSelection(undefined);
         }
       },
-    [ plannerApi, setRestrictions, setSelection, state.currentUser, t, toast, showLoadingIndicator ]);
+    [ plannerApi, setRestrictions, setSelection, state.currentUser, t, toast, showLoadingIndicator, updateDayVersions ]);
     
   wakeupSseCallback.current = useGuiSse<ReservationEvent>(
       updateReservations,
@@ -826,6 +901,7 @@ const Planner = () => {
                   car={ car }
                   useSearch={ useSearch }
                   selection={ selection.current! }
+                  activateSelection={ activateSelection }
                   cancelSelection={ cancelSelection }
                   acceptSelection={ acceptSelection }
                   cancelReservation={ cancelReservation }
@@ -854,7 +930,9 @@ const Planner = () => {
   const currentRemainingHours = restrictions === undefined
       ? '-'
       : (restrictions.remainingHours - (selection.current !== undefined ? numberOfHoursBetween(selection.current.endsAt, selection.current.startsAt) : 0));
-  
+
+  const [ modalComment, setModalComment ] = useState<string | undefined>(undefined);
+
   return (
       <Box
           fill>
@@ -961,6 +1039,42 @@ const Planner = () => {
             onMore={ loadMore }
             data={ days }
             replace={ true } />
+        <Modal
+            show={ showAcceptModal }
+            t={ selection?.current?.editingModalT }
+            header={ `${selection?.current?.editingModalPrefix}-header` }
+            abort={ () => {
+              setModalComment('');
+              setShowAcceptModal(false);
+              cancelSelection();
+            } }
+            abortLabel={ `${selection?.current?.editingModalPrefix}-abort` }
+            action={ () => {
+              selection?.current?.editingAction(
+                  selection.current.startsAt,
+                  selection.current.endsAt,
+                  modalComment);
+              setModalComment('');
+              setShowAcceptModal(false);
+              cancelSelection();
+            } }
+            actionLabel={ `${selection?.current?.editingModalPrefix}-cancel` }
+            actionDisabled={ !Boolean(modalComment) }>
+          <Box
+              key={ `${showAcceptModal}` }
+              direction="column"
+              pad={ { vertical: isPhone ? 'large' : 'small' } }
+              gap={ isPhone ? 'medium' : 'small' }>
+            {
+              selection?.current?.editingModalT
+                  && selection?.current?.editingModalT(`${selection?.current?.editingModalPrefix}-reason`)
+            }
+            <TextArea
+                value={ modalComment }
+                onChange={ event => setModalComment(event.target.value) }
+            />
+          </Box>
+        </Modal>
       </Box>);
       
 };

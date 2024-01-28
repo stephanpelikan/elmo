@@ -15,7 +15,7 @@
   <bpmn:error id="Error_0msatxo" name="Email_Not_Verified" errorCode="Email_Not_Verified" />
   <bpmn:message id="Message_2upsvno" name="CancelledByAdministrator" />
   <bpmn:message id="Message_0l87vd6" name="CancelledDueToConflict" />
-  <bpmn:message id="Message_0edrp1a" name="CancelledByDriver" />
+  <bpmn:message id="Message_0edrp1a" name="Cancelled" />
   <bpmn:message id="Message_31cihhe" name="CarReservedDirectlyAfterwards" />
   <bpmn:category id="Category_1lu57qz">
     <bpmn:categoryValue id="CategoryValue_1mrcgb7" value="remind driver to confirm end of usage" />

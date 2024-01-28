@@ -32,7 +32,10 @@ public class CarSharing extends ConsumingReservation {
     private String userTaskId;
 
     @Column(name = "COMMENT")
-    private String comment;
+    private String carStatusComment;
+
+    @Column(name = "LAST_COMMENT")
+    private String lastInteractionComment;
     
     @Column(name = "HOURS_PLANNED")
     private int hoursPlanned;
@@ -61,14 +64,22 @@ public class CarSharing extends ConsumingReservation {
         this.userTaskType = userTaskType;
     }
     
-    public String getComment() {
-        return comment;
+    public String getCarStatusComment() {
+        return carStatusComment;
     }
 
-    public void setComment(String comment) {
-        this.comment = comment;
+    public void setCarStatusComment(String carStatusComment) {
+        this.carStatusComment = carStatusComment;
     }
-    
+
+    public String getLastInteractionComment() {
+        return lastInteractionComment;
+    }
+
+    public void setLastInteractionComment(String lastInteractionComment) {
+        this.lastInteractionComment = lastInteractionComment;
+    }
+
     public int getHoursPlanned() {
         return hoursPlanned;
     }

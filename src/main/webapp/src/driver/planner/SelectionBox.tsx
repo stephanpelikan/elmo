@@ -1,9 +1,9 @@
 import { Box, Text } from "grommet";
 import { BorderType, normalizeColor } from "grommet/utils";
-import React, { CSSProperties, MouseEvent } from "react";
+import { CSSProperties, MouseEvent } from "react";
 import styled from "styled-components";
 import { useAppContext } from "../../AppContext";
-import { CalendarHour, Selection } from "./utils";
+import { CalendarHour, ReservationDrivers, Selection } from "./utils";
 import { timeAsString, numberOfHoursBetween } from '../../utils/timeUtils';
 import { UserAvatar } from "../../components/UserAvatar";
 import { FormCheckmark, FormClose, FormDown, FormUp } from "grommet-icons";
@@ -22,7 +22,7 @@ const StyledSelectionBox = styled(Box)<{
     left: -3px;
     top: ${props => props.isFirstHourOfSelection ? '-3px' : '0'};
     min-height: 100%;
-    z-index: ${props => props.currentHour === 0 ? 2 : 1};
+    z-index: ${props => props.currentHour === 0 ? 5 : 4};
   `;
 
 const ButtonBox = styled(Box)`
@@ -45,9 +45,10 @@ const DragBox = styled(Box)<{
     display: inline-block;
   `;
 
-const SelectionBox = ({ hour, selection, mouseDownOnDrag, cancelSelection, acceptSelection, touchMove, touchEnd }: {
+const SelectionBox = ({ hour, selection, drivers, mouseDownOnDrag, cancelSelection, acceptSelection, touchMove, touchEnd }: {
     hour: CalendarHour,
     selection: Selection,
+    drivers: ReservationDrivers,
     cancelSelection: (event: MouseEvent) => void,
     acceptSelection: (event: MouseEvent) => void,
     mouseDownOnDrag: (event: MouseEvent | TouchEvent, top: boolean) => void,
@@ -117,7 +118,11 @@ const SelectionBox = ({ hour, selection, mouseDownOnDrag, cancelSelection, accep
                           <UserAvatar
                               size='medium'
                               border={ { color: 'accent-3', size: '3px' }}
-                              user={ state.currentUser! } />
+                              user={
+                                  selection.ownerId === undefined
+                                      ? state.currentUser!
+                                      : drivers[ selection.ownerId! ]
+                                } />
                         </Box>
                         <Box>
                           <Text>

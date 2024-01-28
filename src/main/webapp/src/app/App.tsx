@@ -140,7 +140,7 @@ export const theme: ThemeType = {
           opacity: 'strong'
         },
         extend: css`
-          z-index: 19;
+          z-index: 3;
         `
       },
     }

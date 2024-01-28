@@ -33,7 +33,7 @@ public abstract class GuiApiMapper extends ReservationMapperBase {
             result.setCreatedAt(carSharing.getCreatedAt());
             result.setKmAtStart(carSharing.getKmAtStart());
             result.setKmAtEnd(carSharing.getKmAtEnd());
-            result.setComment(carSharing.getComment());
+            result.setCarStatusComment(carSharing.getCarStatusComment());
             result.setStartUsage(carSharing.getStartUsage());
             result.setEndUsage(carSharing.getEndUsage());
             result.setHoursPlanned(carSharing.getHoursPlanned());

@@ -1,6 +1,6 @@
 import { MouseEvent } from "react";
-import { Box, Stack } from "grommet";
-import { Checkmark, Close, FormCheckmark, FormClose, Icon } from "grommet-icons";
+import { Box } from "grommet";
+import { FormCheckmark, FormClose, Icon } from "grommet-icons";
 import { BackgroundType } from "grommet/utils";
 
 const PlannerButton = ({

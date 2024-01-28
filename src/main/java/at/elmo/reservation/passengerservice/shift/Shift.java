@@ -87,6 +87,14 @@ public class Shift extends ConsumingReservation {
 
     }
 
+    public boolean isWithinThreeHoursBeforeStart() {
+
+        return getStartsAt()
+                .minusHours(3)
+                .isBefore(LocalDateTime.now());
+
+    }
+
     public String getThreeHoursBeforeStart() {
         
         return getStartsAt()

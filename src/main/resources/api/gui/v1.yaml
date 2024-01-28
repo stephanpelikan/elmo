@@ -528,7 +528,7 @@ paths:
         - car-sharing
       summary: The reservations of the member currently logged in
       operationId: getCarSharingReservations
-      responses: 
+      responses:
         200:
           description: The shift-overview
           content:
@@ -686,6 +686,35 @@ paths:
       responses:
         200:
           description: Reservation removed
+        400:
+          description: Reservation not found
+        404:
+          description: Car not found
+  /gui/car-sharing/{carId}/reservation/{reservationId}/resize:
+    put:
+      tags:
+        - car-sharing
+      summary: Change the start- and end-time of a car-sharing reservation
+      operationId: resizeCarSharingReservation
+      parameters:
+        - in: path
+          name: carId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: reservationId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResizeCarSharingRequest'
+      responses:
+        200:
+          description: Reservation changed
         400:
           description: Reservation not found
         404:
@@ -1201,7 +1230,7 @@ components:
         kmAtEnd:
           type: integer
           format: int32
-        comment:
+        carStatusComment:
           type: string
         hoursPlanned:
           type: integer
@@ -1230,6 +1259,17 @@ components:
           format: date-time
         userTaskId:
           type: string
+    ResizeCarSharingRequest:
+      type: object
+      properties:
+        startsAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: string
+          format: date-time
+        comment:
+          type: string
     CarSharingStartRequest:
       type: object
       properties:
@@ -1239,7 +1279,7 @@ components:
         kmStart:
           type: integer
           format: int32
-        comment:
+        carStatusComment:
           type: string
         userTaskId:
           type: string
@@ -1255,7 +1295,7 @@ components:
         kmEnd:
           type: integer
           format: int32
-        comment:
+        carStatusComment:
           type: string
         userTaskId:
           type: string

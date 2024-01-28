@@ -1,6 +1,7 @@
 package at.elmo.reservation;
 
 import at.elmo.car.Car;
+import at.elmo.reservation.planner.Reservation;
 import at.elmo.util.spring.PersistenceBase;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -27,7 +28,7 @@ import javax.persistence.Table;
 @DiscriminatorColumn(
         name = ReservationBase.DISCRIMINATOR_COLUMN_NAME,
         discriminatorType = DiscriminatorType.STRING)
-public abstract class ReservationBase extends PersistenceBase<String> {
+public abstract class ReservationBase extends PersistenceBase<String> implements Reservation {
 
     public static final String TABLE_NAME = "ELMO_RESERVATION";
     
@@ -51,7 +52,7 @@ public abstract class ReservationBase extends PersistenceBase<String> {
     @Column(name = "UPDATED_AT", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private LocalDateTime updatedAt;
 
-    @Column(name = "STARTS_AT", nullable = false, updatable = false, columnDefinition = "TIMESTAMP")
+    @Column(name = "STARTS_AT", nullable = false, updatable = true, columnDefinition = "TIMESTAMP")
     private LocalDateTime startsAt;
 
     @Column(name = "ENDS_AT", nullable = false, updatable = true, columnDefinition = "TIMESTAMP")

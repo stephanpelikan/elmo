@@ -1,8 +1,8 @@
-import React, { LegacyRef, PropsWithChildren } from "react";
+import { forwardRef, LegacyRef, PropsWithChildren } from "react";
 import { Box } from "grommet";
 import useResponsiveScreen from "../../utils/responsiveUtils";
 
-const PlannerContextMenu = React.forwardRef(({
+const PlannerContextMenu = forwardRef(({
     children
   }: PropsWithChildren<{}>, ref: LegacyRef<HTMLDivElement>
 ) => {
@@ -15,7 +15,7 @@ const PlannerContextMenu = React.forwardRef(({
               position: 'absolute',
               right: '2.125rem',
               top: '-0.525rem',
-              zIndex: 2,
+              zIndex: 4,
             } }
           elevation="large"
           round={ isPhone ? 'large' : 'medium' }

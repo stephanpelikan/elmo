@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Accordion, Box, Paragraph } from 'grommet';
 import { useCarSharingApi } from '../DriverAppContext';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CarSharingReservation, ReservationEvent } from '../../client/gui';
 import useResponsiveScreen from '../../utils/responsiveUtils';
 import { Content, Heading, TextHeading } from '../../components/MainLayout';
@@ -115,7 +115,7 @@ const CarSharings = () => {
       userTaskId: string,
       kmStart: number,
       timestamp: Date,
-      comment?: string): Promise<{ [key in string]: string } | undefined> => {
+      carStatusComment?: string): Promise<{ [key in string]: string } | undefined> => {
     
     try {
       
@@ -124,7 +124,7 @@ const CarSharings = () => {
           reservationId,
           carSharingStartRequest: {
             kmStart,
-            comment,
+            carStatusComment,
             userTaskId,
             timestamp
           }
@@ -159,7 +159,7 @@ const CarSharings = () => {
       kmStart: number,
       kmEnd: number,
       timestamp: Date,
-      comment?: string): Promise<{ [key in string]: string } | undefined> => {
+      carStatusComment?: string): Promise<{ [key in string]: string } | undefined> => {
     
     try {
       
@@ -169,7 +169,7 @@ const CarSharings = () => {
           carSharingStopRequest: {
             kmStart,
             kmEnd,
-            comment,
+            carStatusComment,
             userTaskId,
             timestamp
           }
@@ -234,32 +234,32 @@ const CarSharings = () => {
                                 index={ index }
                                 goToPlanner={ goToPlanner}
                                 confirmStartOrStopOfCarSharing={
-                                    (type, timestamp, kmStart, kmEnd, comment) =>
+                                    (type, timestamp, kmStart, kmEnd, carStatusComment) =>
                                         type === 'extend'
                                             ? extendCarSharing(
-                                                          index,
-                                                          reservation.carId,
-                                                          reservation.id,
-                                                          reservation.userTaskId!,
-                                                          timestamp)
+                                                index,
+                                                reservation.carId,
+                                                reservation.id,
+                                                reservation.userTaskId!,
+                                                timestamp)
                                             : type === 'start'
                                             ? confirmBeginOfCarSharing(
-                                                          index,
-                                                          reservation.carId,
-                                                          reservation.id,
-                                                          reservation.userTaskId!,
-                                                          kmStart,
-                                                          timestamp,
-                                                          comment)
+                                                index,
+                                                reservation.carId,
+                                                reservation.id,
+                                                reservation.userTaskId!,
+                                                kmStart,
+                                                timestamp,
+                                                carStatusComment)
                                             : confirmEndOfCarSharing(
-                                                          index,
-                                                          reservation.carId,
-                                                          reservation.id,
-                                                          reservation.userTaskId!,
-                                                          kmStart,
-                                                          kmEnd,
-                                                          timestamp,
-                                                          comment) } />)
+                                                index,
+                                                reservation.carId,
+                                                reservation.id,
+                                                reservation.userTaskId!,
+                                                kmStart,
+                                                kmEnd,
+                                                timestamp,
+                                                carStatusComment) } />)
                   }
                 </Accordion>
         }
