@@ -29,8 +29,12 @@ i18n.addResources('en', 'driver/history', {
       "detail-modal-km-start": "KM from:",
       "detail-modal-km-end": "KM until:",
       "detail-modal-usage-from": "Begin:",
+      "detail-modal-usage-from-not-confirmed": "Cancelled before usage",
       "detail-modal-usage-until": "End:",
+      "detail-modal-usage-until-not-confirmed": "Not confirmed",
+      "detail-modal-usage-until-cancelled": "Cancelled before usage",
       "detail-modal-reserved-at": "Reserved:",
+      "detail-modal-last-interaction-comment": "Admin comment:",
     });
 i18n.addResources('de', 'driver/history', {
       "title": "Historie",
@@ -52,8 +56,12 @@ i18n.addResources('de', 'driver/history', {
       "detail-modal-km-start": "KM Beginn:",
       "detail-modal-km-end": "KM Ende:",
       "detail-modal-usage-from": "Beginn:",
+      "detail-modal-usage-from-not-confirmed": "Vor Nutzung abgebrochen",
       "detail-modal-usage-until": "Ende:",
+      "detail-modal-usage-until-not-confirmed": "Nicht eingetragen",
+      "detail-modal-usage-until-cancelled": "Vor Nutzung abgebrochen",
       "detail-modal-reserved-at": "Reserviert:",
+      "detail-modal-last-interaction-comment": "Administrator:",
     });
 
 const Main = () => {

@@ -1232,6 +1232,8 @@ components:
           format: int32
         carStatusComment:
           type: string
+        LastInteractionComment:
+          type: string
         hoursPlanned:
           type: integer
           format: int32

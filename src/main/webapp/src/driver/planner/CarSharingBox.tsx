@@ -103,7 +103,10 @@ const CarSharingBox = ({
         setShowEditMenu(false);
         setReasonModal({
             prefix: 'cancellation',
-            action: (currentComment) => cancelReservation(undefined, car.id, hour.reservation!.id, currentComment)
+            action: (currentComment) => {
+                setReasonModal(undefined);
+                cancelReservation(undefined, car.id, hour.reservation!.id, currentComment);
+              }
           });
       }, [ state.currentUser, cancelReservation, car.id, hour.reservation, setShowEditMenu ]);
 
@@ -156,6 +159,7 @@ const CarSharingBox = ({
         event.preventDefault();
         event.stopPropagation();
         const isOwner = state.currentUser!.memberId === hour.reservation!.driverMemberId!;
+        setReasonModal(undefined);
         activateSelection(
             hour.reservation,
             car.id,

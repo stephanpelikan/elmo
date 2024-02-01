@@ -183,15 +183,15 @@ const HistoryAccordionPanel = ({
                               modal!.type === ReservationType.Cs
                                   ? <Car size={ isNotPhone ? '30rem' : undefined } />
                                   : modal!.type === ReservationType.Ps
-                                      ? <Schedule size={ isNotPhone ? '30rem' : undefined } />
-                                      : undefined
+                                  ? <Schedule size={ isNotPhone ? '30rem' : undefined } />
+                                  : undefined
                             }>
                           {
                             t(modal!.type === ReservationType.Cs
                                 ? 'car-sharing'
                                 : modal!.type === ReservationType.Ps
-                                    ? 'passenger-service'
-                                    : 'unknown')
+                                ? 'passenger-service'
+                                : 'unknown')
                           }
                         </Heading>
                       </Box>
@@ -208,8 +208,14 @@ const HistoryAccordionPanel = ({
                     <Text textAlign="end">{ modal!.usageMinutes! / 60 }h</Text>
                     <Text><i>{ t('detail-modal-car') }</i></Text>
                     <Text textAlign="end">{ modal!.carName }</Text>
-                    <Text><i>{ t('detail-modal-distance') }</i></Text>
-                    <Text textAlign="end">{ modal!.kmAtEnd! - modal!.kmAtStart! }km</Text>
+                    {
+                      modal!.kmAtStart && modal!.kmAtEnd
+                          ? <>
+                              <Text><i>{ t('detail-modal-distance') }</i></Text>
+                              <Text textAlign="end">{ modal!.kmAtEnd! - modal!.kmAtStart! }km</Text>
+                            </>
+                          : undefined
+                    }
                   </Grid>
                   <Heading
                       level='3'>
@@ -224,13 +230,47 @@ const HistoryAccordionPanel = ({
                           <Text><i>{ t('detail-modal-reserved-at') }</i></Text>
                           <Text textAlign="end">{ modal!.createdAt?.toLocaleString() }</Text>
                           <Text><i>{ t('detail-modal-usage-from') }</i></Text>
-                          <Text textAlign="end">{ modal!.startUsage?.toLocaleString() }</Text>
+                          <Text textAlign="end">
+                            {
+                              modal!.startUsage === undefined
+                                  ? t('detail-modal-usage-from-not-confirmed')
+                                  : modal!.startUsage?.toLocaleString()
+                            }
+                          </Text>
                           <Text><i>{ t('detail-modal-usage-until') }</i></Text>
-                          <Text textAlign="end">{ modal!.endUsage?.toLocaleString() }</Text>
-                          <Text><i>{ t('detail-modal-km-start') }</i></Text>
-                          <Text textAlign="end">{ modal!.kmAtStart }km</Text>
-                          <Text><i>{ t('detail-modal-km-end') }</i></Text>
-                          <Text textAlign="end">{ modal!.kmAtEnd }km</Text>
+                          <Text textAlign="end">
+                            {
+                              modal!.endUsage !== undefined
+                                  ? modal!.endUsage?.toLocaleString()
+                                  : modal!.status === "NOT_CONFIRMED"
+                                  ? t('detail-modal-usage-until-not-confirmed')
+                                  : t('detail-modal-usage-until-cancelled')
+                            }
+                          </Text>
+                          {
+                            modal!.startUsage !== undefined
+                                ? <>
+                                    <Text><i>{ t('detail-modal-km-start') }</i></Text>
+                                    <Text textAlign="end">{ modal!.kmAtStart }km</Text>
+                                  </>
+                                : undefined
+                          }
+                          {
+                            modal!.endUsage !== undefined
+                                ? <>
+                                    <Text><i>{ t('detail-modal-km-end') }</i></Text>
+                                    <Text textAlign="end">{ modal!.kmAtEnd }km</Text>
+                                  </>
+                                : undefined
+                          }
+                          {
+                            modal!.lastInteractionComment !== undefined
+                                ? <>
+                                  <Text><i>{ t('detail-modal-last-interaction-comment') }</i></Text>
+                                  <Text textAlign="end">"{ modal!.lastInteractionComment }"</Text>
+                                </>
+                                : undefined
+                          }
                         </Grid>
                         : modal!.type === ReservationType.Ps
                             ? <Grid

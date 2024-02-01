@@ -38,6 +38,7 @@ public abstract class GuiApiMapper extends ReservationMapperBase {
             result.setEndUsage(carSharing.getEndUsage());
             result.setHoursPlanned(carSharing.getHoursPlanned());
             result.setUsageMinutes(carSharing.getUsageMinutes());
+            result.setLastInteractionComment(carSharing.getLastInteractionComment());
             
         } else if (result.getType() == ReservationType.PS) {
             
