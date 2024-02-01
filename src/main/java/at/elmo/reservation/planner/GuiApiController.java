@@ -174,17 +174,16 @@ public class GuiApiController implements PlannerApi {
                     shift.getStartsAt(),
                     shift.getEndsAt())
                     .stream()
+                    .filter(reservation -> reservation instanceof DriverBasedReservation)
+                    .map(reservation -> (DriverBasedReservation) reservation)
+                    .filter(reservation -> reservation.getDriver() != null
+                            && reservation.getDriver().getId().equals(driver.getId()))
                     .forEach(reservation -> {
-                        if ((reservation instanceof CarSharing)
-                                && ((CarSharing) reservation).getDriver().getId()
-                                        .equals(driver.getId())) {
+                        if (reservation instanceof CarSharing) {
                             throw new ElmoValidationException(
                                     "parallel-carsharing",
                                     reservation.getCar().getName());
-                        } else if ((reservation instanceof Shift)
-                                && (((Shift) reservation).getDriver() != null)
-                                && ((Shift) reservation).getDriver().getId()
-                                .equals(driver.getId())) {
+                        } else if (reservation instanceof Shift) {
                             throw new ElmoValidationException(
                                     "parallel-passengerservice",
                                     reservation.getCar().getName());

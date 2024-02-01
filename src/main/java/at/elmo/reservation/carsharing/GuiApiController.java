@@ -125,26 +125,26 @@ public class GuiApiController implements CarSharingApi {
 
         try {
             reservationService.findReservations(
-                            carSharing.getStartsAt(),
-                            carSharing.getEndsAt())
+                            resizeCarSharingRequest.getStartsAt(),
+                            resizeCarSharingRequest.getEndsAt())
                     .stream()
                     .filter(reservation -> !reservation.getId().equals(reservationId))
-                    .filter(reservation -> reservation instanceof DriverBasedReservation)
-                    .map(reservation -> (DriverBasedReservation) reservation)
-                    .forEach(reservation -> {
+                    .peek(reservation -> {
                         if (reservation.getCar().getId().equals(carSharing.getId())) {
                             throw new ElmoException();
                         }
-                        if ((reservation instanceof CarSharing)
-                                && reservation.getDriver().getId()
-                                .equals(carSharing.getDriver().getId())) {
+                    })
+                    .filter(reservation -> reservation instanceof DriverBasedReservation)
+                    .map(reservation -> (DriverBasedReservation) reservation)
+                    .filter(reservation -> reservation.getDriver() != null
+                            && reservation.getDriver().getId().equals(carSharing.getDriver().getId()))
+                    .forEach(reservation -> {
+                        logger.info("test: {}", reservation.getId());
+                        if (reservation instanceof CarSharing) {
                             throw new ElmoValidationException(
                                     "parallel-carsharing",
                                     reservation.getCar().getName());
-                        } else if ((reservation instanceof Shift)
-                                && (reservation.getDriver() != null)
-                                && reservation.getDriver().getId()
-                                .equals(carSharing.getDriver().getId())) {
+                        } else if (reservation instanceof Shift) {
                             throw new ElmoValidationException(
                                     "parallel-passengerservice",
                                     reservation.getCar().getName());
@@ -241,22 +241,21 @@ public class GuiApiController implements CarSharingApi {
                             carSharingReservation.getStartsAt(),
                             carSharingReservation.getEndsAt())
                     .stream()
-                    .filter(reservation -> reservation instanceof DriverBasedReservation)
-                    .map(reservation -> (DriverBasedReservation) reservation)
-                    .forEach(reservation -> {
+                    .peek(reservation -> {
                         if (reservation.getCar().getId().equals(carId)) {
                             throw new ElmoException();
                         }
-                        if ((reservation instanceof CarSharing)
-                                && reservation.getDriver().getId()
-                                        .equals(driver.getId())) {
+                    })
+                    .filter(reservation -> reservation instanceof DriverBasedReservation)
+                    .map(reservation -> (DriverBasedReservation) reservation)
+                    .filter(reservation -> reservation.getDriver() != null
+                            && reservation.getDriver().getId().equals(driver.getId()))
+                    .forEach(reservation -> {
+                        if (reservation instanceof CarSharing) {
                             throw new ElmoValidationException(
                                     "parallel-carsharing",
                                     reservation.getCar().getName());
-                        } else if ((reservation instanceof Shift)
-                                && (reservation.getDriver() != null)
-                                && reservation.getDriver().getId()
-                                .equals(driver.getId())) {
+                        } else if (reservation instanceof Shift) {
                             throw new ElmoValidationException(
                                     "parallel-passengerservice",
                                     reservation.getCar().getName());

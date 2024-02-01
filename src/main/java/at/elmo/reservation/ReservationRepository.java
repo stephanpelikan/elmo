@@ -25,10 +25,10 @@ public interface ReservationRepository extends JpaRepository<ReservationBase, St
 
     @Query("SELECT r FROM ReservationBase r WHERE "
             + "(r.cancelled = false) "
-            + "AND ((r.startsAt <= ?1 AND r.endsAt >= ?2) " // total outer or equal overlapping
+            + "AND ((r.startsAt >= ?1 AND r.endsAt <= ?2) " // inner or equal overlapping
+            + "OR (r.startsAt < ?1 AND r.endsAt > ?2) "     // total outer overlapping
             + "OR (r.startsAt <= ?1 AND r.endsAt > ?1) "    // left overlapping (inner and outer)
-            + "OR (r.startsAt < ?2 AND r.endsAt >= ?2) "    // right overlapping (inner and outer)
-            + "OR (r.startsAt > ?1 AND r.endsAt < ?2))"     // inner overlapping
+            + "OR (r.startsAt < ?2 AND r.endsAt >= ?2))"    // right overlapping (inner and outer)
             + "ORDER BY r.startsAt")
     List<ReservationBase> findInPeriod(LocalDateTime startsAt, LocalDateTime endsAt);
 
