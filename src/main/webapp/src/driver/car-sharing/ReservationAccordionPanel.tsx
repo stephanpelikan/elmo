@@ -116,10 +116,10 @@ const ReservationAccordionPanel = ({
   const [ timestamp, setTimestamp ] = useState<Date | undefined>(undefined);
   const [ kmStart, setKmStart ] = useState<number | undefined>(reservation.carKm);
   const [ kmEnd, setKmEnd ] = useState<number | undefined>(undefined);
-  const [ comment, setComment ] = useState<string | undefined>(reservation.carStatusComment);
+  const [ carStatusComment, setCarStatusComment ] = useState<string | undefined>(reservation.carStatusComment);
   
   const showConfirmStartModal = () => {
-    setComment(reservation.carStatusComment);
+    setCarStatusComment(reservation.carStatusComment);
     setConfirmation('start');
     setTimestamp(nextHours(now, 1, false));
     setViolations(undefined);
@@ -167,11 +167,11 @@ const ReservationAccordionPanel = ({
               });
       setExtendOptions(newExtendOptions);
       setKmEnd(undefined);
-      setComment(reservation.carStatusComment);
+      setCarStatusComment(reservation.carStatusComment);
       setTimestamp(reservation.endsAt);
       setConfirmation(type);
       setViolations(undefined);
-    }, [ plannerApi, reservation, setConfirmation, setTimestamp, setComment, setKmEnd, setExtendOptions, setViolations ]);
+    }, [ plannerApi, reservation, setConfirmation, setTimestamp, setCarStatusComment, setKmEnd, setExtendOptions, setViolations ]);
   const showExtendModal = () => extendModal('extend');
   
   const showConfirmStopModal = () => extendModal('stop');
@@ -383,8 +383,8 @@ const ReservationAccordionPanel = ({
                     }
                     <SubHeading>{ t('comment-title') }:</SubHeading>
                     <TextArea
-                        value={ comment }
-                        onChange={event => setComment(event.target.value)}
+                        value={ carStatusComment }
+                        onChange={event => setCarStatusComment(event.target.value)}
                         style={ { height: '7rem' } }
                         placeholder={ t('comment-placeholder') } />
                   </Box>
@@ -498,8 +498,8 @@ const ReservationAccordionPanel = ({
                               <Box
                                   margin={ { bottom: 'small' } }>
                                 <TextArea
-                                    value={ comment }
-                                    onChange={event => setComment(event.target.value)}
+                                    value={ carStatusComment }
+                                    onChange={event => setCarStatusComment(event.target.value)}
                                     style={ { height: '7rem' } }
                                     placeholder={ t('comment-placeholder') } />
                               </Box>
