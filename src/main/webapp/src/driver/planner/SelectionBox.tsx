@@ -1,12 +1,15 @@
 import { Box, Text } from "grommet";
+import { FormCheckmark, FormClose, FormDown, FormNext, FormPrevious, FormUp, IconProps } from "grommet-icons";
 import { BorderType, normalizeColor } from "grommet/utils";
-import { CSSProperties, MouseEvent } from "react";
+import { CSSProperties, MouseEvent, useCallback, useRef, useState } from "react";
 import styled from "styled-components";
 import { useAppContext } from "../../AppContext";
-import { CalendarHour, ReservationDrivers, Selection } from "./utils";
-import { timeAsString, numberOfHoursBetween } from '../../utils/timeUtils';
 import { UserAvatar } from "../../components/UserAvatar";
-import { FormCheckmark, FormClose, FormDown, FormUp } from "grommet-icons";
+import useOnClickOutside from "../../utils/clickOutside";
+import { numberOfHoursBetween, timeAsString } from '../../utils/timeUtils';
+import { PlannerButton } from "./PlannerButton";
+import { PlannerContextMenu } from "./PlannerContextMenu";
+import { CalendarHour, ReservationDrivers, Selection, SelectionAction } from "./utils";
 
 const StyledSelectionBox = styled(Box)<{
     selectionBorderRadius: CSSProperties,
@@ -45,17 +48,39 @@ const DragBox = styled(Box)<{
     display: inline-block;
   `;
 
+interface ActionIconProps extends IconProps {
+  action: SelectionAction;
+}
+
+const ActionIcon = ({ action, ...props }: ActionIconProps) => {
+  if (action.icon === undefined) return <FormCheckmark {...props} />;
+  const Icon = action.icon;
+  return <Icon {...props} />;
+}
+
 const SelectionBox = ({ hour, selection, drivers, mouseDownOnDrag, cancelSelection, acceptSelection, touchMove, touchEnd }: {
     hour: CalendarHour,
     selection: Selection,
     drivers: ReservationDrivers,
     cancelSelection: () => void,
-    acceptSelection: (event: MouseEvent) => void,
+    acceptSelection: (indexOfSelectionAction: number) => void,
     mouseDownOnDrag: (event: MouseEvent | TouchEvent, top: boolean) => void,
     touchMove: (event: TouchEvent) => void,
     touchEnd: (event: TouchEvent) => void,
   }) => {
     const { state } = useAppContext();
+
+    const [ showEditMenu, _setShowEditMenu ] = useState(false);
+    const setShowEditMenu = useCallback((event, show: boolean) => {
+      event.preventDefault();
+      event.stopPropagation();
+      _setShowEditMenu(show);
+    }, [ _setShowEditMenu ]);
+    const ref = useRef(null);
+    useOnClickOutside(ref, event => {
+      if (!showEditMenu) return;
+      setShowEditMenu(event, false);
+    });
 
     const isFirstHourOfSelection = selection.startsAt.getTime() === hour.startsAt.getTime();
     const isLastHourOfSelection = selection.endsAt.getTime() === hour.endsAt.getTime();
@@ -89,10 +114,15 @@ const SelectionBox = ({ hour, selection, drivers, mouseDownOnDrag, cancelSelecti
     const numberOfHours = numberOfHoursBetween(selection.startsAt, selection.endsAt);
     const currentHour = numberOfHoursBetween(hour.startsAt, selection.startsAt);
 
-    const doCancelSelection = (event) => {
+    const doCancelSelection = (event: MouseEvent) => {
         event.preventDefault();
         event.stopPropagation();
         cancelSelection();
+      };
+    const doAcceptSelection = (event: MouseEvent, indexOfSelectionAction: number) => {
+        event.preventDefault();
+        event.stopPropagation();
+        acceptSelection(indexOfSelectionAction);
       };
 
     return <StyledSelectionBox
@@ -181,16 +211,58 @@ const SelectionBox = ({ hour, selection, drivers, mouseDownOnDrag, cancelSelecti
                         <Box
                             direction="row"
                             gap="small">
-                          <Box
-                              onMouseDownCapture={ acceptSelection }
-                              round="full"
-                              overflow="hidden"
-                              border={ { color: 'accent-3', size: '3px' } }
-                              background='status-ok'>
-                            <FormCheckmark
-                                color="white"
-                                size="30rem" />
-                          </Box>
+                          {
+                            selection.actions?.length === 0
+                                ? undefined
+                                : selection.actions.length === 1
+                                ? <Box
+                                      onMouseDownCapture={ (event) => doAcceptSelection(event, 0) }
+                                      round="full"
+                                      overflow="hidden"
+                                      border={ { color: 'accent-3', size: '3px' } }
+                                      background='status-ok'>
+                                    {
+                                      <ActionIcon
+                                          action={ selection.actions[0] }
+                                          color="white"
+                                          size="30rem" />
+                                    }
+                                  </Box>
+                                : !showEditMenu
+                                ? <Box
+                                      onMouseDownCapture={ (event) => setShowEditMenu(event, true) }
+                                      round="full"
+                                      overflow="hidden"
+                                      border={ { color: 'accent-3', size: '3px' } }
+                                      background='status-ok'>
+                                    {
+                                      <FormNext
+                                          color="white"
+                                          size="30rem" />
+                                    }
+                                  </Box>
+                                : <PlannerContextMenu
+                                      inSelection
+                                      ref={ ref }>
+                                    <PlannerButton
+                                        inContextMenu
+                                        action={ (event) => setShowEditMenu(event, false) }
+                                        background='dark-4'
+                                        showBorder={false}
+                                        iconSize="30rem"
+                                        icon={ FormPrevious } />
+                                    {
+                                      selection.actions.map((action, indexOfAction) => (
+                                          <PlannerButton
+                                              inContextMenu
+                                              action={ (event) => doAcceptSelection(event, indexOfAction) }
+                                              background={ action.iconBackground }
+                                              iconSize="20rem"
+                                              icon={ action.icon } />
+                                      ))
+                                    }
+                                  </PlannerContextMenu>
+                          }
                           <Box
                               onMouseDownCapture={ doCancelSelection }
                               round="full"

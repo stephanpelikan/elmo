@@ -1,7 +1,9 @@
 import { PlannerDriver, PlannerReservation } from "client/gui";
 import { WakeupSseCallback } from "components/SseProvider";
-import React, { MutableRefObject, useContext } from "react";
+import { Icon } from "grommet-icons";
+import { BackgroundType } from "grommet/utils";
 import { TFunction } from "i18next";
+import React, { MutableRefObject, useContext } from "react";
 
 interface CalendarHours {
   [key: string /* car id */]: Array<CalendarHour> /* hours of day */
@@ -19,6 +21,14 @@ interface CalendarHour {
   reservation: PlannerReservation | undefined;
 };
 
+interface SelectionAction {
+  action: (startsAt: Date, endsAt: Date, comment?: string) => void;
+  icon?: Icon;
+  iconBackground?: BackgroundType;
+  modalTPrefix?: string;
+  modalT?: TFunction;
+}
+
 interface Selection {
   startedAtStarts: Date;
   startedAtEnds: Date;
@@ -26,10 +36,8 @@ interface Selection {
   endsAt: Date;
   carId: string;
   ownerId: number | null | undefined;
+  actions?: Array<SelectionAction>;
   editingReservation?: string;
-  editingAction?: (startsAt: Date, endsAt: Date, comment?: string) => void;
-  editingModalPrefix?: string;
-  editingModalT?: TFunction;
 };
 
 interface ReservationDrivers {
@@ -41,6 +49,7 @@ export type {
   CalendarHour,
   CalendarHours,
   Selection,
+  SelectionAction,
   ReservationDrivers,  
 };
 

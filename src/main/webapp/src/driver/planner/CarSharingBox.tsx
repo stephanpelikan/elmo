@@ -1,7 +1,6 @@
 import { Box, Text, TextArea } from "grommet";
 import { Configure, Expand, FormClose } from "grommet-icons";
 import { BackgroundType, BorderType } from "grommet/utils";
-import { TFunction } from "i18next";
 import { MouseEvent, useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAppContext } from "../../AppContext";
@@ -15,7 +14,7 @@ import { timeAsString } from "../../utils/timeUtils";
 import { useCarSharingApi } from "../DriverAppContext";
 import { PlannerButton } from "./PlannerButton";
 import { PlannerContextMenu } from "./PlannerContextMenu";
-import { CalendarHour, ReservationDrivers } from "./utils";
+import { CalendarHour, ReservationDrivers, SelectionAction } from "./utils";
 
 i18n.addResources('en', 'driver/planner/carsharing', {
       "conflicting-reservation_title": "Passenger Service",
@@ -64,7 +63,7 @@ const CarSharingBox = ({
     isFirstHourOfReservation: boolean,
     isLastHourOfReservation: boolean,
     drivers: ReservationDrivers,
-    activateSelection: (reservation: PlannerReservation, ownerId: number | null | undefined, carId: string, action: (startsAt: Date, endsAt: Date, comment?: string) => void, modalPrefix?: string, modalT?: TFunction) => void,
+    activateSelection: (reservation: PlannerReservation, ownerId: number | null | undefined, carId: string, actions: Array<SelectionAction>) => void,
     cancelSelection: () => void,
   }) => {
     const { state, toast, showLoadingIndicator } = useAppContext();
@@ -134,6 +133,10 @@ const CarSharingBox = ({
       });
 
     const doResizing = async (startsAt: Date, endsAt: Date, comment?: string) => {
+      if ((startsAt.getTime() === hour.reservation.startsAt.getTime())
+          && (endsAt.getTime() === hour.reservation.endsAt.getTime())) {
+        return;
+      }
       try {
         showLoadingIndicator(true);
         await carSharingApi.resizeCarSharingReservation({
@@ -179,9 +182,11 @@ const CarSharingBox = ({
             hour.reservation,
             hour.reservation.driverMemberId,
             car.id,
-            doResizing,
-            isOwner ? undefined : 'resize',
-            isOwner ? undefined : t);
+            [ {
+                action: doResizing,
+                modalTPrefix: isOwner ? undefined : 'resize',
+                modalT: isOwner ? undefined : t
+              } ]);
     };
 
     const borderColor =

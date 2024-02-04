@@ -1,22 +1,33 @@
-import { forwardRef, LegacyRef, PropsWithChildren } from "react";
 import { Box } from "grommet";
+import { forwardRef, LegacyRef, PropsWithChildren } from "react";
 import useResponsiveScreen from "../../utils/responsiveUtils";
 
 const PlannerContextMenu = forwardRef(({
+    inSelection = false,
     children
-  }: PropsWithChildren<{}>, ref: LegacyRef<HTMLDivElement>
+  }: PropsWithChildren<{inSelection?: boolean}>, ref: LegacyRef<HTMLDivElement>
 ) => {
   const { isPhone } = useResponsiveScreen();
   return <Box
         ref={ ref }
+        width={ inSelection ? "3rem" : undefined }
         style={ { position: 'relative' } }>
       <Box
-          style={ {
-              position: 'absolute',
-              right: '2.125rem',
-              top: '-0.525rem',
-              zIndex: 4,
-            } }
+          style={
+            inSelection
+                ? {
+                    position: 'absolute',
+                    right: '-0.35rem',
+                    top: '-0.375rem',
+                    zIndex: 4,
+                  }
+                : {
+                    position: 'absolute',
+                    right: '2.125rem',
+                    top: '-0.525rem',
+                    zIndex: 4,
+                  }
+            }
           elevation="large"
           round={ isPhone ? 'large' : 'medium' }
           align="center"

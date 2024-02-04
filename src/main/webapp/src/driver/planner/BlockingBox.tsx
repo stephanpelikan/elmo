@@ -1,17 +1,16 @@
 import { Box, Text } from 'grommet';
-import { useTranslation } from 'react-i18next';
-import i18n from '../../i18n';
-import { MouseEvent, useCallback, useRef, useState } from "react";
-import { CalendarHour } from './utils';
-import { BorderType } from 'grommet/utils';
-import { PlannerButton } from "./PlannerButton";
 import { Configure, Expand, FormClose } from "grommet-icons";
-import { PlannerCar, PlannerReservation, Role } from "../../client/gui";
-import { TFunction } from "i18next";
+import { BorderType } from 'grommet/utils';
+import { MouseEvent, useCallback, useRef, useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { useAppContext } from "../../AppContext";
-import { PlannerContextMenu } from "./PlannerContextMenu";
+import { PlannerCar, PlannerReservation, Role } from "../../client/gui";
+import i18n from '../../i18n';
 import useOnClickOutside from "../../utils/clickOutside";
 import { useBlockingApi } from "../DriverAppContext";
+import { PlannerButton } from "./PlannerButton";
+import { PlannerContextMenu } from "./PlannerContextMenu";
+import { CalendarHour, SelectionAction } from './utils';
 
 i18n.addResources('en', 'driver/planner/block', {
       "reservation-type": "Unavailable",
@@ -33,7 +32,7 @@ const BlockingBox = ({
     car: PlannerCar,
     isFirstHourOfReservation: boolean,
     isLastHourOfReservation: boolean,
-    activateSelection: (reservation: PlannerReservation, ownerId: number | null | undefined, carId: string, action: (startsAt: Date, endsAt: Date, comment?: string) => void, modalPrefix?: string, modalT?: TFunction) => void,
+    activateSelection: (reservation: PlannerReservation, ownerId: number | null | undefined, carId: string, actions: Array<SelectionAction>) => void,
     cancelSelection: () => void,
   }) => {
     const { state, showLoadingIndicator } = useAppContext();
@@ -92,7 +91,9 @@ const BlockingBox = ({
           hour.reservation,
           null,
           car.id,
-          doResizing);
+          [ {
+              action: doResizing
+            } ]);
     };
 
     const borderColor = 'dark-4';

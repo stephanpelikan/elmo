@@ -1,12 +1,5 @@
 import { Box, ColumnConfig, DataTable, DateInput, Text, TextArea } from "grommet";
-import { useTranslation } from "react-i18next";
-import i18n from '../../i18n';
-import { debounceByKey } from '../../utils/debounce';
-import useResponsiveScreen from '../../utils/responsiveUtils';
-import { currentHour, nextHours, numberOfHoursBetween } from '../../utils/timeUtils';
-import { SnapScrollingDataTable } from '../../components/SnapScrollingDataTable';
-import { useCarSharingApi, usePlannerApi } from '../DriverAppContext';
-import { PlannerApi, PlannerCar, PlannerReservation, ReservationType, ReservationEvent } from "../../client/gui";
+import { Car, Contract, DocumentTime, Halt, History, MapLocation, Troubleshoot } from "grommet-icons";
 import {
   memo,
   MouseEvent,
@@ -19,19 +12,32 @@ import {
   useRef,
   useState
 } from "react";
-import { Contract, DocumentTime, History } from "grommet-icons";
+import { useTranslation } from "react-i18next";
 import { useAppContext } from "../../AppContext";
-import { CalendarHeader } from "../../components/CalendarHeader";
+import { PlannerApi, PlannerCar, PlannerReservation, ReservationEvent, ReservationType } from "../../client/gui";
 import { useGuiSse } from '../../client/guiClient';
-import { now, registerEachSecondHook, unregisterEachSecondHook } from '../../utils/now-hook';
-import { EventSourceMessage } from "../../components/SseProvider";
-import { CalendarDay, CalendarHour, ReservationDrivers, Selection, useWakeupSseCallback } from "./utils";
-import { SelectionBox } from "./SelectionBox";
-import { CarSharingBox } from "./CarSharingBox";
-import { BlockingBox } from "./BlockingBox";
-import { PassengerServiceBox } from "./PassengerServiceBox";
+import { CalendarHeader } from "../../components/CalendarHeader";
 import { Modal } from "../../components/Modal";
-import { TFunction } from "i18next";
+import { SnapScrollingDataTable } from '../../components/SnapScrollingDataTable';
+import { EventSourceMessage } from "../../components/SseProvider";
+import i18n from '../../i18n';
+import { debounceByKey } from '../../utils/debounce';
+import { now, registerEachSecondHook, unregisterEachSecondHook } from '../../utils/now-hook';
+import useResponsiveScreen from '../../utils/responsiveUtils';
+import { currentHour, nextHours, numberOfHoursBetween } from '../../utils/timeUtils';
+import { useCarSharingApi, usePlannerApi } from '../DriverAppContext';
+import { BlockingBox } from "./BlockingBox";
+import { CarSharingBox } from "./CarSharingBox";
+import { PassengerServiceBox } from "./PassengerServiceBox";
+import { SelectionBox } from "./SelectionBox";
+import {
+  CalendarDay,
+  CalendarHour,
+  ReservationDrivers,
+  Selection,
+  SelectionAction,
+  useWakeupSseCallback
+} from "./utils";
 
 i18n.addResources('en', 'driver/planner', {
       "title.long": 'Planner',
@@ -92,8 +98,8 @@ const DayTable = memo<{
     day: CalendarDay,
     useSearch: boolean,
     selection: Selection,
-    acceptSelection: (event: MouseEvent) => void,
-    activateSelection: (reservation: PlannerReservation, ownerId: number | null | undefined, carId: string, action: (startsAt: Date, endsAt: Date, comment?: string) => void, modalPrefix?: string, modalT?: TFunction) => void,
+    acceptSelection: (indexOfSelectionAction: number) => void,
+    activateSelection: (reservation: PlannerReservation, ownerId: number | null | undefined, carId: string, actions: Array<SelectionAction>) => void,
     cancelSelection: () => void,
     mouseDownOnDrag: (event: ReactMouseEvent | TouchEvent, top: boolean) => void,
     mouseDownOnHour: (event: ReactMouseEvent, car: PlannerCar, hour: CalendarHour) => void,
@@ -387,6 +393,60 @@ const loadData = async (
 
 };
 
+const AcceptSelectionModal = ({
+  selection,
+  indexOfAction,
+  onAbort,
+  onAccept
+}: {
+  selection: Selection | undefined,
+  indexOfAction: number,
+  onAbort: () => void,
+  onAccept: () => void,
+}) => {
+  const [ modalComment, setModalComment ] = useState<string | undefined>(undefined);
+  const { isPhone } = useResponsiveScreen();
+
+  if (indexOfAction === -1) return undefined;
+
+  return (
+      <Modal
+          show={ true }
+          t={ selection.actions[indexOfAction].modalT }
+          header={ `${selection.actions[indexOfAction].modalTPrefix}-header` }
+          abort={ () => {
+            setModalComment('');
+            onAbort();
+          } }
+          abortLabel={ `${selection.actions[indexOfAction].modalTPrefix}-abort` }
+          action={ () => {
+            selection.actions[indexOfAction].action(
+                selection.startsAt,
+                selection.endsAt,
+                modalComment);
+            setModalComment('');
+            onAccept();
+          } }
+          actionLabel={ `${selection.actions[indexOfAction].modalTPrefix}-cancel` }
+          actionDisabled={ !Boolean(modalComment) }>
+        <Box
+            key={ `${indexOfAction}` }
+            direction="column"
+            pad={ { vertical: isPhone ? 'large' : 'small' } }
+            gap={ isPhone ? 'medium' : 'small' }>
+          {
+              selection.actions[indexOfAction].modalT
+              && selection.actions[indexOfAction].modalT(`${selection.actions[indexOfAction].modalTPrefix}-reason`)
+          }
+          <TextArea
+              value={ modalComment }
+              onChange={ event => setModalComment(event.target.value) }
+          />
+        </Box>
+      </Modal>);
+
+}
+
 const Planner = () => {
   
   const { t } = useTranslation('driver/planner');
@@ -396,6 +456,46 @@ const Planner = () => {
   const wakeupSseCallback = useWakeupSseCallback();
   const carSharingApi = useCarSharingApi(wakeupSseCallback);
   const plannerApi = usePlannerApi(wakeupSseCallback);
+  const addCarSharingReservation = useCallback(async () => {
+      try {
+        showLoadingIndicator(true);
+        await carSharingApi.addCarSharingReservation({
+          carId: selection.current!.carId,
+          addPlannerReservation: {
+            driverMemberId: state.currentUser!.memberId!,
+            startsAt: selection.current!.startsAt,
+            endsAt: selection.current!.endsAt,
+            type: ReservationType.Cs,
+          }
+        });
+        // selection will be cancelled by server-sent update
+      } catch (error) {
+        showLoadingIndicator(false);
+        // CONFLICT means there is another reservation
+        if (error.response?.status === 409) {
+          toast({
+            namespace: 'driver/car-sharing/booking',
+            title: t('conflicting-reservation_title'),
+            message: t('conflicting-reservation_msg'),
+            status: 'critical'
+          });
+        }
+        // violations response
+        else if (error.response?.json) {
+          const violations = await error.response?.json()
+          Object
+              .keys(violations)
+              .forEach(violation => {
+                toast({
+                  namespace: 'driver/car-sharing/booking',
+                  title: t(`${violation}_title`),
+                  message: t(`${violation}_msg`, { value: violations[violation] }),
+                  status: 'critical'
+                });
+              });
+        }
+      }
+    }, [ state.currentUser, t, carSharingApi, showLoadingIndicator, toast ]);
 
   useLayoutEffect(() => {
     setAppHeaderTitle('driver/planner', false);
@@ -502,9 +602,7 @@ const Planner = () => {
       reservation: PlannerReservation,
       ownerId: number | null | undefined,
       carId: string,
-      editingAction?: (startsAt: Date, endsAt: Date, comment?: string) => void,
-      editingModalPrefix?: string,
-      editingModalT?: TFunction,
+      actions?: Array<SelectionAction>,
     ) => {
       if (isMouseDown.current) return;
       increaseDayVersionsOfSelection();
@@ -516,9 +614,7 @@ const Planner = () => {
         carId: carId,
         ownerId: ownerId,
         editingReservation: reservation.id,
-        editingAction: editingAction,
-        editingModalPrefix: editingModalPrefix,
-        editingModalT: editingModalT,
+        actions: actions,
       };
       setSelection(s);
       // minimize selection to start-hour or selection across different days
@@ -543,9 +639,7 @@ const Planner = () => {
           carId: selection.current.carId,
           ownerId: selection.current.ownerId,
           editingReservation: selection.current.editingReservation,
-          editingAction: selection.current.editingAction,
-          editingModalPrefix: selection.current.editingModalPrefix,
-          editingModalT: selection.current.editingModalT,
+          actions: selection.current.actions,
         };
       setSelection(s);
       isMouseDown.current = true;
@@ -555,7 +649,10 @@ const Planner = () => {
       if (isMouseDown.current) return;
       if (hour.endsAt.getTime() < now.getTime()) return;
       event.preventDefault();
-      if ((restrictionsRef.current!.remainingHours < 1)
+      const isAdmin = state.currentUser.roles.includes("ADMIN")
+          || state.currentUser.roles.includes("MANAGER")
+      if (!isAdmin
+          && (restrictionsRef.current!.remainingHours < 1)
           && !restrictionsRef.current!.allowPaidCarSharing) {
         toast({
             namespace: 'driver/car-sharing/booking',
@@ -565,6 +662,16 @@ const Planner = () => {
           });
         return;
       }
+
+      const actions: Array<SelectionAction> =
+          isAdmin
+              ? [
+                  { action: addCarSharingReservation, icon: Car },
+                  { action: () => {}, icon: MapLocation, iconBackground: 'brand' },
+                  { action: () => {}, icon: Troubleshoot, iconBackground: 'blue' },
+                  { action: () => {}, icon: Halt, iconBackground: 'dark-4' },
+                ]
+              : [ { action: addCarSharingReservation } ];
 
       increaseDayVersionsOfSelection();
       increaseDayVersion(dayVersionsRef, hour.startsAt, car.id);
@@ -576,12 +683,13 @@ const Planner = () => {
           startsAt: hour.startsAt,
           endsAt: hour.endsAt,
           carId: car.id,
-          ownerId: undefined,
+          ownerId: isAdmin ? null : undefined,
+          actions
         };
       setSelection(s);
       isMouseDown.current = true;
       setMouseIsDown(true);
-    }, [ setMouseIsDown, t, toast, setSelection, updateDayVersions, increaseDayVersionsOfSelection ]);
+    }, [ setMouseIsDown, t, toast, setSelection, updateDayVersions, increaseDayVersionsOfSelection, addCarSharingReservation, state.currentUser.roles ]);
 
   const mouseEnterHour = useCallback((event: ReactMouseEvent | Event, car: PlannerCar, days: CalendarDay[], day: CalendarDay, hour: CalendarHour) => {
       if (!isMouseDown.current) return;
@@ -693,9 +801,7 @@ const Planner = () => {
           carId: car.id,
           ownerId: selection.current.ownerId,
           editingReservation: selection.current.editingReservation,
-          editingAction: selection.current.editingAction,
-          editingModalPrefix: selection.current.editingModalPrefix,
-          editingModalT: selection.current.editingModalT,
+          actions: selection.current.actions,
         };
       setSelection(s);
   }, [ isMouseDown, setSelection, selection, updateDayVersions ]);
@@ -750,64 +856,17 @@ const Planner = () => {
       setSelection(undefined);
     }, [ setSelection, selection, updateDayVersions ]);
 
-  const [ showAcceptModal, setShowAcceptModal ] = useState(false);
-  const acceptSelection = useCallback((event: ReactMouseEvent) => {
-      event.preventDefault();
-      event.stopPropagation();
-      const addPlannerReservation = async () => {
-          try {
-            showLoadingIndicator(true);
-            await carSharingApi.addCarSharingReservation({
-                carId: selection.current!.carId,
-                addPlannerReservation: {
-                  driverMemberId: state.currentUser!.memberId!,
-                  startsAt: selection.current!.startsAt,
-                  endsAt: selection.current!.endsAt,
-                  type: ReservationType.Cs,
-                }
-              });
-            // selection will be cancelled by server-sent update
-          } catch (error) {
-            showLoadingIndicator(false);
-            // CONFLICT means there is another reservation
-            if (error.response?.status === 409) {
-              toast({
-                  namespace: 'driver/car-sharing/booking',
-                  title: t('conflicting-reservation_title'),
-                  message: t('conflicting-reservation_msg'),
-                  status: 'critical'
-                });
-            }
-            // violations response
-            else if (error.response?.json) {
-              const violations = await error.response?.json()
-              Object
-                  .keys(violations)
-                  .forEach(violation => {
-                      toast({
-                          namespace: 'driver/car-sharing/booking',
-                          title: t(`${violation}_title`),
-                          message: t(`${violation}_msg`, { value: violations[violation] }),
-                          status: 'critical'
-                        });
-                  });
-            }
-          } 
-        };
-      if (selection.current!.editingReservation === undefined) {
-        addPlannerReservation();
-        cancelSelection();
-        return;
-      }
-      if (selection.current!.editingModalPrefix === undefined) {
-        selection.current!.editingAction(
+  const [ showAcceptModal, setShowAcceptModal ] = useState(-1);
+  const acceptSelection = useCallback((indexOfSelectionAction: number) => {
+      if (selection.current!.actions[indexOfSelectionAction].modalTPrefix === undefined) {
+        selection.current!.actions[indexOfSelectionAction].action(
             selection.current!.startsAt,
             selection.current!.endsAt);
         cancelSelection();
         return;
       }
-      setShowAcceptModal(true);
-    }, [ carSharingApi, t, toast, selection, state.currentUser, showLoadingIndicator, setShowAcceptModal, cancelSelection ]);
+      setShowAcceptModal(indexOfSelectionAction);
+    }, [ selection, setShowAcceptModal, cancelSelection ]);
 
   useEffect(() => {
       window.addEventListener('mouseup', mouseUp);
@@ -909,8 +968,6 @@ const Planner = () => {
   const currentRemainingHours = restrictions === undefined
       ? '-'
       : (restrictions.remainingHours - (selection.current !== undefined ? numberOfHoursBetween(selection.current.endsAt, selection.current.startsAt) : 0));
-
-  const [ modalComment, setModalComment ] = useState<string | undefined>(undefined);
 
   return (
       <Box
@@ -1018,42 +1075,17 @@ const Planner = () => {
             onMore={ loadMore }
             data={ days }
             replace={ true } />
-        <Modal
-            show={ showAcceptModal }
-            t={ selection?.current?.editingModalT }
-            header={ `${selection?.current?.editingModalPrefix}-header` }
-            abort={ () => {
-              setModalComment('');
-              setShowAcceptModal(false);
-              cancelSelection();
-            } }
-            abortLabel={ `${selection?.current?.editingModalPrefix}-abort` }
-            action={ () => {
-              selection?.current?.editingAction(
-                  selection.current.startsAt,
-                  selection.current.endsAt,
-                  modalComment);
-              setModalComment('');
-              setShowAcceptModal(false);
-              cancelSelection();
-            } }
-            actionLabel={ `${selection?.current?.editingModalPrefix}-cancel` }
-            actionDisabled={ !Boolean(modalComment) }>
-          <Box
-              key={ `${showAcceptModal}` }
-              direction="column"
-              pad={ { vertical: isPhone ? 'large' : 'small' } }
-              gap={ isPhone ? 'medium' : 'small' }>
-            {
-              selection?.current?.editingModalT
-                  && selection?.current?.editingModalT(`${selection?.current?.editingModalPrefix}-reason`)
-            }
-            <TextArea
-                value={ modalComment }
-                onChange={ event => setModalComment(event.target.value) }
-            />
-          </Box>
-        </Modal>
+        <AcceptSelectionModal
+            selection={ selection.current }
+            indexOfAction={ showAcceptModal }
+            onAccept={ () => {
+                setShowAcceptModal(-1);
+                cancelSelection();
+              } }
+            onAbort={ () => {
+                setShowAcceptModal(-1);
+                cancelSelection();
+              } } />
       </Box>);
       
 };
