@@ -1,21 +1,21 @@
 import { Box, Text, TextArea } from "grommet";
 import { Configure, Expand, FormClose } from "grommet-icons";
 import { BackgroundType, BorderType } from "grommet/utils";
-import { MouseEvent as ReactMouseEvent, MouseEvent, useCallback, useRef, useState } from "react";
+import { TFunction } from "i18next";
+import { MouseEvent, useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAppContext } from "../../AppContext";
 import { PlannerCar, PlannerReservation, Role } from "../../client/gui";
 import { Modal } from "../../components/Modal";
 import { UserAvatar } from "../../components/UserAvatar";
+import i18n from '../../i18n';
 import useOnClickOutside from "../../utils/clickOutside";
+import useResponsiveScreen from "../../utils/responsiveUtils";
 import { timeAsString } from "../../utils/timeUtils";
+import { useCarSharingApi } from "../DriverAppContext";
 import { PlannerButton } from "./PlannerButton";
 import { PlannerContextMenu } from "./PlannerContextMenu";
 import { CalendarHour, ReservationDrivers } from "./utils";
-import i18n from '../../i18n';
-import useResponsiveScreen from "../../utils/responsiveUtils";
-import { TFunction } from "i18next";
-import { useCarSharingApi } from "../DriverAppContext";
 
 i18n.addResources('en', 'driver/planner/carsharing', {
       "conflicting-reservation_title": "Passenger Service",

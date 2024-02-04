@@ -94,7 +94,7 @@ const DayTable = memo<{
     selection: Selection,
     acceptSelection: (event: MouseEvent) => void,
     activateSelection: (reservation: PlannerReservation, ownerId: number | null | undefined, carId: string, action: (startsAt: Date, endsAt: Date, comment?: string) => void, modalPrefix?: string, modalT?: TFunction) => void,
-    cancelSelection: (event?: ReactMouseEvent) => void,
+    cancelSelection: () => void,
     mouseDownOnDrag: (event: ReactMouseEvent | TouchEvent, top: boolean) => void,
     mouseDownOnHour: (event: ReactMouseEvent, car: PlannerCar, hour: CalendarHour) => void,
     mouseEnterHour: (event: ReactMouseEvent | Event, car: PlannerCar, days: CalendarDay[], day: CalendarDay, hour: CalendarHour) => void,
@@ -737,11 +737,7 @@ const Planner = () => {
   const touchEnd = useCallback(() => {
       mouseUp();
     }, [ mouseUp ]);
-  const cancelSelection = useCallback((event?: ReactMouseEvent) => {
-      if (event) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
+  const cancelSelection = useCallback(() => {
       if (selection.current === undefined) {
         return;
       }

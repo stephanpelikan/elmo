@@ -49,7 +49,7 @@ const SelectionBox = ({ hour, selection, drivers, mouseDownOnDrag, cancelSelecti
     hour: CalendarHour,
     selection: Selection,
     drivers: ReservationDrivers,
-    cancelSelection: (event: MouseEvent) => void,
+    cancelSelection: () => void,
     acceptSelection: (event: MouseEvent) => void,
     mouseDownOnDrag: (event: MouseEvent | TouchEvent, top: boolean) => void,
     touchMove: (event: TouchEvent) => void,
@@ -88,6 +88,12 @@ const SelectionBox = ({ hour, selection, drivers, mouseDownOnDrag, cancelSelecti
     }
     const numberOfHours = numberOfHoursBetween(selection.startsAt, selection.endsAt);
     const currentHour = numberOfHoursBetween(hour.startsAt, selection.startsAt);
+
+    const doCancelSelection = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        cancelSelection();
+      };
 
     return <StyledSelectionBox
               selectionBorderRadius={ selectionBorderRadius }
@@ -186,7 +192,7 @@ const SelectionBox = ({ hour, selection, drivers, mouseDownOnDrag, cancelSelecti
                                 size="30rem" />
                           </Box>
                           <Box
-                              onMouseDownCapture={ cancelSelection }
+                              onMouseDownCapture={ doCancelSelection }
                               round="full"
                               overflow="hidden"
                               border={ { color: 'accent-3', size: '3px' } }
