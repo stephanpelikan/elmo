@@ -1,7 +1,7 @@
 import { Box, Text, TextArea } from "grommet";
 import { Configure, Expand, FormClose } from "grommet-icons";
 import { BackgroundType, BorderType } from "grommet/utils";
-import { MouseEvent, useCallback, useRef, useState } from "react";
+import { MouseEvent as ReactMouseEvent, MouseEvent, useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAppContext } from "../../AppContext";
 import { PlannerCar, PlannerReservation, Role } from "../../client/gui";
@@ -58,16 +58,14 @@ const CarSharingBox = ({
     drivers,
     activateSelection,
     cancelSelection,
-    cancelReservation,
   }: {
     hour: CalendarHour,
     car: PlannerCar,
     isFirstHourOfReservation: boolean,
     isLastHourOfReservation: boolean,
     drivers: ReservationDrivers,
-    activateSelection: (reservation: PlannerReservation, carId: string, action: (startsAt: Date, endsAt: Date, comment?: string) => void, modalPrefix?: string, modalT?: TFunction) => void,
+    activateSelection: (reservation: PlannerReservation, ownerId: number | null | undefined, carId: string, action: (startsAt: Date, endsAt: Date, comment?: string) => void, modalPrefix?: string, modalT?: TFunction) => void,
     cancelSelection: () => void,
-    cancelReservation: (event: MouseEvent | undefined, carId: string, reservationId: string, comment?: string) => void,
   }) => {
     const { state, toast, showLoadingIndicator } = useAppContext();
     const { t } = useTranslation('driver/planner/carsharing');
@@ -88,27 +86,44 @@ const CarSharingBox = ({
         action: (comment: string) => void
       } | undefined>(undefined);
 
-  const [ showEditMenu, _setShowEditMenu ] = useState(false);
-  const setShowEditMenu = useCallback((show: boolean) => {
-      cancelSelection();
-      _setShowEditMenu(show);
-    }, [ _setShowEditMenu, cancelSelection ]);
+    const [ showEditMenu, _setShowEditMenu ] = useState(false);
+    const setShowEditMenu = useCallback((show: boolean) => {
+        cancelSelection();
+        _setShowEditMenu(show);
+      }, [ _setShowEditMenu, cancelSelection ]);
 
-  const [comment, setComment] = useState('');
-    const requestCancellation = useCallback((event: MouseEvent) => {
+    const cancelReservation = async (carId: string, reservationId: string, comment?: string) => {
+        try {
+          showLoadingIndicator(true);
+          await carSharingApi.cancelCarSharingReservation({
+            carId,
+            reservationId,
+            body: comment
+          });
+          // selection will be cancelled by server-sent update
+        } catch (error) {
+          console.log(error);
+          showLoadingIndicator(false);
+        }
+      };
+
+    const [comment, setComment] = useState('');
+    const requestCancellation = (event: MouseEvent) => {
+        event.preventDefault();
+        event.stopPropagation();
         if (state.currentUser!.memberId === hour.reservation!.driverMemberId!) {
-          cancelReservation(event, car.id, hour.reservation!.id);
+          cancelReservation(car.id, hour.reservation!.id);
           return;
         }
         setShowEditMenu(false);
         setReasonModal({
-            prefix: 'cancellation',
-            action: (currentComment) => {
-                setReasonModal(undefined);
-                cancelReservation(undefined, car.id, hour.reservation!.id, currentComment);
-              }
-          });
-      }, [ state.currentUser, cancelReservation, car.id, hour.reservation, setShowEditMenu ]);
+          prefix: 'cancellation',
+          action: (currentComment) => {
+            setReasonModal(undefined);
+            cancelReservation(car.id, hour.reservation!.id, currentComment);
+          }
+        });
+      };
 
     const ref = useRef(null);
     useOnClickOutside(ref, event => {
@@ -124,7 +139,7 @@ const CarSharingBox = ({
         await carSharingApi.resizeCarSharingReservation({
           carId: car.id,
           reservationId: hour.reservation!.id,
-          resizeCarSharingRequest: { startsAt, endsAt, comment }
+          resizeReservationRequest: { startsAt, endsAt, comment }
         });
       } catch (error) {
         showLoadingIndicator(false);
@@ -162,6 +177,7 @@ const CarSharingBox = ({
         setReasonModal(undefined);
         activateSelection(
             hour.reservation,
+            hour.reservation.driverMemberId,
             car.id,
             doResizing,
             isOwner ? undefined : 'resize',

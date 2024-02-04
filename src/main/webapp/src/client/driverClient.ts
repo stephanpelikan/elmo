@@ -1,4 +1,4 @@
-import { Configuration as GuiConfiguration, CarSharingApi, PlannerApi } from './gui';
+import { Configuration as GuiConfiguration, CarSharingApi, PlannerApi, BlockingApi } from './gui';
 import { Dispatch } from '../AppContext';
 import { buildFetchApi } from '../utils/fetchApi';
 import { WakeupSseCallback } from '../components/SseProvider';
@@ -14,6 +14,17 @@ const getCarSharingGuiApi = (
   return new CarSharingApi(config);
 };
 
+const getBlockingGuiApi = (
+    dispatch: Dispatch,
+    wakeupSseCallback?: WakeupSseCallback
+): BlockingApi => {
+  const config = new GuiConfiguration({
+    basePath: '/api/v1',
+    fetchApi: buildFetchApi(dispatch, wakeupSseCallback),
+  });
+  return new BlockingApi(config);
+};
+
 const getPlannerGuiApi = (
   dispatch: Dispatch,
   wakeupSseCallback?: WakeupSseCallback
@@ -27,5 +38,6 @@ const getPlannerGuiApi = (
 
 export {
     getCarSharingGuiApi,
+    getBlockingGuiApi,
     getPlannerGuiApi,
   };

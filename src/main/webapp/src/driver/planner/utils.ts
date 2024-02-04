@@ -25,7 +25,7 @@ interface Selection {
   startsAt: Date;
   endsAt: Date;
   carId: string;
-  ownerId?: number;
+  ownerId: number | null | undefined;
   editingReservation?: string;
   editingAction?: (startsAt: Date, endsAt: Date, comment?: string) => void;
   editingModalPrefix?: string;

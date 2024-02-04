@@ -171,14 +171,14 @@ const PassengerServiceBox = ({
   return (
       <>
         {
-          !showEditMenu && isFirstHourOfReservation && unclaimed
+          !showEditMenu && isLastHourOfReservation && unclaimed
               ? <PlannerButton
                     action={ claim }
                     icon={ SchedulePlay } />
               : undefined
         }
         {
-          !showEditMenu && isFirstHourOfReservation && editable
+          !showEditMenu && isLastHourOfReservation && editable
               ? <PlannerButton
                     action={ () => setShowEditMenu(true) }
                     background='dark-4'

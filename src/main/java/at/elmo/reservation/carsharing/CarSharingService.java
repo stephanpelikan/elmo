@@ -177,6 +177,7 @@ public class CarSharingService {
     }
 
     public boolean cancelCarSharingByUser(
+            final String carId,
             final String reservationId,
             final Member user,
             final String comment) {
@@ -186,6 +187,11 @@ public class CarSharingService {
             return false;
         }
         final var carSharing = carSharingFound.get();
+
+        final var car = carSharing.getCar();
+        if (!car.getId().equals(carId)) {
+            return false;
+        }
 
         final var now = LocalDateTime.now();
 
@@ -204,7 +210,7 @@ public class CarSharingService {
                 carSharing.setNextReservation(null);
             }
             final var nextReservation = reservationService
-                    .getReservationByStartsAt(carSharing.getCar(), endOfUsage);
+                    .getReservationByStartsAt(car, endOfUsage);
             if (nextReservation != null) {
                 carSharing.setNextReservation(nextReservation);
                 nextReservation.setPreviousReservation(carSharing);
@@ -459,6 +465,11 @@ public class CarSharingService {
         final var car = carSharing.getCar();
         if (!car.getId().equals(carId)) {
             return null;
+        }
+
+        if (carSharing.getStartsAt().equals(startsAt)
+            && carSharing.getEndsAt().equals(endsAt)) {
+            return carSharing;
         }
 
         carSharing.setStartsAt(startsAt);

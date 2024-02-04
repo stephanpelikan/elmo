@@ -9,6 +9,7 @@ import at.elmo.gui.api.v1.CarSharingStopRequest;
 import at.elmo.gui.api.v1.ExtendCarSharingRequest;
 import at.elmo.gui.api.v1.ReservationType;
 import at.elmo.gui.api.v1.ResizeCarSharingRequest;
+import at.elmo.gui.api.v1.ResizeReservationRequest;
 import at.elmo.member.Role;
 import at.elmo.reservation.DriverBasedReservation;
 import at.elmo.reservation.ReservationService;
@@ -85,6 +86,7 @@ public class GuiApiController implements CarSharingApi {
                 
         final var cancelled = carSharingService
                 .cancelCarSharingByUser(
+                        carId,
                         reservationId,
                         userContext.getLoggedInMember(),
                         fixedComment);
@@ -100,7 +102,7 @@ public class GuiApiController implements CarSharingApi {
     public ResponseEntity<Void> resizeCarSharingReservation(
             final String carId,
             final String reservationId,
-            final ResizeCarSharingRequest resizeCarSharingRequest) {
+            final ResizeReservationRequest resizeCarSharingRequest) {
 
         if ((resizeCarSharingRequest == null)
                 || (resizeCarSharingRequest.getStartsAt() == null)

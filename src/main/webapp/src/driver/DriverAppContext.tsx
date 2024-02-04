@@ -1,7 +1,7 @@
 import { useMemo, MutableRefObject } from 'react';
 import { useAppContext } from '../AppContext';
-import { getCarSharingGuiApi, getPlannerGuiApi } from '../client/driverClient';
-import { CarSharingApi, PlannerApi } from '../client/gui';
+import { getBlockingGuiApi, getCarSharingGuiApi, getPlannerGuiApi } from '../client/driverClient';
+import { BlockingApi, CarSharingApi, PlannerApi } from '../client/gui';
 import { WakeupSseCallback } from '../components/SseProvider';
 
 const useCarSharingApi = (wakeupSseCallback?: MutableRefObject<WakeupSseCallback>): CarSharingApi => {
@@ -10,6 +10,14 @@ const useCarSharingApi = (wakeupSseCallback?: MutableRefObject<WakeupSseCallback
   const api = useMemo(() => getCarSharingGuiApi(dispatch, wakeupSseCallback?.current), [ dispatch, wakeupSseCallback ]);
   return api;
   
+};
+
+const useBlockingApi = (wakeupSseCallback?: MutableRefObject<WakeupSseCallback>): BlockingApi => {
+
+  const { dispatch } = useAppContext();
+  const api = useMemo(() => getBlockingGuiApi(dispatch, wakeupSseCallback?.current), [ dispatch, wakeupSseCallback ]);
+  return api;
+
 };
 
 const usePlannerApi = (wakeupSseCallback?: MutableRefObject<WakeupSseCallback>): PlannerApi => {
@@ -22,5 +30,6 @@ const usePlannerApi = (wakeupSseCallback?: MutableRefObject<WakeupSseCallback>):
 
 export {
     useCarSharingApi,
+    useBlockingApi,
     usePlannerApi,
   };

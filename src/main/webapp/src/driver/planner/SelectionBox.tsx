@@ -109,21 +109,25 @@ const SelectionBox = ({ hour, selection, drivers, mouseDownOnDrag, cancelSelecti
                           direction="row"
                           gap="xsmall"
                           pad={ { left: numberOfHours > 1 ? '3.5rem' : '5.5rem' } }>
-                        <Box
-                            style={ {
-                                position: 'absolute',
-                                left: '4px',
-                                top: '-50%',
-                              } }>
-                          <UserAvatar
-                              size='medium'
-                              border={ { color: 'accent-3', size: '3px' }}
-                              user={
-                                  selection.ownerId === undefined
-                                      ? state.currentUser!
-                                      : drivers[ selection.ownerId! ]
-                                } />
-                        </Box>
+                        {
+                          selection.ownerId === null
+                              ? undefined
+                              : <Box
+                                    style={ {
+                                        position: 'absolute',
+                                        left: '4px',
+                                        top: '-50%',
+                                      } }>
+                                  <UserAvatar
+                                      size='medium'
+                                      border={ { color: 'accent-3', size: '3px' }}
+                                      user={
+                                          selection.ownerId === undefined
+                                              ? state.currentUser!
+                                              : drivers[ selection.ownerId! ]
+                                        } />
+                                </Box>
+                        }
                         <Box>
                           <Text>
                             { numberOfHours }h

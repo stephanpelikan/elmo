@@ -28,7 +28,7 @@ import { EventSourceMessage } from "../../components/SseProvider";
 import { CalendarDay, CalendarHour, ReservationDrivers, Selection, useWakeupSseCallback } from "./utils";
 import { SelectionBox } from "./SelectionBox";
 import { CarSharingBox } from "./CarSharingBox";
-import { BlockBox } from "./BlockBox";
+import { BlockingBox } from "./BlockingBox";
 import { PassengerServiceBox } from "./PassengerServiceBox";
 import { Modal } from "../../components/Modal";
 import { TFunction } from "i18next";
@@ -93,15 +93,14 @@ const DayTable = memo<{
     useSearch: boolean,
     selection: Selection,
     acceptSelection: (event: MouseEvent) => void,
-    activateSelection: (reservation: PlannerReservation, carId: string, action: (startsAt: Date, endsAt: Date, comment?: string) => void, modalPrefix?: string, modalT?: TFunction) => void,
+    activateSelection: (reservation: PlannerReservation, ownerId: number | null | undefined, carId: string, action: (startsAt: Date, endsAt: Date, comment?: string) => void, modalPrefix?: string, modalT?: TFunction) => void,
     cancelSelection: (event?: ReactMouseEvent) => void,
-    cancelReservation: (event: ReactMouseEvent | undefined, carId: string, reservationId: string, comment?: string) => void,
     mouseDownOnDrag: (event: ReactMouseEvent | TouchEvent, top: boolean) => void,
     mouseDownOnHour: (event: ReactMouseEvent, car: PlannerCar, hour: CalendarHour) => void,
     mouseEnterHour: (event: ReactMouseEvent | Event, car: PlannerCar, days: CalendarDay[], day: CalendarDay, hour: CalendarHour) => void,
     touchMove: (event: TouchEvent) => void,
     touchEnd: (event: TouchEvent) => void }>(
-  ({ drivers, car, days, day, useSearch, selection, activateSelection, cancelSelection, acceptSelection, cancelReservation, mouseDownOnHour, mouseEnterHour, mouseDownOnDrag, touchMove, touchEnd }) => {
+  ({ drivers, car, days, day, useSearch, selection, activateSelection, cancelSelection, acceptSelection, mouseDownOnHour, mouseEnterHour, mouseDownOnDrag, touchMove, touchEnd }) => {
 
     const hours = day.hours[car.id];
 
@@ -194,13 +193,15 @@ const DayTable = memo<{
                               drivers={ drivers }
                               activateSelection={ activateSelection }
                               cancelSelection={ cancelSelection }
-                              cancelReservation={ cancelReservation }
                             />
                         : hour.reservation?.type === ReservationType.Block
-                        ? <BlockBox
+                        ? <BlockingBox
                               hour={ hour }
+                              car={ car }
                               isFirstHourOfReservation={ isFirstHourOfReservation }
                               isLastHourOfReservation={ isLastHourOfReservation }
+                              activateSelection={ activateSelection }
+                              cancelSelection={ cancelSelection }
                             />
                         : hour.reservation?.type === ReservationType.Ps
                         ? <PassengerServiceBox
@@ -499,6 +500,7 @@ const Planner = () => {
     }, [ selection ]);
   const activateSelection = useCallback((
       reservation: PlannerReservation,
+      ownerId: number | null | undefined,
       carId: string,
       editingAction?: (startsAt: Date, endsAt: Date, comment?: string) => void,
       editingModalPrefix?: string,
@@ -512,7 +514,7 @@ const Planner = () => {
         startsAt: reservation.startsAt,
         endsAt: reservation.endsAt,
         carId: carId,
-        ownerId: reservation.driverMemberId,
+        ownerId: ownerId,
         editingReservation: reservation.id,
         editingAction: editingAction,
         editingModalPrefix: editingModalPrefix,
@@ -520,8 +522,11 @@ const Planner = () => {
       };
       setSelection(s);
       // minimize selection to start-hour or selection across different days
-      increaseDayVersion(dayVersionsRef, s.startsAt, carId);
-      increaseDayVersion(dayVersionsRef, new Date(s.endsAt.getTime() - 3600000), carId);
+      for (let hour = selection.current!.startsAt.getTime()
+          ; hour !== selection.current!.endsAt.getTime()
+          ; hour += 3600000) {
+        increaseDayVersion(dayVersionsRef, new Date(hour), selection.current!.carId);
+      }
       updateDayVersions(dayVersionsRef.current);
     }, [ setSelection, updateDayVersions, increaseDayVersionsOfSelection ]);
 
@@ -571,6 +576,7 @@ const Planner = () => {
           startsAt: hour.startsAt,
           endsAt: hour.endsAt,
           carId: car.id,
+          ownerId: undefined,
         };
       setSelection(s);
       isMouseDown.current = true;
@@ -806,29 +812,7 @@ const Planner = () => {
       }
       setShowAcceptModal(true);
     }, [ carSharingApi, t, toast, selection, state.currentUser, showLoadingIndicator, setShowAcceptModal, cancelSelection ]);
-  
-  const cancelReservation = useCallback((event: ReactMouseEvent | undefined, carId: string, reservationId: string, comment?: string) => {
-      if (event) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
-      const removePlannerReservation = async () => {
-          try {
-            showLoadingIndicator(true);
-            await carSharingApi.cancelCarSharingReservation({
-                carId,
-                reservationId,
-                body: comment
-              });
-            // selection will be cancelled by server-sent update
-          } catch (error) {
-            console.log(error);
-            showLoadingIndicator(false);
-          } 
-        };
-      removePlannerReservation();
-    }, [ carSharingApi, showLoadingIndicator ]);
-  
+
   useEffect(() => {
       window.addEventListener('mouseup', mouseUp);
       window.addEventListener('mousemove', mouseMove);
@@ -904,7 +888,6 @@ const Planner = () => {
                   activateSelection={ activateSelection }
                   cancelSelection={ cancelSelection }
                   acceptSelection={ acceptSelection }
-                  cancelReservation={ cancelReservation }
                   mouseDownOnDrag={ mouseDownOnDrag }
                   mouseDownOnHour={ mouseDownOnHour }
                   mouseEnterHour={ mouseEnterHour }
