@@ -16,37 +16,49 @@ import { PlannerButton } from "./PlannerButton";
 import { PlannerContextMenu } from "./PlannerContextMenu";
 import { CalendarHour, ReservationDrivers, SelectionAction } from "./utils";
 
-i18n.addResources('en', 'driver/planner/carsharing', {
-      "conflicting-reservation_title": "Passenger Service",
-      "conflicting-reservation_msg": "This view is not up to date! Meanwhile another driver claimed the shift. Please go back and reenter to refresh the view.",
-      "parallel-carsharing_title": "Passenger Service",
-      "parallel-carsharing_msg": "You have another car-sharing reservation in parallel for '{{value}}'!",
-      "parallel-passengerservice_title": "Passenger Service",
-      "parallel-passengerservice_msg": "You are planned yourself for passenger-service on '{{value}}' in parallel!",
+i18n.addResources('en', 'driver/planner/car-sharing', {
+      "no-remaining-hours_title": "Car-Sharing",
+      "no-remaining-hours_msg": "The quota has been used up!",
+      "max-reservations_title": "Car-Sharing",
+      "max-reservations_msg": "The maximum number of car-sharing reservations is reached: {{value}}!",
+      "conflicting-reservation_title": "Car-Sharing",
+      "conflicting-reservation_msg": "This view is not up to date! Meanwhile there is a conflicting reservation. Please go back and reenter to refresh the view.",
+      "conflicting-incoming_title": "Car-Sharing",
+      "conflicting-incoming_msg": "Another driver created a conflicting reservation. Your selection was removed.",
+      "parallel-carsharing_title": "Car-Sharing",
+      "parallel-carsharing_msg": "You have another reservation in parallel for '{{value}}'!",
+      "parallel-passengerservice_title": "Car-Sharing",
+      "parallel-passengerservice_msg": "You are planned for passenger-service on '{{value}}' in parallel!",
       "cancellation-header": "Cancellation of car-sharing",
       "cancellation-reason": "Reason for cancellation:",
       "cancellation-abort": "Don't cancel",
-      "cancellation-cancel": "Cancel",
+      "cancellation-submit": "Cancel",
       "resize-header": "Timebox of car-sharing",
       "resize-reason": "Reason for change:",
       "resize-abort": "Don't change",
-      "resize-cancel": "Change",
+      "resize-submit": "Change",
     });
-i18n.addResources('de', 'driver/planner/carsharing', {
-      "conflicting-reservation_title": "Fahrtendienst",
-      "conflicting-reservation_msg": "Diese Ansicht ist nicht aktuell! Mittlerweile wurde der Fahrtendienst bereits übernommen. Bitte wechsle zur vorigen Ansicht steige neu ein, um die Ansicht zu aktualisieren.",
-      "parallel-carsharing_title": "Fahrtendienst",
+i18n.addResources('de', 'driver/planner/car-sharing', {
+      "no-remaining-hours_title": "Car-Sharing",
+      "no-remaining-hours_msg": "Dein Car-Sharing-Kontingent ist bereits aufgebraucht!",
+      "max-reservations_title": "Car-Sharing",
+      "max-reservations_msg": "Du hast bereits die maximale Anzahl an Car-Sharing-Reservierungen gebucht: {{value}}!",
+      "conflicting-reservation_title": "Car-Sharing",
+      "conflicting-reservation_msg": "Diese Ansicht ist nicht aktuell! Mittlerweile gibt es eine andere Reservierung in dieser Zeit. Bitte wechsle zur vorigen Ansicht steige neu ein, um die Ansicht zu aktualisieren.",
+      "conflicting-incoming_title": "Car-Sharing",
+      "conflicting-incoming_msg": "Ein(e) andere(r) Fahrer(in) hat eine Reservierung in der Zeit deiner Auswahl eingetragen, weshalb sie entfernt wurde.",
+      "parallel-carsharing_title": "Car-Sharing",
       "parallel-carsharing_msg": "Du hast zeitgleich eine andere Car-Sharing-Reservierung für '{{value}}'!",
-      "parallel-passengerservice_title": "Fahrtendienst",
+      "parallel-passengerservice_title": "Car-Sharing",
       "parallel-passengerservice_msg": "Du hast zeitgleich Fahrtendienst mit '{{value}}' eingetragen!",
       "cancellation-header": "Car-Sharing stornieren",
       "cancellation-reason": "Begründung für das Stornieren:",
       "cancellation-abort": "Nicht stornieren",
-      "cancellation-cancel": "Stornieren",
+      "cancellation-submit": "Stornieren",
       "resize-header": "Zeitraum Car-Sharing",
       "resize-reason": "Begründung für die Änderung:",
       "resize-abort": "Nicht ändern",
-      "resize-cancel": "Ändern",
+      "resize-submit": "Ändern",
     });
 
 const CarSharingBox = ({
@@ -67,7 +79,7 @@ const CarSharingBox = ({
     cancelSelection: () => void,
   }) => {
     const { state, toast, showLoadingIndicator } = useAppContext();
-    const { t } = useTranslation('driver/planner/carsharing');
+    const { t } = useTranslation('driver/planner/car-sharing');
     const { isPhone } = useResponsiveScreen();
     const carSharingApi = useCarSharingApi();
 
@@ -149,9 +161,9 @@ const CarSharingBox = ({
         // CONFLICT means there is another reservation
         if (error.response?.status === 409) {
           toast({
-            namespace: 'driver/planner/carsharing',
-            title: t('conflicting-reservation'),
-            message: t('conflicting-reservation_msg'),
+            namespace: 'driver/planner/car-sharing',
+            title: 'conflicting-reservation_title',
+            message: 'conflicting-reservation_msg',
             status: 'critical'
           });
         }
@@ -162,9 +174,10 @@ const CarSharingBox = ({
               .keys(violations)
               .forEach(violation => {
                 toast({
-                  namespace: 'driver/planner/carsharing',
-                  title: t(`${violation}_title`),
-                  message: t(`${violation}_msg`, { value: violations[violation] }),
+                  namespace: 'driver/planner/car-sharing',
+                  title: `${violation}_title`,
+                  message: `${violation}_msg`,
+                  tOptions: { value: violations[violation] },
                   status: 'critical'
                 });
               });
@@ -290,7 +303,7 @@ const CarSharingBox = ({
                 reasonModal!.action(comment);
                 setComment('');
               } }
-            actionLabel={ `${reasonModal?.prefix}-cancel` }
+            actionLabel={ `${reasonModal?.prefix}-submit` }
             actionDisabled={ !Boolean(comment) }>
           <Box
               direction="column"

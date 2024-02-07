@@ -748,6 +748,32 @@ paths:
           description: Reservation not found
         404:
           description: Car not found
+  /gui/blocking/{carId}:
+    post:
+      tags:
+        - blocking
+      summary: Add a new blocking reservation
+      operationId: addBlockingReservation
+      parameters:
+        - in: path
+          name: carId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddPlannerReservation'
+      responses:
+        200:
+          description: Reservation created
+        400:
+          description: Input parameters invalid
+        404:
+          description: Car not found
+        409:
+          description: Reservation declined due to other reservations
   /gui/blocking/{carId}/reservation/{reservationId}/resize:
     put:
       tags:
@@ -1044,7 +1070,6 @@ components:
         - startsAt
         - endsAt
         - type
-        - driverMemberId
       properties:
         startsAt:
           type: string
@@ -1057,6 +1082,8 @@ components:
           format: int32
         type:
           $ref: '#/components/schemas/ReservationType'
+        comment:
+          type: string
     PlannerReservation:
       type: object
       required:

@@ -1,12 +1,12 @@
 import { Notification, Timeout } from "grommet";
-import React, { useCallback, useEffect, useLayoutEffect } from "react";
+import { useCallback, useEffect, useLayoutEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Dispatch, Toast } from '../AppContext';
 
 interface MessageToastProps {
   dispatch: Dispatch
   msg: Toast;
-};
+}
 
 const MessageToast = ({ dispatch, msg }: MessageToastProps) => {
   const { t, i18n } = useTranslation(msg.namespace);
@@ -18,21 +18,24 @@ const MessageToast = ({ dispatch, msg }: MessageToastProps) => {
   }, [ msg, i18n ]);
   
   const close = useCallback(() => dispatch({ type: 'toast', toast: undefined }), [dispatch]);
-  
+
+  const message = t(msg.message, msg.tOptions);
+  let timeout = msg.timeout !== undefined ? msg.timeout : message.length * 40;
+  if (timeout < 3000) timeout = 3000;
+
   useEffect(() => {
-    let timeout = msg.timeout !== undefined ? msg.timeout : msg.message.length * 50;
-    if (timeout < 3000) timeout = 3000;
     const timer: Timeout = window.setTimeout(close, timeout);
     return () => window.clearTimeout(timer);
-  }, [msg, close]);
-  
+  }, [timeout, close]);
+
   return (
     <Notification
-        toast={{ autoClose: false }}
-        title={msg.title ? t(msg.title) as string : undefined}
-        message={t(msg.message)}
-        status={msg.status ? msg.status : 'unknown'}
-        onClose={close}
+        toast={ { autoClose: false } }
+        title={ msg.title ? t(msg.title, msg.tOptions) as string : undefined }
+        message={ message }
+        status={ msg.status ? msg.status : 'unknown' }
+        time={ timeout }
+        onClose={ close }
     />
   );
 }

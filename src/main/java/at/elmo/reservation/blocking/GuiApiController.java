@@ -1,10 +1,12 @@
 package at.elmo.reservation.blocking;
 
 import at.elmo.car.CarService;
+import at.elmo.gui.api.v1.AddPlannerReservation;
 import at.elmo.gui.api.v1.BlockingApi;
 import at.elmo.gui.api.v1.ResizeReservationRequest;
 import at.elmo.member.Role;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.util.StringUtils;
@@ -58,6 +60,35 @@ public class GuiApiController implements BlockingApi {
                 resizeReservationRequest.getEndsAt());
         if (!success) {
             return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.ok().build();
+
+    }
+
+    @Override
+    public ResponseEntity<Void> addBlockingReservation(
+            final String carId,
+            final AddPlannerReservation addPlannerReservation) {
+
+        final var carFound = carService.getCar(carId);
+        if (carFound.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        final var car = carFound.get();
+
+        try {
+
+            blockingService.createBlocking(
+                    car,
+                    addPlannerReservation.getStartsAt(),
+                    addPlannerReservation.getEndsAt(),
+                    addPlannerReservation.getComment());
+
+        } catch (UnsupportedOperationException e) {
+
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+
         }
 
         return ResponseEntity.ok().build();

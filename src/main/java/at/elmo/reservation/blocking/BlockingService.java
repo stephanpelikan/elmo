@@ -1,7 +1,6 @@
 package at.elmo.reservation.blocking;
 
 import at.elmo.car.Car;
-import at.elmo.member.Member;
 import at.elmo.reservation.ReservationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -35,18 +33,18 @@ public class BlockingService {
             final Car car,
             final LocalDateTime startsAt,
             final LocalDateTime endsAt,
-            final String reason) throws Exception {
+            final String reason) throws UnsupportedOperationException {
 
         final var overlappings = reservationService
                 .checkForOverlappings(car, startsAt, endsAt);
         if (!overlappings.isEmpty()) {
-            throw new Exception(
+            throw new UnsupportedOperationException(
                     "Cannot create blocking at "
                     + startsAt
                     + " -> "
                     + endsAt
                     + " due to existing overlapping reservations: "
-                    + overlappings.stream().collect(Collectors.joining(", ")));
+                    + String.join(", ", overlappings));
         }
 
         final var nextReservation = reservationService

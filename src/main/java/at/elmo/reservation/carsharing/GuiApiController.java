@@ -8,7 +8,6 @@ import at.elmo.gui.api.v1.CarSharingStartRequest;
 import at.elmo.gui.api.v1.CarSharingStopRequest;
 import at.elmo.gui.api.v1.ExtendCarSharingRequest;
 import at.elmo.gui.api.v1.ReservationType;
-import at.elmo.gui.api.v1.ResizeCarSharingRequest;
 import at.elmo.gui.api.v1.ResizeReservationRequest;
 import at.elmo.member.Role;
 import at.elmo.reservation.DriverBasedReservation;
@@ -141,7 +140,6 @@ public class GuiApiController implements CarSharingApi {
                     .filter(reservation -> reservation.getDriver() != null
                             && reservation.getDriver().getId().equals(carSharing.getDriver().getId()))
                     .forEach(reservation -> {
-                        logger.info("test: {}", reservation.getId());
                         if (reservation instanceof CarSharing) {
                             throw new ElmoValidationException(
                                     "parallel-carsharing",

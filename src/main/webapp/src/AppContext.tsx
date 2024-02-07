@@ -1,8 +1,24 @@
 import React, { useCallback, useMemo } from 'react';
-import { User, UserStatus, LoginApi, AppInformation, OnboardingApi, MemberApi, Oauth2Client, PassengerServiceApi } from './client/gui';
-import { getLoginGuiApi, getMemberGuiApi, getOnboardingGuiApi, getPassengerServiceGuiApi, getReservationGuiApi } from './client/guiClient';
+import {
+  AppInformation,
+  LoginApi,
+  MemberApi,
+  Oauth2Client,
+  OnboardingApi,
+  PassengerServiceApi,
+  User,
+  UserStatus
+} from './client/gui';
+import {
+  getLoginGuiApi,
+  getMemberGuiApi,
+  getOnboardingGuiApi,
+  getPassengerServiceGuiApi,
+  getReservationGuiApi
+} from './client/guiClient';
 import { StatusType } from 'grommet';
 import { ReservationApi } from 'client/gui/apis/ReservationApi';
+import { TOptions } from "i18next";
 
 type Action =
     | { type: 'updateAppInformation', appInformation: AppInformation | null }
@@ -18,6 +34,7 @@ export type Toast = {
   namespace: string;
   title: string | undefined | null;
   message: string;
+  tOptions?: TOptions;
   status?: StatusType;
   timeout?: number;
 };

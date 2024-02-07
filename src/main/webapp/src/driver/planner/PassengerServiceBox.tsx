@@ -10,11 +10,11 @@ import { PlannerButton } from './PlannerButton';
 import { usePlannerApi } from '../DriverAppContext';
 import { UserAvatar } from '../../components/UserAvatar';
 import { PlannerContextMenu } from './PlannerContextMenu';
-import {Role, ShiftStatus} from '../../client/gui';
+import { Role, ShiftStatus } from '../../client/gui';
 import useOnClickOutside from '../../utils/clickOutside';
 import { Modal } from "../../components/Modal";
 
-i18n.addResources('en', 'driver/planner/passengerservice', {
+i18n.addResources('en', 'driver/planner/passenger-service', {
       "reservation-type": "Passenger Service",
       "conflicting-driver_title": "Passenger Service",
       "conflicting-driver_msg": "This view is not up to date! Meanwhile another driver claimed the shift. Please go back and reenter to refresh the view.",
@@ -29,10 +29,12 @@ i18n.addResources('en', 'driver/planner/passengerservice', {
       "abort": "Abort",
     });
 
-i18n.addResources('de', 'driver/planner/passengerservice', {
+i18n.addResources('de', 'driver/planner/passenger-service', {
       "reservation-type": "Fahrtendienst",
       "conflicting-driver_title": "Fahrtendienst",
       "conflicting-driver_msg": "Diese Ansicht ist nicht aktuell! Mittlerweile wurde der Fahrtendienst bereits übernommen. Bitte wechsle zur vorigen Ansicht steige neu ein, um die Ansicht zu aktualisieren.",
+      "conflicting-reservation_title": "Fahrtendienst",
+      "conflicting-reservation_msg": "Diese Ansicht ist nicht aktuell! Mittlerweile wurde der Fahrtendienst bereits übernommen. Bitte wechsle zur vorigen Ansicht steige neu ein, um die Ansicht zu aktualisieren.",
       "parallel-carsharing_title": "Fahrtendienst",
       "parallel-carsharing_msg": "Du hast zeitgleich eine andere Car-Sharing-Reservierung für '{{value}}'!",
       "parallel-passengerservice_title": "Fahrtendienst",
@@ -56,7 +58,7 @@ const PassengerServiceBox = ({
     drivers: ReservationDrivers,
   }) => {
     const { state, toast, showLoadingIndicator } = useAppContext();
-    const { t } = useTranslation('driver/planner/passengerservice');
+    const { t } = useTranslation('driver/planner/passenger-service');
     const wakeupSseCallback = useWakeupSseCallback();
     const plannerApi = usePlannerApi(wakeupSseCallback);
 
@@ -69,9 +71,9 @@ const PassengerServiceBox = ({
           // CONFLICT means there is another reservation
           if (error.response?.status === 409) {
             toast({
-                namespace: 'driver/planner/passengerservice',
-                title: t('conflicting-driver_title'),
-                message: t('conflicting-driver_msg'),
+                namespace: 'driver/planner/passenger-service',
+                title: 'conflicting-driver_title',
+                message: 'conflicting-driver_msg',
                 status: 'critical'
               });
             }
@@ -82,9 +84,10 @@ const PassengerServiceBox = ({
                 .keys(violations)
                 .forEach(violation => {
                     toast({
-                        namespace: 'driver/planner/passengerservice',
-                        title: t(`${violation}_title`),
-                        message: t(`${violation}_msg`, { value: violations[violation] }),
+                        namespace: 'driver/planner/passenger-service',
+                        title: `${violation}_title`,
+                        message: `${violation}_msg`,
+                        tOptions: { value: violations[violation] },
                         status: 'critical'
                       });
                 });

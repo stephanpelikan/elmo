@@ -25,7 +25,7 @@ import { debounceByKey } from '../../utils/debounce';
 import { now, registerEachSecondHook, unregisterEachSecondHook } from '../../utils/now-hook';
 import useResponsiveScreen from '../../utils/responsiveUtils';
 import { currentHour, nextHours, numberOfHoursBetween } from '../../utils/timeUtils';
-import { useCarSharingApi, usePlannerApi } from '../DriverAppContext';
+import { useBlockingApi, useCarSharingApi, usePlannerApi } from '../DriverAppContext';
 import { BlockingBox } from "./BlockingBox";
 import { CarSharingBox } from "./CarSharingBox";
 import { PassengerServiceBox } from "./PassengerServiceBox";
@@ -44,38 +44,22 @@ i18n.addResources('en', 'driver/planner', {
       "title.short": 'Planner',
       "remaining": "Remaining hours:",
       "max-hours": "Largest reservation possible:",
-      "no-remaining-hours_title": "Planning",
-      "no-remaining-hours_msg": "The quota has been used up!",
-      "max-reservations_title": "Planning",
-      "max-reservations_msg": "The maximum number of car-sharing reservations is reached: {{value}}!",
-      "conflicting-reservation_title": "Planning",
-      "conflicting-reservation_msg": "This view is not up to date! Meanwhile there is a conflicting reservation. Please go back and reenter to refresh the view.",
-      "conflicting-incoming_title": "Planning",
-      "conflicting-incoming_msg": "Another driver created a conflicting reservation. Your selection was removed.",
-      "parallel-carsharing_title": "Planning",
-      "parallel-carsharing_msg": "You have another reservation in parallel for '{{value}}'!",
-      "parallel-passengerservice_title": "Planning",
-      "parallel-passengerservice_msg": "You are planned for passenger-service on '{{value}}' in parallel!",
       "date_format": "yyyy/mm/dd",
+      "blocking-create-header": "Blocking reservation",
+      "blocking-create-reason": "Reason for blocking this period:",
+      "blocking-create-abort": "Abort",
+      "blocking-create-submit": "Block period",
     });
 i18n.addResources('de', 'driver/planner', {
       "title.long": 'Planer',
       "title.short": 'Planer',
       "remaining": "Verbleibende Stunden:",
       "max-hours": "Größtmögliche Reservierung:",
-      "no-remaining-hours_title": "Planer",
-      "no-remaining-hours_msg": "Dein Car-Sharing-Kontingent ist bereits aufgebraucht!",
-      "max-reservations_title": "Planer",
-      "max-reservations_msg": "Du hast bereits die maximale Anzahl an Car-Sharing-Reservierungen gebucht: {{value}}!",
-      "conflicting-reservation_title": "Planer",
-      "conflicting-reservation_msg": "Diese Ansicht ist nicht aktuell! Mittlerweile gibt es eine andere Reservierung in dieser Zeit. Bitte wechsle zur vorigen Ansicht steige neu ein, um die Ansicht zu aktualisieren.",
-      "conflicting-incoming_title": "Planer",
-      "conflicting-incoming_msg": "Ein(e) andere(r) Fahrer(in) hat eine Reservierung in der Zeit deiner Auswahl eingetragen, weshalb sie entfernt wurde.",
-      "parallel-carsharing_title": "Planning",
-      "parallel-carsharing_msg": "Du hast zeitgleich eine andere Car-Sharing-Reservierung für '{{value}}'!",
-      "parallel-passengerservice_title": "Planning",
-      "parallel-passengerservice_msg": "Du hast zeitgleich Fahrtendienst mit '{{value}}' eingetragen!",
       "date_format": "dd.mm.yyyy",
+      "blocking-create-header": "Blockende Reservierung",
+      "blocking-create-reason": "Grund für das Blockieren des Zeitraums:",
+      "blocking-create-abort": "Abbrechen",
+      "blocking-create-submit": "Zeitraum blockieren",
     });
 
 const itemsBatchSize = 48;
@@ -427,7 +411,7 @@ const AcceptSelectionModal = ({
             setModalComment('');
             onAccept();
           } }
-          actionLabel={ `${selection.actions[indexOfAction].modalTPrefix}-cancel` }
+          actionLabel={ `${selection.actions[indexOfAction].modalTPrefix}-submit` }
           actionDisabled={ !Boolean(modalComment) }>
         <Box
             key={ `${indexOfAction}` }
@@ -447,6 +431,12 @@ const AcceptSelectionModal = ({
 
 }
 
+const typeNsMapping = {
+  'CS': 'car-sharing',
+  'BLOCK': 'blocking',
+  'PS': 'passenger-service',
+};
+
 const Planner = () => {
   
   const { t } = useTranslation('driver/planner');
@@ -455,47 +445,66 @@ const Planner = () => {
   
   const wakeupSseCallback = useWakeupSseCallback();
   const carSharingApi = useCarSharingApi(wakeupSseCallback);
+  const blockingApi = useBlockingApi(wakeupSseCallback);
   const plannerApi = usePlannerApi(wakeupSseCallback);
-  const addCarSharingReservation = useCallback(async () => {
-      try {
-        showLoadingIndicator(true);
-        await carSharingApi.addCarSharingReservation({
-          carId: selection.current!.carId,
-          addPlannerReservation: {
-            driverMemberId: state.currentUser!.memberId!,
-            startsAt: selection.current!.startsAt,
-            endsAt: selection.current!.endsAt,
-            type: ReservationType.Cs,
+
+  const addReservation = useCallback(
+      async (type: ReservationType, comment?: string) => {
+        const ns = typeNsMapping[type];
+        try {
+          showLoadingIndicator(true);
+          if (type === ReservationType.Cs) {
+            await carSharingApi.addCarSharingReservation({
+              carId: selection.current!.carId,
+              addPlannerReservation: {
+                type,
+                driverMemberId: state.currentUser!.memberId!,
+                startsAt: selection.current!.startsAt,
+                endsAt: selection.current!.endsAt,
+                comment,
+              }
+            });
+          } else if (type === ReservationType.Block) {
+            await blockingApi.addBlockingReservation({
+              carId: selection.current!.carId,
+              addPlannerReservation: {
+                type,
+                startsAt: selection.current!.startsAt,
+                endsAt: selection.current!.endsAt,
+                comment,
+              }
+            });
           }
-        });
-        // selection will be cancelled by server-sent update
-      } catch (error) {
-        showLoadingIndicator(false);
-        // CONFLICT means there is another reservation
-        if (error.response?.status === 409) {
-          toast({
-            namespace: 'driver/car-sharing/booking',
-            title: t('conflicting-reservation_title'),
-            message: t('conflicting-reservation_msg'),
-            status: 'critical'
-          });
-        }
-        // violations response
-        else if (error.response?.json) {
-          const violations = await error.response?.json()
-          Object
-              .keys(violations)
-              .forEach(violation => {
-                toast({
-                  namespace: 'driver/car-sharing/booking',
-                  title: t(`${violation}_title`),
-                  message: t(`${violation}_msg`, { value: violations[violation] }),
-                  status: 'critical'
+          // selection will be cancelled by server-sent update
+        } catch (error) {
+          showLoadingIndicator(false);
+          // CONFLICT means there is another reservation
+          if (error.response?.status === 409) {
+            toast({
+              namespace: `driver/planner/${ns}`,
+              title: 'conflicting-reservation_title',
+              message: 'conflicting-reservation_msg',
+              status: 'critical'
+            });
+          }
+          // violations response
+          else if (error.response?.json) {
+            const violations = await error.response?.json()
+            Object
+                .keys(violations)
+                .forEach(violation => {
+                  toast({
+                    namespace: `driver/planner/${ns}`,
+                    title: `${violation}_title`,
+                    message: `${violation}_msg`,
+                    tOptions: { value: violations[violation] },
+                    status: 'critical'
+                  });
                 });
-              });
+          }
         }
-      }
-    }, [ state.currentUser, t, carSharingApi, showLoadingIndicator, toast ]);
+      },
+      [ state.currentUser, carSharingApi, showLoadingIndicator, toast, blockingApi ]);
 
   useLayoutEffect(() => {
     setAppHeaderTitle('driver/planner', false);
@@ -655,7 +664,7 @@ const Planner = () => {
           && (restrictionsRef.current!.remainingHours < 1)
           && !restrictionsRef.current!.allowPaidCarSharing) {
         toast({
-            namespace: 'driver/car-sharing/booking',
+            namespace: 'driver/planner/car-sharing',
             title: t('no-remaining-hours_title'),
             message: t('no-remaining-hours_msg'),
             status: 'warning'
@@ -666,12 +675,31 @@ const Planner = () => {
       const actions: Array<SelectionAction> =
           isAdmin
               ? [
-                  { action: addCarSharingReservation, icon: Car },
-                  { action: () => {}, icon: MapLocation, iconBackground: 'brand' },
-                  { action: () => {}, icon: Troubleshoot, iconBackground: 'blue' },
-                  { action: () => {}, icon: Halt, iconBackground: 'dark-4' },
+                  {
+                    action: () => addReservation(ReservationType.Cs),
+                    icon: Car
+                  },
+                  {
+                    action: () => {},
+                    icon: MapLocation,
+                    iconBackground: 'brand'
+                  },
+                  {
+                    action: () => {},
+                    icon: Troubleshoot,
+                    iconBackground: 'blue'
+                  },
+                  {
+                    action: (_startsAt, _endsAt, comment) => addReservation(ReservationType.Block, comment),
+                    icon: Halt,
+                    iconBackground: 'dark-4',
+                    modalTPrefix: 'blocking-create',
+                    modalT: t
+                  },
                 ]
-              : [ { action: addCarSharingReservation } ];
+              : [ {
+                    action: () => addReservation(ReservationType.Cs)
+                } ];
 
       increaseDayVersionsOfSelection();
       increaseDayVersion(dayVersionsRef, hour.startsAt, car.id);
@@ -689,7 +717,7 @@ const Planner = () => {
       setSelection(s);
       isMouseDown.current = true;
       setMouseIsDown(true);
-    }, [ setMouseIsDown, t, toast, setSelection, updateDayVersions, increaseDayVersionsOfSelection, addCarSharingReservation, state.currentUser.roles ]);
+    }, [ setMouseIsDown, t, toast, setSelection, updateDayVersions, increaseDayVersionsOfSelection, addReservation, state.currentUser.roles ]);
 
   const mouseEnterHour = useCallback((event: ReactMouseEvent | Event, car: PlannerCar, days: CalendarDay[], day: CalendarDay, hour: CalendarHour) => {
       if (!isMouseDown.current) return;
@@ -906,7 +934,7 @@ const Planner = () => {
                 && (endsAt.getTime() >= selection.current.endsAt.getTime()))) {
           if (ev.data.driverMemberId !== state.currentUser!.memberId) {
             toast({
-                namespace: 'driver/car-sharing/booking',
+                namespace: 'driver/planner/car-sharing',
                 title: t('conflicting-incoming_title'),
                 message: t('conflicting-incoming_msg'),
                 status: 'warning'
