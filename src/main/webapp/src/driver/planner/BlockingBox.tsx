@@ -72,6 +72,10 @@ const BlockingBox = ({
     };
 
     const doResizing = async (startsAt: Date, endsAt: Date, comment?: string) => {
+      if ((startsAt.getTime() === hour.reservation.startsAt.getTime())
+          && (endsAt.getTime() === hour.reservation.endsAt.getTime())) {
+        return;
+      }
       try {
         showLoadingIndicator(true);
         await blockingApi.resizeBlockingReservation({

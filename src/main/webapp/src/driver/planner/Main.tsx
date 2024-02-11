@@ -2,7 +2,6 @@ import { Box, ColumnConfig, DataTable, DateInput, Text, TextArea } from "grommet
 import { Car, Contract, DocumentTime, Halt, History, MapLocation, Troubleshoot } from "grommet-icons";
 import {
   memo,
-  MouseEvent,
   MouseEvent as ReactMouseEvent,
   MutableRefObject,
   useCallback,
@@ -910,14 +909,30 @@ const Planner = () => {
       {
         const startsAt = new Date(ev.data.startsAt);
         const endsAt = new Date(ev.data.endsAt);
-        const midnightOfStartsAtDay = new Date(startsAt.getFullYear(), startsAt.getMonth(), startsAt.getDate());
-        const updateStartsAt = midnightOfStartsAtDay.getTime() < daysRef.current![0].startsAt.getTime() ? daysRef.current![0].startsAt : midnightOfStartsAtDay;
-        const updateEndsAt = nextHours(endsAt, 24 - endsAt.getHours(), false);
-        
+
         debounceByKey(
-            `Reservation#${updateStartsAt.toString()}-${updateEndsAt.toString()}`,
+            `Reservation#${ev.data.id}`,
             async () => {
-                await loadData(plannerApi, dayVersionsRef, updateDayVersions, setEndDate, updateStartsAt, updateEndsAt, daysRef.current!, setDays, driversRef.current!, setDrivers, setRestrictions);
+                const oldReservations = daysRef.current?.map(day => day.hours)
+                    .flatMap(cars => Object
+                        .keys(cars)
+                        .map(carId => ({
+                          carId,
+                          reservations: cars[carId].map(hour => hour.reservation).filter(r => r && r.id === ev.data.id)
+                        }))
+                        .filter(reservation => reservation.reservations.length > 0)
+                        .map(reservation => ({ carId: reservation.carId, ...reservation.reservations[0] }))
+                    );
+                let updateStartsAt = oldReservations.length > 0 && oldReservations[0].startsAt.getTime() < startsAt.getTime()
+                    ? oldReservations[0].startsAt
+                    : startsAt;
+                let updateEndsAt = oldReservations.length > 0 && oldReservations[0].endsAt.getTime() > endsAt.getTime()
+                    ? oldReservations[0].endsAt
+                    : endsAt;
+                const midnightOfStartsAtDay = new Date(updateStartsAt.getFullYear(), updateStartsAt.getMonth(), updateStartsAt.getDate());
+                const loadDataStartsAt = midnightOfStartsAtDay.getTime() < daysRef.current![0].startsAt.getTime() ? daysRef.current![0].startsAt : midnightOfStartsAtDay;
+                const loadDataEndsAt = nextHours(updateEndsAt, 24 - updateEndsAt.getHours(), false);
+                await loadData(plannerApi, dayVersionsRef, updateDayVersions, setEndDate, loadDataStartsAt, loadDataEndsAt, daysRef.current!, setDays, driversRef.current!, setDrivers, setRestrictions);
                 showLoadingIndicator(false);
               }
           );

@@ -254,6 +254,7 @@ const SelectionBox = ({ hour, selection, drivers, mouseDownOnDrag, cancelSelecti
                                     {
                                       selection.actions.map((action, indexOfAction) => (
                                           <PlannerButton
+                                              key={ indexOfAction }
                                               inContextMenu
                                               action={ (event) => doAcceptSelection(event, indexOfAction) }
                                               background={ action.iconBackground }
