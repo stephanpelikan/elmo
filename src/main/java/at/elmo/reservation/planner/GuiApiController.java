@@ -5,19 +5,12 @@ import at.elmo.car.CarService;
 import at.elmo.gui.api.v1.PlannerApi;
 import at.elmo.gui.api.v1.PlannerCalendar;
 import at.elmo.gui.api.v1.PlannerCalendarRequest;
-import at.elmo.member.MemberService;
 import at.elmo.member.Role;
 import at.elmo.reservation.DriverBasedReservation;
 import at.elmo.reservation.ReservationService;
-import at.elmo.reservation.carsharing.CarSharing;
 import at.elmo.reservation.carsharing.CarSharingProperties;
-import at.elmo.reservation.passengerservice.shift.Shift;
-import at.elmo.reservation.passengerservice.shift.ShiftService;
-import at.elmo.reservation.passengerservice.shift.exceptions.UnknownShiftException;
 import at.elmo.util.UserContext;
-import at.elmo.util.exceptions.ElmoValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,187 +39,7 @@ public class GuiApiController implements PlannerApi {
     
     @Autowired
     private UserContext userContext;
-    
-    @Autowired
-    private ShiftService shiftService;
 
-    @Autowired
-    private MemberService memberService;
-
-    @Override
-    public ResponseEntity<Void> requestSwapOfShift(
-            final String shiftId) {
-
-        try {
-
-            final var initiated = shiftService.requestSwapOfShift(
-                    shiftId,
-                    userContext.getLoggedInMember());
-            if (!initiated) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).build();
-            }
-
-            return ResponseEntity.ok().build();
-
-        } catch (UnknownShiftException e) {
-            return ResponseEntity.notFound().build();
-        }
-
-    }
-
-    @Override
-    public ResponseEntity<Void> requestSwapOfShiftByAdministrator(
-            final String shiftId,
-            final Integer driverMemberIdRequestingSwap) {
-
-        try {
-
-            final var driverFound = memberService.getMember(
-                    driverMemberIdRequestingSwap);
-            if (driverFound.isEmpty()) {
-                return ResponseEntity.badRequest().build();
-            }
-            final var driver = driverFound.get();
-            if (!driver.hasRole(Role.DRIVER)) {
-                return ResponseEntity.badRequest().build();
-            }
-
-            final var initiated = shiftService.requestSwapOfShift(
-                    shiftId,
-                    userContext.getLoggedInMember());
-            if (!initiated) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).build();
-            }
-
-            return ResponseEntity.ok().build();
-
-        } catch (UnknownShiftException e) {
-            return ResponseEntity.notFound().build();
-        }
-
-    }
-
-    @Override
-    public ResponseEntity<Void> confirmSwapOfShift(
-            final String shiftId) {
-
-        try {
-
-            final var accepted = shiftService.confirmSwapOfShift(
-                    shiftId,
-                    userContext.getLoggedInMember());
-            if (!accepted) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).build();
-            }
-
-            return ResponseEntity.ok().build();
-
-        } catch (UnknownShiftException e) {
-            return ResponseEntity.notFound().build();
-        }
-
-    }
-
-    @Override
-    public ResponseEntity<Void> cancelOrRejectSwapOfShift(
-            final String shiftId) {
-
-        try {
-
-            final var cancelled = shiftService.cancelRequestForSwapOfShift(
-                    shiftId,
-                    userContext.getLoggedInMember());
-            if (cancelled) {
-                return ResponseEntity.ok().build();
-            }
-
-            final var rejected = shiftService.rejectRequestForSwapOfShift(
-                    shiftId,
-                    userContext.getLoggedInMember());
-            if (rejected) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).build();
-            }
-
-            return ResponseEntity.ok().build();
-
-        } catch (UnknownShiftException e) {
-            return ResponseEntity.notFound().build();
-        }
-
-    }
-
-    @Override
-    public ResponseEntity<Void> claimShift(
-            final String shiftId) {
-        
-        try {
-            
-            final var driver = userContext
-                    .getLoggedInMember();
-            
-            final var shiftFound = shiftService.getShift(shiftId);
-            if (shiftFound.isEmpty()) {
-                return ResponseEntity.notFound().build();
-            }
-            final var shift = shiftFound.get();
-            
-            reservationService.findReservations(
-                    shift.getStartsAt(),
-                    shift.getEndsAt())
-                    .stream()
-                    .filter(reservation -> reservation instanceof DriverBasedReservation)
-                    .map(reservation -> (DriverBasedReservation) reservation)
-                    .filter(reservation -> reservation.getDriver() != null
-                            && reservation.getDriver().getId().equals(driver.getId()))
-                    .forEach(reservation -> {
-                        if (reservation instanceof CarSharing) {
-                            throw new ElmoValidationException(
-                                    "parallel-carsharing",
-                                    reservation.getCar().getName());
-                        } else if (reservation instanceof Shift) {
-                            throw new ElmoValidationException(
-                                    "parallel-passengerservice",
-                                    reservation.getCar().getName());
-                        }
-                    });
-
-            final var claimed = shiftService
-                    .claimShift(shiftId, driver);
-            if (!claimed) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).build();
-            }
-            
-            return ResponseEntity.ok().build();
-        
-        } catch (UnknownShiftException e) {
-            return ResponseEntity.notFound().build();
-        }
-
-    }
-    
-    @Override
-    public ResponseEntity<Void> unclaimShift(
-            final String shiftId) {
-        
-        try {
-            
-            final var driver = userContext
-                    .getLoggedInMember();
-
-            final var unclaimed = shiftService
-                    .unclaimShift(shiftId, driver);
-            if (unclaimed) {
-                return ResponseEntity.ok().build();
-            }
-            
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
-        
-        } catch (UnknownShiftException e) {
-            return ResponseEntity.notFound().build();
-        }
-
-    }
-    
     @Override
     public ResponseEntity<PlannerCalendar> getPlannerCalendar(
             final PlannerCalendarRequest request) {

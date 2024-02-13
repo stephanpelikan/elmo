@@ -351,10 +351,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PlannerCalendar'
-  /gui/planner/shift/{shiftId}/claim:
+  /gui/passenger-service/{shiftId}/claim:
     patch:
       tags:
-        - planner
+        - passenger-service
       summary: Claim a shift as a driver
       operationId: claimShift
       parameters:
@@ -370,10 +370,10 @@ paths:
           description: Shift not found
         409:
           description: Shift claimed by someone else
-  /gui/planner/shift/{shiftId}/unclaim:
+  /gui/passenger-service/{shiftId}/unclaim:
     patch:
       tags:
-        - planner
+        - passenger-service
       summary: Unclaim a shift as a driver
       operationId: unclaimShift
       parameters:
@@ -389,10 +389,10 @@ paths:
           description: Shift not found
         409:
           description: Shift claimed by someone else
-  /gui/planner/shift/{shiftId}/request-swap:
+  /gui/passenger-service/{shiftId}/request-swap:
     patch:
       tags:
-        - planner
+        - passenger-service
       summary: Request swap of drivers of a shift by current user
       operationId: requestSwapOfShift
       parameters:
@@ -410,7 +410,7 @@ paths:
           description: Swap already in progress
     post:
       tags:
-        - planner
+        - passenger-service
       summary: Confirm swap of drivers of a shift by current user
       operationId: confirmSwapOfShift
       parameters:
@@ -428,7 +428,7 @@ paths:
           description: No swap in progress
     delete:
       tags:
-        - planner
+        - passenger-service
       summary: cancel swap of drivers of a shift by current user or reject if current user is driver
       operationId: cancelOrRejectSwapOfShift
       parameters:
@@ -444,10 +444,10 @@ paths:
           description: Shift not found
         409:
           description: No swap in progress
-  /gui/planner/shift/{shiftId}/request-swap/{driverMemberIdRequestingSwap}:
+  /gui/passenger-service/{shiftId}/request-swap/{driverMemberIdRequestingSwap}:
     patch:
       tags:
-        - planner
+        - passenger-service
       summary: Request swap of drivers of a shift by an administrator
       operationId: requestSwapOfShiftByAdministrator
       parameters:
@@ -1390,7 +1390,7 @@ components:
       type: object
       required:
         - page
-        - shifts
+        - passenger-services
       properties:
         page:
           $ref: '#/components/schemas/Page'
