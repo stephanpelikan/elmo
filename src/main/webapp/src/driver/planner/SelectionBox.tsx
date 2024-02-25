@@ -259,6 +259,7 @@ const SelectionBox = ({ hour, selection, drivers, mouseDownOnDrag, cancelSelecti
                                               action={ (event) => doAcceptSelection(event, indexOfAction) }
                                               background={ action.iconBackground }
                                               iconSize="20rem"
+                                              altText={ action.altText }
                                               icon={ action.icon } />
                                       ))
                                     }

@@ -2,16 +2,15 @@ import { Cycle, FormNext, Schedule, Schedules } from 'grommet-icons';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Accordion, Box, Paragraph } from 'grommet';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import useResponsiveScreen from '../../utils/responsiveUtils';
 import { Content, Heading, TextHeading } from '../../components/MainLayout';
 import i18n from '../../i18n';
 import { ReservationEvent, ShiftReservation } from '../../client/gui';
-import { useAppContext, usePassengerServiceGuiApi } from '../../AppContext';
+import { useAppContext } from '../../AppContext';
 import { PassengerServiceAccordionPanel } from './PassengerServiceAccordionPanel';
-import { isUserTaskForDriver } from "../car-sharing/ReservationAccordionPanel";
 import { EventSourceMessage, WakeupSseCallback } from "../../components/SseProvider";
-import { usePlannerApi } from "../DriverAppContext";
+import { usePassengerServiceApi } from "../DriverAppContext";
 import { useGuiSse } from "../../client/guiClient";
 import { debounce } from "../../utils/debounce";
 
@@ -37,8 +36,7 @@ const Shifts = () => {
   const { isPhone } = useResponsiveScreen();
   const navigate = useNavigate();
   const wakeupSseCallback = useRef<WakeupSseCallback>(undefined);
-  const plannerApi = usePlannerApi(wakeupSseCallback);
-  const passengerServiceApi = usePassengerServiceGuiApi();
+  const passengerServiceApi = usePassengerServiceApi(wakeupSseCallback);
   const { state, showLoadingIndicator } = useAppContext();
 
   const [ detailsVisible, setDetailsVisible ] = useState<Array<number>>([]);
@@ -61,11 +59,11 @@ const Shifts = () => {
       () => debounce(
           async (ev: EventSourceMessage<ReservationEvent>) => {
             if ((ev.data.driverMemberId !== state.currentUser!.memberId)
-                && (shifts.find(r => r.id == ev.data.id) === undefined)) return;
+                && (shifts.find(r => r.id === ev.data.id) === undefined)) return;
             await loadClaimedShifts();
             showLoadingIndicator(false);
           }),
-      [ loadClaimedShifts, state.currentUser, shifts ]);
+      [ loadClaimedShifts, state.currentUser, shifts, showLoadingIndicator ]);
 
   wakeupSseCallback.current = useGuiSse<ReservationEvent>(
       updatePassengerServices,

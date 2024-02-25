@@ -1,20 +1,19 @@
-import { Box, Text, TextArea } from "grommet";
+import { Box, Text } from "grommet";
 import { Configure, Expand, FormClose } from "grommet-icons";
 import { BackgroundType, BorderType } from "grommet/utils";
 import { MouseEvent, useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAppContext } from "../../AppContext";
 import { PlannerCar, PlannerReservation, Role } from "../../client/gui";
-import { Modal } from "../../components/Modal";
 import { UserAvatar } from "../../components/UserAvatar";
 import i18n from '../../i18n';
 import useOnClickOutside from "../../utils/clickOutside";
-import useResponsiveScreen from "../../utils/responsiveUtils";
 import { timeAsString } from "../../utils/timeUtils";
 import { useCarSharingApi } from "../DriverAppContext";
 import { PlannerButton } from "./PlannerButton";
 import { PlannerContextMenu } from "./PlannerContextMenu";
 import { CalendarHour, ReservationDrivers, SelectionAction } from "./utils";
+import { BoxModal, ReasonModalProperties } from "./BoxModal";
 
 i18n.addResources('en', 'driver/planner/car-sharing', {
       "no-remaining-hours_title": "Car-Sharing",
@@ -29,10 +28,10 @@ i18n.addResources('en', 'driver/planner/car-sharing', {
       "parallel-carsharing_msg": "You have another reservation in parallel for '{{value}}'!",
       "parallel-passengerservice_title": "Car-Sharing",
       "parallel-passengerservice_msg": "You are planned for passenger-service on '{{value}}' in parallel!",
-      "cancellation-header": "Cancellation of car-sharing",
-      "cancellation-reason": "Reason for cancellation:",
-      "cancellation-abort": "Don't cancel",
-      "cancellation-submit": "Cancel",
+      "cancel-header": "Cancellation of car-sharing",
+      "cancel-reason": "Reason for cancellation:",
+      "cancel-abort": "Don't cancel",
+      "cancel-submit": "Cancel",
       "resize-header": "Timebox of car-sharing",
       "resize-reason": "Reason for change:",
       "resize-abort": "Don't change",
@@ -51,10 +50,10 @@ i18n.addResources('de', 'driver/planner/car-sharing', {
       "parallel-carsharing_msg": "Du hast zeitgleich eine andere Car-Sharing-Reservierung für '{{value}}'!",
       "parallel-passengerservice_title": "Car-Sharing",
       "parallel-passengerservice_msg": "Du hast zeitgleich Fahrtendienst mit '{{value}}' eingetragen!",
-      "cancellation-header": "Car-Sharing stornieren",
-      "cancellation-reason": "Begründung für das Stornieren:",
-      "cancellation-abort": "Nicht stornieren",
-      "cancellation-submit": "Stornieren",
+      "cancel-header": "Car-Sharing stornieren",
+      "cancel-reason": "Begründung für das Stornieren:",
+      "cancel-abort": "Nicht stornieren",
+      "cancel-submit": "Stornieren",
       "resize-header": "Zeitraum Car-Sharing",
       "resize-reason": "Begründung für die Änderung:",
       "resize-abort": "Nicht ändern",
@@ -62,216 +61,215 @@ i18n.addResources('de', 'driver/planner/car-sharing', {
     });
 
 const CarSharingBox = ({
-    hour,
-    car,
-    isFirstHourOfReservation,
-    isLastHourOfReservation,
-    drivers,
-    activateSelection,
-    cancelSelection,
-  }: {
-    hour: CalendarHour,
-    car: PlannerCar,
-    isFirstHourOfReservation: boolean,
-    isLastHourOfReservation: boolean,
-    drivers: ReservationDrivers,
-    activateSelection: (reservation: PlannerReservation, ownerId: number | null | undefined, carId: string, actions: Array<SelectionAction>) => void,
-    cancelSelection: () => void,
-  }) => {
-    const { state, toast, showLoadingIndicator } = useAppContext();
-    const { t } = useTranslation('driver/planner/car-sharing');
-    const { isPhone } = useResponsiveScreen();
-    const carSharingApi = useCarSharingApi();
+  hour,
+  car,
+  isFirstHourOfReservation,
+  isLastHourOfReservation,
+  drivers,
+  activateSelection,
+  cancelSelection,
+}: {
+  hour: CalendarHour,
+  car: PlannerCar,
+  isFirstHourOfReservation: boolean,
+  isLastHourOfReservation: boolean,
+  drivers: ReservationDrivers,
+  activateSelection: (reservation: PlannerReservation, ownerId: number | null | undefined, carId: string, actions: Array<SelectionAction>) => void,
+  cancelSelection: () => void,
+}) => {
+  const { state, toast, showLoadingIndicator } = useAppContext();
+  const { t } = useTranslation('driver/planner/car-sharing');
+  const carSharingApi = useCarSharingApi();
 
-    const isUsersReservation = hour.reservation?.driverMemberId === state.currentUser!.memberId;
-    const hasCancelButton = hour.reservation!.status === 'RESERVED';
-    const hasResizeButton = ((hour.reservation!.status === 'RESERVED')
-          && (hour.reservation.startsAt.getTime() > new Date().getTime()))
-    const hasEditMenu = isLastHourOfReservation
-        && (hasCancelButton || hasResizeButton)
-        && (isUsersReservation
-            || state.currentUser!.roles!.includes(Role.Admin)
-            || state.currentUser!.roles!.includes(Role.Manager));
-    const [ reasonModal, setReasonModal ] = useState<{
-        prefix: string,
-        action: (comment: string) => void
-      } | undefined>(undefined);
+  const [ reasonModal, setReasonModal ] = useState<ReasonModalProperties>(undefined);
 
-    const [ showEditMenu, _setShowEditMenu ] = useState(false);
-    const setShowEditMenu = useCallback((show: boolean) => {
-        cancelSelection();
-        _setShowEditMenu(show);
-      }, [ _setShowEditMenu, cancelSelection ]);
+  const isUsersReservation = hour.reservation?.driverMemberId === state.currentUser!.memberId;
+  const hasCancelButton = hour.reservation!.status === 'RESERVED';
+  const hasResizeButton = ((hour.reservation!.status === 'RESERVED')
+        && (hour.reservation.startsAt.getTime() > new Date().getTime()))
+  const hasEditMenu = isLastHourOfReservation
+      && (hasCancelButton || hasResizeButton)
+      && (isUsersReservation
+          || state.currentUser!.roles!.includes(Role.Admin)
+          || state.currentUser!.roles!.includes(Role.Manager));
 
-    const cancelReservation = async (carId: string, reservationId: string, comment?: string) => {
-        try {
-          showLoadingIndicator(true);
-          await carSharingApi.cancelCarSharingReservation({
-            carId,
-            reservationId,
-            body: comment
-          });
-          // selection will be cancelled by server-sent update
-        } catch (error) {
-          console.log(error);
-          showLoadingIndicator(false);
-        }
-      };
+  const [ showEditMenu, _setShowEditMenu ] = useState(false);
+  const setShowEditMenu = useCallback((show: boolean) => {
+      cancelSelection();
+      _setShowEditMenu(show);
+    }, [ _setShowEditMenu, cancelSelection ]);
 
-    const [comment, setComment] = useState('');
-    const requestCancellation = (event: MouseEvent) => {
-        event.preventDefault();
-        event.stopPropagation();
-        if (state.currentUser!.memberId === hour.reservation!.driverMemberId!) {
-          cancelReservation(car.id, hour.reservation!.id);
-          return;
-        }
-        setShowEditMenu(false);
-        setReasonModal({
-          prefix: 'cancellation',
-          action: (currentComment) => {
-            setReasonModal(undefined);
-            cancelReservation(car.id, hour.reservation!.id, currentComment);
-          }
-        });
-      };
-
-    const ref = useRef(null);
-    useOnClickOutside(ref, event => {
-        if (!showEditMenu) return;
-        event.preventDefault();
-        event.stopPropagation();
-        setShowEditMenu(false);
-      });
-
-    const doResizing = async (startsAt: Date, endsAt: Date, comment?: string) => {
-      if ((startsAt.getTime() === hour.reservation.startsAt.getTime())
-          && (endsAt.getTime() === hour.reservation.endsAt.getTime())) {
-        return;
-      }
+  const cancelReservation = async (carId: string, reservationId: string, comment?: string) => {
       try {
         showLoadingIndicator(true);
-        await carSharingApi.resizeCarSharingReservation({
-          carId: car.id,
-          reservationId: hour.reservation!.id,
-          resizeReservationRequest: { startsAt, endsAt, comment }
+        await carSharingApi.cancelCarSharingReservation({
+          carId,
+          reservationId,
+          body: comment
         });
+        // selection will be cancelled by server-sent update
       } catch (error) {
+        console.log(error);
         showLoadingIndicator(false);
-        // CONFLICT means there is another reservation
-        if (error.response?.status === 409) {
-          toast({
-            namespace: 'driver/planner/car-sharing',
-            title: 'conflicting-reservation_title',
-            message: 'conflicting-reservation_msg',
-            status: 'critical'
-          });
-        }
-        // violations response
-        else if (error.response?.json) {
-          const violations = await error.response?.json()
-          Object
-              .keys(violations)
-              .forEach(violation => {
-                toast({
-                  namespace: 'driver/planner/car-sharing',
-                  title: `${violation}_title`,
-                  message: `${violation}_msg`,
-                  tOptions: { value: violations[violation] },
-                  status: 'critical'
-                });
-              });
-        } else {
-          console.error(error);
-        }
       }
     };
-    const requestResizing = (event: MouseEvent) => {
-        event.preventDefault();
-        event.stopPropagation();
-        const isOwner = state.currentUser!.memberId === hour.reservation!.driverMemberId!;
-        setReasonModal(undefined);
-        activateSelection(
-            hour.reservation,
-            hour.reservation.driverMemberId,
-            car.id,
-            [ {
-                action: doResizing,
-                modalTPrefix: isOwner ? undefined : 'resize',
-                modalT: isOwner ? undefined : t
-              } ]);
+
+  const requestCancellation = (event: MouseEvent) => {
+      setShowEditMenu(false);
+      if (state.currentUser!.memberId === hour.reservation!.driverMemberId!) {
+        cancelReservation(car.id, hour.reservation!.id);
+        return;
+      }
+      setReasonModal({
+        requestComment: true,
+        prefix: 'cancel',
+        onAbort: () => setReasonModal(undefined),
+        hint: t('cancel-reason'),
+        action: (comment) => {
+          setShowEditMenu(false);
+          setReasonModal(undefined);
+          cancelReservation(car.id, hour.reservation!.id, comment);
+        }
+      });
     };
 
-    const borderColor =
-        hour.reservation?.driverMemberId === state.currentUser!.memberId
-            ? 'accent-3'
-            : 'dark-4';
-    const borders: BorderType = [];
-    borders.push({ side: "vertical", color: borderColor, size: '1px' });
-    if (isFirstHourOfReservation) {
-      borders.push({ side: "top", color: borderColor, size: '1px' });
+  const ref = useRef(null);
+  useOnClickOutside(ref, event => {
+      if (!showEditMenu) return;
+      event.preventDefault();
+      event.stopPropagation();
+      setShowEditMenu(false);
+    });
+
+  const doResizing = async (startsAt: Date, endsAt: Date, comment?: string) => {
+    if ((startsAt.getTime() === hour.reservation.startsAt.getTime())
+        && (endsAt.getTime() === hour.reservation.endsAt.getTime())) {
+      return;
     }
-    if (isLastHourOfReservation) {
-      borders.push({ side: "bottom", color: borderColor, size: '1px' });
+    try {
+      showLoadingIndicator(true);
+      await carSharingApi.resizeCarSharingReservation({
+        carId: car.id,
+        reservationId: hour.reservation!.id,
+        resizeReservationRequest: { startsAt, endsAt, comment }
+      });
+    } catch (error) {
+      showLoadingIndicator(false);
+      // CONFLICT means there is another reservation
+      if (error.response?.status === 409) {
+        toast({
+          namespace: 'driver/planner/car-sharing',
+          title: 'conflicting-reservation_title',
+          message: 'conflicting-reservation_msg',
+          status: 'critical'
+        });
+      }
+      // violations response
+      else if (error.response?.json) {
+        const violations = await error.response?.json()
+        Object
+            .keys(violations)
+            .forEach(violation => {
+              toast({
+                namespace: 'driver/planner/car-sharing',
+                title: `${violation}_title`,
+                message: `${violation}_msg`,
+                tOptions: { value: violations[violation] },
+                status: 'critical'
+              });
+            });
+      } else {
+        console.error(error);
+      }
     }
-    
-    const backgroundColor: BackgroundType | undefined =
-        hour.reservation?.driverMemberId === state.currentUser!.memberId
-            ? { color: 'accent-3', opacity: 'strong' }
-            : { color: 'light-4', opacity: 'strong' };
-    
-    return (
-      <>
-        {
-          !showEditMenu && hasEditMenu
-              ? <PlannerButton
-                    action={ () => setShowEditMenu(true) }
+  };
+  const requestResizing = (event: MouseEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const isOwner = state.currentUser!.memberId === hour.reservation!.driverMemberId!;
+      setReasonModal(undefined);
+      activateSelection(
+          hour.reservation,
+          hour.reservation.driverMemberId,
+          car.id,
+          [ {
+              action: doResizing,
+              modalTPrefix: isOwner ? undefined : 'resize',
+              modalT: isOwner ? undefined : t
+            } ]);
+  };
+
+  const borderColor =
+      hour.reservation?.driverMemberId === state.currentUser!.memberId
+          ? 'accent-3'
+          : 'dark-4';
+  const borders: BorderType = [];
+  borders.push({ side: "vertical", color: borderColor, size: '1px' });
+  if (isFirstHourOfReservation) {
+    borders.push({ side: "top", color: borderColor, size: '1px' });
+  }
+  if (isLastHourOfReservation) {
+    borders.push({ side: "bottom", color: borderColor, size: '1px' });
+  }
+
+  const backgroundColor: BackgroundType | undefined =
+      hour.reservation?.driverMemberId === state.currentUser!.memberId
+          ? { color: 'accent-3', opacity: 'strong' }
+          : { color: 'light-4', opacity: 'strong' };
+
+  return (
+    <>
+      {
+        !showEditMenu && hasEditMenu
+            ? <PlannerButton
+                  action={ () => setShowEditMenu(true) }
+                  background='dark-4'
+                  icon={ Configure } />
+            : undefined
+      }
+      {
+        showEditMenu
+            ? <PlannerContextMenu
+                  ref={ ref }>
+                <PlannerButton
+                    inContextMenu
+                    action={ () => setShowEditMenu(false) }
                     background='dark-4'
+                    showBorder={false}
                     icon={ Configure } />
-              : undefined
-        }
+                {
+                  hasCancelButton
+                      ? <PlannerButton
+                            inContextMenu
+                            action={ requestCancellation }
+                            background='status-critical'
+                            icon={ FormClose }
+                            iconSize='30rem' />
+                      : undefined
+                }
+                {
+                  hasResizeButton
+                      ? <PlannerButton
+                            inContextMenu
+                            action={ requestResizing }
+                            background='dark-2'
+                            icon={ Expand } />
+                      : undefined
+                }
+              </PlannerContextMenu>
+            : undefined
+      }
+      <Box
+          pad={ {
+              horizontal: 'xsmall',
+              vertical: '1px'
+            } }
+          fill
+          gap='xsmall'
+          direction="row"
+          border={ borders }
+          background={ backgroundColor } >
         {
-          showEditMenu
-              ? <PlannerContextMenu
-                    ref={ ref }>
-                  <PlannerButton
-                      inContextMenu
-                      action={ () => setShowEditMenu(false) }
-                      background='dark-4'
-                      showBorder={false}
-                      icon={ Configure } />
-                  {
-                    hasCancelButton
-                        ? <PlannerButton
-                              inContextMenu
-                              action={ requestCancellation }
-                              background='status-critical'
-                              icon={ FormClose }
-                              iconSize='30rem' />
-                        : undefined
-                  }
-                  {
-                    hasResizeButton
-                        ? <PlannerButton
-                              inContextMenu
-                              action={ requestResizing }
-                              background='dark-2'
-                              icon={ Expand } />
-                        : undefined
-                  }
-                </PlannerContextMenu>
-              : undefined
-        }
-        <Box
-            pad={ {
-                horizontal: 'xsmall',
-                vertical: '1px'
-              } }
-            fill
-            gap='xsmall'
-            direction="row"
-            border={ borders }
-            background={ backgroundColor } >{
           isFirstHourOfReservation
               ? <>
                   <UserAvatar
@@ -289,35 +287,13 @@ const CarSharingBox = ({
                   </Box>
                 </>
               : <>&nbsp;</>
-        }</Box>
-        <Modal
-            show={ Boolean(reasonModal) }
-            t={ t }
-            header={ `${reasonModal?.prefix}-header` }
-            abort={ () => {
-                setComment('');
-                setReasonModal(undefined);
-              } }
-            abortLabel={ `${reasonModal?.prefix}-abort` }
-            action={ () => {
-                reasonModal!.action(comment);
-                setComment('');
-              } }
-            actionLabel={ `${reasonModal?.prefix}-submit` }
-            actionDisabled={ !Boolean(comment) }>
-          <Box
-              direction="column"
-              pad={ { vertical: isPhone ? 'large' : 'small' } }
-              gap={ isPhone ? 'medium' : 'small' }>
-            { t(`${reasonModal?.prefix}-reason`) }
-            <TextArea
-                value={ comment }
-                onChange={ event => setComment(event.target.value) }
-              />
-          </Box>
-        </Modal>
-      </>);
-  };
+        }
+      </Box>
+      <BoxModal
+          t={ t }
+          reasonModal={ reasonModal } />
+    </>);
+};
 
  export {
    CarSharingBox

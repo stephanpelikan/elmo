@@ -24,6 +24,7 @@ interface CalendarHour {
 interface SelectionAction {
   action: (startsAt: Date, endsAt: Date, comment?: string) => void;
   icon?: Icon;
+  altText?: string;
   iconBackground?: BackgroundType;
   modalTPrefix?: string;
   modalT?: TFunction;

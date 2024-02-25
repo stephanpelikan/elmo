@@ -3,13 +3,13 @@ import { AccordionPanel, Box, Button, Table, TableBody, TableCell, TableRow, Tex
 import { Alert, Schedules } from 'grommet-icons';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
-import React from 'react';
+import { useRef } from 'react';
 import { toLocaleTimeStringWithoutSeconds } from '../../utils/timeUtils';
 import styled, { keyframes } from "styled-components";
 import { normalizeColor } from "grommet/utils";
 import { useAppContext } from "../../AppContext";
-import { usePlannerApi } from "../DriverAppContext";
-import { useWakeupSseCallback } from "../planner/utils";
+import { usePassengerServiceApi } from "../DriverAppContext";
+import { WakeupSseCallback } from "../../components/SseProvider";
 
 i18n.addResources('en', 'driver/shift/claimed', {
       "from": "From",
@@ -94,13 +94,14 @@ const PassengerServiceAccordionPanel = ({
 
   const { showLoadingIndicator } = useAppContext();
   const { t } = useTranslation('driver/shift/claimed');
-  const plannerApi = usePlannerApi();
+  const wakeupSseCallback = useRef<WakeupSseCallback>(undefined);
+  const passengerServiceApi = usePassengerServiceApi(wakeupSseCallback);
   const swapInProgress = shift.swapInProgressMemberId !== undefined;
 
   const confirmSwap = async () => {
     try {
       showLoadingIndicator(true);
-      await plannerApi.confirmSwapOfShift({ shiftId: shift.id })
+      await passengerServiceApi.confirmSwapOfShift({ shiftId: shift.id })
     } catch(error) {
       showLoadingIndicator(false);
     }
@@ -109,7 +110,7 @@ const PassengerServiceAccordionPanel = ({
   const rejectSwap = async () => {
     try {
       showLoadingIndicator(true);
-      await plannerApi.cancelOrRejectSwapOfShift({ shiftId: shift.id })
+      await passengerServiceApi.cancelOrRejectSwapOfShift({ shiftId: shift.id })
     } catch(error) {
       showLoadingIndicator(false);
     }

@@ -4,7 +4,7 @@ import { Schedules } from 'grommet-icons';
 import styled, { keyframes } from 'styled-components';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
-import React, { useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Modal } from '../../components/Modal';
 import { hoursBetween, nextHours, toLocaleTimeStringWithoutSeconds } from '../../utils/timeUtils';
 import { now } from '../../utils/now-hook';

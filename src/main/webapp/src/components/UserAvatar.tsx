@@ -1,14 +1,14 @@
-import { User as UserDto, Sex, PlannerDriver, Member } from '../client/gui';
-import { User as UserMale, UserFemale } from 'grommet-icons';
+import { Member, PlannerDriver, Sex, User as UserDto } from '../client/gui';
+import { Help, User as UserMale, UserFemale } from 'grommet-icons';
 import { Anchor, Avatar, Box, Text } from 'grommet';
 import { BorderType } from 'grommet/utils';
-import React, { useRef, useState } from 'react';
+import { MouseEvent, useRef, useState } from 'react';
 import useOnClickOutside from '../utils/clickOutside';
 import { useAppContext, useMemberGuiApi } from '../AppContext';
 import { Content } from './MainLayout';
 
 type UserAvatarProps = {
-  user: UserDto | PlannerDriver;
+  user?: UserDto | PlannerDriver;
   border?: BorderType;
   size?: 'xsmall' | 'small' | 'medium' | 'large' | 'xlarge' | string;
 };
@@ -22,9 +22,14 @@ const UserAvatar = ({
   const { state } = useAppContext();
   const memberApi = useMemberGuiApi();
 
-  const backgroundColor = user.memberId
+  const backgroundColor = user && user.memberId
       ? `hsl(${ (user.memberId * 207) % 360 }, 70%, 45%)`
-      : '#333333';
+      : 'dark-2';
+  const UserIcon = user === undefined
+      ? Help
+      : user.sex === Sex.Female
+      ? UserFemale
+      : UserMale;
 
   const intSize = parseInt(size);
   let symbolSize: string;
@@ -60,16 +65,19 @@ const UserAvatar = ({
       event.stopPropagation();
       setShowDetails(undefined);
     });
-  const loadAndShowDetails = async () => {
+  const loadAndShowDetails = async (event: MouseEvent) => {
+    if (user === undefined) return;
+    event.preventDefault();
+    event.stopPropagation();
     if (state.currentUser!.memberId === user.memberId) return;
     const details = await memberApi.getMemberDetails({ memberId: user.memberId! });
     setShowDetails(details);
   };
-  
+
   return (
       <Box
           style={ { position: 'relative' } }
-          onMouseDown={ () => loadAndShowDetails() }>
+          onMouseDown={ loadAndShowDetails }>
         {
           showDetails
               ? <Box
@@ -106,16 +114,12 @@ const UserAvatar = ({
               : undefined
         }
         <Avatar
-            style={ { zIndex: (state.currentUser!.memberId !== user.memberId) && showDetails ? 20 : undefined } }
+            style={ { zIndex: (state.currentUser!.memberId !== user?.memberId) && showDetails ? 20 : undefined } }
             background={ backgroundColor }
             size={ size }
             border={ border }
-            src={ user.avatar ? `/api/v1/gui/member/${ user.memberId }/avatar?ts=${ user.avatar }` : undefined }>
-          {
-            user.sex === Sex.Female
-                ? <UserFemale color='accent-1' size={ symbolSize } />
-                : <UserMale color='accent-1' size={ symbolSize } />
-          }
+            src={ user?.avatar ? `/api/v1/gui/member/${ user.memberId }/avatar?ts=${ user.avatar }` : undefined }>
+          <UserIcon color='accent-1' size={ symbolSize } />
         </Avatar>
       </Box>);
     

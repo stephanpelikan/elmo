@@ -8,6 +8,7 @@ import styled from "styled-components";
 // Grommet includes a hidden a-tag to modal layers setting the focus on
 // if the modal content does not catch the focus. This brings a focus indicator
 // at least to Firefox browsers which has to be disabled.
+// see https://github.com/grommet/grommet/issues/7128
 const NoFocusIndicatorLayer = styled(Layer)`
   a:focus {
     outline: none;

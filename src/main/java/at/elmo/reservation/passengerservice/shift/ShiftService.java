@@ -1,11 +1,5 @@
 package at.elmo.reservation.passengerservice.shift;
 
-import static at.elmo.reservation.passengerservice.shift.Shift.Status.CANCELLED;
-import static at.elmo.reservation.passengerservice.shift.Shift.Status.CLAIMED;
-import static at.elmo.reservation.passengerservice.shift.Shift.Status.DONE;
-import static at.elmo.reservation.passengerservice.shift.Shift.Status.IN_PROGRESS;
-import static at.elmo.reservation.passengerservice.shift.Shift.Status.UNCLAIMED;
-
 import at.elmo.car.Car;
 import at.elmo.car.CarService;
 import at.elmo.config.ElmoProperties;
@@ -38,9 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -48,7 +40,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
+
+import static at.elmo.reservation.passengerservice.shift.Shift.Status.CLAIMED;
+import static at.elmo.reservation.passengerservice.shift.Shift.Status.DONE;
+import static at.elmo.reservation.passengerservice.shift.Shift.Status.IN_PROGRESS;
+import static at.elmo.reservation.passengerservice.shift.Shift.Status.UNCLAIMED;
 
 @Service
 @WorkflowService(
@@ -370,16 +366,14 @@ public class ShiftService {
 
     public Shift createShift(
             final Car car,
-            final LocalDate day,
-            final ShiftProperties properties) throws Exception {
-
-        final var startsAt = day.atTime(LocalTime.parse(properties.getStart()));
-        final var endsAt = day.atTime(LocalTime.parse(properties.getEnd()));
+            final LocalDateTime startsAt,
+            final LocalDateTime endsAt,
+            final String comment) throws UnsupportedOperationException, Exception {
 
         final var overlappings = reservationService
                 .checkForOverlappings(car, startsAt, endsAt);
         if (!overlappings.isEmpty()) {
-            throw new Exception(
+            throw new UnsupportedOperationException(
                     "Cannot create shift at "
                     + startsAt
                     + " -> "
@@ -400,6 +394,7 @@ public class ShiftService {
         newShift.setEndsAt(endsAt);
         newShift.setNextReservation(nextReservation);
         newShift.setPreviousReservation(previousReservation);
+
         newShift.setStatus(UNCLAIMED);
 
         final var shift = processService.startWorkflow(newShift);
@@ -661,13 +656,53 @@ public class ShiftService {
         shift.setStatus(DONE);
         
     }
-    
+
+    public void cancelShift(
+            final String shiftId,
+            final String comment) {
+
+        final var shift = shifts
+                .findById(shiftId)
+                .orElseThrow(() -> new RuntimeException("No shift of id '" + shiftId + "' known!"));
+
+        cancelShift(shift, comment);
+
+    }
+
+    protected void cancelShift(
+            final Shift shift,
+            final String comment) {
+
+        shift.setCancelled(true);
+        shift.setStatus(Shift.Status.CANCELLED);
+        shift.setLastInteractionComment(comment);
+
+        processService.correlateMessage(shift, "ShiftCancelled");
+
+    }
+
     @WorkflowTask
-    public void shiftCancelled(
+    public void fixDataAfterCancelling(
             final Shift shift) {
 
-        shift.setStatus(CANCELLED);
-        
+        if (shift.getPreviousReservation() != null) {
+
+            final var nextReservation = reservationService
+                    .getReservationByStartsAt(shift.getCar(), shift.getPreviousReservation().getEndsAt());
+
+            shift.getPreviousReservation().setNextReservation(nextReservation);
+            shift.setPreviousReservation(null);
+
+        }
+        if (shift.getNextReservation() != null) {
+
+            final var previousReservation = reservationService
+                    .getReservationByEndsAt(shift.getCar(), shift.getNextReservation().getStartsAt());
+
+            shift.getNextReservation().setPreviousReservation(previousReservation);
+            shift.setNextReservation(null);
+        }
+
     }
 
     @WorkflowTask

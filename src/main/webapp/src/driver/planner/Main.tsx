@@ -24,7 +24,7 @@ import { debounceByKey } from '../../utils/debounce';
 import { now, registerEachSecondHook, unregisterEachSecondHook } from '../../utils/now-hook';
 import useResponsiveScreen from '../../utils/responsiveUtils';
 import { currentHour, nextHours, numberOfHoursBetween } from '../../utils/timeUtils';
-import { useBlockingApi, useCarSharingApi, usePlannerApi } from '../DriverAppContext';
+import { useBlockingApi, useCarSharingApi, usePassengerServiceApi, usePlannerApi } from '../DriverAppContext';
 import { BlockingBox } from "./BlockingBox";
 import { CarSharingBox } from "./CarSharingBox";
 import { PassengerServiceBox } from "./PassengerServiceBox";
@@ -48,6 +48,18 @@ i18n.addResources('en', 'driver/planner', {
       "blocking-create-reason": "Reason for blocking this period:",
       "blocking-create-abort": "Abort",
       "blocking-create-submit": "Block period",
+      "passengerservice-create-header": "Passenger service reservation",
+      "passengerservice-create-reason": "Reason for this extra passenger service:",
+      "passengerservice-create-abort": "Abort",
+      "passengerservice-create-submit": "Create Reservation",
+      "maintenance-create-header": "Maintenance reservation",
+      "maintenance-create-reason": "Reason for this maintenance:",
+      "maintenance-create-abort": "Abort",
+      "maintenance-create-submit": "Create Reservation",
+      "create-carsharing": "Car-Sharing",
+      "create-passengerservice": "Passenger Service",
+      "create-maintenance": "Maintenance",
+      "create-blocking": "Blocker",
     });
 i18n.addResources('de', 'driver/planner', {
       "title.long": 'Planer',
@@ -59,6 +71,18 @@ i18n.addResources('de', 'driver/planner', {
       "blocking-create-reason": "Grund für das Blockieren des Zeitraums:",
       "blocking-create-abort": "Abbrechen",
       "blocking-create-submit": "Zeitraum blockieren",
+      "passengerservice-create-header": "Fahrtendienstreservierung",
+      "passengerservice-create-reason": "Grund für diesen extra Fahrtendienst:",
+      "passengerservice-create-abort": "Abbrechen",
+      "passengerservice-create-submit": "Reservierung anlegen",
+      "maintenance-create-header": "Wartungsreservierung",
+      "maintenance-create-reason": "Grund für die Wartungsfahrt:",
+      "maintenance-create-abort": "Abbrechen",
+      "maintenance-create-submit": "Reservierung anlegen",
+      "create-carsharing": "Car-Sharing",
+      "create-passengerservice": "Fahrtendienst",
+      "create-maintenance": "Wartung",
+      "create-blocking": "Blocker",
     });
 
 const itemsBatchSize = 48;
@@ -194,6 +218,7 @@ const DayTable = memo<{
                             />
                         : hour.reservation?.type === ReservationType.Ps
                         ? <PassengerServiceBox
+                              car={ car }
                               hour={ hour }
                               isFirstHourOfReservation={ isFirstHourOfReservation }
                               isLastHourOfReservation={ isLastHourOfReservation }
@@ -423,6 +448,7 @@ const AcceptSelectionModal = ({
           }
           <TextArea
               value={ modalComment }
+              autoFocus
               onChange={ event => setModalComment(event.target.value) }
           />
         </Box>
@@ -445,6 +471,7 @@ const Planner = () => {
   const wakeupSseCallback = useWakeupSseCallback();
   const carSharingApi = useCarSharingApi(wakeupSseCallback);
   const blockingApi = useBlockingApi(wakeupSseCallback);
+  const passengerServiceApi = usePassengerServiceApi(wakeupSseCallback);
   const plannerApi = usePlannerApi(wakeupSseCallback);
 
   const addReservation = useCallback(
@@ -465,6 +492,16 @@ const Planner = () => {
             });
           } else if (type === ReservationType.Block) {
             await blockingApi.addBlockingReservation({
+              carId: selection.current!.carId,
+              addPlannerReservation: {
+                type,
+                startsAt: selection.current!.startsAt,
+                endsAt: selection.current!.endsAt,
+                comment,
+              }
+            });
+          } else if (type === ReservationType.Ps) {
+            await passengerServiceApi.addShift({
               carId: selection.current!.carId,
               addPlannerReservation: {
                 type,
@@ -503,7 +540,7 @@ const Planner = () => {
           }
         }
       },
-      [ state.currentUser, carSharingApi, showLoadingIndicator, toast, blockingApi ]);
+      [ state.currentUser, carSharingApi, showLoadingIndicator, toast, blockingApi, passengerServiceApi ]);
 
   useLayoutEffect(() => {
     setAppHeaderTitle('driver/planner', false);
@@ -676,22 +713,30 @@ const Planner = () => {
               ? [
                   {
                     action: () => addReservation(ReservationType.Cs),
-                    icon: Car
+                    icon: Car,
+                    altText: t('create-carsharing'),
                   },
                   {
-                    action: () => {},
+                    action: (_startsAt, _endsAt, comment) => addReservation(ReservationType.Ps, comment),
                     icon: MapLocation,
-                    iconBackground: 'brand'
+                    iconBackground: 'brand',
+                    altText: t('create-passengerservice'),
+                    modalTPrefix: 'passengerservice-create',
+                    modalT: t
                   },
                   {
                     action: () => {},
                     icon: Troubleshoot,
-                    iconBackground: 'blue'
+                    iconBackground: 'blue',
+                    altText: t('create-maintenance'),
+                    modalTPrefix: 'maintenance-create',
+                    modalT: t
                   },
                   {
                     action: (_startsAt, _endsAt, comment) => addReservation(ReservationType.Block, comment),
                     icon: Halt,
                     iconBackground: 'dark-4',
+                    altText: t('create-blocking'),
                     modalTPrefix: 'blocking-create',
                     modalT: t
                   },

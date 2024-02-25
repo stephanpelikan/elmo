@@ -2,6 +2,7 @@ package at.elmo.reservation.passengerservice;
 
 import at.elmo.car.Car;
 import at.elmo.car.CarService;
+import at.elmo.gui.api.v1.AddPlannerReservation;
 import at.elmo.gui.api.v1.PassengerServiceApi;
 import at.elmo.gui.api.v1.ShiftOverview;
 import at.elmo.gui.api.v1.ShiftOverviewDay;
@@ -20,10 +21,12 @@ import at.elmo.reservation.passengerservice.shift.ShiftService;
 import at.elmo.reservation.passengerservice.shift.exceptions.UnknownShiftException;
 import at.elmo.util.UserContext;
 import at.elmo.util.exceptions.ElmoValidationException;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -41,7 +44,10 @@ import static at.elmo.reservation.passengerservice.shift.ShiftService.mapKeyOfHo
 @RequestMapping("/api/v1")
 @Secured(Role.ROLE_PASSENGER)
 public class GuiApiController implements PassengerServiceApi {
-    
+
+    @Autowired
+    private Logger logger;
+
     @Autowired
     private UserContext userContext;
 
@@ -383,6 +389,91 @@ public class GuiApiController implements PassengerServiceApi {
         } catch (UnknownShiftException e) {
             return ResponseEntity.notFound().build();
         }
+
+    }
+
+    @Override
+    public ResponseEntity<Void> addShift(
+            final String carId,
+            final AddPlannerReservation addPlannerReservation) {
+
+        final var carFound = carService.getCar(carId);
+        if (carFound.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        final var car = carFound.get();
+
+        try {
+
+            final var shift = shiftService.createShift(
+                    car,
+                    addPlannerReservation.getStartsAt(),
+                    addPlannerReservation.getEndsAt(),
+                    addPlannerReservation.getComment());
+
+            // overlappings may happen by a small chance if a concurrent transaction is not committed
+            final var overlappingsAfterwards = reservationService.checkForOverlappings(
+                    car,
+                    addPlannerReservation.getStartsAt(),
+                    addPlannerReservation.getEndsAt());
+            if (overlappingsAfterwards.size() > 1) { // 1 ... the new created car-sharing session
+                shiftService
+                        .cancelShift(shift.getId(), null);
+            }
+
+        } catch (UnsupportedOperationException e) {
+
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+
+        } catch (Exception e) {
+
+            logger.error("Could not add passenger-service shift", e);
+            return ResponseEntity.internalServerError().build();
+
+        }
+
+        return ResponseEntity.ok().build();
+
+    }
+
+    @Override
+    public ResponseEntity<Void> cancelPassengerServiceShift(
+            final String carId,
+            final String shiftId,
+            final String comment) {
+
+        if (!StringUtils.hasText(carId)) {
+            return ResponseEntity.badRequest().build();
+        }
+        final var car = carService.getCar(carId);
+        if (car.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // see https://github.com/OpenAPITools/openapi-generator/issues/13456
+        final String fixedComment;
+        if (comment == null) {
+            fixedComment = null;
+        } else {
+            if (comment.startsWith("\"")
+                    && comment.endsWith("\"")
+                    && (comment.length() > 2)) {
+                fixedComment = comment.substring(1, comment.length() - 1);
+            } else {
+                fixedComment = comment;
+            }
+        }
+
+        try {
+            shiftService.cancelShift(
+                    shiftId,
+                    fixedComment);
+        } catch (Exception e) {
+            logger.error("Cancel shift of '{}' failed!", shiftId, e);
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.ok().build();
 
     }
 

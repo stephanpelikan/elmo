@@ -1,21 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
-import {
-  AppInformation,
-  LoginApi,
-  MemberApi,
-  Oauth2Client,
-  OnboardingApi,
-  PassengerServiceApi,
-  User,
-  UserStatus
-} from './client/gui';
-import {
-  getLoginGuiApi,
-  getMemberGuiApi,
-  getOnboardingGuiApi,
-  getPassengerServiceGuiApi,
-  getReservationGuiApi
-} from './client/guiClient';
+import { AppInformation, LoginApi, MemberApi, Oauth2Client, OnboardingApi, User, UserStatus } from './client/gui';
+import { getLoginGuiApi, getMemberGuiApi, getOnboardingGuiApi, getReservationGuiApi } from './client/guiClient';
 import { StatusType } from 'grommet';
 import { ReservationApi } from 'client/gui/apis/ReservationApi';
 import { TOptions } from "i18next";
@@ -156,14 +141,6 @@ const useReservationGuiApi = (): ReservationApi => {
 
   const { dispatch } = useAppContext();
   const api = useMemo(() => getReservationGuiApi(dispatch), [ dispatch ]);
-  return api;
-  
-};
-
-const usePassengerServiceGuiApi = (): PassengerServiceApi => {
-
-  const { dispatch } = useAppContext();
-  const api = useMemo(() => getPassengerServiceGuiApi(dispatch), [ dispatch ]);
   return api;
   
 };
@@ -321,6 +298,5 @@ export {
   supportSuspense,
   useOnboardingGuiApi,
   useMemberGuiApi,
-  usePassengerServiceGuiApi,
   useReservationGuiApi,
 }

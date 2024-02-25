@@ -1,6 +1,7 @@
 package at.elmo.reservation.blocking;
 
 import at.elmo.car.Car;
+import at.elmo.reservation.ReservationBase;
 import at.elmo.reservation.ReservationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,7 +30,7 @@ public class BlockingService {
 
     }
 
-    public void createBlocking(
+    public BlockingReservation createBlocking(
             final Car car,
             final LocalDateTime startsAt,
             final LocalDateTime endsAt,
@@ -70,6 +71,8 @@ public class BlockingService {
             previousReservation.setNextReservation(blocking);
         }
 
+        return blocking;
+
     }
 
     public boolean cancelBlocking(
@@ -89,6 +92,9 @@ public class BlockingService {
 
         final var now = LocalDateTime.now();
 
+        final ReservationBase previousReservation;
+        final ReservationBase nextReservation;
+
         // blocking already started
         if (blocking.getStartsAt().isBefore(now)) {
 
@@ -96,31 +102,43 @@ public class BlockingService {
                     .truncatedTo(ChronoUnit.HOURS);
             if (endOfUsage.isBefore(blocking.getEndsAt())) {
                 blocking.setEndsAt(endOfUsage);
+                previousReservation = null;
+            } else {
+                previousReservation = blocking.getPreviousReservation();
             }
 
+            nextReservation = blocking.getNextReservation();
             if (blocking.getNextReservation() != null) {
                 blocking.getNextReservation().setPreviousReservation(null);
                 blocking.setNextReservation(null);
             }
-            final var nextReservation = reservationService
-                    .getReservationByStartsAt(car, endOfUsage);
-            if (nextReservation != null) {
-                blocking.setNextReservation(nextReservation);
-                nextReservation.setPreviousReservation(blocking);
-            }
 
         } else {
 
+            previousReservation = blocking.getPreviousReservation();
             if (blocking.getPreviousReservation() != null) {
                 blocking.getPreviousReservation().setNextReservation(null);
             }
+
+            nextReservation = blocking.getNextReservation();
             if (blocking.getNextReservation() != null) {
                 blocking.getNextReservation().setPreviousReservation(null);
             }
-            blockings.save(blocking);
 
+            blockings.save(blocking);
             blockings.delete(blocking);
 
+        }
+
+        if (nextReservation != null) {
+            final var newPreviousReservation = reservationService
+                    .getReservationByEndsAt(car, nextReservation.getStartsAt());
+            newPreviousReservation.setPreviousReservation(newPreviousReservation);
+        }
+        if (previousReservation != null) {
+            final var newNextReservation = reservationService
+                    .getReservationByStartsAt(car, previousReservation.getEndsAt());
+            newNextReservation.setNextReservation(newNextReservation);
         }
 
         return true;

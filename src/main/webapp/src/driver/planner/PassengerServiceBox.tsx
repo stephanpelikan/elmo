@@ -1,18 +1,22 @@
-import { Box, Paragraph, Text } from 'grommet';
+import { Box, Table, TableBody, TableCell, TableRow, Text } from 'grommet';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
-import { useRef, useState } from "react";
+import { MouseEvent, useRef, useState } from "react";
 import { CalendarHour, ReservationDrivers, useWakeupSseCallback } from './utils';
 import { BackgroundType, BorderType } from 'grommet/utils';
 import { useAppContext } from '../../AppContext';
-import { Clear, Configure, SchedulePlay, Transaction } from 'grommet-icons';
+import { Configure, FormClose, Transaction, User, UserFemale } from 'grommet-icons';
 import { PlannerButton } from './PlannerButton';
-import { usePlannerApi } from '../DriverAppContext';
+import { usePassengerServiceApi } from '../DriverAppContext';
 import { UserAvatar } from '../../components/UserAvatar';
 import { PlannerContextMenu } from './PlannerContextMenu';
-import { Role, ShiftStatus } from '../../client/gui';
+import { PlannerCar, Role, ShiftStatus } from '../../client/gui';
 import useOnClickOutside from '../../utils/clickOutside';
+import { BoxModal, ReasonModalProperties } from "./BoxModal";
+import { now } from "../../utils/now-hook";
 import { Modal } from "../../components/Modal";
+import { TableCellExtendedProps } from "grommet/components/TableCell";
+import { toLocaleTimeStringWithoutSeconds } from "../../utils/timeUtils";
 
 i18n.addResources('en', 'driver/planner/passenger-service', {
       "reservation-type": "Passenger Service",
@@ -22,11 +26,18 @@ i18n.addResources('en', 'driver/planner/passenger-service', {
       "parallel-carsharing_msg": "You have another car-sharing reservation in parallel for '{{value}}'!",
       "parallel-passengerservice_title": "Passenger Service",
       "parallel-passengerservice_msg": "You are planned yourself for passenger-service on '{{value}}' in parallel!",
-      "unclaim": "Unclaim",
-      "unclaim_header": "Unclaim shift?",
+      "unclaim-header": "Unclaim shift?",
+      "unclaim-abort": "Abort",
+      "unclaim-submit": "Unclaim",
+      "unclaim-reason": " Please enter a reason:",
       "unclaim_hint_by-driver": "Unclaiming the shift may cause unserved passenger rides!",
       "unclaim_hint_by-admin": "The currently registered person will be informed about the removal!",
-      "abort": "Abort",
+      "cancel-header": "Cancel shift?",
+      "cancel-abort": "Abort",
+      "cancel-submit": "Confirm",
+      "cancel-reason": " Please enter a reason:",
+      "cancel-hint": "Cancelling the shift may cause unserved passenger rides!",
+      "info-abort": "Dismiss",
     });
 
 i18n.addResources('de', 'driver/planner/passenger-service', {
@@ -39,103 +50,160 @@ i18n.addResources('de', 'driver/planner/passenger-service', {
       "parallel-carsharing_msg": "Du hast zeitgleich eine andere Car-Sharing-Reservierung für '{{value}}'!",
       "parallel-passengerservice_title": "Fahrtendienst",
       "parallel-passengerservice_msg": "Du hast zeitgleich Fahrtendienst mit '{{value}}' eingetragen!",
-      "unclaim": "Austragen",
-      "unclaim_header": "Aus der Schicht austragen?",
+      "unclaim-header": "Aus der Schicht austragen?",
+      "unclaim-submit": "Austragen",
+      "unclaim-abort": "Abbrechen",
+      "unclaim-reason": " Bitte gib eine Begründung an:",
       "unclaim_hint_by-driver": "Sich aus der Schicht auszutragen könnte zu unerfüllbaren Passagierfahrten führen!",
       "unclaim_hint_by-admin": "Die aktuell eingetragene Person wird über das Austragen informiert!",
-      "abort": "Abbrechen",
+      "cancel-header": "Schicht entfernen",
+      "cancel-abort": "Abbrechen",
+      "cancel-submit": "Bestätigen",
+      "cancel-reason": " Bitte gib eine Begründung an:",
+      "cancel-hint": "Die Schicht zu entfernen könnte zu unerfülllbaren Passagierfahrten führen!",
+      "info-abort": "Schließen"
     });
 
-const PassengerServiceBox = ({
-    hour,
-    isFirstHourOfReservation,
-    isLastHourOfReservation,
-    drivers,
-  }: {
-    hour: CalendarHour,
-    isFirstHourOfReservation: boolean,
-    isLastHourOfReservation: boolean,
-    drivers: ReservationDrivers,
-  }) => {
-    const { state, toast, showLoadingIndicator } = useAppContext();
-    const { t } = useTranslation('driver/planner/passenger-service');
-    const wakeupSseCallback = useWakeupSseCallback();
-    const plannerApi = usePlannerApi(wakeupSseCallback);
+const infoTableCellDefaultProps: TableCellExtendedProps = {
+  pad: { vertical: 'xsmall' }
+};
 
-    const claim = async () => {
-        try {
-          showLoadingIndicator(true);
-          await plannerApi.claimShift({ shiftId: hour.reservation!.id });
-        } catch(error) {
-          showLoadingIndicator(false);
-          // CONFLICT means there is another reservation
-          if (error.response?.status === 409) {
-            toast({
-                namespace: 'driver/planner/passenger-service',
-                title: 'conflicting-driver_title',
-                message: 'conflicting-driver_msg',
-                status: 'critical'
+const PassengerServiceBox = ({
+  car,
+  hour,
+  isFirstHourOfReservation,
+  isLastHourOfReservation,
+  drivers,
+}: {
+  car: PlannerCar,
+  hour: CalendarHour,
+  isFirstHourOfReservation: boolean,
+  isLastHourOfReservation: boolean,
+  drivers: ReservationDrivers,
+}) => {
+  const { state, toast, showLoadingIndicator } = useAppContext();
+  const { t } = useTranslation('driver/planner/passenger-service');
+  const wakeupSseCallback = useWakeupSseCallback();
+  const passengerServiceApi = usePassengerServiceApi(wakeupSseCallback);
+
+  const [ reasonModal, setReasonModal ] = useState<ReasonModalProperties>(undefined);
+
+  const claim = async () => {
+      setShowEditMenu(false);
+      try {
+        showLoadingIndicator(true);
+        await passengerServiceApi.claimShift({ shiftId: hour.reservation!.id });
+      } catch(error) {
+        showLoadingIndicator(false);
+        // CONFLICT means there is another reservation
+        if (error.response?.status === 409) {
+          toast({
+              namespace: 'driver/planner/passenger-service',
+              title: 'conflicting-driver_title',
+              message: 'conflicting-driver_msg',
+              status: 'critical'
+            });
+          }
+        // violations response
+        else if (error.response?.json) {
+          const violations = await error.response?.json()
+          Object
+              .keys(violations)
+              .forEach(violation => {
+                  toast({
+                      namespace: 'driver/planner/passenger-service',
+                      title: `${violation}_title`,
+                      message: `${violation}_msg`,
+                      tOptions: { value: violations[violation] },
+                      status: 'critical'
+                    });
               });
-            }
-          // violations response
-          else if (error.response?.json) {
-            const violations = await error.response?.json()
-            Object
-                .keys(violations)
-                .forEach(violation => {
-                    toast({
-                        namespace: 'driver/planner/passenger-service',
-                        title: `${violation}_title`,
-                        message: `${violation}_msg`,
-                        tOptions: { value: violations[violation] },
-                        status: 'critical'
-                      });
-                });
+        }
+      }
+    };
+
+  const requestUnclaim = () => {
+      setShowEditMenu(false);
+      const within48Hours = (hour.startsAt.getTime() - now.getTime()) < 1000 * 3600 * 48;
+      setReasonModal({
+        requestComment: within48Hours,
+        prefix: 'unclaim',
+        onAbort: () => setReasonModal(undefined),
+        hint:
+            t(ownedByCurrentUser ? 'unclaim_hint_by-driver' : 'unclaim_hint_by-admin')
+            + (within48Hours ? t('unclaim-reason') : ''),
+        action: async comment => {
+          setShowEditMenu(false);
+          setReasonModal(undefined);
+          try {
+            showLoadingIndicator(true);
+            await passengerServiceApi.unclaimShift({ shiftId: hour.reservation!.id });
+          } catch(error) {
+            showLoadingIndicator(false);
           }
         }
-      };
-    const unclaim = async () => {
-        try {
-          setUnclaimRequested(undefined);
-          showLoadingIndicator(true);
-          await plannerApi.unclaimShift({ shiftId: hour.reservation!.id });
-        } catch(error) {
-          showLoadingIndicator(false);
-        }
-      };
+      });
+    };
 
-    const requestSwap = async () => {
-        try {
-          showLoadingIndicator(true);
-          await plannerApi.requestSwapOfShift({ shiftId: hour.reservation!.id })
-        } catch(error) {
-          showLoadingIndicator(false);
-        }
-      };
+  const requestSwap = async () => {
+      setShowEditMenu(false);
+      try {
+        showLoadingIndicator(true);
+        await passengerServiceApi.requestSwapOfShift({ shiftId: hour.reservation!.id })
+      } catch(error) {
+        showLoadingIndicator(false);
+      }
+    };
 
-    const confirmSwap = async () => {
-        try {
-          showLoadingIndicator(true);
-          await plannerApi.confirmSwapOfShift({ shiftId: hour.reservation!.id })
-        } catch(error) {
-          showLoadingIndicator(false);
-        }
-      };
+  const confirmSwap = async () => {
+      setShowEditMenu(false);
+      try {
+        showLoadingIndicator(true);
+        await passengerServiceApi.confirmSwapOfShift({ shiftId: hour.reservation!.id })
+      } catch(error) {
+        showLoadingIndicator(false);
+      }
+    };
 
   const cancelSwap = async () => {
+    setShowEditMenu(false);
     try {
       showLoadingIndicator(true);
-      await plannerApi.cancelOrRejectSwapOfShift({ shiftId: hour.reservation!.id })
+      await passengerServiceApi.cancelOrRejectSwapOfShift({ shiftId: hour.reservation!.id })
     } catch(error) {
       showLoadingIndicator(false);
     }
+  };
+
+  const requestCancellation = (event: MouseEvent) => {
+    const within48Hours = (hour.startsAt.getTime() - now.getTime()) < 1000 * 3600 * 48;
+    setShowEditMenu(false);
+    setReasonModal({
+      requestComment: within48Hours,
+      prefix: 'cancel',
+      onAbort: () => setReasonModal(undefined),
+      hint: t('cancel-hint') + (within48Hours ? t('cancel-reason') : ''),
+      action: async comment => {
+        setShowEditMenu(false);
+        setReasonModal(undefined);
+        try {
+          showLoadingIndicator(true);
+          await passengerServiceApi.cancelPassengerServiceShift({
+            carId: car.id,
+            shiftId: hour.reservation!.id,
+            body: comment
+          });
+        } catch(error) {
+          showLoadingIndicator(false);
+        }
+      }
+    });
   };
 
   const hasDriver = hour.reservation!.driverMemberId !== undefined;
   const ownedByCurrentUser = hour.reservation!.driverMemberId === state.currentUser!.memberId;
   const isAdmin = state.currentUser!.roles!.includes(Role.Admin) || state.currentUser!.roles!.includes(Role.Manager);
   const unclaimed = hour.reservation!.status === ShiftStatus.Unclaimed;
-  const [ unclaimRequested, setUnclaimRequested ] = useState<undefined | 'by-driver' | 'by-admin'>(undefined);
   const claimed = hour.reservation!.status === ShiftStatus.Claimed;
   const cancellable = claimed && (ownedByCurrentUser || isAdmin);
   const swapInProgress = hour.reservation!.swapInProgressMemberId !== undefined;
@@ -144,7 +212,7 @@ const PassengerServiceBox = ({
   const swapCancelable = swapInProgress && ((state.currentUser!.memberId === hour.reservation!.swapInProgressMemberId)
       || ownedByCurrentUser
       || isAdmin);
-  const editable = claimed;
+  const hasEditMenu = isAdmin || claimed;
   const [ showEditMenu, setShowEditMenu ] = useState(false);
   const ref = useRef(null);
   useOnClickOutside(ref, event => {
@@ -171,17 +239,59 @@ const PassengerServiceBox = ({
           ? { color: 'light-4', opacity: 'strong' }
           : { color: 'status-critical', opacity: 'medium' };
 
+  const [ showDetails, setShowDetails ] = useState(undefined);
+  const loadAndShowDetails = async (event: MouseEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+      setShowDetails(
+          <Table
+              margin={ { vertical: "small" } }>
+            <TableBody>
+              <TableRow>
+                <TableCell { ...infoTableCellDefaultProps }>
+                  <strong>Zeitraum:&nbsp;</strong>
+                </TableCell>
+                <TableCell { ...infoTableCellDefaultProps }>
+                  {
+                    toLocaleTimeStringWithoutSeconds(hour.reservation.startsAt)
+                  }
+                  -
+                  {
+                    toLocaleTimeStringWithoutSeconds(hour.reservation.endsAt)
+                  }
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell { ...infoTableCellDefaultProps }>
+                  <strong>{
+                    drivers[ hour.reservation!.driverMemberId! ]?.sex === "FEMALE"
+                        ? 'Fahrerin'
+                        : 'Fahrer'
+                  }:&nbsp;</strong>
+                </TableCell>
+                <TableCell { ...infoTableCellDefaultProps }>
+                  {
+                    hour.reservation!.driverMemberId === undefined
+                        ? 'Nicht belegt'
+                        : `${drivers[ hour.reservation!.driverMemberId! ].firstName} ${drivers[ hour.reservation!.driverMemberId! ].lastName}`
+                  }
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>);
+    };
+
   return (
       <>
         {
-          !showEditMenu && isLastHourOfReservation && unclaimed
+          !showEditMenu && isLastHourOfReservation && !hasEditMenu && unclaimed
               ? <PlannerButton
                     action={ claim }
-                    icon={ SchedulePlay } />
+                    icon={ state.currentUser!.sex === "FEMALE" ? UserFemale : User } />
               : undefined
         }
         {
-          !showEditMenu && isLastHourOfReservation && editable
+          !showEditMenu && isLastHourOfReservation && hasEditMenu
               ? <PlannerButton
                     action={ () => setShowEditMenu(true) }
                     background='dark-4'
@@ -199,25 +309,28 @@ const PassengerServiceBox = ({
                       showBorder={false}
                       icon={ Configure } />
                   {
+                    unclaimed
+                        ? <PlannerButton
+                            inContextMenu
+                            action={ claim }
+                            icon={ state.currentUser!.sex === "FEMALE" ? UserFemale : User } />
+                        : undefined
+                  }
+                  {
                     cancellable
                         ? <PlannerButton
                              inContextMenu
-                             action={ () => {
-                                 setUnclaimRequested(ownedByCurrentUser ? 'by-driver' : 'by-admin');
-                                 setShowEditMenu(false);
-                               } }
-                             background='status-critical'
-                             icon={ Clear } />
+                             action={ requestUnclaim }
+                             background='status-warning'
+                             icon={ state.currentUser!.sex === "FEMALE" ? UserFemale : User }
+                             iconAddition="cancel" />
                         : undefined
                   }
                   {
                     swappable
                         ? <PlannerButton
                              inContextMenu
-                             action={ () => {
-                                 requestSwap();
-                                 setShowEditMenu(false);
-                               } }
+                             action={ requestSwap }
                              background='status-warning'
                              icon={ Transaction } />
                         : undefined
@@ -226,10 +339,7 @@ const PassengerServiceBox = ({
                     swapConfirmable
                         ? <PlannerButton
                             inContextMenu
-                            action={ () => {
-                              confirmSwap();
-                              setShowEditMenu(false);
-                            } }
+                            action={ confirmSwap }
                             background='status-ok'
                             icon={ Transaction }
                             iconAddition="confirm" />
@@ -239,13 +349,20 @@ const PassengerServiceBox = ({
                     swapCancelable
                         ? <PlannerButton
                             inContextMenu
-                            action={ () => {
-                              cancelSwap();
-                              setShowEditMenu(false);
-                            } }
+                            action={ cancelSwap }
                             background='status-alert'
                             icon={ Transaction }
                             iconAddition="cancel" />
+                        : undefined
+                  }
+                  {
+                    isAdmin
+                        ? <PlannerButton
+                            inContextMenu
+                            action={ requestCancellation }
+                            background='status-critical'
+                            icon={ FormClose }
+                            iconSize='30rem' />
                         : undefined
                   }
                 </PlannerContextMenu>
@@ -260,8 +377,10 @@ const PassengerServiceBox = ({
             gap='xsmall'
             direction="row"
             border={ borders }
-            background={ backgroundColor } >{
-          isFirstHourOfReservation && hasDriver
+            background={ backgroundColor }
+            style={ { position: 'relative' } }
+            onMouseDown={ loadAndShowDetails }>{
+          isFirstHourOfReservation
               ? <>
                   <UserAvatar
                       size='small'
@@ -273,18 +392,20 @@ const PassengerServiceBox = ({
                         truncate>{ t(`reservation-type` as const) }</Text>
                   </Box>
                 </>
-              : isFirstHourOfReservation && !hasDriver
-              ? <Text>{ t(`reservation-type` as const) }</Text>
               : <>&nbsp;</>
         }</Box>
+        <BoxModal
+            t={ t }
+            reasonModal={ reasonModal } />
         <Modal
-            show={ unclaimRequested !== undefined }
-            action={ unclaim }
-            actionLabel='unclaim'
-            abort={ () => setUnclaimRequested(undefined) }
-            header='unclaim_header'
-            t={ t }>
-          <Paragraph>{ t(`unclaim_hint_${unclaimRequested}`) }</Paragraph>
+            t={ t }
+            header={ 'reservation-type' }
+            abortLabel={ 'info-abort' }
+            abort={ () => setShowDetails(undefined) }
+            show={ showDetails !== undefined }>
+          {
+            showDetails
+          }
         </Modal>
       </>);
   };

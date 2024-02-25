@@ -5,6 +5,7 @@ import at.elmo.gui.api.v1.AddPlannerReservation;
 import at.elmo.gui.api.v1.BlockingApi;
 import at.elmo.gui.api.v1.ResizeReservationRequest;
 import at.elmo.member.Role;
+import at.elmo.reservation.ReservationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1")
 @Secured({ Role.ROLE_MANAGER, Role.ROLE_ADMIN })
 public class GuiApiController implements BlockingApi {
+
+    @Autowired
+    private ReservationService reservationService;
 
     @Autowired
     private CarService carService;
@@ -69,7 +73,7 @@ public class GuiApiController implements BlockingApi {
     @Override
     public ResponseEntity<Void> addBlockingReservation(
             final String carId,
-            final AddPlannerReservation addPlannerReservation) {
+            final AddPlannerReservation blockingReservation) {
 
         final var carFound = carService.getCar(carId);
         if (carFound.isEmpty()) {
@@ -79,11 +83,21 @@ public class GuiApiController implements BlockingApi {
 
         try {
 
-            blockingService.createBlocking(
+            final var blocking = blockingService.createBlocking(
                     car,
-                    addPlannerReservation.getStartsAt(),
-                    addPlannerReservation.getEndsAt(),
-                    addPlannerReservation.getComment());
+                    blockingReservation.getStartsAt(),
+                    blockingReservation.getEndsAt(),
+                    blockingReservation.getComment());
+
+            // overlappings may happen by a small chance if a concurrent transaction is not committed
+            final var overlappingsAfterwards = reservationService.checkForOverlappings(
+                    car,
+                    blockingReservation.getStartsAt(),
+                    blockingReservation.getEndsAt());
+            if (overlappingsAfterwards.size() > 1) { // 1 ... the new created car-sharing session
+                blockingService
+                        .cancelBlocking(car.getId(), blocking.getId());
+            }
 
         } catch (UnsupportedOperationException e) {
 

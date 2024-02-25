@@ -6,7 +6,6 @@ import at.elmo.reservation.ConsumingReservation;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
@@ -36,6 +35,9 @@ public class Shift extends ConsumingReservation {
     @ManyToOne()
     @JoinColumn(name = "PREVIOUS_DRIVER", referencedColumnName = "ID")
     private Member previousDriver;
+
+    @Column(name = "LAST_COMMENT")
+    private String lastInteractionComment;
 
     private transient List<String> rides = List.of(); // TODO add rides to this table later
     
@@ -69,6 +71,14 @@ public class Shift extends ConsumingReservation {
 
     public void setPreviousDriver(Member previousDriver) {
         this.previousDriver = previousDriver;
+    }
+
+    public String getLastInteractionComment() {
+        return lastInteractionComment;
+    }
+
+    public void setLastInteractionComment(String lastInteractionComment) {
+        this.lastInteractionComment = lastInteractionComment;
     }
 
     public String getOneHourBeforeStart() {

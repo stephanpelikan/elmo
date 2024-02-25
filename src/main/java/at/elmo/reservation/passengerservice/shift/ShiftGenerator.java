@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Stream;
@@ -93,7 +94,12 @@ public class ShiftGenerator {
                             .map(shift -> {
                                 Shift result;
                                 try {
-                                    result = shiftService.createShift(car, day, shift);
+                                    final var startsAt = day.atTime(LocalTime.parse(shift.getStart()));
+                                    final var endsAt = day.atTime(LocalTime.parse(shift.getEnd()));
+                                    result = shiftService.createShift(car, startsAt, endsAt, null);
+                                } catch (UnsupportedOperationException e) {
+                                    logger.error("Could not create shift since there was already an overlapping shift!");
+                                    result = null;
                                 } catch (Exception e) {
                                     logger.error("Could not create shift!", e);
                                     result = null;

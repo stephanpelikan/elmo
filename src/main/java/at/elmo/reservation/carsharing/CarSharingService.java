@@ -157,17 +157,35 @@ public class CarSharingService {
 
     }
 
-    public boolean cancelCarSharingDueToConflict(
+    @WorkflowTask
+    public void fixDataAfterCancellingDueToConflict(
             final CarSharing carSharing) {
 
         if (carSharing.getPreviousReservation() != null) {
-            carSharing.getPreviousReservation().setNextReservation(null);
+
+            final var nextReservation = reservationService
+                    .getReservationByStartsAt(carSharing.getCar(), carSharing.getPreviousReservation().getEndsAt());
+
+            carSharing.getPreviousReservation().setNextReservation(nextReservation);
             carSharing.setPreviousReservation(null);
+
         }
         if (carSharing.getNextReservation() != null) {
-            carSharing.getNextReservation().setPreviousReservation(null);
+
+            final var previousReservation = reservationService
+                    .getReservationByEndsAt(carSharing.getCar(), carSharing.getNextReservation().getStartsAt());
+
+            carSharing.getNextReservation().setPreviousReservation(previousReservation);
             carSharing.setNextReservation(null);
         }
+
+    }
+
+    public boolean cancelCarSharingDueToConflict(
+            final CarSharing carSharing) {
+
+        carSharing.setCancelled(true);
+        carSharing.setStatus(Status.CANCELLED);
 
         return cancelCarSharing(
                 carSharing,

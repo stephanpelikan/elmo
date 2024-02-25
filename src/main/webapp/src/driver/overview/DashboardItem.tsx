@@ -1,15 +1,15 @@
 import { Box, Text } from 'grommet';
 import { Cycle, MapLocation } from 'grommet-icons';
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ShiftEvent, ShiftOverview, ShiftOverviewWeek } from '../../client/gui';
 import useResponsiveScreen from '../../utils/responsiveUtils';
-import { usePassengerServiceGuiApi } from '../../AppContext';
+import { usePassengerServiceApi } from '../DriverAppContext';
 import { Day } from './Day';
 import i18n from '../../i18n';
 import { Heading } from '../../components/MainLayout';
 import { useGuiSse } from '../../client/guiClient';
-import { EventSourceMessage } from '../../components/SseProvider';
+import { EventSourceMessage, WakeupSseCallback } from '../../components/SseProvider';
 
 i18n.addResources('en', 'driver/overview', {
       "title": "Overview Passenger-Service",
@@ -69,7 +69,8 @@ const Overview = () => {
 
   const { t } = useTranslation('driver/overview');
   const { isPhone } = useResponsiveScreen();
-  const passengerServiceApi = usePassengerServiceGuiApi();
+  const wakeupSseCallback = useRef<WakeupSseCallback>(undefined);
+  const passengerServiceApi = usePassengerServiceApi(wakeupSseCallback);
   
   const updateOverview = useMemo(
     () => async (ev: EventSourceMessage<ShiftEvent>) =>
