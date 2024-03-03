@@ -24,7 +24,13 @@ import { debounceByKey } from '../../utils/debounce';
 import { now, registerEachSecondHook, unregisterEachSecondHook } from '../../utils/now-hook';
 import useResponsiveScreen from '../../utils/responsiveUtils';
 import { currentHour, nextHours, numberOfHoursBetween } from '../../utils/timeUtils';
-import { useBlockingApi, useCarSharingApi, usePassengerServiceApi, usePlannerApi } from '../DriverAppContext';
+import {
+  useBlockingApi,
+  useCarSharingApi,
+  useMaintenanceApi,
+  usePassengerServiceApi,
+  usePlannerApi
+} from '../DriverAppContext';
 import { BlockingBox } from "./BlockingBox";
 import { CarSharingBox } from "./CarSharingBox";
 import { PassengerServiceBox } from "./PassengerServiceBox";
@@ -37,6 +43,7 @@ import {
   SelectionAction,
   useWakeupSseCallback
 } from "./utils";
+import { MaintenanceBox } from "./MaintenanceBox";
 
 i18n.addResources('en', 'driver/planner', {
       "title.long": 'Planner',
@@ -215,6 +222,15 @@ const DayTable = memo<{
                               isLastHourOfReservation={ isLastHourOfReservation }
                               activateSelection={ activateSelection }
                               cancelSelection={ cancelSelection }
+                            />
+                        : hour.reservation?.type === ReservationType.M
+                            ? <MaintenanceBox
+                                hour={ hour }
+                                car={ car }
+                                isFirstHourOfReservation={ isFirstHourOfReservation }
+                                isLastHourOfReservation={ isLastHourOfReservation }
+                                activateSelection={ activateSelection }
+                                cancelSelection={ cancelSelection }
                             />
                         : hour.reservation?.type === ReservationType.Ps
                         ? <PassengerServiceBox
@@ -471,6 +487,7 @@ const Planner = () => {
   const wakeupSseCallback = useWakeupSseCallback();
   const carSharingApi = useCarSharingApi(wakeupSseCallback);
   const blockingApi = useBlockingApi(wakeupSseCallback);
+  const maintenanceApi = useMaintenanceApi(wakeupSseCallback);
   const passengerServiceApi = usePassengerServiceApi(wakeupSseCallback);
   const plannerApi = usePlannerApi(wakeupSseCallback);
 
@@ -492,6 +509,16 @@ const Planner = () => {
             });
           } else if (type === ReservationType.Block) {
             await blockingApi.addBlockingReservation({
+              carId: selection.current!.carId,
+              addPlannerReservation: {
+                type,
+                startsAt: selection.current!.startsAt,
+                endsAt: selection.current!.endsAt,
+                comment,
+              }
+            });
+          } else if (type === ReservationType.M) {
+            await maintenanceApi.addMaintenanceReservation({
               carId: selection.current!.carId,
               addPlannerReservation: {
                 type,
@@ -540,7 +567,7 @@ const Planner = () => {
           }
         }
       },
-      [ state.currentUser, carSharingApi, showLoadingIndicator, toast, blockingApi, passengerServiceApi ]);
+      [ state.currentUser, carSharingApi, showLoadingIndicator, toast, blockingApi, passengerServiceApi, maintenanceApi ]);
 
   useLayoutEffect(() => {
     setAppHeaderTitle('driver/planner', false);
@@ -725,7 +752,7 @@ const Planner = () => {
                     modalT: t
                   },
                   {
-                    action: () => {},
+                    action: (_startsAt, _endsAt, comment) => addReservation(ReservationType.M, comment),
                     icon: Troubleshoot,
                     iconBackground: 'blue',
                     altText: t('create-maintenance'),

@@ -858,6 +858,90 @@ paths:
           description: Reservation not found
         404:
           description: Car not found
+  /gui/maintenance/{carId}/reservation/{reservationId}/cancel:
+    delete:
+      tags:
+        - maintenance
+      summary: Cancel a maintenance reservation
+      operationId: cancelMaintenanceReservation
+      parameters:
+        - in: path
+          name: carId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: reservationId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          text/plain:
+            schema:
+              type: string
+      responses:
+        200:
+          description: Reservation removed
+        400:
+          description: Reservation not found
+        404:
+          description: Car not found
+  /gui/maintenance/{carId}:
+    post:
+      tags:
+        - maintenance
+      summary: Add a new maintenance reservation
+      operationId: addMaintenanceReservation
+      parameters:
+        - in: path
+          name: carId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddPlannerReservation'
+      responses:
+        200:
+          description: Reservation created
+        400:
+          description: Input parameters invalid
+        404:
+          description: Car not found
+        409:
+          description: Reservation declined due to other reservations
+  /gui/maintenance/{carId}/reservation/{reservationId}/resize:
+    put:
+      tags:
+        - maintenance
+      summary: Change the start- and end-time of a maintenance reservation
+      operationId: resizeMaintenanceReservation
+      parameters:
+        - in: path
+          name: carId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: reservationId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResizeReservationRequest'
+      responses:
+        200:
+          description: Reservation changed
+        400:
+          description: Reservation not found
+        404:
+          description: Car not found
 components:
   schemas:
     ValidationErrors:
@@ -890,8 +974,9 @@ components:
       type: string
       enum:
         - CS # shortcut of CarSharing
-        - BLOCK
-        - PS # shortcut of PassenagerService
+        - BLOCK # shortcut of BlockingReservation
+        - PS # shortcut of PassengerService
+        - M # shortcut of MaintenanceReservation
     ShiftOverviewStatus:
       type: string
       enum:

@@ -4,6 +4,7 @@ import at.elmo.gui.api.v1.ReservationType;
 import at.elmo.gui.api.v1.Sex;
 import at.elmo.reservation.blocking.BlockingReservation;
 import at.elmo.reservation.carsharing.CarSharing;
+import at.elmo.reservation.maintenance.MaintenanceReservation;
 import at.elmo.reservation.passengerservice.shift.Shift;
 import at.elmo.util.mapper.GuiApiMapperBase;
 
@@ -24,6 +25,9 @@ public abstract class ReservationMapperBase extends GuiApiMapperBase {
         }
         if (reservation instanceof Shift) {
             return ReservationType.PS;
+        }
+        if (reservation instanceof MaintenanceReservation) {
+            return ReservationType.M;
         }
         throw new RuntimeException(
                 "Unknown reservation type '"

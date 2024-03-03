@@ -1,7 +1,7 @@
 import { MutableRefObject, useMemo } from 'react';
 import { useAppContext } from '../AppContext';
-import { getBlockingGuiApi, getCarSharingGuiApi, getPlannerGuiApi } from '../client/driverClient';
-import { BlockingApi, CarSharingApi, PassengerServiceApi, PlannerApi } from '../client/gui';
+import { getBlockingGuiApi, getCarSharingGuiApi, getMaintenanceGuiApi, getPlannerGuiApi } from '../client/driverClient';
+import { BlockingApi, CarSharingApi, MaintenanceApi, PassengerServiceApi, PlannerApi } from '../client/gui';
 import { WakeupSseCallback } from '../components/SseProvider';
 import { getPassengerServiceGuiApi } from "../client/guiClient";
 
@@ -17,6 +17,14 @@ const useBlockingApi = (wakeupSseCallback?: MutableRefObject<WakeupSseCallback>)
 
   const { dispatch } = useAppContext();
   const api = useMemo(() => getBlockingGuiApi(dispatch, wakeupSseCallback?.current), [ dispatch, wakeupSseCallback ]);
+  return api;
+
+};
+
+const useMaintenanceApi = (wakeupSseCallback?: MutableRefObject<WakeupSseCallback>): MaintenanceApi => {
+
+  const { dispatch } = useAppContext();
+  const api = useMemo(() => getMaintenanceGuiApi(dispatch, wakeupSseCallback?.current), [ dispatch, wakeupSseCallback ]);
   return api;
 
 };
@@ -42,4 +50,5 @@ export {
     useBlockingApi,
     usePlannerApi,
     usePassengerServiceApi,
+    useMaintenanceApi,
   };

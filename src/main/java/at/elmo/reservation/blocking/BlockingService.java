@@ -130,17 +130,6 @@ public class BlockingService {
 
         }
 
-        if (nextReservation != null) {
-            final var newPreviousReservation = reservationService
-                    .getReservationByEndsAt(car, nextReservation.getStartsAt());
-            newPreviousReservation.setPreviousReservation(newPreviousReservation);
-        }
-        if (previousReservation != null) {
-            final var newNextReservation = reservationService
-                    .getReservationByStartsAt(car, previousReservation.getEndsAt());
-            newNextReservation.setNextReservation(newNextReservation);
-        }
-
         return true;
             
     }
